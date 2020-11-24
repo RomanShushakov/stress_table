@@ -1,5 +1,12 @@
 mod math;
 use math::matrix::{Matrix, DecomposedMatrix};
+use math::vector::{Vector, GlobalCoordinateAxis, GlobalCoordinatePlane};
+use math::aux_structs::Coordinates;
+
+
+mod fe;
+use fe::node::Node;
+
 
 fn main()
 {
@@ -43,4 +50,72 @@ fn main()
     println!("{:?}", m_13);
 
     // println!("{:?}", m_7._convert_elements::<f64>().multiply(&m_13.unwrap()));
+
+    let v_1 = Vector
+    {
+        start_coordinates: Coordinates { x: 0, y: 0, z: 0 },
+        end_coordinates: Coordinates { x: 3, y: 3, z: 0 },
+    };
+    println!("{:?}", v_1.cos_coord_axis::<f64>(GlobalCoordinateAxis::X));
+    println!("{:?}", v_1.sin_coord_axis::<f64>(GlobalCoordinateAxis::X));
+
+    let n_1 = Node { number: 1, coordinates: Coordinates { x: 0.0, y: 0.0, z: 0.0 } };
+    println!("{:?}", n_1.coordinates);
+
+    let t_x = Matrix
+    {
+        elements: vec![
+            vec![1.0, 0.0, 0.0],
+            vec![0.0,
+                v_1.project_on_coord_plane(GlobalCoordinatePlane::YZ)
+                    .cos_coord_axis::<f64>(GlobalCoordinateAxis::Y),
+                -v_1.project_on_coord_plane(GlobalCoordinatePlane::YZ)
+                    .sin_coord_axis::<f64>(GlobalCoordinateAxis::Y),],
+            vec![0.0,
+                 -v_1.project_on_coord_plane(GlobalCoordinatePlane::YZ)
+                     .sin_coord_axis::<f64>(GlobalCoordinateAxis::Y),
+                 v_1.project_on_coord_plane(GlobalCoordinatePlane::YZ)
+                     .cos_coord_axis::<f64>(GlobalCoordinateAxis::Y),]
+        ]
+    };
+    let t_y = Matrix
+    {
+        elements: vec![
+            vec![v_1.project_on_coord_plane(GlobalCoordinatePlane::XZ)
+                     .cos_coord_axis::<f64>(GlobalCoordinateAxis::X),
+                 0.0,
+                 -v_1.project_on_coord_plane(GlobalCoordinatePlane::XZ)
+                     .sin_coord_axis::<f64>(GlobalCoordinateAxis::X)],
+            vec![0.0, 1.0, 0.0],
+            vec![-v_1.project_on_coord_plane(GlobalCoordinatePlane::XZ)
+                    .sin_coord_axis::<f64>(GlobalCoordinateAxis::X),
+                 0.0,
+                 v_1.project_on_coord_plane(GlobalCoordinatePlane::XZ)
+                     .cos_coord_axis::<f64>(GlobalCoordinateAxis::X),]
+        ]
+    };
+    let t_z = Matrix
+    {
+        elements: vec![
+            vec![v_1.project_on_coord_plane(GlobalCoordinatePlane::XY)
+                     .cos_coord_axis::<f64>(GlobalCoordinateAxis::X),
+                 -v_1.project_on_coord_plane(GlobalCoordinatePlane::XY)
+                     .sin_coord_axis::<f64>(GlobalCoordinateAxis::X),
+                 0.0],
+            vec![-v_1.project_on_coord_plane(GlobalCoordinatePlane::XY)
+                    .sin_coord_axis::<f64>(GlobalCoordinateAxis::X),
+                 v_1.project_on_coord_plane(GlobalCoordinatePlane::XY)
+                     .cos_coord_axis::<f64>(GlobalCoordinateAxis::X),
+                 0.0],
+            vec![0.0, 0.0, 1.0],
+        ]
+    };
+    println!("TX Matrix - {:?}", t_x);
+    println!("TY Matrix - {:?}", t_y);
+    println!("TZ Matrix - {:?}", t_z);
+    if let Ok(t) = t_x.multiply(&t_y)
+    {
+        println!("T Matrix - {:?}", t.multiply(&t_z).unwrap());
+    }
+
 }

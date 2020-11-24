@@ -1,39 +1,7 @@
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::ops::{Add, Sub, Mul, Div, AddAssign, SubAssign, MulAssign};
-
-
-pub trait One
-{
-    fn one() -> Self;
-}
-
-
-impl One for f64
-{
-    fn one() -> f64
-    {
-        1.0
-    }
-}
-
-
-impl One for f32
-{
-    fn one() -> f32
-    {
-        1.0
-    }
-}
-
-
-impl One for i32
-{
-    fn one() -> i32
-    {
-        1
-    }
-}
+use crate::math::aux_traits::One;
 
 
 #[derive(Eq, PartialEq, Hash, Debug)]

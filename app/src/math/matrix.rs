@@ -24,7 +24,24 @@ impl<T> Matrix<T>
              Add<Output = T> + Mul<Output = T> +
              AddAssign + MulAssign
 {
-    pub fn multiply(&self, other: &Matrix<T>) -> Result<Matrix<T>, &str>
+    pub fn multiply_by_number(&self, number: T) -> Matrix<T>
+    {
+        let mut elements = Vec::new();
+        for i in 0..self.elements.len()
+        {
+            let mut current_row: Vec<T> = Vec::new();
+            for j in 0..self.elements[0].len()
+            {
+                let current_element = self.elements[i][j] * number;
+                current_row.push(current_element);
+            }
+            elements.push(current_row);
+        }
+        Matrix { elements }
+    }
+
+
+    pub fn multiply_by_matrix(&self, other: &Matrix<T>) -> Result<Matrix<T>, &str>
     {
         if self.elements[0].len() != other.elements.len()
         {

@@ -1,4 +1,4 @@
 pub mod matrix;
 pub mod vector;
-pub mod aux_traits;
-pub mod aux_structs;
+pub mod math_aux_traits;
+pub mod math_aux_structs;

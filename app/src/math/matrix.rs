@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::ops::{Add, Sub, Mul, Div, AddAssign, SubAssign, MulAssign};
-use crate::math::aux_traits::One;
+use crate::math::math_aux_traits::One;
 
 
 #[derive(Eq, PartialEq, Hash, Debug)]

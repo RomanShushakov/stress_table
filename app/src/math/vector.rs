@@ -1,6 +1,6 @@
 use std::ops::{Sub, Mul, Add, Div};
-use crate::math::aux_traits::{One, FloatNum};
-use crate::math::aux_structs::Coordinates;
+use crate::math::math_aux_traits::{One, FloatNum};
+use crate::math::math_aux_structs::Coordinates;
 
 
 pub enum GlobalCoordinateAxis

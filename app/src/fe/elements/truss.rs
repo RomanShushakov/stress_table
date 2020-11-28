@@ -1,22 +1,43 @@
 use crate::fe::node::Node;
-use crate::math::aux_traits::{One, FloatNum};
+use crate::math::math_aux_traits::{One, FloatNum};
 use crate::math::matrix::Matrix;
 use crate::math::vector::{Vector, GlobalCoordinateAxis, GlobalCoordinatePlane};
+use crate::NUMBER_OF_DOF;
+use crate::fe::fe_aux_structs::
+    {
+        SubMatrixIndexes, compose_stiffness_submatrices_and_displacements,
+        Stiffness, Displacement
+    };
+use crate::fe::elements::element::{Element};
 use std::ops::{Add, Sub, Mul, Div, AddAssign, MulAssign};
 use std::fmt::Display;
+use std::collections::HashMap;
+use std::hash::Hash;
 
 
 #[derive(Debug)]
-struct State<V>
+struct IntegrationPoint<V>
 {
-    jacobian: Option<V>,
-    strain_displacement_matrix: Option<Matrix<V>>,
-    rotation_matrix: Option<Matrix<V>>,
+    sampling_point: V,
+    weight: V,
 }
 
 
 #[derive(Debug)]
-pub struct Truss2Node<T, V, W>
+pub struct State<T, V>
+{
+    jacobian: Option<V>,
+    strain_displacement_matrix: Option<Matrix<V>>,
+    integration_points: Vec<IntegrationPoint<V>>,
+    rotation_matrix: Option<Matrix<V>>,
+    pub displacements: HashMap<Displacement<T>, usize>,
+    pub stiffness_submatrices: HashMap<Stiffness<T>, SubMatrixIndexes>,
+}
+
+
+#[derive(Debug)]
+pub struct Truss2n2ip<T, V, W>
+    where T: Hash + Eq + Copy
 {
     pub number: T,
     pub node_1: Node<T, V>,
@@ -24,12 +45,12 @@ pub struct Truss2Node<T, V, W>
     pub young_modulus: W,
     pub area: W,
     pub area_2: Option<W>,
-    state: State<V>,
+    pub state: State<T, V>,
 }
 
 
-impl<T, V, W> Truss2Node<T, V, W>
-    where T: Display,
+impl<T, V, W> Truss2n2ip<T, V, W>
+    where T: Display + Hash + Eq + Copy,
           V: FloatNum + Copy + One + Default + From<f64> +
              Add<Output = V> + Sub<Output = V> +
              Mul<Output = V> + Div<Output = V> +
@@ -39,14 +60,33 @@ impl<T, V, W> Truss2Node<T, V, W>
     pub fn create(
         number: T, node_1: Node<T, V>, node_2: Node<T, V>,
         young_modulus: W, area: W, area_2: Option<W>)
-        -> Truss2Node<T, V, W>
+        -> Truss2n2ip<T, V, W>
     {
-        Truss2Node
+        let integration_point_1 = IntegrationPoint
+            {
+                sampling_point: V::from(-1f64 / 3f64.sqrt()),
+                weight: One::one(),
+            };
+        let integration_point_2 = IntegrationPoint
+            {
+                sampling_point: V::from(1f64 / 3f64.sqrt()),
+                weight: One::one(),
+            };
+
+        let nodes = vec![&node_1, &node_2];
+        let (displacements, stiffness_submatrices) =
+            compose_stiffness_submatrices_and_displacements
+                (
+                    NUMBER_OF_DOF as usize, nodes
+                );
+        Truss2n2ip
             {
                 number, node_1, node_2, young_modulus, area, area_2,
                 state: State
                     {
-                        jacobian: None, strain_displacement_matrix: None, rotation_matrix: None
+                        jacobian: None, strain_displacement_matrix: None,
+                        integration_points: vec![integration_point_1, integration_point_2],
+                        rotation_matrix: None, displacements, stiffness_submatrices
                     },
             }
     }
@@ -61,7 +101,6 @@ impl<T, V, W> Truss2Node<T, V, W>
             (self.node_2.coordinates.y - self.node_1.coordinates.y) +
             (self.node_2.coordinates.z - self.node_1.coordinates.z) *
             (self.node_2.coordinates.z - self.node_1.coordinates.z)).sqrt();
-
         self.state.jacobian = Some(element_length / V::from(2f64));
     }
 
@@ -188,12 +227,12 @@ impl<T, V, W> Truss2Node<T, V, W>
             if let Ok(m) = m.multiply_by_matrix(&t_z)
             {
                 let mut rotation_matrix_elements = Vec::new();
-                for i in 0..12
+                for i in 0..(NUMBER_OF_DOF * 2) as usize
                 {
                     let mut current_row = Vec::new();
-                    for j in 0..12
+                    for j in 0..(NUMBER_OF_DOF * 2) as usize
                     {
-                        if i < 6
+                        if i < NUMBER_OF_DOF as usize
                         {
                             if let Some(row) = m.elements.get(i)
                             {
@@ -238,13 +277,13 @@ impl<T, V, W> Truss2Node<T, V, W>
                         }
                         else
                         {
-                            if let Some(row) = m.elements.get(i - 6)
+                            if let Some(row) = m.elements.get(i - NUMBER_OF_DOF as usize)
                             {
-                                if j < 6
+                                if j < NUMBER_OF_DOF as usize
                                 {
                                     current_row.push(Default::default());
                                 }
-                                else if let Some(element) = row.get(j - 6)
+                                else if let Some(element) = row.get(j - NUMBER_OF_DOF as usize)
                                 {
                                     let current_element =
                                         {
@@ -302,41 +341,28 @@ impl<T, V, W> Truss2Node<T, V, W>
     }
 
 
-    fn _area_numerical_integration(&mut self) -> V
+    fn _area_numerical_integration(&self) -> V
     {
-        let sampling_point_1 = V::from(-1f64 / 3f64.sqrt());
-        let weight_1: V = One::one();
-        let sampling_point_2 = V::from(1f64 / 3f64.sqrt());
-        let weight_2: V = One::one();
-        if let Some(area_2) = self.area_2
+        let mut integrated_area = Default::default();
+        for integration_point in &self.state.integration_points
         {
-            let integrated_area =
-                (
-                    self.area.into().sqrt() +
+            if let Some(area_2) = self.area_2
+            {
+                let one: V = One::one();
+                integrated_area += integration_point.weight *
+                    (self.area.into().sqrt() +
                     ((area_2.into().sqrt() - self.area.into().sqrt()) / V::from(2f64)) *
-                    (sampling_point_1 + One::one())
-                ) *
-                (
-                    self.area.into().sqrt() +
+                    (one + integration_point.sampling_point)) *
+                    (self.area.into().sqrt() +
                     ((area_2.into().sqrt() - self.area.into().sqrt()) / V::from(2f64)) *
-                    (sampling_point_1 + One::one())
-                ) * weight_1 +
-                (
-                    self.area.into().sqrt() +
-                    ((area_2.into().sqrt() - self.area.into().sqrt()) / V::from(2f64)) *
-                    (sampling_point_2 + One::one())
-                ) *
-                (
-                    self.area.into().sqrt() +
-                    ((area_2.into().sqrt() - self.area.into().sqrt()) / V::from(2f64)) *
-                    (sampling_point_2 + One::one())
-                ) * weight_2;
-            integrated_area
+                    (one + integration_point.sampling_point));
+            }
+            else
+            {
+                integrated_area += integration_point.weight * self.area.into();
+            }
         }
-        else
-        {
-            self.area.into() * weight_1 + self.area.into() * weight_2
-        }
+        integrated_area
     }
 
 
@@ -360,7 +386,30 @@ impl<T, V, W> Truss2Node<T, V, W>
             Err(format!("cannot compose local stiffness matrix for element {}!", self.number))
         }
     }
+
+
+    pub fn convert_stiffness_matrix_into_global(&mut self) -> Result<Matrix<V>, String>
+    {
+        if let None = self.state.rotation_matrix
+        {
+            self.compose_rotation_matrix();
+        }
+        let local_stiffness_matrix = self.compose_local_stiffness_matrix()?;
+        let converted_stiffness_matrix =
+            self.state.rotation_matrix.as_ref().unwrap()
+                .transpose()
+                .multiply_by_matrix(&local_stiffness_matrix)?
+                .multiply_by_matrix(self.state.rotation_matrix.as_ref().unwrap())?;
+        Ok(converted_stiffness_matrix)
+    }
 }
 
 
-
+impl<T, V, W> Element<T, V, W> for Truss2n2ip<T, V, W>
+    where T: Hash + Eq + Copy
+{
+    fn extract_stiffness_submatrices(&self) -> HashMap<Stiffness<T>, SubMatrixIndexes>
+    {
+        self.state.stiffness_submatrices.clone()
+    }
+}

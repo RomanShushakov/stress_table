@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::hash::Hash;
 
 
-#[derive(Eq, PartialEq, Hash, Debug)]
+#[derive(Eq, PartialEq, Hash, Debug, Clone)]
 pub enum DisplacementComponent
 {
     U,
@@ -16,11 +16,31 @@ pub enum DisplacementComponent
 }
 
 
-#[derive(Eq, PartialEq, Hash, Debug)]
+#[derive(Eq, PartialEq, Hash, Debug, Clone)]
 pub struct Displacement<T>
 {
-    node_number: T,
-    component: DisplacementComponent,
+    pub node_number: T,
+    pub component: DisplacementComponent,
+}
+
+
+#[derive(Eq, PartialEq, Hash, Debug, Clone)]
+pub enum ForceComponent
+{
+    RU,
+    RV,
+    RW,
+    RThetaU,
+    RThetaV,
+    RThetaW,
+}
+
+
+#[derive(Eq, PartialEq, Hash, Debug, Clone)]
+pub struct Force<T>
+{
+    pub node_number: T,
+    pub component: ForceComponent,
 }
 
 
@@ -41,11 +61,12 @@ pub struct SubMatrixIndexes
 
 
 pub fn compose_stiffness_submatrices_and_displacements<T, V>(number_of_dof: usize, nodes: Vec<&Node<T, V>>)
-    -> (HashMap<Displacement<T>, usize>, HashMap<Stiffness<T>, SubMatrixIndexes>)
+    -> (HashMap<Displacement<T>, usize>, HashMap<Force<T>, usize> ,HashMap<Stiffness<T>, SubMatrixIndexes>)
         where T: PartialEq + Eq + Hash + Copy
 {
-    let mut displacements = HashMap::new();
-    let mut stiffness_submatrices = HashMap::new();
+    let mut displacements_indexes = HashMap::new();
+    let mut forces_indexes = HashMap::new();
+    let mut stiffness_submatrices_indexes = HashMap::new();
     for i in 0..nodes.len()
     {
         for j in i..nodes.len()
@@ -66,15 +87,37 @@ pub fn compose_stiffness_submatrices_and_displacements<T, V>(number_of_dof: usiz
                         };
                     if let Some(displacement_component) = displacement_component
                     {
-                        displacements.insert(Displacement
-                            {
-                                node_number: nodes[i].number,
-                                component: displacement_component
-                            },
+                        displacements_indexes.insert(
+                            Displacement
+                                {
+                                    node_number: nodes[i].number,
+                                    component: displacement_component
+                                },
+                            i * number_of_dof + k);
+                    }
+
+                    let force_component = match k
+                        {
+                            0 => Some(ForceComponent::RU),
+                            1 => Some(ForceComponent::RV),
+                            2 => Some(ForceComponent::RW),
+                            3 => Some(ForceComponent::RThetaU),
+                            4 => Some(ForceComponent::RThetaV),
+                            5 => Some(ForceComponent::RThetaW),
+                            _ => None
+                        };
+                    if let Some(force_component) = force_component
+                    {
+                        forces_indexes.insert(
+                            Force
+                                {
+                                    node_number: nodes[i].number,
+                                    component: force_component
+                                },
                             i * number_of_dof + k);
                     }
                 }
-                stiffness_submatrices.insert
+                stiffness_submatrices_indexes.insert
                     (
                         Stiffness { first_index: nodes[i].number, second_index: nodes[i].number },
                         SubMatrixIndexes
@@ -86,7 +129,7 @@ pub fn compose_stiffness_submatrices_and_displacements<T, V>(number_of_dof: usiz
             }
             else
             {
-                stiffness_submatrices.insert
+                stiffness_submatrices_indexes.insert
                     (
                         Stiffness { first_index: nodes[i].number, second_index: nodes[j].number },
                         SubMatrixIndexes
@@ -95,7 +138,7 @@ pub fn compose_stiffness_submatrices_and_displacements<T, V>(number_of_dof: usiz
                                 column_indexes: (j * number_of_dof)..(j * number_of_dof + number_of_dof),
                             }
                     );
-                stiffness_submatrices.insert
+                stiffness_submatrices_indexes.insert
                     (
                         Stiffness { first_index: nodes[j].number, second_index: nodes[i].number },
                         SubMatrixIndexes
@@ -107,5 +150,5 @@ pub fn compose_stiffness_submatrices_and_displacements<T, V>(number_of_dof: usiz
             }
         }
     }
-    (displacements, stiffness_submatrices)
+    (displacements_indexes, forces_indexes, stiffness_submatrices_indexes)
 }

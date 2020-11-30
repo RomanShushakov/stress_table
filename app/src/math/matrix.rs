@@ -12,7 +12,7 @@ pub enum DecomposedMatrix
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Matrix<T>
 {
     pub elements: Vec<Vec<T>>

@@ -30,8 +30,8 @@ pub struct State<T, V>
     strain_displacement_matrix: Option<Matrix<V>>,
     integration_points: Vec<IntegrationPoint<V>>,
     rotation_matrix: Option<Matrix<V>>,
-    pub displacements: HashMap<Displacement<T>, usize>,
-    pub stiffness_submatrices: HashMap<Stiffness<T>, SubMatrixIndexes>,
+    pub displacements_indexes: HashMap<Displacement<T>, usize>,
+    pub stiffness_submatrices_indexes: HashMap<Stiffness<T>, SubMatrixIndexes>,
 }
 
 
@@ -74,7 +74,7 @@ impl<T, V, W> Truss2n2ip<T, V, W>
             };
 
         let nodes = vec![&node_1, &node_2];
-        let (displacements, stiffness_submatrices) =
+        let (displacements_indexes, _, stiffness_submatrices_indexes) =
             compose_stiffness_submatrices_and_displacements
                 (
                     NUMBER_OF_DOF as usize, nodes
@@ -86,7 +86,9 @@ impl<T, V, W> Truss2n2ip<T, V, W>
                     {
                         jacobian: None, strain_displacement_matrix: None,
                         integration_points: vec![integration_point_1, integration_point_2],
-                        rotation_matrix: None, displacements, stiffness_submatrices
+                        rotation_matrix: None,
+                        displacements_indexes,
+                        stiffness_submatrices_indexes
                     },
             }
     }
@@ -146,7 +148,7 @@ impl<T, V, W> Truss2n2ip<T, V, W>
     }
 
 
-    pub fn compose_rotation_matrix(&mut self) -> Result<Matrix<V>, String>
+    fn _compose_rotation_matrix(&mut self) -> Result<(), String>
     {
         let vector = Vector
             {
@@ -325,9 +327,9 @@ impl<T, V, W> Truss2n2ip<T, V, W>
                     }
                     rotation_matrix_elements.push(current_row);
                 }
-                let rotation_matrix = Matrix { elements: rotation_matrix_elements.to_owned() };
+                let rotation_matrix = Matrix { elements: rotation_matrix_elements };
                 self.state.rotation_matrix = Some(rotation_matrix);
-                Ok(Matrix { elements: rotation_matrix_elements })
+                Ok(())
             }
             else
             {
@@ -366,7 +368,7 @@ impl<T, V, W> Truss2n2ip<T, V, W>
     }
 
 
-    pub fn compose_local_stiffness_matrix(&mut self) -> Result<Matrix<V>, String>
+    fn _compose_local_stiffness_matrix(&mut self) -> Result<Matrix<V>, String>
     {
         if let None = self.state.strain_displacement_matrix
         {
@@ -386,30 +388,36 @@ impl<T, V, W> Truss2n2ip<T, V, W>
             Err(format!("cannot compose local stiffness matrix for element {}!", self.number))
         }
     }
+}
 
 
-    pub fn convert_stiffness_matrix_into_global(&mut self) -> Result<Matrix<V>, String>
+impl<T, V, W> Element<T, V, W> for Truss2n2ip<T, V, W>
+    where T: Display + Hash + Eq + Copy,
+          V: FloatNum + Copy + One + Default + From<f64> +
+             Add<Output = V> + Sub<Output = V> +
+             Mul<Output = V> + Div<Output = V> +
+             AddAssign + MulAssign,
+          W: Copy + Mul<Output = W> + Into<V>
+
+{
+    fn extract_stiffness_submatrices(&self) -> HashMap<Stiffness<T>, SubMatrixIndexes>
+    {
+        self.state.stiffness_submatrices_indexes.to_owned()
+    }
+
+
+    fn extract_stiffness_matrix(&mut self) -> Result<Matrix<V>, String>
     {
         if let None = self.state.rotation_matrix
         {
-            self.compose_rotation_matrix();
+            self._compose_rotation_matrix()?;
         }
-        let local_stiffness_matrix = self.compose_local_stiffness_matrix()?;
+        let local_stiffness_matrix = self._compose_local_stiffness_matrix()?;
         let converted_stiffness_matrix =
             self.state.rotation_matrix.as_ref().unwrap()
                 .transpose()
                 .multiply_by_matrix(&local_stiffness_matrix)?
                 .multiply_by_matrix(self.state.rotation_matrix.as_ref().unwrap())?;
         Ok(converted_stiffness_matrix)
-    }
-}
-
-
-impl<T, V, W> Element<T, V, W> for Truss2n2ip<T, V, W>
-    where T: Hash + Eq + Copy
-{
-    fn extract_stiffness_submatrices(&self) -> HashMap<Stiffness<T>, SubMatrixIndexes>
-    {
-        self.state.stiffness_submatrices.clone()
     }
 }

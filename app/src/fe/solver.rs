@@ -3,10 +3,20 @@ use crate::fe::elements::element::{Element};
 use std::hash::Hash;
 use crate::math::matrix::Matrix;
 use crate::fe::fe_aux_structs::{compose_stiffness_submatrices_and_displacements, Displacement, Force};
-use std::ops::AddAssign;
+use std::ops::{AddAssign, Add, Mul, MulAssign};
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::fmt::Debug;
+use crate::math::math_aux_traits::One;
+
+
+#[derive(Debug, Clone)]
+pub struct AnalysisResult<T, V>
+{
+    pub displacements: HashMap<Displacement<T>, V>,
+    pub reactions: HashMap<Force<T>, V>,
+}
 
 
 #[derive(Debug, Clone)]
@@ -15,6 +25,7 @@ pub struct State<T, V>
     pub stiffness_matrix: Matrix<V>,
     pub displacements_indexes: HashMap<Displacement<T>, usize>,
     pub forces_indexes: HashMap<Force<T>, usize>,
+    pub analysis_result: Option<AnalysisResult<T, V>>,
 }
 
 
@@ -23,23 +34,24 @@ pub struct Model<T, V, W>
 {
     pub nodes: Vec<Node<T, V>>,
     pub elements: Vec<Rc<RefCell<dyn Element<T, V, W>>>>,
-    pub displacements: Vec<HashMap<Displacement<T>, W>>,
-    pub forces: Vec<HashMap<Force<T>, W>>,
+    pub applied_displacements: HashMap<Displacement<T>, W>,
+    pub applied_forces: HashMap<Force<T>, W>,
     pub state: Option<State<T, V>>,
 }
 
 
 impl<T, V, W> Model<T, V, W>
-    where T: Hash + Copy + Eq,
-          V: Default + AddAssign + Copy +
-             PartialEq<f64>
+    where T: Hash + Copy + Eq + Debug,
+          V: Default + AddAssign + Copy + One + Debug +
+             PartialEq<f64> + Add + Mul + MulAssign +
+             Add<Output = V> + Mul<Output = V>
 {
     pub fn create(
         nodes: Vec<Node<T, V>>, elements: Vec<Rc<RefCell<dyn Element<T, V, W>>>>,
-        displacements: Vec<HashMap<Displacement<T>, W>>,
-        forces: Vec<HashMap<Force<T>, W>>) -> Model<T, V, W>
+        applied_displacements: HashMap<Displacement<T>, W>,
+        applied_forces: HashMap<Force<T>, W>) -> Model<T, V, W>
     {
-        Model { nodes, elements, displacements, forces, state: None }
+        Model { nodes, elements, applied_displacements, applied_forces, state: None }
     }
 
 
@@ -106,6 +118,10 @@ impl<T, V, W> Model<T, V, W>
                 {
                     if i == displacement_index
                     {
+                        if let Some(_) = self.applied_displacements.get(&displacement_component)
+                        {
+                            return Err(format!("there are no stiffness to withstand {:?}", displacement_component));
+                        }
                         global_displacements_indexes.remove(&displacement_component);
                     }
                     if i < displacement_index
@@ -114,6 +130,10 @@ impl<T, V, W> Model<T, V, W>
                     }
                     if i == force_index
                     {
+                        if let Some(_) = self.applied_forces.get(&force_component)
+                        {
+                            return Err(format!("there are no stiffness to withstand {:?}", force_component));
+                        }
                         global_forces_indexes.remove(&(force_component));
                     }
                     if i < force_index
@@ -134,9 +154,68 @@ impl<T, V, W> Model<T, V, W>
                 stiffness_matrix: Matrix { elements: global_stiffness_matrix_elements },
                 displacements_indexes: global_displacements_indexes,
                 forces_indexes: global_forces_indexes,
+                analysis_result: None,
             };
         self.state = Some(model_state);
         Ok(())
     }
+
+
+    pub fn analyze(&mut self) -> Result<(), &str>
+    {
+        if let Some(state) = &self.state
+        {
+            let mut k_bb_matrix: Matrix<V> = Matrix::zeros(
+                self.applied_displacements.len(),
+                self.applied_displacements.len());
+
+            let mut k_aa_indexes = Vec::new();
+            let mut k_bb_indexes = Vec::new();
+            for (displacement_component, index) in &state.displacements_indexes
+            {
+                if let Some(_) = self.applied_displacements.get(&displacement_component)
+                {
+                    k_bb_indexes.push(index);
+                }
+                else
+                {
+                    k_aa_indexes.push(index);
+                }
+                k_bb_indexes.sort();
+                let mut i = 0;
+                while i < k_bb_indexes.len()
+                {
+                    for j in i..k_bb_indexes.len()
+                    {
+                        if i == j
+                        {
+                            k_bb_matrix.elements[i][i] =
+                                state.stiffness_matrix.elements[*k_bb_indexes[i]][*k_bb_indexes[i]];
+                        }
+                        else
+                        {
+                            k_bb_matrix.elements[i][j] =
+                                state.stiffness_matrix.elements[*k_bb_indexes[i]][*k_bb_indexes[j]];
+                            k_bb_matrix.elements[j][i] =
+                                state.stiffness_matrix.elements[*k_bb_indexes[j]][*k_bb_indexes[i]];
+                        }
+                    }
+                    i += 1;
+                }
+
+            }
+            println!("{:?}", k_bb_indexes);
+            println!("{:?}", k_bb_matrix);
+            println!("{:?}", k_aa_indexes);
+            Ok(())
+        }
+        else
+        {
+            return Err("global stiffness matrix not prepared yet, the structure cannot be analyzed!")
+        }
+    }
+
+
+
 
 }

@@ -18,40 +18,42 @@ use std::collections::HashMap;
 pub const NUMBER_OF_DOF: i32 = 6;
 
 
-fn main()
+fn main() -> Result<(), String>
 {
     let node_1 = Node { number: 1, coordinates: Coordinates { x: 2.0, y: 3.0, z: 0.0 } };
-    // let node_2 = Node { number: 2, coordinates: Coordinates { x: 58.57, y: 59.57, z: 0.0 } };
-    let node_2 = Node { number: 2, coordinates: Coordinates { x: 82.0, y: 3.0, z: 0.0 } };
-    // let node_5 = Node { number: 5, coordinates: Coordinates { x: -54.57, y: 59.57, z: 0.0 } };
-    let mut nodes = vec![node_2.to_owned(), node_1.to_owned()];
+    let node_2 = Node { number: 2, coordinates: Coordinates { x: 58.57, y: 59.57, z: 0.0 } };
+    // let node_2 = Node { number: 2, coordinates: Coordinates { x: 82.0, y: 3.0, z: 0.0 } };
+    let node_3 = Node { number: 3, coordinates: Coordinates { x: -54.57, y: 59.57, z: 0.0 } };
+    let mut nodes = vec![node_2.to_owned(), node_1.to_owned(), node_3.to_owned()];
     nodes.sort_unstable_by(|a, b| a.number.partial_cmp(&b.number).unwrap());
 
     let element_1 = Truss2n2ip::create(1, node_1.to_owned(), node_2.to_owned(), 1, 1, Some(9));
-    // let element_3 = Truss2n2ip::create(3, node_1.to_owned(), node_5.to_owned(), 1, 1, Some(9));
+    let element_2 = Truss2n2ip::create(2, node_1.to_owned(), node_3.to_owned(), 1, 1, Some(9));
     let mut elements: Vec<Rc<RefCell<dyn Element<_, _, _>>>> = Vec::new();
     elements.push(Rc::new(RefCell::new(element_1)));
-    // elements.push(Rc::new(RefCell::new(element_3)));
+    elements.push(Rc::new(RefCell::new(element_2)));
 
-    let mut displacement_1 = HashMap::new();
-    displacement_1.insert(Displacement { component: DisplacementComponent::U, node_number: 1 }, 0);
-    let displacements = vec![displacement_1];
+    let mut applied_displacements = HashMap::new();
+    applied_displacements.insert(Displacement { component: DisplacementComponent::U, node_number: 2 }, 0);
+    applied_displacements.insert(Displacement { component: DisplacementComponent::V, node_number: 2 }, 0);
+    applied_displacements.insert(Displacement { component: DisplacementComponent::U, node_number: 3 }, 0);
+    applied_displacements.insert(Displacement { component: DisplacementComponent::V, node_number: 3 }, 0);
 
-    let mut force_1 = HashMap::new();
-    force_1.insert(Force { component: ForceComponent::RU, node_number: 2 }, 100);
-    let forces = vec![force_1];
+    let mut applied_forces = HashMap::new();
+    applied_forces.insert(Force { component: ForceComponent::RV, node_number: 1 }, -100);
+    // forces.insert(Force { component: ForceComponent::RW, node_number: 2 }, 100);
 
+    let mut model = Model::create(nodes, elements, applied_displacements, applied_forces);
 
-    let mut model = Model::create(nodes, elements, displacements, forces);
-    if let Ok(_) = model.compose_global_stiffness_matrix()
+    model.compose_global_stiffness_matrix()?;
+    if let Some(ref state) = model.state
     {
-        let state = model.state.unwrap();
         println!("{:?}", state.displacements_indexes);
         println!("{:?}", state.forces_indexes);
         println!("{:?}", state.stiffness_matrix);
     }
-
-
+    model.analyze()?;
+    Ok(())
 
 
     // let n_5 = Node { number: 5, coordinates: Coordinates { x: 5.0, y: 0.0, z: 0.0 } };

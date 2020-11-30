@@ -24,6 +24,22 @@ impl<T> Matrix<T>
              Add<Output = T> + Mul<Output = T> +
              AddAssign + MulAssign
 {
+    pub fn zeros(rows_number: usize, columns_number: usize) -> Matrix<T>
+    {
+        let mut zero_elements = Vec::new();
+        for i in 0..rows_number
+        {
+            let mut current_row = Vec::new();
+            for j in 0..columns_number
+            {
+                current_row.push(Default::default());
+            }
+            zero_elements.push(current_row);
+        }
+        Matrix { elements: zero_elements }
+    }
+
+
     pub fn multiply_by_number(&self, number: T) -> Matrix<T>
     {
         let mut elements = Vec::new();

@@ -25,7 +25,6 @@ pub struct State<T, V>
     pub stiffness_matrix: Matrix<V>,
     pub displacements_indexes: HashMap<Displacement<T>, usize>,
     pub forces_indexes: HashMap<Force<T>, usize>,
-    pub analysis_result: Option<AnalysisResult<T, V>>,
 }
 
 
@@ -37,6 +36,7 @@ pub struct Model<T, V, W>
     pub applied_displacements: HashMap<Displacement<T>, W>,
     pub applied_forces: HashMap<Force<T>, W>,
     pub state: Option<State<T, V>>,
+    pub analysis_result: Option<AnalysisResult<T, V>>,
 }
 
 
@@ -58,7 +58,7 @@ impl<T, V, W> Model<T, V, W>
         applied_displacements: HashMap<Displacement<T>, W>,
         applied_forces: HashMap<Force<T>, W>) -> Model<T, V, W>
     {
-        Model { nodes, elements, applied_displacements, applied_forces, state: None }
+        Model { nodes, elements, applied_displacements, applied_forces, state: None, analysis_result: None }
     }
 
 
@@ -174,18 +174,16 @@ impl<T, V, W> Model<T, V, W>
                 stiffness_matrix: Matrix { elements: global_stiffness_matrix_elements },
                 displacements_indexes: global_displacements_indexes,
                 forces_indexes: global_forces_indexes,
-                analysis_result: None,
             };
         self.state = Some(model_state);
         Ok(())
     }
 
 
-    pub fn analyze(&mut self) -> Result<(), &str>
+    pub fn analyze(&mut self) -> Result<(), String>
     {
         let mut result_displacements: HashMap<Displacement<T>, V> = HashMap::new();
-        // let mut result_reactions = HashMap::new();
-
+        let mut result_reactions = HashMap::new();
         if let Some(state) = &self.state
         {
             let mut k_aa_matrix: Matrix<V> = Matrix::zeros
@@ -214,12 +212,13 @@ impl<T, V, W> Model<T, V, W>
             let mut r_a_elements = Vec::new();
             let mut u_b_indexes = HashMap::new();
             let mut u_b_elements = Vec::new();
+            let mut reactions_indexes = HashMap::new();
             for (displacement, index) in &state.displacements_indexes
             {
-                if let Some(_) = self.applied_displacements.get(&displacement)
+                if let Some(disp) = self.applied_displacements.get(&displacement)
                 {
                     k_bb_indexes.push(index);
-                    result_displacements.insert(*displacement, Default::default());
+                    result_displacements.insert(*displacement, V::from(*disp));
                     u_b_indexes.insert(index, displacement);
                 }
                 else
@@ -276,6 +275,9 @@ impl<T, V, W> Model<T, V, W>
                             state.stiffness_matrix.elements[*k_bb_indexes[i]][*k_bb_indexes[i]];
                         if let Some(disp) = u_b_indexes.get(k_bb_indexes[i])
                         {
+                            let component = disp.component;
+                            let node_number = disp.node_number;
+                            reactions_indexes.insert(i, Force { component, node_number });
                             if let Some(applied_displacement) = self.applied_displacements.get(disp)
                             {
                                 u_b_elements.push(vec![V::from(*applied_displacement)]);
@@ -321,42 +323,39 @@ impl<T, V, W> Model<T, V, W>
             println!("u_b matrix: {:?}", u_b_matrix);
 
 
-            if let Ok(k_ab_u_b) = k_ab_matrix.multiply_by_matrix(&u_b_matrix)
+            let k_ab_u_b = k_ab_matrix.multiply_by_matrix(&u_b_matrix)?;
+            let minus_k_ab = k_ab_u_b.multiply_by_number(One::minus_one());
+            let r_a_minus_k_ab_u_b = r_a_matrix.sum(&minus_k_ab)?;
+            let displacements = k_aa_matrix.solve_equations::<V, V>(r_a_minus_k_ab_u_b)?;
+            for i in 0..displacements.elements.len()
             {
-                println!("k_ab_u_b: {:?}", k_ab_u_b);
-                let minus_k_ab = k_ab_u_b.multiply_by_number(One::minus_one());
-                if let Ok(r_a_minus_k_ab_u_b) = r_a_matrix.sum(&minus_k_ab)
+                if let Some(force) = r_a_indexes.get(&i)
                 {
-                    println!("r_a_minus_k_ab_u_b: {:?}", r_a_minus_k_ab_u_b);
-                    if let Ok(displacements) = k_aa_matrix.solve_equations::<V, V>(r_a_minus_k_ab_u_b)
-                    {
-                        println!("displacements: {:?}", displacements);
-                        for i in 0..displacements.elements.len()
-                        {
-                            if let Some(force) = r_a_indexes.get(&i)
-                            {
-                                let node_number = force.node_number;
-                                let component = force.component;
-                                result_displacements
-                                    .insert(Displacement { node_number, component }, displacements.elements[i][0]);
-                            }
-                        }
-                    }
-
+                    let node_number = force.node_number;
+                    let component = force.component;
+                    result_displacements
+                        .insert(Displacement { node_number, component }, displacements.elements[i][0]);
                 }
             }
-            println!("result displacements: {:?}", result_displacements);
-
-            // if let Ok(displacements) = k_aa_matrix.solve_equations::<V, W>(r_a_matrix)
-            // {
-            //
-            // }
-            // println!("result displacements: {:?}", result_displacements);
+            let k_bb_u_b = k_bb_matrix.multiply_by_matrix(&u_b_matrix)?;
+            let k_ba_u_a = k_ba_matrix.multiply_by_matrix(&displacements)?;
+            let reactions = k_ba_u_a.sum(&k_bb_u_b)?;
+            for i in 0..reactions.elements.len()
+            {
+                if let Some(reaction) = reactions_indexes.get(&i)
+                {
+                    result_reactions.insert(*reaction, reactions.elements[i][0].to_owned());
+                }
+            }
+            self.analysis_result = Some
+                (
+                    AnalysisResult { displacements: result_displacements, reactions: result_reactions }
+                );
             Ok(())
         }
         else
         {
-            return Err("global stiffness matrix not prepared yet, the structure cannot be analyzed!")
+            return Err("global stiffness matrix not prepared yet, the structure cannot be analyzed!".to_string())
         }
     }
 }

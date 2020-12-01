@@ -4,8 +4,8 @@ use std::collections::HashMap;
 use std::hash::Hash;
 
 
-#[derive(Eq, PartialEq, Hash, Debug, Clone)]
-pub enum DisplacementComponent
+#[derive(Eq, PartialEq, Hash, Debug, Clone, Copy)]
+pub enum Component
 {
     U,
     V,
@@ -16,35 +16,23 @@ pub enum DisplacementComponent
 }
 
 
-#[derive(Eq, PartialEq, Hash, Debug, Clone)]
+#[derive(Eq, PartialEq, Hash, Debug, Copy, Clone)]
 pub struct Displacement<T>
 {
     pub node_number: T,
-    pub component: DisplacementComponent,
+    pub component: Component,
 }
 
 
-#[derive(Eq, PartialEq, Hash, Debug, Clone)]
-pub enum ForceComponent
-{
-    RU,
-    RV,
-    RW,
-    RThetaU,
-    RThetaV,
-    RThetaW,
-}
-
-
-#[derive(Eq, PartialEq, Hash, Debug, Clone)]
+#[derive(Eq, PartialEq, Hash, Debug, Copy, Clone)]
 pub struct Force<T>
 {
     pub node_number: T,
-    pub component: ForceComponent,
+    pub component: Component,
 }
 
 
-#[derive(Debug, Hash, PartialEq, Eq, Clone)]
+#[derive(Debug, Hash, PartialEq, Eq, Copy, Clone)]
 pub struct Stiffness<T>
 {
     pub first_index: T,
@@ -75,44 +63,31 @@ pub fn compose_stiffness_submatrices_and_displacements<T, V>(number_of_dof: usiz
             {
                 for k in 0..number_of_dof
                 {
-                    let displacement_component = match k
+
+                    let component = match k
                         {
-                            0 => Some(DisplacementComponent::U),
-                            1 => Some(DisplacementComponent::V),
-                            2 => Some(DisplacementComponent::W),
-                            3 => Some(DisplacementComponent::ThetaU),
-                            4 => Some(DisplacementComponent::ThetaV),
-                            5 => Some(DisplacementComponent::ThetaW),
+                            0 => Some(Component::U),
+                            1 => Some(Component::V),
+                            2 => Some(Component::W),
+                            3 => Some(Component::ThetaU),
+                            4 => Some(Component::ThetaV),
+                            5 => Some(Component::ThetaW),
                             _ => None
                         };
-                    if let Some(displacement_component) = displacement_component
+                    if let Some(comp) = component
                     {
                         displacements_indexes.insert(
                             Displacement
                                 {
                                     node_number: nodes[i].number,
-                                    component: displacement_component
+                                    component: comp.to_owned()
                                 },
                             i * number_of_dof + k);
-                    }
-
-                    let force_component = match k
-                        {
-                            0 => Some(ForceComponent::RU),
-                            1 => Some(ForceComponent::RV),
-                            2 => Some(ForceComponent::RW),
-                            3 => Some(ForceComponent::RThetaU),
-                            4 => Some(ForceComponent::RThetaV),
-                            5 => Some(ForceComponent::RThetaW),
-                            _ => None
-                        };
-                    if let Some(force_component) = force_component
-                    {
                         forces_indexes.insert(
                             Force
                                 {
                                     node_number: nodes[i].number,
-                                    component: force_component
+                                    component: comp
                                 },
                             i * number_of_dof + k);
                     }

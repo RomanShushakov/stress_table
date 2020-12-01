@@ -3,7 +3,7 @@ use crate::fe::elements::element::{Element};
 use std::hash::Hash;
 use crate::math::matrix::Matrix;
 use crate::fe::fe_aux_structs::{compose_stiffness_submatrices_and_displacements, Displacement, Force};
-use std::ops::{AddAssign, Add, Mul, MulAssign};
+use std::ops::{AddAssign, Add, Mul, MulAssign, Sub, Div, SubAssign};
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -44,7 +44,14 @@ impl<T, V, W> Model<T, V, W>
     where T: Hash + Copy + Eq + Debug,
           V: Default + AddAssign + Copy + One + Debug +
              PartialEq<f64> + Add + Mul + MulAssign +
-             Add<Output = V> + Mul<Output = V>
+             Add<Output = V> + Mul<Output = V> +
+             From<W> + Sub + Sub<Output = V> + Div +
+             Div<Output = V> + SubAssign,
+          W: Default + Copy + Debug + One + Add +
+             Sub + Mul + Div + AddAssign +
+             MulAssign +
+             Add<Output = W> + Sub<Output = W> +
+             Mul<Output = W> + Div<Output = W>
 {
     pub fn create(
         nodes: Vec<Node<T, V>>, elements: Vec<Rc<RefCell<dyn Element<T, V, W>>>>,
@@ -109,36 +116,49 @@ impl<T, V, W> Model<T, V, W>
             {
                 global_stiffness_matrix_elements.remove(i);
 
-                for (
-                        (displacement_component, displacement_index),
-                        (force_component, force_index)
-                    )  in global_displacements_indexes.clone()
+                for (displacement, index) in global_displacements_indexes
+                    .clone()
                     .into_iter()
-                    .zip(global_forces_indexes.clone())
                 {
-                    if i == displacement_index
+                    let node_number = displacement.node_number;
+                    let component = displacement.component;
+                    if i == index
                     {
-                        if let Some(_) = self.applied_displacements.get(&displacement_component)
+                        if let Some(_) = self.applied_displacements.get(&Displacement { node_number, component })
                         {
-                            return Err(format!("there are no stiffness to withstand {:?}", displacement_component));
+                            return Err
+                                (
+                                    format!
+                                        (
+                                            "there are no stiffness to withstand displacement: {:?} \
+                                            applied at node: {:?}",
+                                            component,
+                                            node_number
+                                        )
+                                );
                         }
-                        global_displacements_indexes.remove(&displacement_component);
-                    }
-                    if i < displacement_index
-                    {
-                        global_displacements_indexes.insert(displacement_component, displacement_index - 1);
-                    }
-                    if i == force_index
-                    {
-                        if let Some(_) = self.applied_forces.get(&force_component)
+                        global_displacements_indexes.remove(&Displacement { node_number, component });
+
+                        if let Some(_) = self.applied_forces.get(&Force { node_number, component })
                         {
-                            return Err(format!("there are no stiffness to withstand {:?}", force_component));
+                            return Err
+                                (
+                                    format!
+                                        (
+                                            "there are no stiffness to withstand force: {:?} \
+                                            applied at node: {:?}",
+                                            component,
+                                            node_number
+                                        )
+                                );
                         }
-                        global_forces_indexes.remove(&(force_component));
+                        global_forces_indexes.remove(&Force { node_number, component });
+
                     }
-                    if i < force_index
+                    if i < index
                     {
-                        global_forces_indexes.insert(force_component, force_index - 1);
+                        global_displacements_indexes.insert(Displacement { node_number, component }, index - 1);
+                        global_forces_indexes.insert(Force { node_number, component }, index - 1);
                     }
                 }
                 for j in 0..global_stiffness_matrix_elements.len()
@@ -163,50 +183,175 @@ impl<T, V, W> Model<T, V, W>
 
     pub fn analyze(&mut self) -> Result<(), &str>
     {
+        let mut result_displacements: HashMap<Displacement<T>, V> = HashMap::new();
+        // let mut result_reactions = HashMap::new();
+
         if let Some(state) = &self.state
         {
-            let mut k_bb_matrix: Matrix<V> = Matrix::zeros(
-                self.applied_displacements.len(),
-                self.applied_displacements.len());
-
+            let mut k_aa_matrix: Matrix<V> = Matrix::zeros
+                (
+                    state.displacements_indexes.len() - self.applied_displacements.len(),
+                    state.displacements_indexes.len() - self.applied_displacements.len(),
+                );
+            let mut k_ab_matrix: Matrix<V> = Matrix::zeros
+                (
+                    state.displacements_indexes.len() - self.applied_displacements.len(),
+                    self.applied_displacements.len(),
+                );
+            let mut k_ba_matrix: Matrix<V> = Matrix::zeros
+                (
+                    self.applied_displacements.len(),
+                    state.displacements_indexes.len() - self.applied_displacements.len(),
+                );
+            let mut k_bb_matrix: Matrix<V> = Matrix::zeros
+                (
+                    self.applied_displacements.len(),
+                    self.applied_displacements.len(),
+                );
             let mut k_aa_indexes = Vec::new();
             let mut k_bb_indexes = Vec::new();
-            for (displacement_component, index) in &state.displacements_indexes
+            let mut r_a_indexes = HashMap::new();
+            let mut r_a_elements = Vec::new();
+            let mut u_b_indexes = HashMap::new();
+            let mut u_b_elements = Vec::new();
+            for (displacement, index) in &state.displacements_indexes
             {
-                if let Some(_) = self.applied_displacements.get(&displacement_component)
+                if let Some(_) = self.applied_displacements.get(&displacement)
                 {
                     k_bb_indexes.push(index);
+                    result_displacements.insert(*displacement, Default::default());
+                    u_b_indexes.insert(index, displacement);
                 }
                 else
                 {
                     k_aa_indexes.push(index);
+                    let component = displacement.component;
+                    let node_number = displacement.node_number;
+                    let force = Force { component, node_number };
+                    r_a_indexes.insert(index, force);
                 }
-                k_bb_indexes.sort();
-                let mut i = 0;
-                while i < k_bb_indexes.len()
+            }
+            k_aa_indexes.sort();
+            let mut i = 0;
+            while i < k_aa_indexes.len()
+            {
+                for j in i..k_aa_indexes.len()
                 {
-                    for j in i..k_bb_indexes.len()
+                    if i == j
                     {
-                        if i == j
+                        k_aa_matrix.elements[i][i] =
+                            state.stiffness_matrix.elements[*k_aa_indexes[i]][*k_aa_indexes[i]];
+                        if let Some(force) = r_a_indexes.get(k_aa_indexes[i])
                         {
-                            k_bb_matrix.elements[i][i] =
-                                state.stiffness_matrix.elements[*k_bb_indexes[i]][*k_bb_indexes[i]];
-                        }
-                        else
-                        {
-                            k_bb_matrix.elements[i][j] =
-                                state.stiffness_matrix.elements[*k_bb_indexes[i]][*k_bb_indexes[j]];
-                            k_bb_matrix.elements[j][i] =
-                                state.stiffness_matrix.elements[*k_bb_indexes[j]][*k_bb_indexes[i]];
+                            if let Some(applied_force) = self.applied_forces.get(force)
+                            {
+                                r_a_elements.push(vec![V::from(*applied_force)]);
+                            }
+                            else
+                            {
+                                r_a_elements.push(vec![Default::default()]);
+                            }
                         }
                     }
-                    i += 1;
+                    else
+                    {
+                        k_aa_matrix.elements[i][j] =
+                            state.stiffness_matrix.elements[*k_aa_indexes[i]][*k_aa_indexes[j]];
+                        k_aa_matrix.elements[j][i] =
+                            state.stiffness_matrix.elements[*k_aa_indexes[j]][*k_aa_indexes[i]];
+                    }
                 }
-
+                i += 1;
             }
-            println!("{:?}", k_bb_indexes);
-            println!("{:?}", k_bb_matrix);
-            println!("{:?}", k_aa_indexes);
+            let r_a_matrix = Matrix { elements: r_a_elements};
+            k_bb_indexes.sort();
+            let mut i = 0;
+            while i < k_bb_indexes.len()
+            {
+                for j in i..k_bb_indexes.len()
+                {
+                    if i == j
+                    {
+                        k_bb_matrix.elements[i][i] =
+                            state.stiffness_matrix.elements[*k_bb_indexes[i]][*k_bb_indexes[i]];
+                        if let Some(disp) = u_b_indexes.get(k_bb_indexes[i])
+                        {
+                            if let Some(applied_displacement) = self.applied_displacements.get(disp)
+                            {
+                                u_b_elements.push(vec![V::from(*applied_displacement)]);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        k_bb_matrix.elements[i][j] =
+                            state.stiffness_matrix.elements[*k_bb_indexes[i]][*k_bb_indexes[j]];
+                        k_bb_matrix.elements[j][i] =
+                            state.stiffness_matrix.elements[*k_bb_indexes[j]][*k_bb_indexes[i]];
+                    }
+                }
+                i += 1;
+            }
+            let u_b_matrix = Matrix { elements: u_b_elements};
+            for i in 0..k_aa_indexes.len()
+            {
+                for j in 0..k_bb_indexes.len()
+                {
+                    k_ab_matrix.elements[i][j] =
+                        state.stiffness_matrix.elements[*k_aa_indexes[i]][*k_bb_indexes[j]];
+                }
+            }
+            for i in 0..k_bb_indexes.len()
+            {
+                for j in 0..k_aa_indexes.len()
+                {
+                    k_ba_matrix.elements[i][j] =
+                        state.stiffness_matrix.elements[*k_bb_indexes[i]][*k_aa_indexes[j]];
+                }
+            }
+            println!("k_aa indexes: {:?}", k_aa_indexes);
+            println!("k_aa matrix: {:?}", k_aa_matrix);
+            println!("k_bb indexes: {:?}", k_bb_indexes);
+            println!("k_bb matrix: {:?}", k_bb_matrix);
+            println!("k_ab matrix: {:?}", k_ab_matrix);
+            println!("k_ba matrix: {:?}", k_ba_matrix);
+            println!("r_a indexes: {:?}", r_a_indexes);
+            println!("r_a matrix: {:?}", r_a_matrix);
+            println!("u_b indexes: {:?}", u_b_indexes);
+            println!("u_b matrix: {:?}", u_b_matrix);
+
+
+            if let Ok(k_ab_u_b) = k_ab_matrix.multiply_by_matrix(&u_b_matrix)
+            {
+                println!("k_ab_u_b: {:?}", k_ab_u_b);
+                let minus_k_ab = k_ab_u_b.multiply_by_number(One::minus_one());
+                if let Ok(r_a_minus_k_ab_u_b) = r_a_matrix.sum(&minus_k_ab)
+                {
+                    println!("r_a_minus_k_ab_u_b: {:?}", r_a_minus_k_ab_u_b);
+                    if let Ok(displacements) = k_aa_matrix.solve_equations::<V, V>(r_a_minus_k_ab_u_b)
+                    {
+                        println!("displacements: {:?}", displacements);
+                        for i in 0..displacements.elements.len()
+                        {
+                            if let Some(force) = r_a_indexes.get(&i)
+                            {
+                                let node_number = force.node_number;
+                                let component = force.component;
+                                result_displacements
+                                    .insert(Displacement { node_number, component }, displacements.elements[i][0]);
+                            }
+                        }
+                    }
+
+                }
+            }
+            println!("result displacements: {:?}", result_displacements);
+
+            // if let Ok(displacements) = k_aa_matrix.solve_equations::<V, W>(r_a_matrix)
+            // {
+            //
+            // }
+            // println!("result displacements: {:?}", result_displacements);
             Ok(())
         }
         else
@@ -214,8 +359,4 @@ impl<T, V, W> Model<T, V, W>
             return Err("global stiffness matrix not prepared yet, the structure cannot be analyzed!")
         }
     }
-
-
-
-
 }

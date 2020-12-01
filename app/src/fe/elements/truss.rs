@@ -10,7 +10,7 @@ use crate::fe::fe_aux_structs::
     };
 use crate::fe::elements::element::{Element};
 use std::ops::{Add, Sub, Mul, Div, AddAssign, MulAssign};
-use std::fmt::Display;
+use std::fmt::{Display, Debug};
 use std::collections::HashMap;
 use std::hash::Hash;
 
@@ -54,7 +54,7 @@ impl<T, V, W> Truss2n2ip<T, V, W>
           V: FloatNum + Copy + One + Default + From<f64> +
              Add<Output = V> + Sub<Output = V> +
              Mul<Output = V> + Div<Output = V> +
-             AddAssign + MulAssign,
+             AddAssign + MulAssign + Debug,
           W: Copy + Mul<Output = W> + Into<V>
 {
     pub fn create(
@@ -148,198 +148,127 @@ impl<T, V, W> Truss2n2ip<T, V, W>
     }
 
 
-    fn _compose_rotation_matrix(&mut self) -> Result<(), String>
+    fn _compose_rotation_matrix(&mut self)
     {
-        let vector = Vector
+        let element_length =
+            ((self.node_2.coordinates.x - self.node_1.coordinates.x) *
+            (self.node_2.coordinates.x - self.node_1.coordinates.x) +
+            (self.node_2.coordinates.y - self.node_1.coordinates.y) *
+            (self.node_2.coordinates.y - self.node_1.coordinates.y) +
+            (self.node_2.coordinates.z - self.node_1.coordinates.z) *
+            (self.node_2.coordinates.z - self.node_1.coordinates.z)).sqrt();
+        let c_x = (self.node_2.coordinates.x - self.node_1.coordinates.x) / element_length;
+        let c_y = (self.node_2.coordinates.y - self.node_1.coordinates.y) / element_length;
+        let c_z = (self.node_2.coordinates.z - self.node_1.coordinates.z) / element_length;
+        let elements = vec!
+            [
+                vec![c_x, c_y, c_z],
+                vec![Default::default(), One::one(), Default::default()],
+                vec![Default::default(), Default::default(), One::one()],
+            ];
+        let m = Matrix { elements };
+
+        let mut rotation_matrix_elements = Vec::new();
+        for i in 0..(NUMBER_OF_DOF * 2) as usize
+        {
+            let mut current_row = Vec::new();
+            for j in 0..(NUMBER_OF_DOF * 2) as usize
             {
-                start_coordinates: self.node_1.coordinates.to_owned(),
-                end_coordinates: self.node_2.coordinates.to_owned(),
-            };
-        let t_x = Matrix
-        {
-            elements: vec!
-                [
-                    vec![One::one(), Default::default(), Default::default()],
-                    vec!
-                        [
-                            Default::default(),
-                            vector.project_on_coord_plane(GlobalCoordinatePlane::YZ)
-                                .cos_coord_axis::<V>(GlobalCoordinateAxis::Y),
-                            vector.project_on_coord_plane(GlobalCoordinatePlane::YZ)
-                                .sin_coord_axis::<V>(GlobalCoordinateAxis::Y) * One::minus_one(),
-                        ],
-                    vec!
-                        [
-                            Default::default(),
-                            vector.project_on_coord_plane(GlobalCoordinatePlane::YZ)
-                                 .sin_coord_axis::<V>(GlobalCoordinateAxis::Y) * One::minus_one(),
-                            vector.project_on_coord_plane(GlobalCoordinatePlane::YZ)
-                                .cos_coord_axis::<V>(GlobalCoordinateAxis::Y),
-                        ]
-                ]
-        };
-        let t_y = Matrix
-        {
-            elements: vec!
-                [
-                    vec!
-                        [
-                            vector.project_on_coord_plane(GlobalCoordinatePlane::XZ)
-                                .cos_coord_axis::<V>(GlobalCoordinateAxis::X),
-                            Default::default(),
-                            vector.project_on_coord_plane(GlobalCoordinatePlane::XZ)
-                                .sin_coord_axis::<V>(GlobalCoordinateAxis::X) * One::minus_one()
-                        ],
-                    vec![Default::default(), One::one(), Default::default()],
-                    vec!
-                        [
-                            vector.project_on_coord_plane(GlobalCoordinatePlane::XZ)
-                                .sin_coord_axis::<V>(GlobalCoordinateAxis::X) * One::minus_one(),
-                            Default::default(),
-                            vector.project_on_coord_plane(GlobalCoordinatePlane::XZ)
-                                .cos_coord_axis::<V>(GlobalCoordinateAxis::X),
-                        ]
-                ]
-        };
-        let t_z = Matrix
-        {
-            elements: vec!
-                [
-                    vec!
-                        [
-                            vector.project_on_coord_plane(GlobalCoordinatePlane::XY)
-                                .cos_coord_axis::<V>(GlobalCoordinateAxis::X),
-                            vector.project_on_coord_plane(GlobalCoordinatePlane::XY)
-                                .sin_coord_axis::<V>(GlobalCoordinateAxis::X) * One::minus_one(),
-                            Default::default()
-                        ],
-                    vec!
-                        [
-                            vector.project_on_coord_plane(GlobalCoordinatePlane::XY)
-                                .sin_coord_axis::<V>(GlobalCoordinateAxis::X) * One::minus_one(),
-                            vector.project_on_coord_plane(GlobalCoordinatePlane::XY)
-                                .cos_coord_axis::<V>(GlobalCoordinateAxis::X),
-                            Default::default()
-                        ],
-                    vec![Default::default(), Default::default(), One::one()],
-                ]
-        };
-        if let Ok(m) = t_x.multiply_by_matrix(&t_y)
-        {
-            if let Ok(m) = m.multiply_by_matrix(&t_z)
-            {
-                let mut rotation_matrix_elements = Vec::new();
-                for i in 0..(NUMBER_OF_DOF * 2) as usize
+                if i < NUMBER_OF_DOF as usize
                 {
-                    let mut current_row = Vec::new();
-                    for j in 0..(NUMBER_OF_DOF * 2) as usize
+                    if let Some(row) = m.elements.get(i)
                     {
-                        if i < NUMBER_OF_DOF as usize
+                        if let Some(element) = row.get(j)
                         {
-                            if let Some(row) = m.elements.get(i)
-                            {
-                                if let Some(element) = row.get(j)
+                            let current_element =
                                 {
-                                    let current_element =
+                                    if element.is_nan()
+                                    {
+                                        if i == j
                                         {
-                                            if element.is_nan()
-                                            {
-                                                if i == j
-                                                {
-                                                    One::one()
-                                                }
-                                                else
-                                                {
-                                                    Default::default()
-                                                }
-                                            }
-                                            else
-                                            {
-                                                *element
-                                            }
-                                        };
-                                    current_row.push(current_element);
-                                }
-                                else
-                                {
-                                    current_row.push(Default::default());
-                                }
-                            }
-                            else
-                            {
-                                if i == j
-                                {
-                                    current_row.push(One::one());
-                                }
-                                else
-                                {
-                                    current_row.push(Default::default());
-                                }
-                            }
+                                            One::one()
+                                        }
+                                        else
+                                        {
+                                            Default::default()
+                                        }
+                                    }
+                                    else
+                                    {
+                                        *element
+                                    }
+                                };
+                            current_row.push(current_element);
                         }
                         else
                         {
-                            if let Some(row) = m.elements.get(i - NUMBER_OF_DOF as usize)
-                            {
-                                if j < NUMBER_OF_DOF as usize
-                                {
-                                    current_row.push(Default::default());
-                                }
-                                else if let Some(element) = row.get(j - NUMBER_OF_DOF as usize)
-                                {
-                                    let current_element =
-                                        {
-                                            if element.is_nan()
-                                            {
-                                                if i == j
-                                                {
-                                                   One::one()
-                                                }
-                                                else
-                                                {
-                                                    Default::default()
-                                                }
-                                            }
-                                            else
-                                            {
-                                                *element
-                                            }
-                                        };
-                                    current_row.push(current_element);
-                                }
-                                else
-                                {
-                                    current_row.push(Default::default());
-                                }
-                            }
-                            else
-                            {
-                                if i == j
-                                {
-                                    current_row.push(One::one());
-                                }
-                                else
-                                {
-                                    current_row.push(Default::default());
-                                }
-                            }
+                            current_row.push(Default::default());
                         }
                     }
-                    rotation_matrix_elements.push(current_row);
+                    else
+                    {
+                        if i == j
+                        {
+                            current_row.push(One::one());
+                        }
+                        else
+                        {
+                            current_row.push(Default::default());
+                        }
+                    }
                 }
-                let rotation_matrix = Matrix { elements: rotation_matrix_elements };
-                self.state.rotation_matrix = Some(rotation_matrix);
-                Ok(())
+                else
+                {
+                    if let Some(row) = m.elements.get(i - NUMBER_OF_DOF as usize)
+                    {
+                        if j < NUMBER_OF_DOF as usize
+                        {
+                            current_row.push(Default::default());
+                        }
+                        else if let Some(element) = row.get(j - NUMBER_OF_DOF as usize)
+                        {
+                            let current_element =
+                                {
+                                    if element.is_nan()
+                                    {
+                                        if i == j
+                                        {
+                                           One::one()
+                                        }
+                                        else
+                                        {
+                                            Default::default()
+                                        }
+                                    }
+                                    else
+                                    {
+                                        *element
+                                    }
+                                };
+                            current_row.push(current_element);
+                        }
+                        else
+                        {
+                            current_row.push(Default::default());
+                        }
+                    }
+                    else
+                    {
+                        if i == j
+                        {
+                            current_row.push(One::one());
+                        }
+                        else
+                        {
+                            current_row.push(Default::default());
+                        }
+                    }
+                }
             }
-            else
-            {
-                Err(format!("cannot compose rotation matrix for element {}!", self.number))
-            }
+            rotation_matrix_elements.push(current_row);
         }
-        else
-        {
-            Err(format!("cannot compose rotation matrix for element {}!", self.number))
-        }
+        let rotation_matrix = Matrix { elements: rotation_matrix_elements };
+        self.state.rotation_matrix = Some(rotation_matrix);
     }
 
 
@@ -381,7 +310,11 @@ impl<T, V, W> Truss2n2ip<T, V, W>
         {
             let determinant_of_jacobian = self._calculate_determinant_of_jacobian();
             let integrated_area = self._area_numerical_integration();
-            Ok(m.multiply_by_number(integrated_area * determinant_of_jacobian * self.young_modulus.into()))
+            let local_stiffness_matrix = m.multiply_by_number
+                (
+                    integrated_area * determinant_of_jacobian * self.young_modulus.into())
+                ;
+            Ok(local_stiffness_matrix)
         }
         else
         {
@@ -392,11 +325,11 @@ impl<T, V, W> Truss2n2ip<T, V, W>
 
 
 impl<T, V, W> Element<T, V, W> for Truss2n2ip<T, V, W>
-    where T: Display + Hash + Eq + Copy,
+    where T: Display + Hash + Eq + Copy + Debug,
           V: FloatNum + Copy + One + Default + From<f64> +
              Add<Output = V> + Sub<Output = V> +
              Mul<Output = V> + Div<Output = V> +
-             AddAssign + MulAssign,
+             AddAssign + MulAssign + Debug,
           W: Copy + Mul<Output = W> + Into<V>
 
 {
@@ -410,7 +343,7 @@ impl<T, V, W> Element<T, V, W> for Truss2n2ip<T, V, W>
     {
         if let None = self.state.rotation_matrix
         {
-            self._compose_rotation_matrix()?;
+            self._compose_rotation_matrix();
         }
         let local_stiffness_matrix = self._compose_local_stiffness_matrix()?;
         let converted_stiffness_matrix =

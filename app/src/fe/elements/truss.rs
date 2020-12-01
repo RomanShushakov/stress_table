@@ -6,7 +6,7 @@ use crate::NUMBER_OF_DOF;
 use crate::fe::fe_aux_structs::
     {
         SubMatrixIndexes, compose_stiffness_submatrices_and_displacements,
-        Stiffness, Displacement
+        Stiffness, Displacement, StrainStressComponent, StrainStress, Strain, Stress
     };
 use crate::fe::elements::element::{Element};
 use std::ops::{Add, Sub, Mul, Div, AddAssign, MulAssign};
@@ -24,14 +24,15 @@ struct IntegrationPoint<V>
 
 
 #[derive(Debug)]
-pub struct State<T, V>
+struct State<T, V>
 {
     jacobian: Option<V>,
     strain_displacement_matrix: Option<Matrix<V>>,
+    strain_stress_indexes: Option<HashMap<usize, StrainStressComponent>>,
     integration_points: Vec<IntegrationPoint<V>>,
     rotation_matrix: Option<Matrix<V>>,
-    pub displacements_indexes: HashMap<Displacement<T>, usize>,
-    pub stiffness_submatrices_indexes: HashMap<Stiffness<T>, SubMatrixIndexes>,
+    displacements_indexes: HashMap<Displacement<T>, usize>,
+    stiffness_submatrices_indexes: HashMap<Stiffness<T>, SubMatrixIndexes>,
 }
 
 
@@ -45,7 +46,7 @@ pub struct Truss2n2ip<T, V, W>
     pub young_modulus: W,
     pub area: W,
     pub area_2: Option<W>,
-    pub state: State<T, V>,
+    state: State<T, V>,
 }
 
 
@@ -85,6 +86,7 @@ impl<T, V, W> Truss2n2ip<T, V, W>
                 state: State
                     {
                         jacobian: None, strain_displacement_matrix: None,
+                        strain_stress_indexes: None,
                         integration_points: vec![integration_point_1, integration_point_2],
                         rotation_matrix: None,
                         displacements_indexes,
@@ -143,8 +145,17 @@ impl<T, V, W> Truss2n2ip<T, V, W>
                     ],
             ];
         let dh_dr_matrix = Matrix { elements: dh_dr_elements };
+        let mut strain_stress_indexes = HashMap::new();
+        for i in 0..dh_dr_matrix.elements.len()
+        {
+            if i == 0
+            {
+                strain_stress_indexes.insert(i, StrainStressComponent::XX);
+            }
+        }
         self.state.strain_displacement_matrix = Some(
             dh_dr_matrix.multiply_by_number(inverse_jacobian));
+        self.state.strain_stress_indexes = Some(strain_stress_indexes);
     }
 
 
@@ -352,5 +363,70 @@ impl<T, V, W> Element<T, V, W> for Truss2n2ip<T, V, W>
                 .multiply_by_matrix(&local_stiffness_matrix)?
                 .multiply_by_matrix(self.state.rotation_matrix.as_ref().unwrap())?;
         Ok(converted_stiffness_matrix)
+    }
+
+
+    fn calculate_strains_and_stresses(&mut self, global_displacements: &HashMap<Displacement<T>, V>)
+        -> Result<HashMap<T, Vec<StrainStress<V>>>, String>
+    {
+        if let None = self.state.rotation_matrix
+        {
+            self._compose_rotation_matrix();
+        }
+        let mut displacements = Matrix::zeros(self.state.displacements_indexes.len(), 1);
+        for (displacement, index) in &self.state.displacements_indexes
+        {
+            if let Some(global_displacement) = global_displacements.get(&displacement)
+            {
+                displacements.elements[*index][0] = *global_displacement;
+            }
+            else
+            {
+                displacements.elements[*index][0] = Default::default();
+            }
+        }
+        let local_displacements = self.state.rotation_matrix
+            .as_ref()
+            .unwrap()
+            .multiply_by_matrix(&displacements)?;
+        if let None = self.state.strain_displacement_matrix
+        {
+            self._compose_strain_displacement_matrix();
+        }
+        let mut strains_and_stresses = Vec::new();
+        let strains = self.state.strain_displacement_matrix
+            .as_ref()
+            .unwrap()
+            .multiply_by_matrix(&local_displacements)?;
+        let stresses = strains.multiply_by_number(self.young_modulus.into());
+        for i in 0..strains.elements.len()
+        {
+            if let Some(strain_stress_component) =
+            self.state.strain_stress_indexes
+                .as_ref()
+                .unwrap()
+                .get(&i)
+            {
+                let current_strain = Strain
+                    {
+                        component: *strain_stress_component,
+                        value: strains.elements[i][0]
+                    };
+                let current_stress = Stress
+                    {
+                        component: *strain_stress_component,
+                        value: stresses.elements[i][0]
+                    };
+                let current_strain_stress = StrainStress
+                    {
+                        strain: current_strain,
+                        stress: current_stress
+                    };
+                strains_and_stresses.push(current_strain_stress);
+            }
+        }
+        let mut strains_and_stresses_data = HashMap::new();
+        strains_and_stresses_data.insert(self.number, strains_and_stresses);
+        Ok(strains_and_stresses_data)
     }
 }

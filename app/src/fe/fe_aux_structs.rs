@@ -48,6 +48,37 @@ pub struct SubMatrixIndexes
 }
 
 
+#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone)]
+pub enum StrainStressComponent
+{
+    XX
+}
+
+
+#[derive(Debug)]
+pub struct Strain<V>
+{
+    pub component: StrainStressComponent,
+    pub value: V,
+}
+
+
+#[derive(Debug)]
+pub struct Stress<V>
+{
+    pub component: StrainStressComponent,
+    pub value: V,
+}
+
+
+#[derive(Debug)]
+pub struct StrainStress<V>
+{
+    pub strain: Strain<V>,
+    pub stress: Stress<V>,
+}
+
+
 pub fn compose_stiffness_submatrices_and_displacements<T, V>(number_of_dof: usize, nodes: Vec<&Node<T, V>>)
     -> (HashMap<Displacement<T>, usize>, HashMap<Force<T>, usize> ,HashMap<Stiffness<T>, SubMatrixIndexes>)
         where T: PartialEq + Eq + Hash + Copy

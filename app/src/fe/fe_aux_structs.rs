@@ -1,11 +1,11 @@
 use std::ops::Range;
-use crate::fe::node::Node;
+use crate::fe::node::FeNode;
 use std::collections::HashMap;
 use std::hash::Hash;
 
 
 #[derive(Eq, PartialEq, Hash, Debug, Clone, Copy)]
-pub enum Component
+pub enum AxisComponent
 {
     U,
     V,
@@ -20,7 +20,7 @@ pub enum Component
 pub struct Displacement<T>
 {
     pub node_number: T,
-    pub component: Component,
+    pub component: AxisComponent,
 }
 
 
@@ -28,7 +28,7 @@ pub struct Displacement<T>
 pub struct Force<T>
 {
     pub node_number: T,
-    pub component: Component,
+    pub component: AxisComponent,
 }
 
 
@@ -79,7 +79,7 @@ pub struct StrainStress<V>
 }
 
 
-pub fn compose_stiffness_submatrices_and_displacements<T, V>(number_of_dof: usize, nodes: Vec<&Node<T, V>>)
+pub fn compose_stiffness_submatrices_and_displacements<T, V>(number_of_dof: usize, nodes: Vec<&FeNode<T, V>>)
     -> (HashMap<Displacement<T>, usize>, HashMap<Force<T>, usize> ,HashMap<Stiffness<T>, SubMatrixIndexes>)
         where T: PartialEq + Eq + Hash + Copy
 {
@@ -97,12 +97,12 @@ pub fn compose_stiffness_submatrices_and_displacements<T, V>(number_of_dof: usiz
 
                     let component = match k
                         {
-                            0 => Some(Component::U),
-                            1 => Some(Component::V),
-                            2 => Some(Component::W),
-                            3 => Some(Component::ThetaU),
-                            4 => Some(Component::ThetaV),
-                            5 => Some(Component::ThetaW),
+                            0 => Some(AxisComponent::U),
+                            1 => Some(AxisComponent::V),
+                            2 => Some(AxisComponent::W),
+                            3 => Some(AxisComponent::ThetaU),
+                            4 => Some(AxisComponent::ThetaV),
+                            5 => Some(AxisComponent::ThetaW),
                             _ => None
                         };
                     if let Some(comp) = component

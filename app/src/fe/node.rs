@@ -3,7 +3,7 @@ use std::hash::Hash;
 
 
 #[derive(Debug, Hash, Clone)]
-pub struct Node<T, V>
+pub struct FeNode<T, V>
     where T: Hash + Copy
 {
     pub number: T,

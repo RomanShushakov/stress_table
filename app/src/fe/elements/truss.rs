@@ -1,14 +1,13 @@
-use crate::fe::node::Node;
+use crate::fe::node::FeNode;
 use crate::math::math_aux_traits::{One, FloatNum};
 use crate::math::matrix::Matrix;
-use crate::math::vector::{Vector, GlobalCoordinateAxis, GlobalCoordinatePlane};
 use crate::NUMBER_OF_DOF;
 use crate::fe::fe_aux_structs::
     {
         SubMatrixIndexes, compose_stiffness_submatrices_and_displacements,
         Stiffness, Displacement, StrainStressComponent, StrainStress, Strain, Stress
     };
-use crate::fe::elements::element::{Element};
+use crate::fe::elements::element::{FElement};
 use std::ops::{Add, Sub, Mul, Div, AddAssign, MulAssign};
 use std::fmt::{Display, Debug};
 use std::collections::HashMap;
@@ -41,8 +40,8 @@ pub struct Truss2n2ip<T, V, W>
     where T: Hash + Eq + Copy
 {
     pub number: T,
-    pub node_1: Node<T, V>,
-    pub node_2: Node<T, V>,
+    pub node_1: FeNode<T, V>,
+    pub node_2: FeNode<T, V>,
     pub young_modulus: W,
     pub area: W,
     pub area_2: Option<W>,
@@ -59,7 +58,7 @@ impl<T, V, W> Truss2n2ip<T, V, W>
           W: Copy + Mul<Output = W> + Into<V>
 {
     pub fn create(
-        number: T, node_1: Node<T, V>, node_2: Node<T, V>,
+        number: T, node_1: FeNode<T, V>, node_2: FeNode<T, V>,
         young_modulus: W, area: W, area_2: Option<W>)
         -> Truss2n2ip<T, V, W>
     {
@@ -335,7 +334,7 @@ impl<T, V, W> Truss2n2ip<T, V, W>
 }
 
 
-impl<T, V, W> Element<T, V, W> for Truss2n2ip<T, V, W>
+impl<T, V, W> FElement<T, V, W> for Truss2n2ip<T, V, W>
     where T: Display + Hash + Eq + Copy + Debug,
           V: FloatNum + Copy + One + Default + From<f64> +
              Add<Output = V> + Sub<Output = V> +

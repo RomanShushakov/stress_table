@@ -1,5 +1,5 @@
-use crate::{Node, NUMBER_OF_DOF};
-use crate::fe::elements::element::{Element};
+use crate::{FeNode, NUMBER_OF_DOF};
+use crate::fe::elements::element::{FElement};
 use std::hash::Hash;
 use crate::math::matrix::Matrix;
 use crate::fe::fe_aux_structs::{compose_stiffness_submatrices_and_displacements, Displacement, Force};
@@ -28,11 +28,11 @@ pub struct State<T, V>
 }
 
 
-pub struct Model<T, V, W>
+pub struct FeModel<T, V, W>
     where T: Hash + Copy,
 {
-    pub nodes: Vec<Node<T, V>>,
-    pub elements: Vec<Rc<RefCell<dyn Element<T, V, W>>>>,
+    pub nodes: Vec<FeNode<T, V>>,
+    pub elements: Vec<Rc<RefCell<dyn FElement<T, V, W>>>>,
     pub applied_displacements: HashMap<Displacement<T>, W>,
     pub applied_forces: Option<HashMap<Force<T>, W>>,
     pub state: Option<State<T, V>>,
@@ -40,7 +40,7 @@ pub struct Model<T, V, W>
 }
 
 
-impl<T, V, W> Model<T, V, W>
+impl<T, V, W> FeModel<T, V, W>
     where T: Hash + Copy + Eq + Debug,
           V: Default + AddAssign + Copy + One + Debug +
              PartialEq<f64> + Add + Mul + MulAssign +
@@ -54,11 +54,11 @@ impl<T, V, W> Model<T, V, W>
              Mul<Output = W> + Div<Output = W>
 {
     pub fn create(
-        nodes: Vec<Node<T, V>>, elements: Vec<Rc<RefCell<dyn Element<T, V, W>>>>,
+        nodes: Vec<FeNode<T, V>>, elements: Vec<Rc<RefCell<dyn FElement<T, V, W>>>>,
         applied_displacements: HashMap<Displacement<T>, W>,
-        applied_forces: Option<HashMap<Force<T>, W>>) -> Model<T, V, W>
+        applied_forces: Option<HashMap<Force<T>, W>>) -> FeModel<T, V, W>
     {
-        Model { nodes, elements, applied_displacements, applied_forces, state: None, analysis_result: None }
+        FeModel { nodes, elements, applied_displacements, applied_forces, state: None, analysis_result: None }
     }
 
 

@@ -1,17 +1,15 @@
 mod math;
-use math::matrix::{Matrix, DecomposedMatrix};
-use math::vector::{Vector, GlobalCoordinateAxis, GlobalCoordinatePlane};
 use math::math_aux_structs::Coordinates;
 
 
 mod fe;
-use fe::node::Node;
+use fe::node::FeNode;
 use fe::elements::truss::Truss2n2ip;
-use fe::elements::element::Element;
-use fe::solver::Model;
+use fe::elements::element::FElement;
+use fe::solver::FeModel;
 use std::rc::Rc;
 use std::cell::RefCell;
-use crate::fe::fe_aux_structs::{Displacement, Component, Force};
+use crate::fe::fe_aux_structs::{Displacement, AxisComponent};
 use std::collections::HashMap;
 
 
@@ -87,11 +85,10 @@ fn main() -> Result<(), String>
     //     println!("{:?}", analysis_result.displacements);
     // }
 
-
-    let node_3 = Node { number: 3, coordinates: Coordinates { x: 0.0, y: 0.0, z: 0.0 } };
-    let node_4 = Node { number: 4, coordinates: Coordinates { x: 0.0, y: 3.0, z: 0.0 } };
-    let node_2 = Node { number: 2, coordinates: Coordinates { x: 4.0, y: 3.0, z: 0.0 } };
-    let node_1 = Node { number: 1, coordinates: Coordinates { x: 4.0, y: 0.0, z: 0.0 } };
+    let node_3 = FeNode { number: 3, coordinates: Coordinates { x: 0.0, y: 0.0, z: 0.0 } };
+    let node_4 = FeNode { number: 4, coordinates: Coordinates { x: 0.0, y: 3.0, z: 0.0 } };
+    let node_2 = FeNode { number: 2, coordinates: Coordinates { x: 4.0, y: 3.0, z: 0.0 } };
+    let node_1 = FeNode { number: 1, coordinates: Coordinates { x: 4.0, y: 0.0, z: 0.0 } };
     let mut nodes = vec![node_2.to_owned(), node_1.to_owned(), node_3.to_owned(), node_4.to_owned()];
     nodes.sort_unstable_by(|a, b| a.number.partial_cmp(&b.number).unwrap());
 
@@ -111,24 +108,24 @@ fn main() -> Result<(), String>
             128000000.0, 0.0625, None
         );
 
-    let mut elements: Vec<Rc<RefCell<dyn Element<_, _, _>>>> = Vec::new();
+    let mut elements: Vec<Rc<RefCell<dyn FElement<_, _, _>>>> = Vec::new();
     elements.push(Rc::new(RefCell::new(element_1)));
     elements.push(Rc::new(RefCell::new(element_2)));
     elements.push(Rc::new(RefCell::new(element_3)));
 
     let mut applied_displacements = HashMap::new();
-    applied_displacements.insert(Displacement { component: Component::U, node_number: 3 }, 0.0);
-    applied_displacements.insert(Displacement { component: Component::V, node_number: 3 }, 0.0);
-    applied_displacements.insert(Displacement { component: Component::U, node_number: 4 }, 0.0);
+    applied_displacements.insert(Displacement { component: AxisComponent::U, node_number: 3 }, 0.0);
+    applied_displacements.insert(Displacement { component: AxisComponent::V, node_number: 3 }, 0.0);
+    applied_displacements.insert(Displacement { component: AxisComponent::U, node_number: 4 }, 0.0);
     // applied_displacements.insert(Displacement { component: Component::V, node_number: 4 }, 0.0);
-    applied_displacements.insert(Displacement { component: Component::V, node_number: 1 }, -0.025);
+    applied_displacements.insert(Displacement { component: AxisComponent::V, node_number: 1 }, -0.025);
 
     // let mut applied_forces = HashMap::new();
     // applied_forces.insert(Force { component: Component::V, node_number: 1 }, -100.0);
     // applied_forces.insert(Force { component: Component::V, node_number: 1 }, 100);
     // applied_forces.insert(Force { component: Component::W, node_number: 1 }, 100);
 
-    let mut model = Model::create(nodes, elements, applied_displacements, None);
+    let mut model = FeModel::create(nodes, elements, applied_displacements, None);
 
     model.compose_global_stiffness_matrix()?;
     // if let Some(ref state) = model.state

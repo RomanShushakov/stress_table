@@ -1,4 +1,4 @@
-#![recursion_limit="256"]
+#![recursion_limit="1024"]
 
 mod math;
 use math::math_aux_structs::Coordinates;
@@ -111,13 +111,16 @@ use yew::virtual_dom::VNode;
 
 
 use web_sys::CanvasRenderingContext2d;
-use wasm_bindgen::__rt::core::cmp::min;
+use yew::services::resize::{WindowDimensions, ResizeTask};
+use yew::services::ResizeService;
 
 
 struct State
 {
     canvas_width: u32,
     canvas_height: u32,
+    nodes: Vec<FeNode<u16, f64>>,
+    selected_node: Option<FeNode<u16, f64>>,
     max_stress: Option<f64>,
 }
 
@@ -126,42 +129,61 @@ struct Model
 {
     link: ComponentLink<Self>,
     state: State,
+    resize_task: Option<ResizeTask>,
+    resize_service: ResizeService,
 }
 
 
 enum Msg
 {
-    SelectCanvasDimensions(ChangeData),
+    ExtractWindowDimensions(WindowDimensions),
+    SelectNode(ChangeData),
     ShowResult,
 }
 
 
 impl Model
 {
-    fn draw_right_eye(&self, ctx: &CanvasRenderingContext2d)
+    fn follow_window_dimensions(&mut self)
     {
-        ctx.move_to(95.0, 65.0);
-        ctx
-            .arc(90.0, 65.0, 5.0, 0.0, f64::consts::PI * 2.0)
-            .unwrap();
+        let callback: Callback<WindowDimensions> = self.link
+            .callback(|dimensions| Msg::ExtractWindowDimensions(dimensions));
+        let task = ResizeService::register(&mut self.resize_service, callback);
+        self.resize_task = Some(task);
     }
 
 
-    fn draw_coordinate_axes(&self) -> Html
+    fn extract_window_dimensions(&mut self, dimensions: WindowDimensions)
     {
-        let document = web_sys::window().unwrap().document().unwrap();
+        self.state.canvas_width = (dimensions.width as f32 * 0.8) as u32;
+        self.state.canvas_height = (dimensions.height as f32 * 0.8) as u32;
+    }
+
+
+    fn draw_canvas(&self) -> Html
+    {
+
+        let window = web_sys::window().unwrap();
+        let document = window.document().unwrap();
         // let canvas = document.get_element_by_id("canvas").unwrap();
         let element = document.create_element("canvas").unwrap();
-
         element.set_id("canvas");
-
         let canvas: web_sys::HtmlCanvasElement = element.dyn_into::<web_sys::HtmlCanvasElement>()
             .map_err(|_| ())
             .unwrap();
-
         canvas.set_width(self.state.canvas_width);
         canvas.set_height(self.state.canvas_height);
-
+        let base_dimension =
+            {
+                if self.state.canvas_width < self.state.canvas_height
+                {
+                    self.state.canvas_width
+                }
+                else
+                {
+                    self.state.canvas_height
+                }
+            };
         let context = canvas
             .get_context("2d")
             .unwrap()
@@ -169,70 +191,52 @@ impl Model
             .dyn_into::<web_sys::CanvasRenderingContext2d>()
             .unwrap();
 
-        let x_origin = self.state.canvas_height as f64 / 20f64;
-        let y_origin = self.state.canvas_height as f64 - self.state.canvas_height as f64 / 20f64;
-        let axis_line_length = self.state.canvas_height as f64 / 5f64;
+        let x_origin = base_dimension as f64 / 20f64;
+        let y_origin = base_dimension as f64 - base_dimension as f64 / 20f64;
+        let axis_line_length = base_dimension as f64 / 7f64;
         let axis_line_width = axis_line_length / 50f64;
 
         context.begin_path();
         context.move_to(x_origin, y_origin);
         context.set_line_width(axis_line_width);
         context.set_stroke_style(&"red".into());
-        context.line_to(x_origin + axis_line_length, y_origin);
-        context.line_to(x_origin + axis_line_length - axis_line_length / 5f64, y_origin - axis_line_length / 15f64);
-        context.line_to(x_origin + axis_line_length - axis_line_length / 5f64, y_origin + axis_line_length / 15f64);
+        context.line_to(x_origin + axis_line_length - axis_line_length / 7f64, y_origin);
+        context.move_to(x_origin + axis_line_length, y_origin);
+        context.line_to(x_origin + axis_line_length - axis_line_length / 7f64, y_origin - axis_line_length / 25f64);
+        context.line_to(x_origin + axis_line_length - axis_line_length / 7f64, y_origin + axis_line_length / 25f64);
         context.line_to(x_origin + axis_line_length, y_origin);
         context.set_fill_style(&"red".into());
         context.fill();
-        context.set_font(&format!("{}px Times New Roman", axis_line_length as i32 / 4));
-        context.fill_text("X", x_origin + axis_line_length + axis_line_length / 8f64, y_origin + axis_line_length / 5f64).unwrap();
+        context.set_font(&format!("{}px Serif", axis_line_length as i32 / 6));
+        context.fill_text("X", x_origin + axis_line_length + axis_line_length / 10f64, y_origin + axis_line_length / 7f64).unwrap();
         context.stroke();
 
         context.begin_path();
         context.move_to(x_origin, y_origin);
         context.set_stroke_style(&"green".into());
-        context.line_to(x_origin, y_origin - axis_line_length);
-        context.line_to(x_origin - axis_line_length / 15f64, y_origin - axis_line_length + axis_line_length / 5f64);
-        context.line_to(x_origin + axis_line_length / 15f64, y_origin - axis_line_length + axis_line_length / 5f64);
+        context.line_to(x_origin, y_origin - axis_line_length + axis_line_length / 7f64);
+        context.move_to(x_origin, y_origin - axis_line_length);
+        context.line_to(x_origin - axis_line_length / 25f64, y_origin - axis_line_length + axis_line_length / 7f64);
+        context.line_to(x_origin + axis_line_length / 25f64, y_origin - axis_line_length + axis_line_length / 7f64);
         context.line_to(x_origin, y_origin - axis_line_length);
         context.set_fill_style(&"green".into());
         context.fill();
-        context.set_font(&format!("{}px Times New Roman", axis_line_length as i32 / 4));
-        context.fill_text("Y", x_origin - axis_line_length / 5f64, y_origin - axis_line_length - axis_line_length / 8f64).unwrap();
+        context.set_font(&format!("{}px Serif", axis_line_length as i32 / 6));
+        context.fill_text("Y", x_origin - axis_line_length / 7f64, y_origin - axis_line_length - axis_line_length / 10f64).unwrap();
         context.stroke();
-
-
-
-
-
-        // Draw the outer circle.
-        context.move_to(125.0, 75.0);
-        context
-            .arc(75.0, 75.0, 50.0, 0.0, f64::consts::PI * 2.0)
-            .unwrap();
-
-        // Draw the mouth.
-        context.move_to(110.0, 75.0);
-        context.arc(75.0, 75.0, 35.0, 0.0, f64::consts::PI).unwrap();
-
-        // Draw the left eye.
-        context.move_to(65.0, 65.0);
-        context
-            .arc(60.0, 65.0, 5.0, 0.0, f64::consts::PI * 2.0)
-            .unwrap();
-
-
-        for _ in 0..2
-        {
-            self.draw_right_eye(&context);
-        }
-
-        context.stroke();
-
 
         let node = Node::from(canvas);
         let vnode = VNode::VRef(node);
         vnode
+    }
+
+
+    fn show_next_node(&self) -> Html
+    {
+        html!
+        {
+            <option value="10">{ 10 }</option>
+        }
     }
 }
 
@@ -244,11 +248,35 @@ impl Component for Model
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self
     {
-
+        let (width, height) =
+            {
+                let mut width = 320u32;
+                let mut height = 240u32;
+                let window = web_sys::window().unwrap();
+                if let Ok(w) = window.inner_width()
+                {
+                    if let Some(w) = w.as_f64()
+                    {
+                        width = (w * 0.8) as u32;
+                    }
+                }
+                if let Ok(h) = window.inner_height()
+                {
+                    if let Some(h) = h.as_f64()
+                    {
+                        height = (h * 0.8) as u32;
+                    }
+                }
+                (width, height)
+            };
+        // let default_node = FeNode { number: 1, coordinates: Coordinates { x: 0.0, y: 0.0, z: 0.0 } };
+        // let nodes = vec![default_node.to_owned()];
+        // let selected_node = default_node;
         Self
         {
             link,
-            state: State { canvas_width: 320, canvas_height: 240, max_stress: None },
+            state: State { canvas_width: width, canvas_height: height, max_stress: None, nodes: Vec::new(), selected_node: None },
+            resize_task: None, resize_service: ResizeService::new(),
         }
     }
 
@@ -257,44 +285,33 @@ impl Component for Model
     {
         match msg
         {
-            Msg::SelectCanvasDimensions(value) =>
+            Msg::ExtractWindowDimensions(window_dimensions) =>
+                self.extract_window_dimensions(window_dimensions),
+            Msg::SelectNode(data) =>
                 {
-                    match value
+                    match data
                     {
-                        ChangeData::Select(select_element) =>
+                        ChangeData::Select(select_node) =>
                             {
-                                let screen_size_values = select_element.value();
-                                if screen_size_values == "640x480"
+                                if let Some(position) =
+                                    self.state.nodes
+                                        .iter()
+                                        .position(|node| node.number.to_string() == select_node.value())
                                 {
-                                    self.state.canvas_width = 640;
-                                    self.state.canvas_height = 480;
-                                }
-                                else if screen_size_values == "800x600"
-                                {
-                                    self.state.canvas_width = 800;
-                                    self.state.canvas_height = 600;
-                                }
-                                else if screen_size_values == "1024x768"
-                                {
-                                    self.state.canvas_width = 1024;
-                                    self.state.canvas_height = 768;
-                                }
-                                else
-                                {
-                                    self.state.canvas_width = 320;
-                                    self.state.canvas_height = 240;
+                                    self.state.selected_node = Some(self.state.nodes[position].to_owned());
                                 }
                             },
                         _ => (),
                     }
                 },
+
             Msg::ShowResult =>
                 {
                     if let Ok(stress) = result_extract()
                     {
                         self.state.max_stress = Some(stress);
                     }
-                }
+                },
         }
         true
     }
@@ -308,17 +325,107 @@ impl Component for Model
 
     fn view(&self) -> Html
     {
-        html!
-        {
-            <div>
-                <select id="select" onchange=self.link.callback(|data: ChangeData| Msg::SelectCanvasDimensions(data))>
-                    <option value="">{ "Select screen dimensions" }</option>
-                    <option value="640x480">{ "640x480" }</option>
-                    <option value="800x600">{ "800x600" }</option>
-                    <option value="1024x768">{ "1024x768" }</option>
-                </select>
-                { self.draw_coordinate_axes() }
-                <button onclick=self.link.callback(|_| Msg::ShowResult)>{ "Analyze" }</button>
+        html! {
+            <div class="container">
+                <div class="preprocessor">
+                    <div class="buttons">
+                        <button class="button">{ "Nodes" }</button>
+                        <div class="nodes_menu_container">
+                            <div>
+                                <ul class="nodes_menu">
+                                    <li>
+                                        {
+                                            if !self.state.nodes.is_empty()
+                                            {
+                                                html!
+                                                {
+                                                    <select onchange=self.link.callback(|data: ChangeData| Msg::SelectNode(data))>
+                                                        {
+                                                            for self.state.nodes.iter().enumerate().map(|(i, node): (usize, &FeNode<u16, f64>)|
+                                                            {
+                                                                if i != self.state.nodes.len() - 1
+                                                                {
+                                                                    html!
+                                                                    {
+                                                                        <option value={ node.number } >{ node.number }</option>
+                                                                    }
+                                                                }
+                                                                else
+                                                                {
+                                                                    html!
+                                                                    {
+                                                                        <>
+                                                                            <option value={ node.number } >{ node.number }</option>
+                                                                            <option value={ node.number + 1 } >{ format!("{} New", node.number + 1) }</option>
+                                                                        </>
+                                                                    }
+                                                                }
+                                                            })
+                                                        }
+                                                    </select>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                html!
+                                                {
+                                                    <select onchange=self.link.callback(|data: ChangeData| Msg::SelectNode(data))>
+                                                        <option value={ 1 } >{ "1 New" }</option>
+                                                    </select>
+                                                }
+                                            }
+                                        }
+                                    </li>
+                                    {
+                                        if let Some(node) = &self.state.selected_node
+                                        {
+                                            html!
+                                            {
+                                                <>
+                                                    <li>
+                                                        <p>{ "x position" }</p>
+                                                        <input value={ node.coordinates.x } />
+                                                    </li>
+                                                    <li>
+                                                        <p>{ "y position" }</p>
+                                                        <input value={ node.coordinates.y } />
+                                                    </li>
+                                                </>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            html!
+                                            {
+                                                <>
+                                                    <li>
+                                                        <p>{ "x position" }</p>
+                                                        <input />
+                                                    </li>
+                                                    <li>
+                                                        <p>{ "y position" }</p>
+                                                        <input />
+                                                    </li>
+                                                </>
+                                            }
+                                        }
+                                    }
+                                </ul>
+                            </div>
+                            <div>
+                                <button class="menu_button">{ "Apply" }</button>
+                                <button class="menu_button">{ "Remove" }</button>
+                            </div>
+                        </div>
+                        <button class="button">{ "Elements" }</button>
+                        <button class="button">{ "Forces" }</button>
+                        <button class="button">{ "Displacements" }</button>
+                        <button class="button" onclick=self.link.callback(|_| Msg::ShowResult)>{ "Analyze" }</button>
+                    </div>
+                    <div class="canvas">
+                        { self.draw_canvas() }
+                    </div>
+                </div>
                 {
                     if let Some(max_stress) = self.state.max_stress
                     {
@@ -341,7 +448,7 @@ impl Component for Model
     {
         if first_render
         {
-            self.draw_coordinate_axes();
+            self.follow_window_dimensions();
         }
     }
 }

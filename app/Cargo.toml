@@ -26,5 +26,6 @@ features = [
   'Window',
   'HtmlSelectElement',
   'HtmlOptionsCollection',
-  'HtmlOptionElement'
+  'HtmlOptionElement',
+  'DomTokenList'
 ]

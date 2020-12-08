@@ -1,4 +1,4 @@
-#[derive(Debug, Clone, Hash)]
+#[derive(Debug, Clone, Hash, Eq, PartialEq)]
 pub struct Coordinates<T>
 {
     pub x: T,

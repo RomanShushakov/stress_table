@@ -110,7 +110,11 @@ use web_sys::Node;
 use yew::virtual_dom::VNode;
 
 
-use web_sys::CanvasRenderingContext2d;
+use web_sys::
+    {
+        CanvasRenderingContext2d, HtmlSelectElement, HtmlOptionElement, HtmlCanvasElement,
+        HtmlOptionsCollection,
+    };
 use yew::services::resize::{WindowDimensions, ResizeTask};
 use yew::services::ResizeService;
 
@@ -120,7 +124,7 @@ struct State
     canvas_width: u32,
     canvas_height: u32,
     nodes: Vec<FeNode<u16, f64>>,
-    selected_node: Option<FeNode<u16, f64>>,
+    selected_node: FeNode<u16, f64>,
     max_stress: Option<f64>,
 }
 
@@ -138,6 +142,10 @@ enum Msg
 {
     ExtractWindowDimensions(WindowDimensions),
     SelectNode(ChangeData),
+    UpdateEditXCoord(String),
+    UpdateEditYCoord(String),
+    ApplyNodeDataChange,
+    RemoveNode,
     ShowResult,
 }
 
@@ -168,7 +176,7 @@ impl Model
         // let canvas = document.get_element_by_id("canvas").unwrap();
         let element = document.create_element("canvas").unwrap();
         element.set_id("canvas");
-        let canvas: web_sys::HtmlCanvasElement = element.dyn_into::<web_sys::HtmlCanvasElement>()
+        let canvas = element.dyn_into::<HtmlCanvasElement>()
             .map_err(|_| ())
             .unwrap();
         canvas.set_width(self.state.canvas_width);
@@ -188,7 +196,7 @@ impl Model
             .get_context("2d")
             .unwrap()
             .unwrap()
-            .dyn_into::<web_sys::CanvasRenderingContext2d>()
+            .dyn_into::<CanvasRenderingContext2d>()
             .unwrap();
 
         let x_origin = base_dimension as f64 / 20f64;
@@ -231,12 +239,43 @@ impl Model
     }
 
 
-    fn show_next_node(&self) -> Html
+    fn update_node_menu(&mut self)
     {
-        html!
+        let window = web_sys::window().unwrap();
+        let document = window.document().unwrap();
+        let element = document.get_element_by_id("node_select").unwrap();
+        let select = element.dyn_into::<HtmlSelectElement>()
+            .map_err(|_| ())
+            .unwrap();
+        let options: HtmlOptionsCollection = select.options();
+        options.set_length(self.state.nodes.len() as u32 + 1);
+        let number =
+            {
+                let mut n = 0;
+                for (i, node) in self.state.nodes.iter().enumerate()
+                {
+                    if let Ok(option) = HtmlOptionElement::new()
+                    {
+                        option.set_value(&node.number.to_string());
+                        option.set_text(&node.number.to_string());
+                        options.set(i as u32, Some(&option)).unwrap();
+                    }
+                    if node.number > n
+                    {
+                        n = node.number;
+                    }
+                }
+                n + 1
+            };
+        let (x, y, z) = (0.0, 0.0, 0.0);
+        self.state.selected_node = FeNode { number, coordinates: Coordinates { x, y, z } };
+        if let Ok(option) = HtmlOptionElement::new()
         {
-            <option value="10">{ 10 }</option>
+            option.set_value(&number.to_string());
+            option.set_text(&format!("{} New", number));
+            options.set(self.state.nodes.len() as u32, Some(&option)).unwrap();
         }
+        options.set_selected_index(self.state.nodes.len() as i32).unwrap();
     }
 }
 
@@ -269,13 +308,15 @@ impl Component for Model
                 }
                 (width, height)
             };
-        // let default_node = FeNode { number: 1, coordinates: Coordinates { x: 0.0, y: 0.0, z: 0.0 } };
-        // let nodes = vec![default_node.to_owned()];
-        // let selected_node = default_node;
+        let selected_node = FeNode { number: 1, coordinates: Coordinates { x: 0.0, y: 0.0, z: 0.0 } };
         Self
         {
             link,
-            state: State { canvas_width: width, canvas_height: height, max_stress: None, nodes: Vec::new(), selected_node: None },
+            state: State
+                {
+                    canvas_width: width, canvas_height: height, max_stress: None,
+                    nodes: Vec::new(), selected_node
+                },
             resize_task: None, resize_service: ResizeService::new(),
         }
     }
@@ -293,18 +334,62 @@ impl Component for Model
                     {
                         ChangeData::Select(select_node) =>
                             {
-                                if let Some(position) =
-                                    self.state.nodes
+                                if let Some(position) = self.state.nodes
                                         .iter()
                                         .position(|node| node.number.to_string() == select_node.value())
                                 {
-                                    self.state.selected_node = Some(self.state.nodes[position].to_owned());
+                                    self.state.selected_node = self.state.nodes[position].to_owned();
+                                }
+                                else
+                                {
+                                    let number = select_node.value().parse::<u16>().unwrap();
+                                    let (x, y, z) = (0.0, 0.0, 0.0);
+                                    self.state.selected_node = FeNode { number, coordinates: Coordinates { x, y, z } };
                                 }
                             },
                         _ => (),
                     }
                 },
-
+            Msg::UpdateEditXCoord(e) =>
+                {
+                    if let Ok(x) = e.parse::<f64>()
+                    {
+                        self.state.selected_node.coordinates.x = x;
+                    }
+                },
+            Msg::UpdateEditYCoord(e) =>
+                {
+                    if let Ok(y) = e.parse::<f64>()
+                    {
+                        self.state.selected_node.coordinates.y = y;
+                    }
+                },
+            Msg::ApplyNodeDataChange =>
+                {
+                    if let Some(position) =
+                    self.state.nodes
+                        .iter()
+                        .position(|node| node.number == self.state.selected_node.number)
+                    {
+                        self.state.nodes[position] = self.state.selected_node.to_owned();
+                    }
+                    else
+                    {
+                        self.state.nodes.push(self.state.selected_node.to_owned());
+                    }
+                    self.update_node_menu();
+                },
+            Msg::RemoveNode =>
+                {
+                    if let Some(position) =
+                    self.state.nodes
+                        .iter()
+                        .position(|node| node.number == self.state.selected_node.number)
+                    {
+                        self.state.nodes.remove(position);
+                    }
+                    self.update_node_menu();
+                },
             Msg::ShowResult =>
                 {
                     if let Ok(stress) = result_extract()
@@ -335,86 +420,58 @@ impl Component for Model
                                 <ul class="nodes_menu">
                                     <li>
                                         {
-                                            if !self.state.nodes.is_empty()
+                                            html!
                                             {
-                                                html!
-                                                {
-                                                    <select onchange=self.link.callback(|data: ChangeData| Msg::SelectNode(data))>
-                                                        {
-                                                            for self.state.nodes.iter().enumerate().map(|(i, node): (usize, &FeNode<u16, f64>)|
-                                                            {
-                                                                if i != self.state.nodes.len() - 1
-                                                                {
-                                                                    html!
-                                                                    {
-                                                                        <option value={ node.number } >{ node.number }</option>
-                                                                    }
-                                                                }
-                                                                else
-                                                                {
-                                                                    html!
-                                                                    {
-                                                                        <>
-                                                                            <option value={ node.number } >{ node.number }</option>
-                                                                            <option value={ node.number + 1 } >{ format!("{} New", node.number + 1) }</option>
-                                                                        </>
-                                                                    }
-                                                                }
-                                                            })
-                                                        }
-                                                    </select>
-                                                }
-                                            }
-                                            else
-                                            {
-                                                html!
-                                                {
-                                                    <select onchange=self.link.callback(|data: ChangeData| Msg::SelectNode(data))>
-                                                        <option value={ 1 } >{ "1 New" }</option>
-                                                    </select>
-                                                }
+                                                <select
+                                                    id="node_select"
+                                                    onchange=self.link.callback(|data: ChangeData| Msg::SelectNode(data))
+                                                >
+                                                    <option value={ self.state.selected_node.number }>
+                                                        { format!("{} New", self.state.selected_node.number) }
+                                                    </option>
+                                                </select>
                                             }
                                         }
                                     </li>
                                     {
-                                        if let Some(node) = &self.state.selected_node
+                                        html!
                                         {
-                                            html!
-                                            {
-                                                <>
-                                                    <li>
-                                                        <p>{ "x position" }</p>
-                                                        <input value={ node.coordinates.x } />
-                                                    </li>
-                                                    <li>
-                                                        <p>{ "y position" }</p>
-                                                        <input value={ node.coordinates.y } />
-                                                    </li>
-                                                </>
-                                            }
+                                            <>
+                                                <li>
+                                                    <p>{ "x coordinate" }</p>
+                                                    <input
+                                                        value={ self.state.selected_node.coordinates.x }
+                                                        type="number"
+                                                        oninput=self.link.callback(|d: InputData| Msg::UpdateEditXCoord(d.value))
+                                                    />
+                                                </li>
+                                                <li>
+                                                    <p>{ "y coordinate" }</p>
+                                                    <input
+                                                        value={ self.state.selected_node.coordinates.y }
+                                                        type="number"
+                                                        oninput=self.link.callback(|d: InputData| Msg::UpdateEditYCoord(d.value))
+                                                    />
+                                                </li>
+                                            </>
                                         }
-                                        else
-                                        {
-                                            html!
-                                            {
-                                                <>
-                                                    <li>
-                                                        <p>{ "x position" }</p>
-                                                        <input />
-                                                    </li>
-                                                    <li>
-                                                        <p>{ "y position" }</p>
-                                                        <input />
-                                                    </li>
-                                                </>
-                                            }
-                                        }
+
                                     }
                                 </ul>
                             </div>
                             <div>
-                                <button class="menu_button">{ "Apply" }</button>
-                                <button class="menu_button">{ "Remove" }</button>
+                                <button
+                                    class="menu_button"
+                                    onclick=self.link.callback(|_| Msg::ApplyNodeDataChange)
+                                >
+                                    { "Apply" }
+                                </button>
+                                <button
+                                    class="menu_button"
+                                    onclick=self.link.callback(|_| Msg::RemoveNode)
+                                >
+                                    { "Remove" }
+                                </button>
                             </div>
                         </div>
                         <button class="button">{ "Elements" }</button>

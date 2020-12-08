@@ -24,5 +24,7 @@ features = [
   'Element',
   'HtmlCanvasElement',
   'Window',
-  'HtmlSelectElement'
+  'HtmlSelectElement',
+  'HtmlOptionsCollection',
+  'HtmlOptionElement'
 ]

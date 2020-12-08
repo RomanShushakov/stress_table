@@ -1,5 +1,9 @@
 use yew::prelude::*;
-use web_sys::{HtmlSelectElement, HtmlOptionElement, HtmlOptionsCollection, DomTokenList};
+use web_sys::
+    {
+        HtmlSelectElement, HtmlOptionElement, HtmlOptionsCollection,
+        DomTokenList, HtmlInputElement
+    };
 use wasm_bindgen::JsCast;
 
 
@@ -12,12 +16,17 @@ const NODES_MENU_CONTAINER_ID: &str = "nodes_menu_container";
 const NODES_MENU_CONTAINER: &str = "nodes_menu_container";
 const HIDDEN: &str = "hidden";
 const NODE_SELECT_ID: &str = "node_select";
+const NODE_X_COORD: &str = "node_x_coord";
+const NODE_Y_COORD: &str = "node_y_coord";
 
 
 #[derive(Properties, PartialEq, Clone)]
 pub struct Props
 {
     pub nodes: Vec<FeNode<u16, f64>>,
+    pub add_node: Callback<FeNode<u16, f64>>,
+    pub update_node: Callback<(usize, FeNode<u16, f64>)>,
+    pub remove_node: Callback<usize>,
 }
 
 
@@ -39,8 +48,6 @@ pub enum Msg
 {
     ShowHideNodesMenu,
     SelectNode(ChangeData),
-    UpdateEditXCoord(String),
-    UpdateEditYCoord(String),
     ApplyNodeDataChange,
     RemoveNode,
 }
@@ -103,6 +110,25 @@ impl NodesMenu
         }
         options.set_selected_index(self.props.nodes.len() as i32).unwrap();
     }
+
+
+    fn read_inputted_coordinate(&self, input_field: &str) -> f64
+    {
+        let window = web_sys::window().unwrap();
+        let document = window.document().unwrap();
+        let element = document.get_element_by_id(input_field).unwrap();
+        let input_element = element.dyn_into::<HtmlInputElement>()
+            .map_err(|_| ())
+            .unwrap();
+        if let Ok(coord) = input_element.value().parse::<f64>()
+        {
+            coord
+        }
+        else
+        {
+            0.0
+        }
+    }
 }
 
 
@@ -146,33 +172,20 @@ impl Component for NodesMenu
                         _ => (),
                     }
                 },
-            Msg::UpdateEditXCoord(e) =>
-                {
-                    if let Ok(x) = e.parse::<f64>()
-                    {
-                        self.state.selected_node.coordinates.x = x;
-                    }
-                },
-            Msg::UpdateEditYCoord(e) =>
-                {
-                    if let Ok(y) = e.parse::<f64>()
-                    {
-                        self.state.selected_node.coordinates.y = y;
-                    }
-                },
             Msg::ApplyNodeDataChange =>
                 {
+                    self.state.selected_node.coordinates.x = self.read_inputted_coordinate(NODE_X_COORD);
+                    self.state.selected_node.coordinates.y = self.read_inputted_coordinate(NODE_Y_COORD);
                     if let Some(position) = self.props.nodes
                         .iter()
                         .position(|node| node.number == self.state.selected_node.number)
                     {
-                        self.props.nodes[position] = self.state.selected_node.to_owned();
+                        self.props.update_node.emit((position, self.state.selected_node.to_owned()));
                     }
                     else
                     {
-                        self.props.nodes.push(self.state.selected_node.to_owned());
+                        self.props.add_node.emit(self.state.selected_node.to_owned());
                     }
-                    self.update_node_menu();
                 },
             Msg::RemoveNode =>
                 {
@@ -181,9 +194,8 @@ impl Component for NodesMenu
                         .iter()
                         .position(|node| node.number == self.state.selected_node.number)
                     {
-                        self.props.nodes.remove(position);
+                        self.props.remove_node.emit(position);
                     }
-                    self.update_node_menu();
                 },
         }
         true
@@ -195,6 +207,7 @@ impl Component for NodesMenu
         if self.props != props
         {
             self.props = props;
+            self.update_node_menu();
             true
         }
         else
@@ -222,8 +235,8 @@ impl Component for NodesMenu
                                     html!
                                     {
                                         <select
-                                            id={ NODE_SELECT_ID }
-                                            onchange=self.link.callback(|data: ChangeData| Msg::SelectNode(data))
+                                            id={ NODE_SELECT_ID },
+                                            onchange=self.link.callback(|data: ChangeData| Msg::SelectNode(data)),
                                         >
                                             <option value={ self.state.selected_node.number }>
                                                 { format!("{} New", self.state.selected_node.number) }
@@ -239,17 +252,17 @@ impl Component for NodesMenu
                                         <li>
                                             <p>{ "x coordinate" }</p>
                                             <input
-                                                value={ self.state.selected_node.coordinates.x }
-                                                type="number"
-                                                oninput=self.link.callback(|d: InputData| Msg::UpdateEditXCoord(d.value))
+                                                id={ NODE_X_COORD },
+                                                value={ self.state.selected_node.coordinates.x },
+                                                type="number",
                                             />
                                         </li>
                                         <li>
                                             <p>{ "y coordinate" }</p>
                                             <input
-                                                value={ self.state.selected_node.coordinates.y }
-                                                type="number"
-                                                oninput=self.link.callback(|d: InputData| Msg::UpdateEditYCoord(d.value))
+                                                id={ NODE_Y_COORD },
+                                                value={ self.state.selected_node.coordinates.y },
+                                                type="number",
                                             />
                                         </li>
                                     </>
@@ -260,14 +273,14 @@ impl Component for NodesMenu
                     </div>
                     <div>
                         <button
-                            class="menu_button"
-                            onclick=self.link.callback(|_| Msg::ApplyNodeDataChange)
+                            class="menu_button",
+                            onclick=self.link.callback(|_| Msg::ApplyNodeDataChange),
                         >
                             { "Apply" }
                         </button>
                         <button
-                            class="menu_button"
-                            onclick=self.link.callback(|_| Msg::RemoveNode)
+                            class="menu_button",
+                            onclick=self.link.callback(|_| Msg::RemoveNode),
                         >
                             { "Remove" }
                         </button>

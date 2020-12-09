@@ -29,17 +29,17 @@ fn result_extract() -> Result<f64, String>
 
     let element_1 = Truss2n2ip::create
         (
-            1, node_2.to_owned(), node_1.to_owned(),
+            1u16, node_2.to_owned(), node_1.to_owned(),
             128000000.0, 0.0625, None
         );
     let element_2 = Truss2n2ip::create
         (
-            2, node_2.to_owned(), node_3.to_owned(),
+            2u16, node_2.to_owned(), node_3.to_owned(),
             128000000.0, 0.0625, None
         );
     let element_3 = Truss2n2ip::create
         (
-            3, node_2.to_owned(), node_4.to_owned(),
+            3u16, node_2.to_owned(), node_4.to_owned(),
             128000000.0, 0.0625, None
         );
 
@@ -47,6 +47,8 @@ fn result_extract() -> Result<f64, String>
     elements.push(Rc::new(RefCell::new(element_1)));
     elements.push(Rc::new(RefCell::new(element_2)));
     elements.push(Rc::new(RefCell::new(element_3)));
+
+    // yew::services::ConsoleService::log(&format!("{:?}", elements[0].borrow().show_info().stiffness_properties));
 
     let mut applied_displacements = HashMap::new();
     applied_displacements.insert(Displacement { component: AxisComponent::U, node_number: 3 }, 0.0);
@@ -118,6 +120,7 @@ use yew::services::resize::{WindowDimensions, ResizeTask, ResizeService};
 mod components;
 use components::NodesMenu;
 use components::Canvas;
+use components::ElementsMenu;
 
 
 const CANVAS_ID: &str = "canvas";
@@ -128,6 +131,7 @@ struct State
     canvas_width: u32,
     canvas_height: u32,
     nodes: Vec<FeNode<u16, f64>>,
+    elements: Vec<Rc<RefCell<dyn FElement<u16, f64, f32>>>>,
     max_stress: Option<f64>,
 }
 
@@ -147,6 +151,9 @@ enum Msg
     AddNode(FeNode<u16, f64>),
     UpdateNode((usize, FeNode<u16, f64>)),
     RemoveNode(usize),
+    AddElement(Rc<RefCell<dyn FElement<u16, f64, f32>>>),
+    UpdateElement((usize, Rc<RefCell<dyn FElement<u16, f64, f32>>>)),
+    RemoveElement(usize),
     ShowResult,
 }
 
@@ -204,7 +211,7 @@ impl Component for Model
             state: State
                 {
                     canvas_width: width, canvas_height: height, max_stress: None,
-                    nodes: Vec::new(),
+                    nodes: Vec::new(), elements: Vec::new(),
                 },
             resize_task: None, resize_service: ResizeService::new(),
         }
@@ -219,7 +226,22 @@ impl Component for Model
                 self.extract_window_dimensions(window_dimensions),
             Msg::AddNode(node) =>
                 {
-                    self.state.nodes.push(node);
+                    if let None = self.state.nodes
+                        .iter()
+                        .position(|existed_node|
+                            {
+                                (existed_node.coordinates.x == node.coordinates.x) &&
+                                (existed_node.coordinates.y == node.coordinates.y)
+                            }
+                        )
+                    {
+                        self.state.nodes.push(node);
+                    }
+                    else
+                    {
+                        yew::services::DialogService::alert(
+                            "The node with the same coordinates is already in use.");
+                    }
                 },
             Msg::UpdateNode(data) =>
                 {
@@ -228,6 +250,18 @@ impl Component for Model
             Msg::RemoveNode(position) =>
                 {
                     self.state.nodes.remove(position);
+                },
+            Msg::AddElement(element) =>
+                {
+                    self.state.elements.push(element)
+                },
+            Msg::UpdateElement(data) =>
+                {
+                    self.state.elements[data.0] = data.1;
+                },
+            Msg::RemoveElement(position) =>
+                {
+                    self.state.elements.remove(position);
                 },
             Msg::ShowResult =>
                 {
@@ -253,6 +287,10 @@ impl Component for Model
         let handle_update_node = self.link.callback(|data: (usize, FeNode<u16, f64>)| Msg::UpdateNode(data));
         let handle_remove_node = self.link.callback(|position: usize| Msg::RemoveNode(position));
 
+        let handle_add_element = self.link.callback(|element: Rc<RefCell<dyn FElement<u16, f64, f32>>>| Msg::AddElement(element));
+        let handle_update_element = self.link.callback(|data: (usize, Rc<RefCell<dyn FElement<u16, f64, f32>>>)| Msg::UpdateElement(data));
+        let handle_remove_element = self.link.callback(|position: usize| Msg::RemoveElement(position));
+
         html! {
             <div class="container">
                 <div class="preprocessor">
@@ -261,7 +299,12 @@ impl Component for Model
                             nodes=self.state.nodes.to_owned(), add_node=handle_add_node,
                             update_node=handle_update_node, remove_node=handle_remove_node,
                         />
-                        <button class="button">{ "Elements" }</button>
+                        <ElementsMenu
+                            nodes=self.state.nodes.to_owned(), elements=self.state.elements.to_owned(),
+                            add_element=handle_add_element, update_element=handle_update_element,
+                            remove_element=handle_remove_element,
+                        />
+                        // <button class="button">{ "Elements" }</button>
                         <button class="button">{ "Forces" }</button>
                         <button class="button">{ "Displacements" }</button>
                         <button class="button" onclick=self.link.callback(|_| Msg::ShowResult)>{ "Analyze" }</button>

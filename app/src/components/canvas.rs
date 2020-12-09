@@ -70,13 +70,21 @@ impl Canvas
         context.set_stroke_style(&"red".into());
         context.line_to(x_origin + axis_line_length - axis_line_length / 7f64, y_origin);
         context.move_to(x_origin + axis_line_length, y_origin);
-        context.line_to(x_origin + axis_line_length - axis_line_length / 7f64, y_origin - axis_line_length / 25f64);
-        context.line_to(x_origin + axis_line_length - axis_line_length / 7f64, y_origin + axis_line_length / 25f64);
+        context.line_to(
+            x_origin + axis_line_length - axis_line_length / 7f64,
+            y_origin - axis_line_length / 25f64);
+        context.line_to(
+            x_origin + axis_line_length - axis_line_length / 7f64,
+            y_origin + axis_line_length / 25f64);
         context.line_to(x_origin + axis_line_length, y_origin);
         context.set_fill_style(&"red".into());
         context.fill();
         context.set_font(&format!("{}px Serif", axis_line_length as i32 / 6));
-        context.fill_text("X", x_origin + axis_line_length + axis_line_length / 10f64, y_origin + axis_line_length / 7f64).unwrap();
+        context.fill_text(
+            "X",
+            x_origin + axis_line_length + axis_line_length / 10f64,
+            y_origin + axis_line_length / 7f64)
+            .unwrap();
         context.stroke();
 
         context.begin_path();
@@ -84,13 +92,21 @@ impl Canvas
         context.set_stroke_style(&"green".into());
         context.line_to(x_origin, y_origin - axis_line_length + axis_line_length / 7f64);
         context.move_to(x_origin, y_origin - axis_line_length);
-        context.line_to(x_origin - axis_line_length / 25f64, y_origin - axis_line_length + axis_line_length / 7f64);
-        context.line_to(x_origin + axis_line_length / 25f64, y_origin - axis_line_length + axis_line_length / 7f64);
+        context.line_to(
+            x_origin - axis_line_length / 25f64,
+            y_origin - axis_line_length + axis_line_length / 7f64);
+        context.line_to(
+            x_origin + axis_line_length / 25f64,
+            y_origin - axis_line_length + axis_line_length / 7f64);
         context.line_to(x_origin, y_origin - axis_line_length);
         context.set_fill_style(&"green".into());
         context.fill();
         context.set_font(&format!("{}px Serif", axis_line_length as i32 / 6));
-        context.fill_text("Y", x_origin - axis_line_length / 7f64, y_origin - axis_line_length - axis_line_length / 10f64).unwrap();
+        context.fill_text(
+            "Y",
+            x_origin - axis_line_length / 7f64,
+            y_origin - axis_line_length - axis_line_length / 10f64)
+            .unwrap();
         context.stroke();
 
         if !self.props.nodes.is_empty()
@@ -160,7 +176,12 @@ impl Canvas
                                 (self.props.canvas_height / 2) as f64
                             }
                         };
-                    imaging_nodes.push((node.number, x_imaging, self.props.canvas_height as f64 - y_imaging));
+                    imaging_nodes.push(
+                        (
+                            node.number,
+                            x_imaging,
+                            self.props.canvas_height as f64 - y_imaging
+                        ));
                 }
             }
 
@@ -170,13 +191,34 @@ impl Canvas
                 context.move_to(node.1, node.2);
                 context.set_stroke_style(&"black".into());
                 context
-                    .arc(node.1 - axis_line_length / 25f64, node.2, axis_line_length / 25f64, 0.0, f64::consts::PI * 2.0)
+                    .arc(
+                        node.1 - axis_line_length / 25f64,
+                        node.2,
+                        axis_line_length / 25f64,
+                        0.0,
+                        f64::consts::PI * 2.0)
                     .unwrap();
                 context.set_fill_style(&"black".into());
                 context.fill();
+
+                // context.save();
+                // context.translate(node.1 - axis_line_length / 6f64,node.2 + axis_line_length / 6f64).unwrap();
+                // context.rotate(f64::consts::PI / 2.0).unwrap();
+
                 context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
-                context.fill_text(&node.0.to_string(), node.1 - axis_line_length / 6f64, node.2 + axis_line_length / 6f64).unwrap();
+                context.fill_text(
+                    &node.0.to_string(),
+                    node.1 - axis_line_length / 6f64,
+                    node.2 + axis_line_length / 6f64)
+                    .unwrap();
+                // context.fill_text(
+                //     &node.0.to_string(),
+                //     0f64,
+                //     0f64)
+                //     .unwrap();
                 context.stroke();
+
+                // context.restore();
             }
         }
 

@@ -12,6 +12,7 @@ use std::ops::{Add, Sub, Mul, Div, AddAssign, MulAssign};
 use std::fmt::{Display, Debug};
 use std::collections::HashMap;
 use std::hash::Hash;
+use crate::fe::elements::element::ElementInfo;
 
 
 #[derive(Debug)]
@@ -427,5 +428,22 @@ impl<T, V, W> FElement<T, V, W> for Truss2n2ip<T, V, W>
         let mut strains_and_stresses_data = HashMap::new();
         strains_and_stresses_data.insert(self.number, strains_and_stresses);
         Ok(strains_and_stresses_data)
+    }
+
+
+    fn show_info(&self) -> ElementInfo<T, W>
+    {
+        let number = self.number;
+        let mut nodes_numbers = Vec::new();
+        nodes_numbers.push(self.node_1.number);
+        nodes_numbers.push(self.node_2.number);
+        let mut stiffness_properties = Vec::new();
+        stiffness_properties.push(self.young_modulus);
+        stiffness_properties.push(self.area);
+        if let Some(area_2) = self.area_2
+        {
+            stiffness_properties.push(area_2);
+        }
+        ElementInfo { number, nodes_numbers, stiffness_properties }
     }
 }

@@ -34,7 +34,7 @@ body {
 .menu {
     display: flex;
     align-items: center;
-    align-self: center;
+    align-self: start;
     box-sizing: content-box;
     flex-direction: column;
     padding-left: 0.5rem;
@@ -43,35 +43,7 @@ body {
 }
 
 
-.canvas {
-    display: flex;
-    flex-direction: column;
-    border: 1px solid #000000;
-}
-
-
 .button {
     margin-right: 0.5rem;
     width: 10.0rem;
-}
-
-
-.nodes_menu {
-   list-style-type: None 
-}
-
-
-.nodes_menu_container {
-    display: flex;
-    align-items: center;
-    box-sizing: content-box;
-    flex-direction: column;
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
-}
-
-
-.hidden
-{
-    display: none;
 }

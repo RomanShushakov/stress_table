@@ -113,11 +113,11 @@ use web_sys::
         CanvasRenderingContext2d, HtmlSelectElement, HtmlOptionElement, HtmlCanvasElement,
         HtmlOptionsCollection, DomTokenList,
     };
-use yew::services::resize::{WindowDimensions, ResizeTask};
-use yew::services::ResizeService;
+use yew::services::resize::{WindowDimensions, ResizeTask, ResizeService};
 
 mod components;
 use components::NodesMenu;
+use components::Canvas;
 
 
 const CANVAS_ID: &str = "canvas";
@@ -166,76 +166,6 @@ impl Model
     {
         self.state.canvas_width = (dimensions.width as f32 * 0.8) as u32;
         self.state.canvas_height = (dimensions.height as f32 * 0.8) as u32;
-    }
-
-
-    fn draw_canvas(&self) -> Html
-    {
-
-        let window = web_sys::window().unwrap();
-        let document = window.document().unwrap();
-        let element = document.create_element("canvas").unwrap();
-        element.set_id(CANVAS_ID);
-        let canvas = element.dyn_into::<HtmlCanvasElement>()
-            .map_err(|_| ())
-            .unwrap();
-        canvas.set_width(self.state.canvas_width);
-        canvas.set_height(self.state.canvas_height);
-        let base_dimension =
-            {
-                if self.state.canvas_width < self.state.canvas_height
-                {
-                    self.state.canvas_width
-                }
-                else
-                {
-                    self.state.canvas_height
-                }
-            };
-        let context = canvas
-            .get_context("2d")
-            .unwrap()
-            .unwrap()
-            .dyn_into::<CanvasRenderingContext2d>()
-            .unwrap();
-
-        let x_origin = base_dimension as f64 / 20f64;
-        let y_origin = base_dimension as f64 - base_dimension as f64 / 20f64;
-        let axis_line_length = base_dimension as f64 / 7f64;
-        let axis_line_width = axis_line_length / 50f64;
-
-        context.begin_path();
-        context.move_to(x_origin, y_origin);
-        context.set_line_width(axis_line_width);
-        context.set_stroke_style(&"red".into());
-        context.line_to(x_origin + axis_line_length - axis_line_length / 7f64, y_origin);
-        context.move_to(x_origin + axis_line_length, y_origin);
-        context.line_to(x_origin + axis_line_length - axis_line_length / 7f64, y_origin - axis_line_length / 25f64);
-        context.line_to(x_origin + axis_line_length - axis_line_length / 7f64, y_origin + axis_line_length / 25f64);
-        context.line_to(x_origin + axis_line_length, y_origin);
-        context.set_fill_style(&"red".into());
-        context.fill();
-        context.set_font(&format!("{}px Serif", axis_line_length as i32 / 6));
-        context.fill_text("X", x_origin + axis_line_length + axis_line_length / 10f64, y_origin + axis_line_length / 7f64).unwrap();
-        context.stroke();
-
-        context.begin_path();
-        context.move_to(x_origin, y_origin);
-        context.set_stroke_style(&"green".into());
-        context.line_to(x_origin, y_origin - axis_line_length + axis_line_length / 7f64);
-        context.move_to(x_origin, y_origin - axis_line_length);
-        context.line_to(x_origin - axis_line_length / 25f64, y_origin - axis_line_length + axis_line_length / 7f64);
-        context.line_to(x_origin + axis_line_length / 25f64, y_origin - axis_line_length + axis_line_length / 7f64);
-        context.line_to(x_origin, y_origin - axis_line_length);
-        context.set_fill_style(&"green".into());
-        context.fill();
-        context.set_font(&format!("{}px Serif", axis_line_length as i32 / 6));
-        context.fill_text("Y", x_origin - axis_line_length / 7f64, y_origin - axis_line_length - axis_line_length / 10f64).unwrap();
-        context.stroke();
-
-        let node = Node::from(canvas);
-        let vnode = VNode::VRef(node);
-        vnode
     }
 }
 
@@ -337,7 +267,11 @@ impl Component for Model
                         <button class="button" onclick=self.link.callback(|_| Msg::ShowResult)>{ "Analyze" }</button>
                     </div>
                     <div class="canvas">
-                        { self.draw_canvas() }
+                        <Canvas
+                            canvas_width=self.state.canvas_width,
+                            canvas_height=self.state.canvas_height,
+                            nodes=self.state.nodes.to_owned(),
+                        />
                     </div>
                 </div>
                 {

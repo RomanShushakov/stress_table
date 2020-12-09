@@ -6,14 +6,12 @@ use web_sys::
     };
 use wasm_bindgen::JsCast;
 
-
-
 use crate::fe::node::FeNode;
 use crate::Coordinates;
 
 
-const NODES_MENU_CONTAINER_ID: &str = "nodes_menu_container";
-const NODES_MENU_CONTAINER: &str = "nodes_menu_container";
+const NODES_MENU_ID: &str = "nodes_menu";
+const NODES_MENU: &str = "nodes_menu";
 const HIDDEN: &str = "hidden";
 const NODE_SELECT_ID: &str = "node_select";
 const NODE_X_COORD: &str = "node_x_coord";
@@ -59,15 +57,15 @@ impl NodesMenu
     {
         let window = web_sys::window().unwrap();
         let document = window.document().unwrap();
-        let element = document.get_element_by_id(NODES_MENU_CONTAINER_ID).unwrap();
+        let element = document.get_element_by_id(NODES_MENU_ID).unwrap();
         let class_list: DomTokenList = element.class_list();
         if class_list.contains(HIDDEN)
         {
-            element.set_class_name(NODES_MENU_CONTAINER);
+            element.set_class_name(NODES_MENU);
         }
         else
         {
-            element.set_class_name(&(NODES_MENU_CONTAINER.to_owned() + " " + HIDDEN));
+            element.set_class_name(&(NODES_MENU.to_owned() + " " + HIDDEN));
         }
     }
 
@@ -227,9 +225,9 @@ impl Component for NodesMenu
                 >
                     { "Nodes" }
                 </button>
-                <div id = { NODES_MENU_CONTAINER_ID } class={ NODES_MENU_CONTAINER.to_owned() + " " + HIDDEN }>
-                    <div>
-                        <ul class="nodes_menu">
+                <div id = { NODES_MENU_ID } class={ NODES_MENU.to_owned() + " " + HIDDEN }>
+                    <div class="nodes_menu_input_fields">
+                        <ul class="nodes_menu_input_fields_list">
                             <li>
                                 {
                                     html!
@@ -250,7 +248,9 @@ impl Component for NodesMenu
                                 {
                                     <>
                                         <li>
-                                            <p>{ "x coordinate" }</p>
+                                            <p class="nodes_menu_input_fields_descriptions">
+                                                { "X coordinate:" }
+                                            </p>
                                             <input
                                                 id={ NODE_X_COORD },
                                                 value={ self.state.selected_node.coordinates.x },
@@ -258,7 +258,9 @@ impl Component for NodesMenu
                                             />
                                         </li>
                                         <li>
-                                            <p>{ "y coordinate" }</p>
+                                            <p class="nodes_menu_input_fields_descriptions">
+                                                { "Y coordinate:" }
+                                            </p>
                                             <input
                                                 id={ NODE_Y_COORD },
                                                 value={ self.state.selected_node.coordinates.y },
@@ -271,15 +273,15 @@ impl Component for NodesMenu
                             }
                         </ul>
                     </div>
-                    <div>
+                    <div class="nodes_menu_buttons">
                         <button
-                            class="menu_button",
+                            class="nodes_menu_button",
                             onclick=self.link.callback(|_| Msg::ApplyNodeDataChange),
                         >
                             { "Apply" }
                         </button>
                         <button
-                            class="menu_button",
+                            class="nodes_menu_button",
                             onclick=self.link.callback(|_| Msg::RemoveNode),
                         >
                             { "Remove" }

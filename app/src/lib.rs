@@ -121,6 +121,8 @@ mod components;
 use components::NodesMenu;
 use components::Canvas;
 use components::ElementsMenu;
+mod auxiliary;
+use auxiliary::AuxTruss;
 
 
 const CANVAS_ID: &str = "canvas";
@@ -131,7 +133,8 @@ struct State
     canvas_width: u32,
     canvas_height: u32,
     nodes: Vec<FeNode<u16, f64>>,
-    elements: Vec<Rc<RefCell<dyn FElement<u16, f64, f32>>>>,
+    // elements: Vec<Rc<RefCell<dyn FElement<u16, f64, f32>>>>,
+    truss_elements_prep: Vec<AuxTruss>,
     max_stress: Option<f64>,
 }
 
@@ -151,9 +154,12 @@ enum Msg
     AddNode(FeNode<u16, f64>),
     UpdateNode((usize, FeNode<u16, f64>)),
     RemoveNode(usize),
-    AddElement(Rc<RefCell<dyn FElement<u16, f64, f32>>>),
-    UpdateElement((usize, Rc<RefCell<dyn FElement<u16, f64, f32>>>)),
-    RemoveElement(usize),
+    // AddElement(Rc<RefCell<dyn FElement<u16, f64, f32>>>),
+    // UpdateElement((usize, Rc<RefCell<dyn FElement<u16, f64, f32>>>)),
+    // RemoveElement(usize),
+    AddAuxTrussElement(AuxTruss),
+    UpdateAuxTrussElement((usize, AuxTruss)),
+    RemoveTrussElement(usize),
     ShowResult,
 }
 
@@ -211,7 +217,7 @@ impl Component for Model
             state: State
                 {
                     canvas_width: width, canvas_height: height, max_stress: None,
-                    nodes: Vec::new(), elements: Vec::new(),
+                    nodes: Vec::new(), truss_elements_prep: Vec::new(), // elements: Vec::new(),
                 },
             resize_task: None, resize_service: ResizeService::new(),
         }
@@ -251,17 +257,45 @@ impl Component for Model
                 {
                     self.state.nodes.remove(position);
                 },
-            Msg::AddElement(element) =>
+            Msg::AddAuxTrussElement(element) =>
                 {
-                    self.state.elements.push(element)
+                    let node_1_number_position = self.state.nodes
+                        .iter()
+                        .position(|node| node.number == element.node_1_number);
+                    let node_2_number_position = self.state.nodes
+                        .iter()
+                        .position(|node| node.number == element.node_2_number);
+                    if node_1_number_position.is_none() || node_2_number_position.is_none()
+                    {
+                        yew::services::DialogService::alert(
+                            "The selected node or nodes do not exist.");
+                    }
+                    else
+                    {
+                        self.state.truss_elements_prep.push(element)
+                    }
                 },
-            Msg::UpdateElement(data) =>
+            Msg::UpdateAuxTrussElement(data) =>
                 {
-                    self.state.elements[data.0] = data.1;
+                    let node_1_number_position = self.state.nodes
+                        .iter()
+                        .position(|node| node.number == data.1.node_1_number);
+                    let node_2_number_position = self.state.nodes
+                        .iter()
+                        .position(|node| node.number == data.1.node_2_number);
+                    if node_1_number_position.is_none() || node_2_number_position.is_none()
+                    {
+                        yew::services::DialogService::alert(
+                            "The selected node or nodes do not exist.");
+                    }
+                    else
+                    {
+                        self.state.truss_elements_prep[data.0] = data.1;
+                    }
                 },
-            Msg::RemoveElement(position) =>
+            Msg::RemoveTrussElement(position) =>
                 {
-                    self.state.elements.remove(position);
+                    self.state.truss_elements_prep.remove(position);
                 },
             Msg::ShowResult =>
                 {
@@ -287,9 +321,12 @@ impl Component for Model
         let handle_update_node = self.link.callback(|data: (usize, FeNode<u16, f64>)| Msg::UpdateNode(data));
         let handle_remove_node = self.link.callback(|position: usize| Msg::RemoveNode(position));
 
-        let handle_add_element = self.link.callback(|element: Rc<RefCell<dyn FElement<u16, f64, f32>>>| Msg::AddElement(element));
-        let handle_update_element = self.link.callback(|data: (usize, Rc<RefCell<dyn FElement<u16, f64, f32>>>)| Msg::UpdateElement(data));
-        let handle_remove_element = self.link.callback(|position: usize| Msg::RemoveElement(position));
+        let handle_add_aux_truss_element =
+            self.link.callback(|truss_element: AuxTruss| Msg::AddAuxTrussElement(truss_element));
+        let handle_update_aux_truss_element =
+            self.link.callback(|data: (usize, AuxTruss)| Msg::UpdateAuxTrussElement(data));
+        let handle_remove_aux_truss_element =
+            self.link.callback(|position: usize| Msg::RemoveTrussElement(position));
 
         html! {
             <div class="container">
@@ -300,11 +337,11 @@ impl Component for Model
                             update_node=handle_update_node, remove_node=handle_remove_node,
                         />
                         <ElementsMenu
-                            nodes=self.state.nodes.to_owned(), elements=self.state.elements.to_owned(),
-                            add_element=handle_add_element, update_element=handle_update_element,
-                            remove_element=handle_remove_element,
+                            truss_elements_prep=self.state.truss_elements_prep.to_owned(),
+                            add_aux_truss_element=handle_add_aux_truss_element,
+                            update_aux_truss_element=handle_update_aux_truss_element,
+                            remove_aux_truss_element=handle_remove_aux_truss_element,
                         />
-                        // <button class="button">{ "Elements" }</button>
                         <button class="button">{ "Forces" }</button>
                         <button class="button">{ "Displacements" }</button>
                         <button class="button" onclick=self.link.callback(|_| Msg::ShowResult)>{ "Analyze" }</button>

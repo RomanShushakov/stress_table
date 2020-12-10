@@ -5,13 +5,10 @@ use web_sys::
         DomTokenList, HtmlInputElement
     };
 use wasm_bindgen::JsCast;
-use std::rc::Rc;
-use std::cell::RefCell;
 
 use crate::fe::node::FeNode;
-use crate::fe::elements::element::FElement;
-use crate::fe::elements::truss::Truss2n2ip;
 use crate::Coordinates;
+use crate::AuxTruss;
 
 
 const ELEMENTS_MENU_ID: &str = "elements_menu";
@@ -20,24 +17,23 @@ const HIDDEN: &str = "hidden";
 const ELEMENT_SELECT_ID: &str = "element_select";
 const NODE_1_NUMBER: &str = "first_node_number";
 const NODE_2_NUMBER: &str = "second_node_number";
-const YOUNG_S_MODULUS: &str = "young_s_modulus";
+const YOUNG_MODULUS: &str = "young_modulus";
 const AREA: &str = "area";
 
 
 #[derive(Properties, PartialEq, Clone)]
 pub struct Props
 {
-    pub nodes: Vec<FeNode<u16, f64>>,
-    pub elements: Vec<Rc<RefCell<dyn FElement<u16, f64, f32>>>>,
-    pub add_element: Callback<Rc<RefCell<dyn FElement<u16, f64, f32>>>>,
-    pub update_element: Callback<(usize, Rc<RefCell<dyn FElement<u16, f64, f32>>>)>,
-    pub remove_element: Callback<usize>,
+    pub truss_elements_prep: Vec<AuxTruss>,
+    pub add_aux_truss_element: Callback<AuxTruss>,
+    pub update_aux_truss_element: Callback<(usize, AuxTruss)>,
+    pub remove_aux_truss_element: Callback<usize>,
 }
 
 
 struct State
 {
-    selected_element: Rc<RefCell<dyn FElement<u16, f64, f32>>>,
+    selected_aux_truss_element: AuxTruss,
 }
 
 
@@ -52,9 +48,9 @@ pub struct ElementsMenu
 pub enum Msg
 {
     ShowHideElementsMenu,
-    SelectElement(ChangeData),
-    ApplyElementDataChange,
-    RemoveElement,
+    SelectAuxTrussElement(ChangeData),
+    ApplyAuxTrussElementDataChange,
+    RemoveAuxTrussElement,
 }
 
 
@@ -86,40 +82,38 @@ impl ElementsMenu
             .map_err(|_| ())
             .unwrap();
         let options: HtmlOptionsCollection = select.options();
-        options.set_length(self.props.elements.len() as u32 + 1);
+        options.set_length(self.props.truss_elements_prep.len() as u32 + 1);
         let number =
             {
                 let mut n = 0;
-                for (i, element) in self.props.elements.iter().enumerate()
+                for (i, element) in self.props.truss_elements_prep.iter().enumerate()
                 {
                     if let Ok(option) = HtmlOptionElement::new()
                     {
-                        option.set_value(&element.borrow().show_info().number.to_string());
-                        option.set_text(&element.borrow().show_info().number.to_string());
+                        option.set_value(&element.number.to_string());
+                        option.set_text(&element.number.to_string());
                         options.set(i as u32, Some(&option)).unwrap();
                     }
-                    if element.borrow().show_info().number > n
+                    if element.number > n
                     {
-                        n = element.borrow().show_info().number;
+                        n = element.number;
                     }
                 }
                 n + 1
             };
-        let default_node_1 = FeNode { number: 1, coordinates: Coordinates { x: 1.0, y: 0.0, z: 0.0 } };
-        let default_node_2 = FeNode { number: 2, coordinates: Coordinates { x: 2.0, y: 0.0, z: 0.0 } };
-        let new_element = Truss2n2ip::create
-        (
-            number, default_node_1, default_node_2,
-            1f32, 1f32, None
-        );
-        self.state.selected_element = Rc::new(RefCell::new(new_element));
+        let new_element = AuxTruss
+        {
+            number, node_1_number: 1u16, node_2_number: 2u16, young_modulus: 1f32, area: 1f32
+        };
+
+        self.state.selected_aux_truss_element = new_element;
         if let Ok(option) = HtmlOptionElement::new()
         {
             option.set_value(&number.to_string());
             option.set_text(&format!("{} New", number));
-            options.set(self.props.elements.len() as u32, Some(&option)).unwrap();
+            options.set(self.props.truss_elements_prep.len() as u32, Some(&option)).unwrap();
         }
-        options.set_selected_index(self.props.elements.len() as i32).unwrap();
+        options.set_selected_index(self.props.truss_elements_prep.len() as i32).unwrap();
     }
 
 
@@ -137,7 +131,7 @@ impl ElementsMenu
         }
         else
         {
-            0
+            0u16
         }
     }
 
@@ -156,7 +150,7 @@ impl ElementsMenu
         }
         else
         {
-            0.0
+            0f32
         }
     }
 }
@@ -170,15 +164,11 @@ impl Component for ElementsMenu
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self
     {
-        let default_node_1 = FeNode { number: 1, coordinates: Coordinates { x: 1.0, y: 0.0, z: 0.0 } };
-        let default_node_2 = FeNode { number: 2, coordinates: Coordinates { x: 2.0, y: 0.0, z: 0.0 } };
-        let default_element = Truss2n2ip::create
-        (
-            1u16, default_node_1, default_node_2,
-            1f32, 1f32, None
-        );
-        let selected_element = Rc::new(RefCell::new(default_element));
-        Self { props, link, state: State { selected_element } }
+        let default_element = AuxTruss
+        {
+            number: 1u16, node_1_number: 1u16, node_2_number: 2u16, young_modulus: 1f32, area: 1f32
+        };
+        Self { props, link, state: State { selected_aux_truss_element: default_element } }
     }
 
 
@@ -187,120 +177,92 @@ impl Component for ElementsMenu
         match msg
         {
             Msg::ShowHideElementsMenu => self.show_hide_elements_menu(),
-            Msg::SelectElement(data) =>
+            Msg::SelectAuxTrussElement(data) =>
                 {
                     match data
                     {
                         ChangeData::Select(select_element) =>
                             {
-                                if let Some(position) = self.props.elements
+                                if let Some(position) = self.props.truss_elements_prep
                                         .iter()
-                                        .position(|element|
-                                            element.borrow().show_info().number.to_string() == select_element.value())
+                                        .position(|truss_element|
+                                            truss_element.number.to_string() == select_element.value())
                                 {
-                                    self.state.selected_element = self.props.elements[position].to_owned();
+                                    self.state.selected_aux_truss_element =
+                                        self.props.truss_elements_prep[position].to_owned();
                                 }
                                 else
                                 {
                                     let number = select_element.value().parse::<u16>().unwrap();
-                                    let default_node_1 = FeNode
+                                    let new_element = AuxTruss
                                         {
-                                            number: 1,
-                                            coordinates: Coordinates { x: 1.0, y: 0.0, z: 0.0 }
+                                            number, node_1_number: 1u16, node_2_number: 2u16,
+                                            young_modulus: 1f32, area: 1f32
                                         };
-                                    let default_node_2 = FeNode
-                                        {
-                                            number: 2,
-                                            coordinates: Coordinates { x: 2.0, y: 0.0, z: 0.0 }
-                                        };
-                                    let new_element = Truss2n2ip::create
-                                    (
-                                        number, default_node_1, default_node_2,
-                                        1f32, 1f32, None
-                                    );
-                                    self.state.selected_element = Rc::new(RefCell::new(new_element));
+                                    self.state.selected_aux_truss_element = new_element;
                                 }
                             },
                         _ => (),
                     }
                 },
-            Msg::ApplyElementDataChange =>
+            Msg::ApplyAuxTrussElementDataChange =>
                 {
-                    let selected_element_node_1_number = self.read_inputted_node_number(NODE_1_NUMBER);
-                    let selected_element_node_2_number = self.read_inputted_node_number(NODE_2_NUMBER);
-                    let selected_element_young_s_modulus = self.read_inputted_data(YOUNG_S_MODULUS);
-                    let selected_element_area = self.read_inputted_data(AREA);
-                    if selected_element_node_1_number == selected_element_node_2_number
+                    let selected_element_node_1_inputted_number = self.read_inputted_node_number(NODE_1_NUMBER);
+                    let selected_element_node_2_inputted_number = self.read_inputted_node_number(NODE_2_NUMBER);
+                    if selected_element_node_1_inputted_number == selected_element_node_2_inputted_number
                     {
                         yew::services::DialogService::alert(
                             "The element's node 1 and node 2 are the same.");
                         return false;
                     }
-                    let selected_element_node_1 =
-                        {
-                            if let Some(position) = self.props.nodes
-                                .iter()
-                                .position(|node| node.number == selected_element_node_1_number)
-                            {
-                                Some(self.props.nodes[position].to_owned())
-                            }
-                            else
-                            {
-                                None
-                            }
-                        };
-                    let selected_element_node_2 =
-                        {
-                            if let Some(position) = self.props.nodes
-                                .iter()
-                                .position(|node| node.number == selected_element_node_2_number)
-                            {
-                                Some(self.props.nodes[position].to_owned())
-                            }
-                            else
-                            {
-                                None
-                            }
-                        };
-                    if selected_element_node_1.is_none() || selected_element_node_2.is_none()
+                    let selected_element_young_modulus = self.read_inputted_data(YOUNG_MODULUS);
+                    if selected_element_young_modulus == 0f32
                     {
                         yew::services::DialogService::alert(
-                            "The selected node or nodes do not exist.");
+                            "The element's Young's modulus should be greater than 0.");
                         return false;
                     }
-                    let created_element = Truss2n2ip::create(
-                        self.state.selected_element.borrow().show_info().number.to_owned(),
-                        selected_element_node_1.unwrap(),
-                        selected_element_node_2.unwrap(),
-                        selected_element_young_s_modulus,
-                        selected_element_area,
-                        None);
-                    if let Some(position) = self.props.elements
+                    let selected_element_area = self.read_inputted_data(AREA);
+                    if selected_element_area == 0f32
+                    {
+                        yew::services::DialogService::alert(
+                            "The element's area should be greater than 0.");
+                        return false;
+                    }
+                    self.state.selected_aux_truss_element.node_1_number = selected_element_node_1_inputted_number;
+                    self.state.selected_aux_truss_element.node_2_number = selected_element_node_2_inputted_number;
+                    self.state.selected_aux_truss_element.young_modulus = selected_element_young_modulus;
+                    self.state.selected_aux_truss_element.area = selected_element_area;
+                    if let Some(position) = self.props.truss_elements_prep
                         .iter()
-                        .position(|element|
+                        .position(|truss_element|
                             {
-                                element.borrow().show_info().number ==
-                                self.state.selected_element.borrow().show_info().number
+                                truss_element.number ==
+                                self.state.selected_aux_truss_element.number
                             })
                     {
-                        self.props.update_element.emit((position, Rc::new(RefCell::new(created_element))));
+                        self.props.update_aux_truss_element.emit(
+                            (
+                                    position,
+                                    self.state.selected_aux_truss_element.to_owned()
+                            ));
                     }
                     else
                     {
-                        self.props.add_element.emit(Rc::new(RefCell::new(created_element)));
+                        self.props.add_aux_truss_element.emit(self.state.selected_aux_truss_element.to_owned());
                     }
                 },
-            Msg::RemoveElement =>
+            Msg::RemoveAuxTrussElement =>
                 {
-                    if let Some(position) = self.props.elements
+                    if let Some(position) = self.props.truss_elements_prep
                         .iter()
-                        .position(|element|
+                        .position(|truss_element|
                             {
-                                element.borrow().show_info().number ==
-                                self.state.selected_element.borrow().show_info().number
+                                truss_element.number ==
+                                self.state.selected_aux_truss_element.number
                             })
                     {
-                        self.props.remove_element.emit(position);
+                        self.props.remove_aux_truss_element.emit(position);
                     }
                 },
         }
@@ -342,10 +304,10 @@ impl Component for ElementsMenu
                                     {
                                         <select
                                             id={ ELEMENT_SELECT_ID },
-                                            onchange=self.link.callback(|data: ChangeData| Msg::SelectElement(data)),
+                                            onchange=self.link.callback(|data: ChangeData| Msg::SelectAuxTrussElement(data)),
                                         >
-                                            <option value={ self.state.selected_element.borrow().show_info().number }>
-                                                { format!("{} New", self.state.selected_element.borrow().show_info().number) }
+                                            <option value={ self.state.selected_aux_truss_element.number }>
+                                                { format!("{} New", self.state.selected_aux_truss_element.number) }
                                             </option>
                                         </select>
                                     }
@@ -361,7 +323,7 @@ impl Component for ElementsMenu
                                             </p>
                                             <input
                                                 id={ NODE_1_NUMBER },
-                                                value={ self.state.selected_element.borrow().show_info().nodes_numbers[0] },
+                                                value={ self.state.selected_aux_truss_element.node_1_number },
                                                 type="number",
                                                 min={ 1 },
                                                 step={ 1 },
@@ -373,7 +335,7 @@ impl Component for ElementsMenu
                                             </p>
                                             <input
                                                 id={ NODE_2_NUMBER },
-                                                value={ self.state.selected_element.borrow().show_info().nodes_numbers[1] },
+                                                value={ self.state.selected_aux_truss_element.node_2_number },
                                                 type="number",
                                                 min={ 1 },
                                                 step={ 1 },
@@ -384,8 +346,8 @@ impl Component for ElementsMenu
                                                 { "Young's modulus:" }
                                             </p>
                                             <input
-                                                id={ YOUNG_S_MODULUS },
-                                                value={ self.state.selected_element.borrow().show_info().stiffness_properties[0] },
+                                                id={ YOUNG_MODULUS },
+                                                value={ self.state.selected_aux_truss_element.young_modulus },
                                                 type="number",
                                                 min={ 0 },
                                             />
@@ -396,7 +358,7 @@ impl Component for ElementsMenu
                                             </p>
                                             <input
                                                 id={ AREA },
-                                                value={ self.state.selected_element.borrow().show_info().stiffness_properties[1] },
+                                                value={ self.state.selected_aux_truss_element.area },
                                                 type="number",
                                                 min={ 0 },
                                             />
@@ -410,13 +372,13 @@ impl Component for ElementsMenu
                     <div class="elements_menu_buttons">
                         <button
                             class="elements_menu_button",
-                            onclick=self.link.callback(|_| Msg::ApplyElementDataChange),
+                            onclick=self.link.callback(|_| Msg::ApplyAuxTrussElementDataChange),
                         >
                             { "Apply" }
                         </button>
                         <button
                             class="elements_menu_button",
-                            onclick=self.link.callback(|_| Msg::RemoveElement),
+                            onclick=self.link.callback(|_| Msg::RemoveAuxTrussElement),
                         >
                             { "Remove" }
                         </button>

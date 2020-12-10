@@ -1,3 +1,12 @@
+#[derive(Clone)]
+pub struct DrawnNode
+{
+    pub number: u16,
+    pub x: f64,
+    pub y: f64,
+}
+
+
 #[derive(Clone, PartialEq)]
 pub struct AuxTruss
 {

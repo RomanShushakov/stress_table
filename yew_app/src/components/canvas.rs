@@ -7,9 +7,16 @@ use yew::virtual_dom::VNode;
 use web_sys::{ CanvasRenderingContext2d, HtmlCanvasElement };
 
 use crate::fe::node::FeNode;
+use crate::auxiliary::{AuxTruss, DrawnNode};
+use yew::services::reader::FileChunk::DataChunk;
 
 
 const CANVAS_ID: &str = "canvas";
+const CANVAS_BACKGROUND_COLOR: &str = "white";
+const CANVAS_X_AXIS_COLOR: &str = "red";
+const CANVAS_Y_AXIS_COLOR: &str = "green";
+const CANVAS_NODES_COLOR: &str = "black";
+const CANVAS_ELEMENTS_COLOR: &str = "blue";
 
 
 #[derive(Properties, PartialEq, Clone)]
@@ -18,12 +25,13 @@ pub struct Props
     pub canvas_width: u32,
     pub canvas_height: u32,
     pub nodes: Vec<FeNode<u16, f64>>,
+    pub truss_elements_prep: Vec<AuxTruss>,
 }
 
 
 pub struct Canvas
 {
-    link: ComponentLink<Self>,
+    // link: ComponentLink<Self>,
     props: Props,
 }
 
@@ -67,7 +75,7 @@ impl Canvas
         context.begin_path();
         context.move_to(x_origin, y_origin);
         context.set_line_width(axis_line_width);
-        context.set_stroke_style(&"red".into());
+        context.set_stroke_style(&CANVAS_X_AXIS_COLOR.into());
         context.line_to(x_origin + axis_line_length - axis_line_length / 7f64, y_origin);
         context.move_to(x_origin + axis_line_length, y_origin);
         context.line_to(
@@ -77,7 +85,7 @@ impl Canvas
             x_origin + axis_line_length - axis_line_length / 7f64,
             y_origin + axis_line_length / 25f64);
         context.line_to(x_origin + axis_line_length, y_origin);
-        context.set_fill_style(&"red".into());
+        context.set_fill_style(&CANVAS_X_AXIS_COLOR.into());
         context.fill();
         context.set_font(&format!("{}px Serif", axis_line_length as i32 / 6));
         context.fill_text(
@@ -89,7 +97,7 @@ impl Canvas
 
         context.begin_path();
         context.move_to(x_origin, y_origin);
-        context.set_stroke_style(&"green".into());
+        context.set_stroke_style(&CANVAS_Y_AXIS_COLOR.into());
         context.line_to(x_origin, y_origin - axis_line_length + axis_line_length / 7f64);
         context.move_to(x_origin, y_origin - axis_line_length);
         context.line_to(
@@ -99,7 +107,7 @@ impl Canvas
             x_origin + axis_line_length / 25f64,
             y_origin - axis_line_length + axis_line_length / 7f64);
         context.line_to(x_origin, y_origin - axis_line_length);
-        context.set_fill_style(&"green".into());
+        context.set_fill_style(&CANVAS_Y_AXIS_COLOR.into());
         context.fill();
         context.set_font(&format!("{}px Serif", axis_line_length as i32 / 6));
         context.fill_text(
@@ -111,16 +119,15 @@ impl Canvas
 
         if !self.props.nodes.is_empty()
         {
-            let mut imaging_nodes = Vec::new();
+            let mut drawn_nodes = Vec::new();
             if self.props.nodes.len() == 1
             {
-                imaging_nodes.push(
-                    (
-                        self.props.nodes[0].number,
-                        (self.props.canvas_width / 2) as f64,
-                        (self.props.canvas_height / 2) as f64,
-                    )
-                );
+                drawn_nodes.push(DrawnNode
+                    {
+                        number: self.props.nodes[0].number,
+                        x: (self.props.canvas_width / 2) as f64,
+                        y: (self.props.canvas_height / 2) as f64,
+                    });
             }
             else
             {
@@ -176,29 +183,29 @@ impl Canvas
                                 (self.props.canvas_height / 2) as f64
                             }
                         };
-                    imaging_nodes.push(
-                        (
-                            node.number,
-                            x_imaging,
-                            self.props.canvas_height as f64 - y_imaging
-                        ));
+                    drawn_nodes.push(DrawnNode
+                        {
+                            number: node.number,
+                            x: x_imaging,
+                            y: self.props.canvas_height as f64 - y_imaging
+                        });
                 }
             }
 
-            for node in imaging_nodes
+            for node in drawn_nodes.iter()
             {
                 context.begin_path();
-                context.move_to(node.1, node.2);
-                context.set_stroke_style(&"black".into());
+                context.move_to(node.x, node.y);
+                context.set_stroke_style(&CANVAS_NODES_COLOR.into());
                 context
                     .arc(
-                        node.1 - axis_line_length / 25f64,
-                        node.2,
+                        node.x,
+                        node.y,
                         axis_line_length / 25f64,
                         0.0,
                         f64::consts::PI * 2.0)
                     .unwrap();
-                context.set_fill_style(&"black".into());
+                context.set_fill_style(&CANVAS_NODES_COLOR.into());
                 context.fill();
 
                 // context.save();
@@ -207,9 +214,9 @@ impl Canvas
 
                 context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
                 context.fill_text(
-                    &node.0.to_string(),
-                    node.1 - axis_line_length / 6f64,
-                    node.2 + axis_line_length / 6f64)
+                    &node.number.to_string(),
+                    node.x - axis_line_length / 6f64,
+                    node.y + axis_line_length / 6f64)
                     .unwrap();
                 // context.fill_text(
                 //     &node.0.to_string(),
@@ -219,6 +226,54 @@ impl Canvas
                 context.stroke();
 
                 // context.restore();
+            }
+
+            if !self.props.truss_elements_prep.is_empty()
+            {
+                for truss_element in self.props.truss_elements_prep.iter()
+                {
+                    let node_1_position = drawn_nodes
+                        .iter()
+                        .position(|node| node.number == truss_element.node_1_number).unwrap();
+                    let drawn_node_1 = drawn_nodes[node_1_position].to_owned();
+                    let node_2_position = drawn_nodes
+                        .iter()
+                        .position(|node| node.number == truss_element.node_2_number).unwrap();
+                    let drawn_node_2 = drawn_nodes[node_2_position].to_owned();
+
+                    context.begin_path();
+                    context.move_to(drawn_node_1.x, drawn_node_1.y);
+                    context.set_stroke_style(&CANVAS_ELEMENTS_COLOR.into());
+                    context.line_to(drawn_node_2.x, drawn_node_2.y);
+                    context.stroke();
+
+                    let x_center = (drawn_node_1.x + drawn_node_2.x) / 2f64;
+                    let y_center = (drawn_node_1.y + drawn_node_2.y) / 2f64;
+
+                    context.begin_path();
+                    context.set_stroke_style(&CANVAS_BACKGROUND_COLOR.into());
+                    context
+                    .arc(
+                        x_center,
+                        y_center,
+                        axis_line_length / 10f64,
+                        0.0,
+                        f64::consts::PI * 2.0)
+                    .unwrap();
+                    context.set_fill_style(&CANVAS_BACKGROUND_COLOR.into());
+                    context.fill();
+                    context.stroke();
+
+                    context.begin_path();
+                    context.set_fill_style(&CANVAS_ELEMENTS_COLOR.into());
+                    context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
+                    context.fill_text(
+                        &truss_element.number.to_string(),
+                        x_center - axis_line_length / 20f64,
+                        y_center + axis_line_length / 20f64)
+                        .unwrap();
+                    context.stroke();
+                }
             }
         }
 
@@ -235,9 +290,9 @@ impl Component for Canvas
     type Properties = Props;
 
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self
+    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self
     {
-        Self { props, link }
+        Self { props }
     }
 
 

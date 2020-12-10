@@ -1,107 +1,25 @@
 #![recursion_limit="1024"]
-
 mod math;
 use math::math_aux_structs::Coordinates;
-
-
 mod fe;
 use fe::node::FeNode;
 use fe::elements::truss::Truss2n2ip;
 use fe::elements::element::FElement;
 use fe::solver::FeModel;
+use fe::fe_aux_structs::{Displacement, AxisComponent};
+
+
+mod components;
+use components::NodesMenu;
+use components::Canvas;
+use components::ElementsMenu;
+mod auxiliary;
+use auxiliary::AuxTruss;
+
+
+use std::collections::HashMap;
 use std::rc::Rc;
 use std::cell::RefCell;
-use crate::fe::fe_aux_structs::{Displacement, AxisComponent};
-use std::collections::HashMap;
-
-
-pub const NUMBER_OF_DOF: i32 = 6;
-
-
-fn result_extract() -> Result<f64, String>
-{
-    let node_3 = FeNode { number: 3, coordinates: Coordinates { x: 0.0, y: 0.0, z: 0.0 } };
-    let node_4 = FeNode { number: 4, coordinates: Coordinates { x: 0.0, y: 3.0, z: 0.0 } };
-    let node_2 = FeNode { number: 2, coordinates: Coordinates { x: 4.0, y: 3.0, z: 0.0 } };
-    let node_1 = FeNode { number: 1, coordinates: Coordinates { x: 4.0, y: 0.0, z: 0.0 } };
-    let mut nodes = vec![node_2.to_owned(), node_1.to_owned(), node_3.to_owned(), node_4.to_owned()];
-    nodes.sort_unstable_by(|a, b| a.number.partial_cmp(&b.number).unwrap());
-
-    let element_1 = Truss2n2ip::create
-        (
-            1u16, node_2.to_owned(), node_1.to_owned(),
-            128000000.0, 0.0625, None
-        );
-    let element_2 = Truss2n2ip::create
-        (
-            2u16, node_2.to_owned(), node_3.to_owned(),
-            128000000.0, 0.0625, None
-        );
-    let element_3 = Truss2n2ip::create
-        (
-            3u16, node_2.to_owned(), node_4.to_owned(),
-            128000000.0, 0.0625, None
-        );
-
-    let mut elements: Vec<Rc<RefCell<dyn FElement<_, _, _>>>> = Vec::new();
-    elements.push(Rc::new(RefCell::new(element_1)));
-    elements.push(Rc::new(RefCell::new(element_2)));
-    elements.push(Rc::new(RefCell::new(element_3)));
-
-    // yew::services::ConsoleService::log(&format!("{:?}", elements[0].borrow().show_info().stiffness_properties));
-
-    let mut applied_displacements = HashMap::new();
-    applied_displacements.insert(Displacement { component: AxisComponent::U, node_number: 3 }, 0.0);
-    applied_displacements.insert(Displacement { component: AxisComponent::V, node_number: 3 }, 0.0);
-    applied_displacements.insert(Displacement { component: AxisComponent::U, node_number: 4 }, 0.0);
-    // applied_displacements.insert(Displacement { component: Component::V, node_number: 4 }, 0.0);
-    applied_displacements.insert(Displacement { component: AxisComponent::V, node_number: 1 }, -0.025);
-
-    // let mut applied_forces = HashMap::new();
-    // applied_forces.insert(Force { component: Component::V, node_number: 1 }, -100.0);
-    // applied_forces.insert(Force { component: Component::V, node_number: 1 }, 100);
-    // applied_forces.insert(Force { component: Component::W, node_number: 1 }, 100);
-
-    let mut model = FeModel::create(nodes, elements, applied_displacements, None);
-
-    model.compose_global_stiffness_matrix()?;
-    // if let Some(ref state) = model.state
-    // {
-    //     println!("{:?}", state.displacements_indexes);
-    //     println!("{:?}", state.forces_indexes);
-    //     println!("{:?}", state.stiffness_matrix);
-    // }
-    model.analyze()?;
-
-    let mut max_stress = 0f64;
-
-    if let Some(ref analysis_result) = model.analysis_result
-    {
-        println!("Reactions: {:?}", analysis_result.reactions);
-        println!("Displacements: {:?}", analysis_result.displacements);
-    }
-    for element in model.elements
-    {
-        let global_displacements =
-            &model.analysis_result.as_ref().unwrap().displacements;
-        let strains_and_stresses =
-            element
-                .borrow_mut()
-                .calculate_strains_and_stresses(global_displacements)?;
-        for (k, v) in strains_and_stresses
-        {
-            for stress_strain in v
-            {
-                if stress_strain.stress.value > max_stress
-                {
-                    max_stress = stress_strain.stress.value;
-                }
-            }
-            // println!("For element: {:?}, strains and stresses are: {:?}", k, v);
-        }
-    }
-    Ok(max_stress)
-}
 
 
 use wasm_bindgen::prelude::*;
@@ -117,15 +35,8 @@ use web_sys::
     };
 use yew::services::resize::{WindowDimensions, ResizeTask, ResizeService};
 
-mod components;
-use components::NodesMenu;
-use components::Canvas;
-use components::ElementsMenu;
-mod auxiliary;
-use auxiliary::AuxTruss;
 
-
-const CANVAS_ID: &str = "canvas";
+pub const NUMBER_OF_DOF: i32 = 6;
 
 
 struct State
@@ -133,9 +44,9 @@ struct State
     canvas_width: u32,
     canvas_height: u32,
     nodes: Vec<FeNode<u16, f64>>,
-    // elements: Vec<Rc<RefCell<dyn FElement<u16, f64, f32>>>>,
     truss_elements_prep: Vec<AuxTruss>,
     max_stress: Option<f64>,
+    error_message: Option<String>,
 }
 
 
@@ -154,13 +65,10 @@ enum Msg
     AddNode(FeNode<u16, f64>),
     UpdateNode((usize, FeNode<u16, f64>)),
     RemoveNode(usize),
-    // AddElement(Rc<RefCell<dyn FElement<u16, f64, f32>>>),
-    // UpdateElement((usize, Rc<RefCell<dyn FElement<u16, f64, f32>>>)),
-    // RemoveElement(usize),
     AddAuxTrussElement(AuxTruss),
     UpdateAuxTrussElement((usize, AuxTruss)),
     RemoveTrussElement(usize),
-    ShowResult,
+    Submit,
 }
 
 
@@ -179,6 +87,68 @@ impl Model
     {
         self.state.canvas_width = (dimensions.width as f32 * 0.8) as u32;
         self.state.canvas_height = (dimensions.height as f32 * 0.8) as u32;
+    }
+
+
+    fn submit(&mut self) -> Result<f64, String>
+    {
+        self.state.nodes.sort_unstable_by(|a, b| a.number.partial_cmp(&b.number).unwrap());
+        let mut elements: Vec<Rc<RefCell<dyn FElement<_, _, _>>>> = Vec::new();
+        for aux_truss_element in &self.state.truss_elements_prep
+        {
+            let node_1_position = self.state.nodes
+                .iter()
+                .position(|node| node.number == aux_truss_element.node_1_number)
+                .unwrap();
+            let node_1 = self.state.nodes[node_1_position].to_owned();
+            let node_2_position = self.state.nodes
+                .iter()
+                .position(|node| node.number == aux_truss_element.node_2_number)
+                .unwrap();
+            let node_2 = self.state.nodes[node_2_position].to_owned();
+            let truss_element = Truss2n2ip::create(
+                    aux_truss_element.number, node_1, node_2,
+                    aux_truss_element.young_modulus, aux_truss_element.area,
+                    None
+                );
+            elements.push(Rc::new(RefCell::new(truss_element)));
+        }
+        let mut applied_displacements = HashMap::new();
+        applied_displacements.insert(Displacement { component: AxisComponent::U, node_number: 3 }, 0.0);
+        applied_displacements.insert(Displacement { component: AxisComponent::V, node_number: 3 }, 0.0);
+        applied_displacements.insert(Displacement { component: AxisComponent::U, node_number: 4 }, 0.0);
+        applied_displacements.insert(Displacement { component: AxisComponent::V, node_number: 1 }, -0.025);
+        let mut model = FeModel::create(self.state.nodes.to_owned(), elements, applied_displacements, None);
+        model.compose_global_stiffness_matrix()?;
+        model.analyze()?;
+
+        let mut max_stress = 0f64;
+
+        if let Some(ref analysis_result) = model.analysis_result
+        {
+            yew::services::ConsoleService::log(&format!("Reactions: {:?}", analysis_result.reactions));
+            yew::services::ConsoleService::log(&format!("Displacements: {:?}", analysis_result.displacements));
+        }
+        for element in model.elements
+        {
+            let global_displacements =
+                &model.analysis_result.as_ref().unwrap().displacements;
+            let strains_and_stresses =
+                element
+                    .borrow_mut()
+                    .calculate_strains_and_stresses(global_displacements)?;
+            for (k, v) in strains_and_stresses
+            {
+                for stress_strain in v
+                {
+                    if stress_strain.stress.value > max_stress
+                    {
+                        max_stress = stress_strain.stress.value;
+                    }
+                }
+            }
+        }
+        Ok(max_stress)
     }
 }
 
@@ -217,6 +187,7 @@ impl Component for Model
             state: State
                 {
                     canvas_width: width, canvas_height: height, max_stress: None,
+                    error_message: None,
                     nodes: Vec::new(), truss_elements_prep: Vec::new(), // elements: Vec::new(),
                 },
             resize_task: None, resize_service: ResizeService::new(),
@@ -255,7 +226,27 @@ impl Component for Model
                 },
             Msg::RemoveNode(position) =>
                 {
-                    self.state.nodes.remove(position);
+                    let removed_node = self.state.nodes.remove(position);
+                    let mut truss_elements_deletion_positions = Vec::new();
+                    for (pos, element) in self.state.truss_elements_prep.iter().enumerate()
+                    {
+                        if element.node_1_number == removed_node.number
+                        {
+                            truss_elements_deletion_positions.push(pos);
+                        }
+                        if element.node_2_number == removed_node.number
+                        {
+                            truss_elements_deletion_positions.push(pos);
+                        }
+                    }
+                    if !truss_elements_deletion_positions.is_empty()
+                    {
+                        truss_elements_deletion_positions.sort();
+                        for position in truss_elements_deletion_positions.iter().rev()
+                        {
+                            self.state.truss_elements_prep.remove(*position);
+                        }
+                    }
                 },
             Msg::AddAuxTrussElement(element) =>
                 {
@@ -272,7 +263,7 @@ impl Component for Model
                     }
                     else
                     {
-                        self.state.truss_elements_prep.push(element)
+                        self.state.truss_elements_prep.push(element.to_owned());
                     }
                 },
             Msg::UpdateAuxTrussElement(data) =>
@@ -297,11 +288,12 @@ impl Component for Model
                 {
                     self.state.truss_elements_prep.remove(position);
                 },
-            Msg::ShowResult =>
+            Msg::Submit =>
                 {
-                    if let Ok(stress) = result_extract()
+                    match self.submit()
                     {
-                        self.state.max_stress = Some(stress);
+                        Ok(stress) => self.state.max_stress = Some(stress),
+                        Err(msg) => self.state.error_message = Some(msg),
                     }
                 },
         }
@@ -344,13 +336,14 @@ impl Component for Model
                         />
                         <button class="button">{ "Forces" }</button>
                         <button class="button">{ "Displacements" }</button>
-                        <button class="button" onclick=self.link.callback(|_| Msg::ShowResult)>{ "Analyze" }</button>
+                        <button class="button" onclick=self.link.callback(|_| Msg::Submit)>{ "Submit" }</button>
                     </div>
                     <div class="canvas">
                         <Canvas
                             canvas_width=self.state.canvas_width,
                             canvas_height=self.state.canvas_height,
                             nodes=self.state.nodes.to_owned(),
+                            truss_elements_prep=self.state.truss_elements_prep.to_owned(),
                         />
                     </div>
                 </div>
@@ -360,6 +353,19 @@ impl Component for Model
                         html!
                         {
                             <p>{ max_stress }</p>
+                        }
+                    }
+                    else
+                    {
+                        html! {}
+                    }
+                }
+                {
+                    if let Some(error_message) = &self.state.error_message
+                    {
+                        html!
+                        {
+                            <p>{ error_message }</p>
                         }
                     }
                     else

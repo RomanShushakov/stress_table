@@ -1,10 +1,9 @@
 
-.nodes_menu {
+.elements_menu {
     display: flex;
     align-items: center;
     box-sizing: content-box;
     flex-direction: column;
-    margin-bottom: 0.5rem;
 }
 
 
@@ -14,7 +13,7 @@
 }
 
 
-.nodes_menu_input_fields {
+.elements_menu_input_fields {
     display: flex;
     align-items: center;
     align-self: start;
@@ -23,7 +22,7 @@
 }
 
 
-.nodes_menu_input_fields_list {
+.elements_menu_input_fields_list {
     list-style-type: None;
     padding: 0;
     margin-right: 0.5rem;
@@ -37,7 +36,7 @@ input {
 }
 
 
-.nodes_menu_input_fields_descriptions {
+.elements_menu_input_fields_descriptions {
     margin-top: 0.5rem;
     margin-bottom: 0.05rem;
     margin-left: 0.2rem;
@@ -45,7 +44,7 @@ input {
 }
 
 
-.nodes_menu_buttons {
+.elements_menu_buttons {
     display: flex;
     align-items: center;
     align-self: center;
@@ -54,6 +53,6 @@ input {
 }
 
 
-.nodes_menu_button {
+.elements_menu_button {
     width: 4.5rem;
 }

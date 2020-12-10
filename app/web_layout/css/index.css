@@ -23,7 +23,7 @@ body {
 
 .preprocessor {
     display: flex;
-    align-items: center;
+    align-items: start;
     box-sizing: content-box;
     flex-direction: row;
     padding-left: 0.5rem;

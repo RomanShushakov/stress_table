@@ -1,2 +1,7 @@
-/target
-Cargo.lock
+/app/.idea
+/app/Cargo.lock
+/app/target
+
+/yew_app/.idea
+/yew_app/Cargo.lock
+/yew_app/target

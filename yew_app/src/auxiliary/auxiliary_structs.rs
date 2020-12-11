@@ -15,5 +15,5 @@ pub struct AuxTruss
     pub node_2_number: u16,
     pub young_modulus: f32,
     pub area: f32,
-    // pub area_2: Option<f32>,
+    pub area_2: Option<f32>,
 }

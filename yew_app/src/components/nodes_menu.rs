@@ -174,15 +174,31 @@ impl Component for NodesMenu
                 {
                     self.state.selected_node.coordinates.x = self.read_inputted_coordinate(NODE_X_COORD);
                     self.state.selected_node.coordinates.y = self.read_inputted_coordinate(NODE_Y_COORD);
-                    if let Some(position) = self.props.nodes
+                    if let None = self.props.nodes
                         .iter()
-                        .position(|node| node.number == self.state.selected_node.number)
+                        .position(|existed_node|
+                            {
+                                (existed_node.coordinates.x == self.state.selected_node.coordinates.x) &&
+                                (existed_node.coordinates.y == self.state.selected_node.coordinates.y)
+                            }
+                        )
                     {
-                        self.props.update_node.emit((position, self.state.selected_node.to_owned()));
+                        if let Some(position) = self.props.nodes
+                            .iter()
+                            .position(|node| node.number == self.state.selected_node.number)
+                        {
+
+                            self.props.update_node.emit((position, self.state.selected_node.to_owned()));
+                        }
+                        else
+                        {
+                            self.props.add_node.emit(self.state.selected_node.to_owned());
+                        }
                     }
                     else
                     {
-                        self.props.add_node.emit(self.state.selected_node.to_owned());
+                        yew::services::DialogService::alert(
+                            "The node with the same coordinates is already in use.");
                     }
                 },
             Msg::RemoveNode =>

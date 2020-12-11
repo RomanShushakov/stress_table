@@ -19,11 +19,13 @@ const NODE_1_NUMBER: &str = "first_node_number";
 const NODE_2_NUMBER: &str = "second_node_number";
 const YOUNG_MODULUS: &str = "young_modulus";
 const AREA: &str = "area";
+const AREA_2: &str = "area_2";
 
 
 #[derive(Properties, PartialEq, Clone)]
 pub struct Props
 {
+    pub nodes: Vec<FeNode<u16, f64>>,
     pub truss_elements_prep: Vec<AuxTruss>,
     pub add_aux_truss_element: Callback<AuxTruss>,
     pub update_aux_truss_element: Callback<(usize, AuxTruss)>,
@@ -103,7 +105,8 @@ impl ElementsMenu
             };
         let new_element = AuxTruss
         {
-            number, node_1_number: 1u16, node_2_number: 2u16, young_modulus: 1f32, area: 1f32
+            number, node_1_number: 1u16, node_2_number: 2u16,
+            young_modulus: 1f32, area: 1f32, area_2: None,
         };
 
         self.state.selected_aux_truss_element = new_element;
@@ -166,7 +169,8 @@ impl Component for ElementsMenu
     {
         let default_element = AuxTruss
         {
-            number: 1u16, node_1_number: 1u16, node_2_number: 2u16, young_modulus: 1f32, area: 1f32
+            number: 1u16, node_1_number: 1u16, node_2_number: 2u16,
+            young_modulus: 1f32, area: 1f32, area_2: None,
         };
         Self { props, link, state: State { selected_aux_truss_element: default_element } }
     }
@@ -197,7 +201,7 @@ impl Component for ElementsMenu
                                     let new_element = AuxTruss
                                         {
                                             number, node_1_number: 1u16, node_2_number: 2u16,
-                                            young_modulus: 1f32, area: 1f32
+                                            young_modulus: 1f32, area: 1f32, area_2: None,
                                         };
                                     self.state.selected_aux_truss_element = new_element;
                                 }
@@ -229,10 +233,46 @@ impl Component for ElementsMenu
                             "The element's area should be greater than 0.");
                         return false;
                     }
+                    let selected_element_area_2 = self.read_inputted_data(AREA_2);
+                    let node_1_number_position = self.props.nodes
+                        .iter()
+                        .position(|node| node.number == selected_element_node_1_inputted_number);
+                    let node_2_number_position = self.props.nodes
+                        .iter()
+                        .position(|node| node.number == selected_element_node_2_inputted_number);
+                    if node_1_number_position.is_none() || node_2_number_position.is_none()
+                    {
+                        yew::services::DialogService::alert(
+                            "The selected node(or nodes) doesn't(or don't) exist.");
+                        return false;
+                    }
+                    if let Some(_) = self.props.truss_elements_prep
+                        .iter()
+                        .position(|existed_element|
+                            {
+                                (existed_element.node_1_number == selected_element_node_1_inputted_number) &&
+                                (existed_element.node_2_number == selected_element_node_2_inputted_number)
+                            })
+                    {
+                        yew::services::DialogService::alert(
+                            "The element with the same type and with the same nodes set is already in use.");
+                        return false;
+                    }
                     self.state.selected_aux_truss_element.node_1_number = selected_element_node_1_inputted_number;
                     self.state.selected_aux_truss_element.node_2_number = selected_element_node_2_inputted_number;
                     self.state.selected_aux_truss_element.young_modulus = selected_element_young_modulus;
                     self.state.selected_aux_truss_element.area = selected_element_area;
+                    self.state.selected_aux_truss_element.area_2 =
+                        {
+                            if selected_element_area_2 != 0f32
+                            {
+                                Some(selected_element_area_2)
+                            }
+                            else
+                            {
+                                None
+                            }
+                        };
                     if let Some(position) = self.props.truss_elements_prep
                         .iter()
                         .position(|truss_element|
@@ -359,6 +399,27 @@ impl Component for ElementsMenu
                                             <input
                                                 id={ AREA },
                                                 value={ self.state.selected_aux_truss_element.area },
+                                                type="number",
+                                                min={ 0 },
+                                            />
+                                        </li>
+                                        <li>
+                                            <p class="elements_menu_input_fields_descriptions">
+                                                { "Cross section area 2 (Optional value used for tapered element):" }
+                                            </p>
+                                            <input
+                                                id={ AREA_2 },
+                                                value=
+                                                    {
+                                                        if let Some(area_2) = self.state.selected_aux_truss_element.area_2
+                                                        {
+                                                            area_2.to_string()
+                                                        }
+                                                        else
+                                                        {
+                                                            "".to_string()
+                                                        }
+                                                    },
                                                 type="number",
                                                 min={ 0 },
                                             />

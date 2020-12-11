@@ -45,6 +45,7 @@ struct State
     canvas_height: u32,
     nodes: Vec<FeNode<u16, f64>>,
     truss_elements_prep: Vec<AuxTruss>,
+    supports: Vec<Displacement<u16>>,
     max_stress: Option<f64>,
     error_message: Option<String>,
 }
@@ -68,6 +69,7 @@ enum Msg
     AddAuxTrussElement(AuxTruss),
     UpdateAuxTrussElement((usize, AuxTruss)),
     RemoveTrussElement(usize),
+    SelectSupport(ChangeData),
     Submit,
 }
 
@@ -109,7 +111,7 @@ impl Model
             let truss_element = Truss2n2ip::create(
                     aux_truss_element.number, node_1, node_2,
                     aux_truss_element.young_modulus, aux_truss_element.area,
-                    None
+                    aux_truss_element.area_2,
                 );
             elements.push(Rc::new(RefCell::new(truss_element)));
         }
@@ -187,8 +189,9 @@ impl Component for Model
             state: State
                 {
                     canvas_width: width, canvas_height: height, max_stress: None,
-                    error_message: None,
-                    nodes: Vec::new(), truss_elements_prep: Vec::new(), // elements: Vec::new(),
+                    error_message: None, // elements: Vec::new(),
+                    nodes: Vec::new(), truss_elements_prep: Vec::new(),
+                    supports: Vec::new(),
                 },
             resize_task: None, resize_service: ResizeService::new(),
         }
@@ -201,29 +204,8 @@ impl Component for Model
         {
             Msg::ExtractWindowDimensions(window_dimensions) =>
                 self.extract_window_dimensions(window_dimensions),
-            Msg::AddNode(node) =>
-                {
-                    if let None = self.state.nodes
-                        .iter()
-                        .position(|existed_node|
-                            {
-                                (existed_node.coordinates.x == node.coordinates.x) &&
-                                (existed_node.coordinates.y == node.coordinates.y)
-                            }
-                        )
-                    {
-                        self.state.nodes.push(node);
-                    }
-                    else
-                    {
-                        yew::services::DialogService::alert(
-                            "The node with the same coordinates is already in use.");
-                    }
-                },
-            Msg::UpdateNode(data) =>
-                {
-                    self.state.nodes[data.0] = data.1;
-                },
+            Msg::AddNode(node) => self.state.nodes.push(node),
+            Msg::UpdateNode(data) => self.state.nodes[data.0] = data.1,
             Msg::RemoveNode(position) =>
                 {
                     let removed_node = self.state.nodes.remove(position);
@@ -248,45 +230,27 @@ impl Component for Model
                         }
                     }
                 },
-            Msg::AddAuxTrussElement(element) =>
-                {
-                    let node_1_number_position = self.state.nodes
-                        .iter()
-                        .position(|node| node.number == element.node_1_number);
-                    let node_2_number_position = self.state.nodes
-                        .iter()
-                        .position(|node| node.number == element.node_2_number);
-                    if node_1_number_position.is_none() || node_2_number_position.is_none()
-                    {
-                        yew::services::DialogService::alert(
-                            "The selected node or nodes do not exist.");
-                    }
-                    else
-                    {
-                        self.state.truss_elements_prep.push(element.to_owned());
-                    }
-                },
-            Msg::UpdateAuxTrussElement(data) =>
-                {
-                    let node_1_number_position = self.state.nodes
-                        .iter()
-                        .position(|node| node.number == data.1.node_1_number);
-                    let node_2_number_position = self.state.nodes
-                        .iter()
-                        .position(|node| node.number == data.1.node_2_number);
-                    if node_1_number_position.is_none() || node_2_number_position.is_none()
-                    {
-                        yew::services::DialogService::alert(
-                            "The selected node or nodes do not exist.");
-                    }
-                    else
-                    {
-                        self.state.truss_elements_prep[data.0] = data.1;
-                    }
-                },
+            Msg::AddAuxTrussElement(element) => self.state.truss_elements_prep.push(element),
+            Msg::UpdateAuxTrussElement(data) => self.state.truss_elements_prep[data.0] = data.1,
             Msg::RemoveTrussElement(position) =>
                 {
                     self.state.truss_elements_prep.remove(position);
+                },
+            Msg::SelectSupport(data) =>
+                {
+                    match data
+                    {
+                        ChangeData::Select(select_node) =>
+                            {
+                                yew::services::ConsoleService::log(&select_node.value());
+                            },
+                        ChangeData::Value(support_select) =>
+                            {
+                                yew::services::ConsoleService::log(&support_select);
+                                return false;
+                            },
+                        _ => (),
+                    }
                 },
             Msg::Submit =>
                 {
@@ -329,6 +293,7 @@ impl Component for Model
                             update_node=handle_update_node, remove_node=handle_remove_node,
                         />
                         <ElementsMenu
+                            nodes=self.state.nodes.to_owned(),
                             truss_elements_prep=self.state.truss_elements_prep.to_owned(),
                             add_aux_truss_element=handle_add_aux_truss_element,
                             update_aux_truss_element=handle_update_aux_truss_element,
@@ -336,6 +301,55 @@ impl Component for Model
                         />
                         <button class="button">{ "Forces" }</button>
                         <button class="button">{ "Displacements" }</button>
+                        <button class="button">{ "Supports" }</button>
+
+
+                        <div>
+                            <select onchange=self.link.callback(|data: ChangeData| Msg::SelectSupport(data))>
+                                {
+                                    for (0..=self.state.nodes.len()).map(|i|
+                                        {
+                                            if i == 0
+                                            {
+                                                html!
+                                                {
+                                                    <option value={ "" } selected=true>{ "Please select a node" }</option>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                html!
+                                                {
+                                                    <option value={ self.state.nodes[i - 1].number }>{ self.state.nodes[i - 1].number }</option>
+                                                }
+                                            }
+                                        })
+                                }
+
+                            </select>
+
+
+                            <input
+                                onchange=self.link.callback(|data: ChangeData| Msg::SelectSupport(data)),
+                                type="radio", id="support_choice_1",
+                                name="support_type", value="hinge",
+                                checked=true
+                            />
+                            <label for="support_choice_1">{ "Hinge" }</label>
+                            <input
+                                onchange=self.link.callback(|data: ChangeData| Msg::SelectSupport(data)),
+                                type="radio", id="support_choice_2",
+                                name="support_type", value="roller_x",
+                            />
+                            <label for="support_choice_2">{ "Roller X" }</label>
+                            <input
+                                onchange=self.link.callback(|data: ChangeData| Msg::SelectSupport(data)),
+                                type="radio", id="support_choice_3",
+                                name="support_type", value="roller_y",
+                            />
+                            <label for="support_choice_3">{ "Roller Y" }</label>
+                        </div>
+
                         <button class="button" onclick=self.link.callback(|_| Msg::Submit)>{ "Submit" }</button>
                     </div>
                     <div class="canvas">

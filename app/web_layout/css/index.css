@@ -13,7 +13,7 @@ body {
 
 .container {
     display: flex;
-    align-items: center;
+    align-items: start;
     box-sizing: content-box;
     flex-direction: column;
     padding-left: 0.5rem;

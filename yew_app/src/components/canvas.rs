@@ -67,8 +67,8 @@ impl Canvas
             .dyn_into::<CanvasRenderingContext2d>()
             .unwrap();
 
-        let x_origin = base_dimension as f64 / 20f64;
-        let y_origin = self.props.canvas_height as f64 - base_dimension as f64 / 20f64;
+        let x_origin = base_dimension as f64 / 30f64;
+        let y_origin = self.props.canvas_height as f64 - base_dimension as f64 / 30f64;
         let axis_line_length = base_dimension as f64 / 7f64;
         let axis_line_width = axis_line_length / 50f64;
 

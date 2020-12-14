@@ -1,27 +1,7 @@
 #![recursion_limit="1024"]
-mod math;
-use math::math_aux_structs::Coordinates;
-mod fe;
-use fe::node::FeNode;
-use fe::elements::truss::Truss2n2ip;
-use fe::elements::element::FElement;
-use fe::solver::FeModel;
-use fe::fe_aux_structs::{Displacement, AxisComponent};
-
-
-mod components;
-use components::AnalysisTypeMenu;
-use components::NodesMenu;
-use components::Canvas;
-use components::ElementsMenu;
-mod auxiliary;
-use auxiliary::AuxTruss;
-
-
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::cell::RefCell;
-
 
 use wasm_bindgen::prelude::*;
 use yew::prelude::*;
@@ -36,34 +16,28 @@ use web_sys::
     };
 use yew::services::resize::{WindowDimensions, ResizeTask, ResizeService};
 
+mod math;
+use math::math_aux_structs::Coordinates;
+mod fe;
+use fe::node::FeNode;
+use fe::elements::truss::Truss2n2ip;
+use fe::elements::element::FElement;
+use fe::solver::FeModel;
+use fe::fe_aux_structs::{Displacement, AxisComponent};
+
+mod components;
+use components::{AnalysisTypeMenu, NodeMenu, Canvas, ElementMenu, ViewMenu};
+mod auxiliary;
+use auxiliary::{AuxTruss, AnalysisType, View};
+
 
 pub const NUMBER_OF_DOF: i32 = 6;
-
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum AnalysisType
-{
-    TwoDimensional,
-    ThreeDimensional,
-}
-
-
-impl AnalysisType
-{
-    pub fn as_str(&self) -> String
-    {
-        match self
-        {
-            AnalysisType::TwoDimensional => String::from("2D"),
-            AnalysisType::ThreeDimensional => String::from("3D"),
-        }
-    }
-}
 
 
 struct State
 {
     analysis_type: Option<AnalysisType>,
+    view: View,
     canvas_width: u32,
     canvas_height: u32,
     nodes: Vec<FeNode<u16, f64>>,
@@ -86,6 +60,7 @@ enum Msg
 {
     ExtractWindowDimensions(WindowDimensions),
     AddAnalysisType(AnalysisType),
+    ChangeView(View),
     AddNode(FeNode<u16, f64>),
     UpdateNode((usize, FeNode<u16, f64>)),
     RemoveNode(usize),
@@ -210,7 +185,7 @@ impl Component for Model
             link,
             state: State
                 {
-                    analysis_type: None,
+                    analysis_type: None, view: View::PlaneXY,
                     canvas_width: width, canvas_height: height, max_stress: None,
                     error_message: None, // elements: Vec::new(),
                     nodes: Vec::new(), truss_elements_prep: Vec::new(),
@@ -227,6 +202,7 @@ impl Component for Model
             Msg::ExtractWindowDimensions(window_dimensions) =>
                 self.extract_window_dimensions(window_dimensions),
             Msg::AddAnalysisType(analysis_type) => self.state.analysis_type = Some(analysis_type),
+            Msg::ChangeView(view) => self.state.view = view,
             Msg::AddNode(node) => self.state.nodes.push(node),
             Msg::UpdateNode(data) => self.state.nodes[data.0] = data.1,
             Msg::RemoveNode(position) =>
@@ -281,6 +257,7 @@ impl Component for Model
     fn view(&self) -> Html
     {
         let handle_add_analysis_type = self.link.callback(|analysis_type: AnalysisType| Msg::AddAnalysisType(analysis_type));
+        let handle_change_view = self.link.callback(|view: View| Msg::ChangeView(view));
         let handle_add_node = self.link.callback(|node: FeNode<u16, f64>| Msg::AddNode(node));
         let handle_update_node = self.link.callback(|data: (usize, FeNode<u16, f64>)| Msg::UpdateNode(data));
         let handle_remove_node = self.link.callback(|position: usize| Msg::RemoveNode(position));
@@ -299,12 +276,16 @@ impl Component for Model
                             analysis_type=self.state.analysis_type.to_owned(),
                             add_analysis_type=handle_add_analysis_type,
                         />
-                        <NodesMenu
+                        <ViewMenu
+                            view=self.state.view.to_owned(),
+                            change_view=handle_change_view,
+                        />
+                        <NodeMenu
                             analysis_type=self.state.analysis_type.to_owned(),
                             nodes=self.state.nodes.to_owned(), add_node=handle_add_node,
                             update_node=handle_update_node, remove_node=handle_remove_node,
                         />
-                        <ElementsMenu
+                        <ElementMenu
                             analysis_type=self.state.analysis_type.to_owned(),
                             nodes=self.state.nodes.to_owned(),
                             truss_elements_prep=self.state.truss_elements_prep.to_owned(),
@@ -312,12 +293,13 @@ impl Component for Model
                             update_aux_truss_element=handle_update_aux_truss_element,
                             remove_aux_truss_element=handle_remove_aux_truss_element,
                         />
-                        <button class="button">{ "Forces" }</button>
-                        <button class="button">{ "Displacements" }</button>
+                        <button class="button">{ "Force" }</button>
+                        <button class="button">{ "Displacement" }</button>
                         <button class="button" onclick=self.link.callback(|_| Msg::Submit)>{ "Submit" }</button>
                     </div>
                     <div class="canvas">
                         <Canvas
+                            view=self.state.view.to_owned(),
                             canvas_width=self.state.canvas_width,
                             canvas_height=self.state.canvas_height,
                             nodes=self.state.nodes.to_owned(),

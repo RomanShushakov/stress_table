@@ -1,4 +1,3 @@
 mod auxiliary_structs;
 
-pub use auxiliary_structs::AuxTruss;
-pub use auxiliary_structs::DrawnNode;
+pub use auxiliary_structs::{AuxTruss, DrawnNode, AnalysisType, View};

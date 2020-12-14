@@ -12,8 +12,8 @@ use crate::Coordinates;
 use crate::AuxTruss;
 
 
-const ELEMENTS_MENU_ID: &str = "elements_menu";
-const ELEMENTS_MENU: &str = "elements_menu";
+const ELEMENT_MENU_ID: &str = "element_menu";
+const ELEMENT_MENU: &str = "element_menu";
 const HIDDEN: &str = "hidden";
 const ELEMENT_SELECT_ID: &str = "element_select";
 const NODE_1_NUMBER: &str = "first_node_number";
@@ -41,7 +41,7 @@ struct State
 }
 
 
-pub struct ElementsMenu
+pub struct ElementMenu
 {
     link: ComponentLink<Self>,
     props: Props,
@@ -51,28 +51,28 @@ pub struct ElementsMenu
 
 pub enum Msg
 {
-    ShowHideElementsMenu,
+    ShowHideElementMenu,
     SelectAuxTrussElement(ChangeData),
     ApplyAuxTrussElementDataChange,
     RemoveAuxTrussElement,
 }
 
 
-impl ElementsMenu
+impl ElementMenu
 {
     fn show_hide_elements_menu(&self)
     {
         let window = web_sys::window().unwrap();
         let document = window.document().unwrap();
-        let element = document.get_element_by_id(ELEMENTS_MENU_ID).unwrap();
+        let element = document.get_element_by_id(ELEMENT_MENU_ID).unwrap();
         let class_list: DomTokenList = element.class_list();
         if class_list.contains(HIDDEN)
         {
-            element.set_class_name(ELEMENTS_MENU);
+            element.set_class_name(ELEMENT_MENU);
         }
         else
         {
-            element.set_class_name(&(ELEMENTS_MENU.to_owned() + " " + HIDDEN));
+            element.set_class_name(&(ELEMENT_MENU.to_owned() + " " + HIDDEN));
         }
     }
 
@@ -161,7 +161,7 @@ impl ElementsMenu
 }
 
 
-impl Component for ElementsMenu
+impl Component for ElementMenu
 {
     type Message = Msg;
     type Properties = Props;
@@ -182,7 +182,7 @@ impl Component for ElementsMenu
     {
         match msg
         {
-            Msg::ShowHideElementsMenu => self.show_hide_elements_menu(),
+            Msg::ShowHideElementMenu => self.show_hide_elements_menu(),
             Msg::SelectAuxTrussElement(data) =>
                 {
                     match data
@@ -333,14 +333,14 @@ impl Component for ElementsMenu
         {
             <>
                 <button
-                    class="button", onclick=self.link.callback(|_| Msg::ShowHideElementsMenu),
+                    class="button", onclick=self.link.callback(|_| Msg::ShowHideElementMenu),
                     disabled={ if self.props.analysis_type.is_some() { false } else { true } },
                 >
-                    { "Elements" }
+                    { "Element" }
                 </button>
-                <div id = { ELEMENTS_MENU_ID } class={ ELEMENTS_MENU.to_owned() + " " + HIDDEN }>
-                    <div class="elements_menu_input_fields">
-                        <ul class="elements_menu_input_fields_list">
+                <div id = { ELEMENT_MENU_ID } class={ ELEMENT_MENU.to_owned() + " " + HIDDEN }>
+                    <div class="element_menu_input_fields">
+                        <ul class="element_menu_input_fields_list">
                             <li>
                                 {
                                     html!
@@ -361,7 +361,7 @@ impl Component for ElementsMenu
                                 {
                                     <>
                                         <li>
-                                            <p class="elements_menu_input_fields_descriptions">
+                                            <p class="element_menu_input_fields_descriptions">
                                                 { "1st node number:" }
                                             </p>
                                             <input
@@ -373,7 +373,7 @@ impl Component for ElementsMenu
                                             />
                                         </li>
                                         <li>
-                                            <p class="elements_menu_input_fields_descriptions">
+                                            <p class="element_menu_input_fields_descriptions">
                                                 { "2nd node number:" }
                                             </p>
                                             <input
@@ -385,7 +385,7 @@ impl Component for ElementsMenu
                                             />
                                         </li>
                                         <li>
-                                            <p class="elements_menu_input_fields_descriptions">
+                                            <p class="element_menu_input_fields_descriptions">
                                                 { "Young's modulus:" }
                                             </p>
                                             <input
@@ -396,7 +396,7 @@ impl Component for ElementsMenu
                                             />
                                         </li>
                                         <li>
-                                            <p class="elements_menu_input_fields_descriptions">
+                                            <p class="element_menu_input_fields_descriptions">
                                                 { "Cross section area:" }
                                             </p>
                                             <input
@@ -407,7 +407,7 @@ impl Component for ElementsMenu
                                             />
                                         </li>
                                         <li>
-                                            <p class="elements_menu_input_fields_descriptions">
+                                            <p class="element_menu_input_fields_descriptions">
                                                 { "Cross section area 2 (Optional value used for tapered element):" }
                                             </p>
                                             <input
@@ -433,15 +433,15 @@ impl Component for ElementsMenu
                             }
                         </ul>
                     </div>
-                    <div class="elements_menu_buttons">
+                    <div class="element_menu_buttons">
                         <button
-                            class="elements_menu_button",
+                            class="element_menu_button",
                             onclick=self.link.callback(|_| Msg::ApplyAuxTrussElementDataChange),
                         >
                             { "Apply" }
                         </button>
                         <button
-                            class="elements_menu_button",
+                            class="element_menu_button",
                             onclick=self.link.callback(|_| Msg::RemoveAuxTrussElement),
                         >
                             { "Remove" }

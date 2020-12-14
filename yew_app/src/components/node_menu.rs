@@ -11,12 +11,13 @@ use crate::Coordinates;
 use crate::AnalysisType;
 
 
-const NODES_MENU_ID: &str = "nodes_menu";
-const NODES_MENU: &str = "nodes_menu";
+const NODE_MENU_ID: &str = "node_menu";
+const NODE_MENU: &str = "node_menu";
 const HIDDEN: &str = "hidden";
 const NODE_SELECT_ID: &str = "node_select";
 const NODE_X_COORD: &str = "node_x_coord";
 const NODE_Y_COORD: &str = "node_y_coord";
+const NODE_Z_COORD: &str = "node_z_coord";
 
 
 #[derive(Properties, PartialEq, Clone)]
@@ -36,7 +37,7 @@ struct State
 }
 
 
-pub struct NodesMenu
+pub struct NodeMenu
 {
     link: ComponentLink<Self>,
     props: Props,
@@ -46,28 +47,28 @@ pub struct NodesMenu
 
 pub enum Msg
 {
-    ShowHideNodesMenu,
+    ShowHideNodeMenu,
     SelectNode(ChangeData),
     ApplyNodeDataChange,
     RemoveNode,
 }
 
 
-impl NodesMenu
+impl NodeMenu
 {
     fn show_hide_nodes_menu(&self)
     {
         let window = web_sys::window().unwrap();
         let document = window.document().unwrap();
-        let element = document.get_element_by_id(NODES_MENU_ID).unwrap();
+        let element = document.get_element_by_id(NODE_MENU_ID).unwrap();
         let class_list: DomTokenList = element.class_list();
         if class_list.contains(HIDDEN)
         {
-            element.set_class_name(NODES_MENU);
+            element.set_class_name(NODE_MENU);
         }
         else
         {
-            element.set_class_name(&(NODES_MENU.to_owned() + " " + HIDDEN));
+            element.set_class_name(&(NODE_MENU.to_owned() + " " + HIDDEN));
         }
     }
 
@@ -132,7 +133,7 @@ impl NodesMenu
 }
 
 
-impl Component for NodesMenu
+impl Component for NodeMenu
 {
     type Message = Msg;
     type Properties = Props;
@@ -149,7 +150,7 @@ impl Component for NodesMenu
     {
         match msg
         {
-            Msg::ShowHideNodesMenu => self.show_hide_nodes_menu(),
+            Msg::ShowHideNodeMenu => self.show_hide_nodes_menu(),
             Msg::SelectNode(data) =>
                 {
                     match data
@@ -176,12 +177,42 @@ impl Component for NodesMenu
                 {
                     self.state.selected_node.coordinates.x = self.read_inputted_coordinate(NODE_X_COORD);
                     self.state.selected_node.coordinates.y = self.read_inputted_coordinate(NODE_Y_COORD);
+                    if let Some(analysis_type) = &self.props.analysis_type
+                    {
+                        match analysis_type
+                        {
+                            AnalysisType::ThreeDimensional => self.state.selected_node.coordinates.z =
+                                self.read_inputted_coordinate(NODE_Z_COORD),
+                            _ => (),
+                        }
+                    }
                     if let None = self.props.nodes
                         .iter()
                         .position(|existed_node|
                             {
-                                (existed_node.coordinates.x == self.state.selected_node.coordinates.x) &&
-                                (existed_node.coordinates.y == self.state.selected_node.coordinates.y)
+                                if let Some(analysis_type) = &self.props.analysis_type
+                                {
+                                    match analysis_type
+                                    {
+                                        AnalysisType::ThreeDimensional =>
+                                            {
+                                                (existed_node.coordinates.x == self.state.selected_node.coordinates.x) &&
+                                                (existed_node.coordinates.y == self.state.selected_node.coordinates.y) &&
+                                                (existed_node.coordinates.z == self.state.selected_node.coordinates.z)
+                                            },
+                                        AnalysisType::TwoDimensional =>
+                                            {
+                                                (existed_node.coordinates.x == self.state.selected_node.coordinates.x) &&
+                                                (existed_node.coordinates.y == self.state.selected_node.coordinates.y)
+                                            },
+
+                                    }
+                                }
+                                else
+                                {
+                                    (existed_node.coordinates.x == self.state.selected_node.coordinates.x) &&
+                                    (existed_node.coordinates.y == self.state.selected_node.coordinates.y)
+                                }
                             }
                         )
                     {
@@ -239,14 +270,14 @@ impl Component for NodesMenu
         {
             <>
                 <button
-                    class="button", onclick=self.link.callback(|_| Msg::ShowHideNodesMenu),
+                    class="button", onclick=self.link.callback(|_| Msg::ShowHideNodeMenu),
                     disabled={ if self.props.analysis_type.is_some() { false } else { true } },
                 >
-                    { "Nodes" }
+                    { "Node" }
                 </button>
-                <div id = { NODES_MENU_ID } class={ NODES_MENU.to_owned() + " " + HIDDEN }>
-                    <div class="nodes_menu_input_fields">
-                        <ul class="nodes_menu_input_fields_list">
+                <div id = { NODE_MENU_ID } class={ NODE_MENU.to_owned() + " " + HIDDEN }>
+                    <div class="node_menu_input_fields">
+                        <ul class="node_menu_input_fields_list">
                             <li>
                                 {
                                     html!
@@ -267,7 +298,7 @@ impl Component for NodesMenu
                                 {
                                     <>
                                         <li>
-                                            <p class="nodes_menu_input_fields_descriptions">
+                                            <p class="node_menu_input_fields_descriptions">
                                                 { "X coordinate:" }
                                             </p>
                                             <input
@@ -277,7 +308,7 @@ impl Component for NodesMenu
                                             />
                                         </li>
                                         <li>
-                                            <p class="nodes_menu_input_fields_descriptions">
+                                            <p class="node_menu_input_fields_descriptions">
                                                 { "Y coordinate:" }
                                             </p>
                                             <input
@@ -286,21 +317,49 @@ impl Component for NodesMenu
                                                 type="number",
                                             />
                                         </li>
+                                        {
+                                            if let Some(analysis_type) = &self.props.analysis_type
+                                            {
+                                                match analysis_type
+                                                {
+                                                    AnalysisType::ThreeDimensional =>
+                                                        {
+                                                            html!
+                                                            {
+                                                                <li>
+                                                                    <p class="node_menu_input_fields_descriptions">
+                                                                        { "Z coordinate:" }
+                                                                    </p>
+                                                                    <input
+                                                                        id={ NODE_Z_COORD },
+                                                                        value={ self.state.selected_node.coordinates.z },
+                                                                        type="number",
+                                                                    />
+                                                                </li>
+                                                            }
+                                                        },
+                                                    AnalysisType::TwoDimensional => html! {},
+                                                }
+                                            }
+                                            else
+                                            {
+                                                html! {}
+                                            }
+                                        }
                                     </>
                                 }
-
                             }
                         </ul>
                     </div>
-                    <div class="nodes_menu_buttons">
+                    <div class="node_menu_buttons">
                         <button
-                            class="nodes_menu_button",
+                            class="node_menu_button",
                             onclick=self.link.callback(|_| Msg::ApplyNodeDataChange),
                         >
                             { "Apply" }
                         </button>
                         <button
-                            class="nodes_menu_button",
+                            class="node_menu_button",
                             onclick=self.link.callback(|_| Msg::RemoveNode),
                         >
                             { "Remove" }

@@ -1,9 +1,11 @@
 mod analysis_type_menu;
-mod nodes_menu;
-mod elements_menu;
+mod view_menu;
+mod node_menu;
+mod element_menu;
 mod canvas;
 
 pub use analysis_type_menu::AnalysisTypeMenu;
-pub use nodes_menu::NodesMenu;
-pub use elements_menu::ElementsMenu;
+pub use view_menu::ViewMenu;
+pub use node_menu::NodeMenu;
+pub use element_menu::ElementMenu;
 pub use canvas::Canvas;

@@ -1,3 +1,50 @@
+#[derive(Clone, PartialEq)]
+pub enum AnalysisType
+{
+    TwoDimensional,
+    ThreeDimensional,
+}
+
+
+impl AnalysisType
+{
+    pub fn as_str(&self) -> String
+    {
+        match self
+        {
+            AnalysisType::TwoDimensional => String::from("2D"),
+            AnalysisType::ThreeDimensional => String::from("3D"),
+        }
+    }
+}
+
+
+#[derive(Clone, PartialEq)]
+pub enum View
+{
+    PlaneXY,
+    PlaneZY,
+    PlaneXZ,
+    Isometric,
+}
+
+
+impl View
+{
+    pub fn as_str(&self) -> String
+    {
+        match self
+        {
+            View::PlaneXY => String::from("PlaneXY"),
+            View::PlaneZY => String::from("PlaneZY"),
+            View::PlaneXZ => String::from("PlaneXZ"),
+            View::Isometric => String::from("Isometric"),
+        }
+    }
+}
+
+
+
 #[derive(Clone)]
 pub struct DrawnNode
 {

@@ -1,15 +1,6 @@
 use yew::prelude::*;
-use web_sys::
-    {
-        HtmlSelectElement, HtmlOptionElement, HtmlOptionsCollection,
-        DomTokenList, HtmlInputElement
-    };
-use wasm_bindgen::JsCast;
-
-use crate::fe::node::FeNode;
-use crate::Coordinates;
+use web_sys::DomTokenList;
 use crate::AnalysisType;
-use yew::services::fetch::Referrer::AboutClient;
 
 
 const ANALYSIS_TYPE_MENU_ID: &str = "analysis_type_menu";
@@ -68,6 +59,15 @@ impl AnalysisTypeMenu
             element.set_class_name(&(ANALYSIS_TYPE_MENU.to_owned() + " " + HIDDEN));
         }
     }
+
+
+    fn hide_analysis_type_menu(&self)
+    {
+        let window = web_sys::window().unwrap();
+        let document = window.document().unwrap();
+        let element = document.get_element_by_id(ANALYSIS_TYPE_MENU_ID).unwrap();
+        element.set_class_name(&(ANALYSIS_TYPE_MENU.to_owned() + " " + HIDDEN));
+    }
 }
 
 
@@ -98,13 +98,10 @@ impl Component for AnalysisTypeMenu
                                 {
                                     self.state.selected_analysis_type = AnalysisType::TwoDimensional;
                                 }
-
                                 if analysis_type_select == AnalysisType::ThreeDimensional.as_str()
                                 {
                                     self.state.selected_analysis_type = AnalysisType::ThreeDimensional;
                                 }
-
-                                yew::services::ConsoleService::log(&format!("{:?}", self.state.selected_analysis_type));
                                 return false;
                             },
                         _ => (),
@@ -144,7 +141,7 @@ impl Component for AnalysisTypeMenu
                         {
                             if self.props.analysis_type.is_some()
                             {
-                                self.show_hide_analysis_type_menu();
+                                self.hide_analysis_type_menu();
                                 true
                             }
                             else
@@ -163,20 +160,26 @@ impl Component for AnalysisTypeMenu
                                 class={ ANALYSIS_TYPE_MENU_INPUT_FIELD },
                                 onchange=self.link.callback(|data: ChangeData| Msg::SelectAnalysisType(data)),
                                 type="radio", id={ TWO_DIMENSIONAL_ANALYSIS_TYPE_ID },
-                                name={ ANALYSIS_TYPE_INPUT_NAME }, value="2D",
+                                name={ ANALYSIS_TYPE_INPUT_NAME },
+                                value={ AnalysisType::TwoDimensional.as_str() },
                                 checked=true
                             />
-                            <label for={ TWO_DIMENSIONAL_ANALYSIS_TYPE_ID }>{ "2D" }</label>
+                            <label for={ TWO_DIMENSIONAL_ANALYSIS_TYPE_ID }>
+                                { AnalysisType::TwoDimensional.as_str() }
+                            </label>
                         </div>
                         <div class="analysis_type_input_field_container">
                             <input
                                 class={ ANALYSIS_TYPE_MENU_INPUT_FIELD },
                                 onchange=self.link.callback(|data: ChangeData| Msg::SelectAnalysisType(data)),
                                 type="radio", id={ THREE_DIMENSIONAL_ANALYSIS_TYPE_ID },
-                                name={ ANALYSIS_TYPE_INPUT_NAME }, value="3D",
-                                disabled=true,
+                                name={ ANALYSIS_TYPE_INPUT_NAME },
+                                value={ AnalysisType::ThreeDimensional.as_str() },
+                                // disabled=true,
                             />
-                            <label for={ THREE_DIMENSIONAL_ANALYSIS_TYPE_ID }>{ "3D" }</label>
+                            <label for={ THREE_DIMENSIONAL_ANALYSIS_TYPE_ID }>
+                                { AnalysisType::ThreeDimensional.as_str() }
+                            </label>
                         </div>
                     </div>
                     <div class="analysis_type_menu_buttons">

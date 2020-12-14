@@ -7,8 +7,7 @@ use yew::virtual_dom::VNode;
 use web_sys::{ CanvasRenderingContext2d, HtmlCanvasElement };
 
 use crate::fe::node::FeNode;
-use crate::auxiliary::{AuxTruss, DrawnNode};
-use yew::services::reader::FileChunk::DataChunk;
+use crate::auxiliary::{AuxTruss, DrawnNode, View};
 
 
 const CANVAS_ID: &str = "canvas";
@@ -22,6 +21,7 @@ const CANVAS_ELEMENTS_COLOR: &str = "blue";
 #[derive(Properties, PartialEq, Clone)]
 pub struct Props
 {
+    pub view: View,
     pub canvas_width: u32,
     pub canvas_height: u32,
     pub nodes: Vec<FeNode<u16, f64>>,
@@ -38,7 +38,7 @@ pub struct Canvas
 
 impl Canvas
 {
-    fn draw_canvas(&self) -> Html
+    fn draw_plane_xy(&self) -> Html
     {
         let window = web_sys::window().unwrap();
         let document = window.document().unwrap();
@@ -318,9 +318,15 @@ impl Component for Canvas
 
     fn view(&self) -> Html
     {
-        html!
+        match self.props.view
         {
-            { self.draw_canvas() }
+            View::PlaneXY =>
+                html!
+                {
+                    { self.draw_plane_xy() }
+                },
+            _ => html! {}
         }
+
     }
 }

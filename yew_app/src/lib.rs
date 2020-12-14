@@ -10,6 +10,7 @@ use fe::fe_aux_structs::{Displacement, AxisComponent};
 
 
 mod components;
+use components::AnalysisTypeMenu;
 use components::NodesMenu;
 use components::Canvas;
 use components::ElementsMenu;
@@ -39,13 +40,34 @@ use yew::services::resize::{WindowDimensions, ResizeTask, ResizeService};
 pub const NUMBER_OF_DOF: i32 = 6;
 
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum AnalysisType
+{
+    TwoDimensional,
+    ThreeDimensional,
+}
+
+
+impl AnalysisType
+{
+    pub fn as_str(&self) -> String
+    {
+        match self
+        {
+            AnalysisType::TwoDimensional => String::from("2D"),
+            AnalysisType::ThreeDimensional => String::from("3D"),
+        }
+    }
+}
+
+
 struct State
 {
+    analysis_type: Option<AnalysisType>,
     canvas_width: u32,
     canvas_height: u32,
     nodes: Vec<FeNode<u16, f64>>,
     truss_elements_prep: Vec<AuxTruss>,
-    supports: Vec<Displacement<u16>>,
     max_stress: Option<f64>,
     error_message: Option<String>,
 }
@@ -63,13 +85,13 @@ struct Model
 enum Msg
 {
     ExtractWindowDimensions(WindowDimensions),
+    AddAnalysisType(AnalysisType),
     AddNode(FeNode<u16, f64>),
     UpdateNode((usize, FeNode<u16, f64>)),
     RemoveNode(usize),
     AddAuxTrussElement(AuxTruss),
     UpdateAuxTrussElement((usize, AuxTruss)),
     RemoveTrussElement(usize),
-    SelectSupport(ChangeData),
     Submit,
 }
 
@@ -188,10 +210,10 @@ impl Component for Model
             link,
             state: State
                 {
+                    analysis_type: None,
                     canvas_width: width, canvas_height: height, max_stress: None,
                     error_message: None, // elements: Vec::new(),
                     nodes: Vec::new(), truss_elements_prep: Vec::new(),
-                    supports: Vec::new(),
                 },
             resize_task: None, resize_service: ResizeService::new(),
         }
@@ -204,6 +226,7 @@ impl Component for Model
         {
             Msg::ExtractWindowDimensions(window_dimensions) =>
                 self.extract_window_dimensions(window_dimensions),
+            Msg::AddAnalysisType(analysis_type) => self.state.analysis_type = Some(analysis_type),
             Msg::AddNode(node) => self.state.nodes.push(node),
             Msg::UpdateNode(data) => self.state.nodes[data.0] = data.1,
             Msg::RemoveNode(position) =>
@@ -236,22 +259,6 @@ impl Component for Model
                 {
                     self.state.truss_elements_prep.remove(position);
                 },
-            Msg::SelectSupport(data) =>
-                {
-                    match data
-                    {
-                        ChangeData::Select(select_node) =>
-                            {
-                                yew::services::ConsoleService::log(&select_node.value());
-                            },
-                        ChangeData::Value(support_select) =>
-                            {
-                                yew::services::ConsoleService::log(&support_select);
-                                return false;
-                            },
-                        _ => (),
-                    }
-                },
             Msg::Submit =>
                 {
                     match self.submit()
@@ -273,10 +280,10 @@ impl Component for Model
 
     fn view(&self) -> Html
     {
+        let handle_add_analysis_type = self.link.callback(|analysis_type: AnalysisType| Msg::AddAnalysisType(analysis_type));
         let handle_add_node = self.link.callback(|node: FeNode<u16, f64>| Msg::AddNode(node));
         let handle_update_node = self.link.callback(|data: (usize, FeNode<u16, f64>)| Msg::UpdateNode(data));
         let handle_remove_node = self.link.callback(|position: usize| Msg::RemoveNode(position));
-
         let handle_add_aux_truss_element =
             self.link.callback(|truss_element: AuxTruss| Msg::AddAuxTrussElement(truss_element));
         let handle_update_aux_truss_element =
@@ -288,11 +295,17 @@ impl Component for Model
             <div class="container">
                 <div class="preprocessor">
                     <div class="menu">
+                        <AnalysisTypeMenu
+                            analysis_type=self.state.analysis_type.to_owned(),
+                            add_analysis_type=handle_add_analysis_type,
+                        />
                         <NodesMenu
+                            analysis_type=self.state.analysis_type.to_owned(),
                             nodes=self.state.nodes.to_owned(), add_node=handle_add_node,
                             update_node=handle_update_node, remove_node=handle_remove_node,
                         />
                         <ElementsMenu
+                            analysis_type=self.state.analysis_type.to_owned(),
                             nodes=self.state.nodes.to_owned(),
                             truss_elements_prep=self.state.truss_elements_prep.to_owned(),
                             add_aux_truss_element=handle_add_aux_truss_element,
@@ -301,55 +314,6 @@ impl Component for Model
                         />
                         <button class="button">{ "Forces" }</button>
                         <button class="button">{ "Displacements" }</button>
-                        <button class="button">{ "Supports" }</button>
-
-
-                        <div>
-                            <select onchange=self.link.callback(|data: ChangeData| Msg::SelectSupport(data))>
-                                {
-                                    for (0..=self.state.nodes.len()).map(|i|
-                                        {
-                                            if i == 0
-                                            {
-                                                html!
-                                                {
-                                                    <option value={ "" } selected=true>{ "Please select a node" }</option>
-                                                }
-                                            }
-                                            else
-                                            {
-                                                html!
-                                                {
-                                                    <option value={ self.state.nodes[i - 1].number }>{ self.state.nodes[i - 1].number }</option>
-                                                }
-                                            }
-                                        })
-                                }
-
-                            </select>
-
-
-                            <input
-                                onchange=self.link.callback(|data: ChangeData| Msg::SelectSupport(data)),
-                                type="radio", id="support_choice_1",
-                                name="support_type", value="hinge",
-                                checked=true
-                            />
-                            <label for="support_choice_1">{ "Hinge" }</label>
-                            <input
-                                onchange=self.link.callback(|data: ChangeData| Msg::SelectSupport(data)),
-                                type="radio", id="support_choice_2",
-                                name="support_type", value="roller_x",
-                            />
-                            <label for="support_choice_2">{ "Roller X" }</label>
-                            <input
-                                onchange=self.link.callback(|data: ChangeData| Msg::SelectSupport(data)),
-                                type="radio", id="support_choice_3",
-                                name="support_type", value="roller_y",
-                            />
-                            <label for="support_choice_3">{ "Roller Y" }</label>
-                        </div>
-
                         <button class="button" onclick=self.link.callback(|_| Msg::Submit)>{ "Submit" }</button>
                     </div>
                     <div class="canvas">

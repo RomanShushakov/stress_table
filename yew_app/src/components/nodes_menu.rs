@@ -8,6 +8,7 @@ use wasm_bindgen::JsCast;
 
 use crate::fe::node::FeNode;
 use crate::Coordinates;
+use crate::AnalysisType;
 
 
 const NODES_MENU_ID: &str = "nodes_menu";
@@ -21,6 +22,7 @@ const NODE_Y_COORD: &str = "node_y_coord";
 #[derive(Properties, PartialEq, Clone)]
 pub struct Props
 {
+    pub analysis_type: Option<AnalysisType>,
     pub nodes: Vec<FeNode<u16, f64>>,
     pub add_node: Callback<FeNode<u16, f64>>,
     pub update_node: Callback<(usize, FeNode<u16, f64>)>,
@@ -237,7 +239,8 @@ impl Component for NodesMenu
         {
             <>
                 <button
-                    class="button" onclick=self.link.callback(|_| Msg::ShowHideNodesMenu)
+                    class="button", onclick=self.link.callback(|_| Msg::ShowHideNodesMenu),
+                    disabled={ if self.props.analysis_type.is_some() { false } else { true } },
                 >
                     { "Nodes" }
                 </button>

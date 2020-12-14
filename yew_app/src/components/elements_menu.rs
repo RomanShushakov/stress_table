@@ -6,6 +6,7 @@ use web_sys::
     };
 use wasm_bindgen::JsCast;
 
+use crate::AnalysisType;
 use crate::fe::node::FeNode;
 use crate::Coordinates;
 use crate::AuxTruss;
@@ -25,6 +26,7 @@ const AREA_2: &str = "area_2";
 #[derive(Properties, PartialEq, Clone)]
 pub struct Props
 {
+    pub analysis_type: Option<AnalysisType>,
     pub nodes: Vec<FeNode<u16, f64>>,
     pub truss_elements_prep: Vec<AuxTruss>,
     pub add_aux_truss_element: Callback<AuxTruss>,
@@ -331,7 +333,8 @@ impl Component for ElementsMenu
         {
             <>
                 <button
-                    class="button" onclick=self.link.callback(|_| Msg::ShowHideElementsMenu)
+                    class="button", onclick=self.link.callback(|_| Msg::ShowHideElementsMenu),
+                    disabled={ if self.props.analysis_type.is_some() { false } else { true } },
                 >
                     { "Elements" }
                 </button>

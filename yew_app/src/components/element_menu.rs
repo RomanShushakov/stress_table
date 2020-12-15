@@ -9,45 +9,14 @@ use wasm_bindgen::JsCast;
 use std::slice::Iter;
 use self::ElementType::*;
 
-use crate::AnalysisType;
+use crate::{AnalysisType, AuxTruss2n2ip, OtherType, AuxElement};
+use crate::auxiliary::ElementType;
 use crate::fe::node::FeNode;
 use crate::Coordinates;
-use crate::AuxTruss2n2ip;
-
-
-#[derive(PartialEq)]
-enum ElementType
-{
-    Truss2n2ip,
-    Other,
-}
-
-
-impl ElementType
-{
-    fn as_str(&self) -> String
-    {
-        match self
-        {
-            ElementType::Truss2n2ip => String::from("Truss2n2ip"),
-            ElementType::Other => String::from("Other"),
-        }
-    }
-
-
-    pub fn iterator() -> Iter<'static, ElementType>
-    {
-        static TYPES: [ElementType; 2] =
-            [
-                Truss2n2ip, Other,
-            ];
-        TYPES.iter()
-    }
-
-}
 
 
 const ELEMENT_TYPE_SELECT_ID: &str = "element_type_select";
+
 const ELEMENT_MENU_ID: &str = "element_menu";
 const ELEMENT_MENU: &str = "element_menu";
 const HIDDEN: &str = "hidden";
@@ -58,23 +27,44 @@ const YOUNG_MODULUS: &str = "young_modulus";
 const AREA: &str = "area";
 const AREA_2: &str = "area_2";
 
+const MOMENT_OF_INERTIA_ABOUT_X_AXIS: &str = "moment_of_inertia_about_x_axis";
+const MOMENT_OF_INERTIA_ABOUT_Y_AXIS: &str = "moment_of_inertia_about_y_axis";
+const TORSION_CONSTANT: &str = "torsion_constant";
+
 
 #[derive(Properties, PartialEq, Clone)]
 pub struct Props
 {
     pub analysis_type: Option<AnalysisType>,
     pub nodes: Vec<FeNode<u16, f64>>,
+
+    pub aux_elements: Vec<AuxElement>,
+    pub add_aux_element: Callback<AuxElement>,
+    pub update_aux_element: Callback<(usize, AuxElement)>,
+    pub remove_aux_element: Callback<usize>,
+
     pub aux_truss2n2ip_elements: Vec<AuxTruss2n2ip>,
     pub add_aux_truss2n2ip_element: Callback<AuxTruss2n2ip>,
     pub update_aux_truss2n2ip_element: Callback<(usize, AuxTruss2n2ip)>,
     pub remove_aux_truss2n2ip_element: Callback<usize>,
+    pub other_type_elements: Vec<OtherType>,
+    pub add_other_type_element: Callback<OtherType>,
+    pub update_other_type_element: Callback<(usize, OtherType)>,
+    pub remove_other_type_element: Callback<usize>,
 }
 
 
 struct State
 {
+    new_element_number: u16,
+    selected_element_number: u16,
+    selected_element: AuxElement,
+
+
     selected_element_type: ElementType,
+
     selected_aux_truss2n2ip_element: Option<AuxTruss2n2ip>,
+    selected_other_type_element: Option<OtherType>,
 }
 
 
@@ -89,7 +79,12 @@ pub struct ElementMenu
 pub enum Msg
 {
     ShowHideElementMenu,
-    SelectElementType(ChangeData),
+    SelectAuxElementType(ChangeData),
+
+    SelectAuxElementByNumber(ChangeData),
+    ApplyAuxElementDataChange,
+    RemoveAuxElement,
+
     SelectAuxTruss2n2ipElement(ChangeData),
     ApplyAuxTruss2n2ipElementDataChange,
     RemoveAuxTruss2n2ipElement,
@@ -143,13 +138,13 @@ impl ElementMenu
                 }
                 n + 1
             };
-
+        self.state.new_element_number = number;
+        self.state.selected_element_number = number;
         let new_element = AuxTruss2n2ip
         {
             number, node_1_number: 1u16, node_2_number: 2u16,
             young_modulus: 1f32, area: 1f32, area_2: None,
         };
-
         self.state.selected_aux_truss2n2ip_element = Some(new_element);
         if let Ok(option) = HtmlOptionElement::new()
         {
@@ -209,16 +204,31 @@ impl Component for ElementMenu
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self
     {
         let default_element_type = ElementType::Truss2n2ip;
-        let default_element = AuxTruss2n2ip
+        let default_element_number = 1u16;
+
+        let default_element = AuxElement
+            {
+                element_type: default_element_type.to_owned(), number: default_element_number,
+                node_1_number: 1u16, node_2_number: 2u16, young_modulus: 1f32,
+                area: 1f32, area_2: None, moment_of_inertia_about_x_axis: None,
+                moment_of_inertia_about_y_axis: None, torsion_constant: None,
+            };
+
+        let default_truss_element = AuxTruss2n2ip
         {
-            number: 1u16, node_1_number: 1u16, node_2_number: 2u16,
+            number: default_element_number, node_1_number: 1u16, node_2_number: 2u16,
             young_modulus: 1f32, area: 1f32, area_2: None,
         };
         Self { props, link, state:
                 State
                 {
+                    new_element_number: default_element_number,
+                    selected_element_number: default_element_number,
+                    selected_element: default_element,
+
                     selected_element_type: default_element_type,
-                    selected_aux_truss2n2ip_element: Some(default_element)
+                    selected_aux_truss2n2ip_element: Some(default_truss_element),
+                    selected_other_type_element: None
                 }
             }
     }
@@ -229,7 +239,7 @@ impl Component for ElementMenu
         match msg
         {
             Msg::ShowHideElementMenu => self.show_hide_element_menu(),
-            Msg::SelectElementType(data) =>
+            Msg::SelectAuxElementType(data) =>
                 {
                     match data
                     {
@@ -239,20 +249,181 @@ impl Component for ElementMenu
                                 {
                                     self.state.selected_element_type = ElementType::Truss2n2ip;
                                 }
-                                if select_element_type.value() == ElementType::Other.as_str()
+                                if select_element_type.value() == ElementType::OtherType.as_str()
                                 {
-                                    self.state.selected_element_type = ElementType::Other;
+                                    self.state.selected_element_type = ElementType::OtherType;
                                 }
                             },
                         _ => (),
                     }
                 },
+
+            Msg::SelectAuxElementByNumber(data) =>
+                {
+                    match data
+                    {
+                        ChangeData::Select(select_element) =>
+                            {
+                                let selected_element_number = select_element.value().parse::<u16>().unwrap();
+                                self.state.selected_element_number = selected_element_number;
+                                if let Some(position) = self.props.aux_elements
+                                        .iter()
+                                        .position(|element|
+                                            element.number.to_string() == select_element.value())
+                                {
+                                    self.state.selected_element =
+                                        self.props.aux_elements[position].to_owned();
+                                }
+                                else
+                                {
+                                    self.state.new_element_number = selected_element_number;
+                                    let new_element = AuxElement
+                                        {
+                                            element_type: self.state.selected_element_type.to_owned(),
+                                            number: selected_element_number,
+                                            node_1_number: 1u16,
+                                            node_2_number: 2u16,
+                                            young_modulus: 1f32,
+                                            area: 1f32,
+                                            area_2: None,
+                                            moment_of_inertia_about_x_axis: None,
+                                            moment_of_inertia_about_y_axis: None,
+                                            torsion_constant: None,
+                                        };
+                                    self.state.selected_element = new_element;
+                                }
+                            },
+                        _ => (),
+                    }
+                },
+            Msg::ApplyAuxElementDataChange =>
+                {
+                    let selected_element_node_1_inputted_number = self.read_inputted_node_number(NODE_1_NUMBER);
+                    let selected_element_node_2_inputted_number = self.read_inputted_node_number(NODE_2_NUMBER);
+                    if selected_element_node_1_inputted_number == selected_element_node_2_inputted_number
+                    {
+                        yew::services::DialogService::alert(
+                            "The element's node 1 and node 2 are the same.");
+                        return false;
+                    }
+                    let selected_element_young_modulus = self.read_inputted_data(YOUNG_MODULUS);
+                    if selected_element_young_modulus <= 0f32
+                    {
+                        yew::services::DialogService::alert(
+                            "The element's Young's modulus should be greater than 0.");
+                        return false;
+                    }
+                    let selected_element_area = self.read_inputted_data(AREA);
+                    if selected_element_area <= 0f32
+                    {
+                        yew::services::DialogService::alert(
+                            "The element's area should be greater than 0.");
+                        return false;
+                    }
+                    match self.state.selected_element.element_type
+                    {
+                        Truss2n2ip =>
+                            {
+                                let selected_element_area_2 = self.read_inputted_data(AREA_2);
+                                let node_1_number_position = self.props.nodes
+                                    .iter()
+                                    .position(|node| node.number == selected_element_node_1_inputted_number);
+                                let node_2_number_position = self.props.nodes
+                                    .iter()
+                                    .position(|node| node.number == selected_element_node_2_inputted_number);
+                                if node_1_number_position.is_none() || node_2_number_position.is_none()
+                                {
+                                    yew::services::DialogService::alert(
+                                        "The selected node(or nodes) doesn't(or don't) exist.");
+                                    return false;
+                                }
+                                if let Some(_) = self.props.aux_elements
+                                    .iter()
+                                    .position(|existed_element|
+                                        {
+                                            (existed_element.node_1_number == selected_element_node_1_inputted_number) &&
+                                            (existed_element.node_2_number == selected_element_node_2_inputted_number) &&
+                                            (existed_element.number != self.state.selected_element.number)
+                                        })
+                                {
+                                    yew::services::DialogService::alert(
+                                        "The element with the same type and with the same nodes set is already in use.");
+                                    return false;
+                                }
+                                self.state.selected_element.node_1_number = selected_element_node_1_inputted_number;
+                                self.state.selected_element.node_2_number = selected_element_node_2_inputted_number;
+                                self.state.selected_element.young_modulus = selected_element_young_modulus;
+                                self.state.selected_element.area = selected_element_area;
+                                self.state.selected_element.area_2 =
+                                    {
+                                        if selected_element_area_2 != 0f32
+                                        {
+                                            if selected_element_area_2 < 0f32
+                                            {
+                                                yew::services::DialogService::alert(
+                                                    "The element's area 2 should be greater than 0.");
+                                                return false;
+                                            }
+                                            else
+                                            {
+                                                Some(selected_element_area_2)
+                                            }
+                                        }
+                                        else
+                                        {
+                                            None
+                                        }
+                                    };
+                                if let Some(position) = self.props.aux_elements
+                                    .iter()
+                                    .position(|element|
+                                        {
+                                            element.number ==
+                                            self.state.selected_element.number
+                                        })
+                                {
+                                    self.props.update_aux_element.emit(
+                                        (
+                                                position,
+                                                self.state.selected_element.to_owned()
+                                        ));
+                                }
+                                else
+                                {
+                                    self.props.add_aux_element.emit(self.state.selected_element.to_owned());
+                                }
+                            },
+                        OtherType =>
+                            {
+                                ()
+                            },
+                    }
+
+                },
+            Msg::RemoveAuxElement =>
+                {
+                    if let Some(position) = self.props.aux_elements
+                        .iter()
+                        .position(|element|
+                            {
+                                element.number ==
+                                self.state.selected_element.number
+                            })
+                    {
+                        self.props.remove_aux_element.emit(position);
+                    }
+                },
+
+
             Msg::SelectAuxTruss2n2ipElement(data) =>
                 {
                     match data
                     {
                         ChangeData::Select(select_element) =>
                             {
+                                let selected_element_number = select_element.value().parse::<u16>().unwrap();
+                                self.state.selected_element_number = selected_element_number;
+
                                 if let Some(position) = self.props.aux_truss2n2ip_elements
                                         .iter()
                                         .position(|truss_element|
@@ -263,10 +434,10 @@ impl Component for ElementMenu
                                 }
                                 else
                                 {
-                                    let number = select_element.value().parse::<u16>().unwrap();
+                                    self.state.new_element_number = selected_element_number;
                                     let new_element = AuxTruss2n2ip
                                         {
-                                            number, node_1_number: 1u16, node_2_number: 2u16,
+                                            number: selected_element_number, node_1_number: 1u16, node_2_number: 2u16,
                                             young_modulus: 1f32, area: 1f32, area_2: None,
                                         };
                                     self.state.selected_aux_truss2n2ip_element = Some(new_element);
@@ -286,14 +457,14 @@ impl Component for ElementMenu
                         return false;
                     }
                     let selected_element_young_modulus = self.read_inputted_data(YOUNG_MODULUS);
-                    if selected_element_young_modulus == 0f32
+                    if selected_element_young_modulus <= 0f32
                     {
                         yew::services::DialogService::alert(
                             "The element's Young's modulus should be greater than 0.");
                         return false;
                     }
                     let selected_element_area = self.read_inputted_data(AREA);
-                    if selected_element_area == 0f32
+                    if selected_element_area <= 0f32
                     {
                         yew::services::DialogService::alert(
                             "The element's area should be greater than 0.");
@@ -409,7 +580,8 @@ impl Component for ElementMenu
                             <li>
                                 <select
                                     id={ ELEMENT_TYPE_SELECT_ID },
-                                    onchange=self.link.callback(|data: ChangeData| Msg::SelectElementType(data)),
+                                    onchange=self.link.callback(|data: ChangeData| Msg::SelectAuxElementType(data)),
+                                    disabled={ self.state.selected_element_number != self.state.new_element_number },
                                 >
                                     {
                                         for ElementType::iterator().map(|element_type|

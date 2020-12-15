@@ -28,7 +28,7 @@ use fe::fe_aux_structs::{Displacement, AxisComponent};
 mod components;
 use components::{AnalysisTypeMenu, NodeMenu, Canvas, ElementMenu, ViewMenu};
 mod auxiliary;
-use auxiliary::{AuxTruss2n2ip, AnalysisType, View};
+use auxiliary::{AuxElement, AuxTruss2n2ip, AnalysisType, View, OtherType};
 
 
 pub const NUMBER_OF_DOF: i32 = 6;
@@ -41,7 +41,11 @@ struct State
     canvas_width: u32,
     canvas_height: u32,
     nodes: Vec<FeNode<u16, f64>>,
+
+    aux_elements: Vec<AuxElement>,
     aux_truss2n2ip_elements: Vec<AuxTruss2n2ip>,
+    other_type_elements: Vec<OtherType>,
+
     max_stress: Option<f64>,
     error_message: Option<String>,
 }
@@ -64,9 +68,17 @@ enum Msg
     AddNode(FeNode<u16, f64>),
     UpdateNode((usize, FeNode<u16, f64>)),
     RemoveNode(usize),
+
+    AddAuxElement(AuxElement),
+    UpdateAuxElement((usize, AuxElement)),
+    RemoveAuxElement(usize),
+
     AddAuxTruss2n2ipElement(AuxTruss2n2ip),
     UpdateAuxTruss2n2ipElement((usize, AuxTruss2n2ip)),
     RemoveTruss2n2ipElement(usize),
+    AddOtherTypeElement(OtherType),
+    UpdateOtherTypeElement((usize, OtherType)),
+    RemoveOtherTypeElement(usize),
     Submit,
 }
 
@@ -188,7 +200,9 @@ impl Component for Model
                     analysis_type: None, view: View::PlaneXY,
                     canvas_width: width, canvas_height: height, max_stress: None,
                     error_message: None,
-                    nodes: Vec::new(), aux_truss2n2ip_elements: Vec::new(),
+                    nodes: Vec::new(), aux_elements: Vec::new(),
+                    aux_truss2n2ip_elements: Vec::new(),
+                    other_type_elements: Vec::new(),
                 },
             resize_task: None, resize_service: ResizeService::new(),
         }
@@ -229,11 +243,25 @@ impl Component for Model
                         }
                     }
                 },
+
+            Msg::AddAuxElement(element) => self.state.aux_elements.push(element),
+            Msg::UpdateAuxElement(data) => self.state.aux_elements[data.0] = data.1,
+            Msg::RemoveAuxElement(position) =>
+                {
+                    self.state.aux_elements.remove(position);
+                },
+
             Msg::AddAuxTruss2n2ipElement(element) => self.state.aux_truss2n2ip_elements.push(element),
             Msg::UpdateAuxTruss2n2ipElement(data) => self.state.aux_truss2n2ip_elements[data.0] = data.1,
             Msg::RemoveTruss2n2ipElement(position) =>
                 {
                     self.state.aux_truss2n2ip_elements.remove(position);
+                },
+            Msg::AddOtherTypeElement(element) => self.state.other_type_elements.push(element),
+            Msg::UpdateOtherTypeElement(data) => self.state.other_type_elements[data.0] = data.1,
+            Msg::RemoveOtherTypeElement(position) =>
+                {
+                    self.state.other_type_elements.remove(position);
                 },
             Msg::Submit =>
                 {
@@ -261,12 +289,27 @@ impl Component for Model
         let handle_add_node = self.link.callback(|node: FeNode<u16, f64>| Msg::AddNode(node));
         let handle_update_node = self.link.callback(|data: (usize, FeNode<u16, f64>)| Msg::UpdateNode(data));
         let handle_remove_node = self.link.callback(|position: usize| Msg::RemoveNode(position));
+
+        let handle_add_aux_element =
+            self.link.callback(|element: AuxElement| Msg::AddAuxElement(element));
+        let handle_update_aux_element =
+            self.link.callback(|data: (usize, AuxElement)| Msg::UpdateAuxElement(data));
+        let handle_remove_aux_element =
+            self.link.callback(|position: usize| Msg::RemoveAuxElement(position));
+
+
         let handle_add_aux_truss2n2ip_element =
             self.link.callback(|truss_element: AuxTruss2n2ip| Msg::AddAuxTruss2n2ipElement(truss_element));
         let handle_update_aux_truss2n2ip_element =
             self.link.callback(|data: (usize, AuxTruss2n2ip)| Msg::UpdateAuxTruss2n2ipElement(data));
         let handle_remove_aux_truss2n2ip_element =
             self.link.callback(|position: usize| Msg::RemoveTruss2n2ipElement(position));
+        let handle_add_other_type_element =
+            self.link.callback(|other_type_element: OtherType| Msg::AddOtherTypeElement(other_type_element));
+        let handle_update_other_type_element =
+            self.link.callback(|data: (usize, OtherType)| Msg::UpdateOtherTypeElement(data));
+        let handle_remove_other_type_element =
+            self.link.callback(|position: usize| Msg::RemoveOtherTypeElement(position));
 
         html! {
             <div class="container">
@@ -288,10 +331,21 @@ impl Component for Model
                         <ElementMenu
                             analysis_type=self.state.analysis_type.to_owned(),
                             nodes=self.state.nodes.to_owned(),
+
+                            aux_elements=self.state.aux_elements.to_owned(),
+                            add_aux_element=handle_add_aux_element,
+                            update_aux_element=handle_update_aux_element,
+                            remove_aux_element=handle_remove_aux_element,
+
                             aux_truss2n2ip_elements=self.state.aux_truss2n2ip_elements.to_owned(),
                             add_aux_truss2n2ip_element=handle_add_aux_truss2n2ip_element,
                             update_aux_truss2n2ip_element=handle_update_aux_truss2n2ip_element,
                             remove_aux_truss2n2ip_element=handle_remove_aux_truss2n2ip_element,
+                            other_type_elements=self.state.other_type_elements.to_owned(),
+                            add_other_type_element=handle_add_other_type_element,
+                            update_other_type_element=handle_update_other_type_element,
+                            remove_other_type_element=handle_remove_other_type_element,
+
                         />
                         <button class="button">{ "Force" }</button>
                         <button class="button">{ "Displacement" }</button>

@@ -55,7 +55,7 @@ pub struct DrawnNode
 
 
 #[derive(Clone, PartialEq)]
-pub struct AuxTruss
+pub struct AuxTruss2n2ip
 {
     pub number: u16,
     pub node_1_number: u16,

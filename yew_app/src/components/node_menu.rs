@@ -56,7 +56,7 @@ pub enum Msg
 
 impl NodeMenu
 {
-    fn show_hide_nodes_menu(&self)
+    fn show_hide_node_menu(&self)
     {
         let window = web_sys::window().unwrap();
         let document = window.document().unwrap();
@@ -150,7 +150,7 @@ impl Component for NodeMenu
     {
         match msg
         {
-            Msg::ShowHideNodeMenu => self.show_hide_nodes_menu(),
+            Msg::ShowHideNodeMenu => self.show_hide_node_menu(),
             Msg::SelectNode(data) =>
                 {
                     match data

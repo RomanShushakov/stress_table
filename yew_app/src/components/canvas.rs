@@ -7,7 +7,7 @@ use yew::virtual_dom::VNode;
 use web_sys::{ CanvasRenderingContext2d, HtmlCanvasElement };
 
 use crate::fe::node::FeNode;
-use crate::auxiliary::{AuxTruss, DrawnNode, View};
+use crate::auxiliary::{AuxTruss2n2ip, DrawnNode, View};
 
 
 const CANVAS_ID: &str = "canvas";
@@ -25,7 +25,7 @@ pub struct Props
     pub canvas_width: u32,
     pub canvas_height: u32,
     pub nodes: Vec<FeNode<u16, f64>>,
-    pub truss_elements_prep: Vec<AuxTruss>,
+    pub aux_truss2n2ip_elements: Vec<AuxTruss2n2ip>,
 }
 
 
@@ -187,7 +187,7 @@ impl Canvas
                         {
                             number: node.number,
                             x: x_imaging,
-                            y: self.props.canvas_height as f64 - y_imaging
+                            y: self.props.canvas_height as f64 - y_imaging,
                         });
                 }
             }
@@ -228,9 +228,9 @@ impl Canvas
                 // context.restore();
             }
 
-            if !self.props.truss_elements_prep.is_empty()
+            if !self.props.aux_truss2n2ip_elements.is_empty()
             {
-                for truss_element in self.props.truss_elements_prep.iter()
+                for truss_element in self.props.aux_truss2n2ip_elements.iter()
                 {
                     let node_1_position = drawn_nodes
                         .iter()

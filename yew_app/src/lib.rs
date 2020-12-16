@@ -117,7 +117,7 @@ impl Model
                             );
                         elements.push(Rc::new(RefCell::new(truss_element)));
                     },
-                ElementType::OtherType => (),
+                // ElementType::OtherType => (),
             }
         }
         let mut applied_displacements = HashMap::new();
@@ -194,9 +194,9 @@ impl Component for Model
             state: State
                 {
                     analysis_type: None, view: View::PlaneXY,
-                    canvas_width: width, canvas_height: height, max_stress: None,
-                    error_message: None,
+                    canvas_width: width, canvas_height: height,
                     nodes: Vec::new(), aux_elements: Vec::new(),
+                    max_stress: None, error_message: None,
                 },
             resize_task: None, resize_service: ResizeService::new(),
         }

@@ -26,9 +26,9 @@ const YOUNG_MODULUS: &str = "young_modulus";
 const AREA: &str = "area";
 const AREA_2: &str = "area_2";
 
-const MOMENT_OF_INERTIA_ABOUT_X_AXIS: &str = "moment_of_inertia_about_x_axis";
-const MOMENT_OF_INERTIA_ABOUT_Y_AXIS: &str = "moment_of_inertia_about_y_axis";
-const TORSION_CONSTANT: &str = "torsion_constant";
+// const MOMENT_OF_INERTIA_ABOUT_X_AXIS: &str = "moment_of_inertia_about_x_axis";
+// const MOMENT_OF_INERTIA_ABOUT_Y_AXIS: &str = "moment_of_inertia_about_y_axis";
+// const TORSION_CONSTANT: &str = "torsion_constant";
 
 
 #[derive(Properties, PartialEq, Clone)]
@@ -124,9 +124,10 @@ impl ElementMenu
             element_type: ElementType::Truss2n2ip,
             number, node_1_number: 1u16, node_2_number: 2u16,
             young_modulus: 1f32, area: 1f32, area_2: None,
-            moment_of_inertia_about_x_axis: None,
-            moment_of_inertia_about_y_axis: None,
-            torsion_constant: None,
+
+            // moment_of_inertia_about_x_axis: None,
+            // moment_of_inertia_about_y_axis: None,
+            // torsion_constant: None,
         };
         self.state.selected_element = new_element;
         if let Ok(option) = HtmlOptionElement::new()
@@ -215,10 +216,15 @@ impl Component for ElementMenu
         let default_element_number = 1u16;
         let default_element = AuxElement
             {
-                element_type: default_element_type.to_owned(), number: default_element_number,
-                node_1_number: 1u16, node_2_number: 2u16, young_modulus: 1f32,
-                area: 1f32, area_2: None, moment_of_inertia_about_x_axis: None,
-                moment_of_inertia_about_y_axis: None, torsion_constant: None,
+                element_type: default_element_type.to_owned(),
+                number: default_element_number,
+                node_1_number: 1u16, node_2_number: 2u16,
+                young_modulus: 1f32,
+                area: 1f32, area_2: None,
+
+                // moment_of_inertia_about_x_axis: None,
+                // moment_of_inertia_about_y_axis: None,
+                // torsion_constant: None,
             };
         Self { props, link, state:
                 State
@@ -246,10 +252,10 @@ impl Component for ElementMenu
                                 {
                                     self.state.selected_element.element_type = ElementType::Truss2n2ip;
                                 }
-                                if select_element_type.value() == ElementType::OtherType.as_str()
-                                {
-                                    self.state.selected_element.element_type = ElementType::OtherType;
-                                }
+                                // if select_element_type.value() == ElementType::OtherType.as_str()
+                                // {
+                                //     self.state.selected_element.element_type = ElementType::OtherType;
+                                // }
                             },
                         _ => (),
                     }
@@ -282,9 +288,10 @@ impl Component for ElementMenu
                                             young_modulus: 1f32,
                                             area: 1f32,
                                             area_2: None,
-                                            moment_of_inertia_about_x_axis: None,
-                                            moment_of_inertia_about_y_axis: None,
-                                            torsion_constant: None,
+
+                                            // moment_of_inertia_about_x_axis: None,
+                                            // moment_of_inertia_about_y_axis: None,
+                                            // torsion_constant: None,
                                         };
                                     self.state.selected_element = new_element;
                                 }
@@ -390,101 +397,101 @@ impl Component for ElementMenu
                                     self.props.add_aux_element.emit(self.state.selected_element.to_owned());
                                 }
                             },
-                        OtherType =>
-                            {
-                                let selected_element_moment_of_inertia_x =
-                                    self.read_inputted_data(MOMENT_OF_INERTIA_ABOUT_X_AXIS);
-                                let selected_element_moment_of_inertia_y =
-                                    self.read_inputted_data(MOMENT_OF_INERTIA_ABOUT_Y_AXIS);
-                                let selected_element_torsion_constant =
-                                    self.read_inputted_data(TORSION_CONSTANT);
-                                let node_1_number_position = self.props.nodes
-                                    .iter()
-                                    .position(|node| node.number == selected_element_node_1_inputted_number);
-                                let node_2_number_position = self.props.nodes
-                                    .iter()
-                                    .position(|node| node.number == selected_element_node_2_inputted_number);
-                                if node_1_number_position.is_none() || node_2_number_position.is_none()
-                                {
-                                    yew::services::DialogService::alert(
-                                        "The selected node(or nodes) doesn't(or don't) exist.");
-                                    return false;
-                                }
-                                if let Some(_) = self.props.aux_elements
-                                    .iter()
-                                    .position(|existed_element|
-                                        {
-                                            (existed_element.node_1_number == selected_element_node_1_inputted_number) &&
-                                            (existed_element.node_2_number == selected_element_node_2_inputted_number) &&
-                                            (existed_element.number != self.state.selected_element.number)
-                                        })
-                                {
-                                    yew::services::DialogService::alert(
-                                        "The element with the same type and with the same nodes set is already in use.");
-                                    return false;
-                                }
-                                self.state.selected_element.node_1_number = selected_element_node_1_inputted_number;
-                                self.state.selected_element.node_2_number = selected_element_node_2_inputted_number;
-                                self.state.selected_element.young_modulus = selected_element_young_modulus;
-                                self.state.selected_element.area = selected_element_area;
-                                self.state.selected_element.moment_of_inertia_about_x_axis =
-                                    {
-                                        if selected_element_moment_of_inertia_x > 0f32
-                                        {
-                                            Some(selected_element_moment_of_inertia_x)
-                                        }
-                                        else
-                                        {
-                                            yew::services::DialogService::alert(
-                                            "The element's moment of inertia about x axis should be greater than 0.");
-                                            return false;
-                                        }
-                                    };
-                                self.state.selected_element.moment_of_inertia_about_y_axis =
-                                    {
-                                        if selected_element_moment_of_inertia_y > 0f32
-                                        {
-                                            Some(selected_element_moment_of_inertia_y)
-                                        }
-                                        else
-                                        {
-                                            yew::services::DialogService::alert(
-                                            "The element's moment of inertia about y axis should be greater than 0.");
-                                            return false;
-                                        }
-                                    };
-                                self.state.selected_element.torsion_constant =
-                                    {
-                                        if selected_element_torsion_constant > 0f32
-                                        {
-                                            Some(selected_element_torsion_constant)
-                                        }
-                                        else
-                                        {
-                                            yew::services::DialogService::alert(
-                                            "The element's torsion constant should be greater than 0.");
-                                            return false;
-                                        }
-                                    };
-                                if let Some(position) = self.props.aux_elements
-                                    .iter()
-                                    .position(|element|
-                                        {
-                                            element.number ==
-                                            self.state.selected_element.number
-                                        })
-                                {
-                                    self.props.update_aux_element.emit(
-                                        (
-                                                position,
-                                                self.state.selected_element.to_owned()
-                                        ));
-                                }
-                                else
-                                {
-                                    self.props.add_aux_element.emit(self.state.selected_element.to_owned());
-                                }
-                            },
+                        // OtherType =>
+                        //     {
+                        //         let selected_element_moment_of_inertia_x =
+                        //             self.read_inputted_data(MOMENT_OF_INERTIA_ABOUT_X_AXIS);
+                        //         let selected_element_moment_of_inertia_y =
+                        //             self.read_inputted_data(MOMENT_OF_INERTIA_ABOUT_Y_AXIS);
+                        //         let selected_element_torsion_constant =
+                        //             self.read_inputted_data(TORSION_CONSTANT);
+                        //         let node_1_number_position = self.props.nodes
+                        //             .iter()
+                        //             .position(|node| node.number == selected_element_node_1_inputted_number);
+                        //         let node_2_number_position = self.props.nodes
+                        //             .iter()
+                        //             .position(|node| node.number == selected_element_node_2_inputted_number);
+                        //         if node_1_number_position.is_none() || node_2_number_position.is_none()
+                        //         {
+                        //             yew::services::DialogService::alert(
+                        //                 "The selected node(or nodes) doesn't(or don't) exist.");
+                        //             return false;
+                        //         }
+                        //         if let Some(_) = self.props.aux_elements
+                        //             .iter()
+                        //             .position(|existed_element|
+                        //                 {
+                        //                     (existed_element.node_1_number == selected_element_node_1_inputted_number) &&
+                        //                     (existed_element.node_2_number == selected_element_node_2_inputted_number) &&
+                        //                     (existed_element.number != self.state.selected_element.number)
+                        //                 })
+                        //         {
+                        //             yew::services::DialogService::alert(
+                        //                 "The element with the same type and with the same nodes set is already in use.");
+                        //             return false;
+                        //         }
+                        //         self.state.selected_element.node_1_number = selected_element_node_1_inputted_number;
+                        //         self.state.selected_element.node_2_number = selected_element_node_2_inputted_number;
+                        //         self.state.selected_element.young_modulus = selected_element_young_modulus;
+                        //         self.state.selected_element.area = selected_element_area;
+                        //         self.state.selected_element.moment_of_inertia_about_x_axis =
+                        //             {
+                        //                 if selected_element_moment_of_inertia_x > 0f32
+                        //                 {
+                        //                     Some(selected_element_moment_of_inertia_x)
+                        //                 }
+                        //                 else
+                        //                 {
+                        //                     yew::services::DialogService::alert(
+                        //                     "The element's moment of inertia about x axis should be greater than 0.");
+                        //                     return false;
+                        //                 }
+                        //             };
+                        //         self.state.selected_element.moment_of_inertia_about_y_axis =
+                        //             {
+                        //                 if selected_element_moment_of_inertia_y > 0f32
+                        //                 {
+                        //                     Some(selected_element_moment_of_inertia_y)
+                        //                 }
+                        //                 else
+                        //                 {
+                        //                     yew::services::DialogService::alert(
+                        //                     "The element's moment of inertia about y axis should be greater than 0.");
+                        //                     return false;
+                        //                 }
+                        //             };
+                        //         self.state.selected_element.torsion_constant =
+                        //             {
+                        //                 if selected_element_torsion_constant > 0f32
+                        //                 {
+                        //                     Some(selected_element_torsion_constant)
+                        //                 }
+                        //                 else
+                        //                 {
+                        //                     yew::services::DialogService::alert(
+                        //                     "The element's torsion constant should be greater than 0.");
+                        //                     return false;
+                        //                 }
+                        //             };
+                        //         if let Some(position) = self.props.aux_elements
+                        //             .iter()
+                        //             .position(|element|
+                        //                 {
+                        //                     element.number ==
+                        //                     self.state.selected_element.number
+                        //                 })
+                        //         {
+                        //             self.props.update_aux_element.emit(
+                        //                 (
+                        //                         position,
+                        //                         self.state.selected_element.to_owned()
+                        //                 ));
+                        //         }
+                        //         else
+                        //         {
+                        //             self.props.add_aux_element.emit(self.state.selected_element.to_owned());
+                        //         }
+                        //     },
                     }
                 },
             Msg::RemoveAuxElement =>
@@ -653,80 +660,80 @@ impl Component for ElementMenu
                                                 </li>
                                             }
                                         },
-                                    ElementType::OtherType =>
-                                        {
-                                            html!
-                                            {
-                                                <>
-                                                    <li>
-                                                        <p class="element_menu_input_fields_descriptions">
-                                                            { "The moment of inertia about x axis:" }
-                                                        </p>
-                                                        <input
-                                                            id={ MOMENT_OF_INERTIA_ABOUT_X_AXIS },
-                                                            value=
-                                                                {
-                                                                    if let Some(moment_of_inertia_x) =
-                                                                        self.state.selected_element.moment_of_inertia_about_x_axis
-                                                                    {
-                                                                        moment_of_inertia_x.to_string()
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        "".to_string()
-                                                                    }
-                                                                },
-                                                            type="number",
-                                                            min={ 0 },
-                                                        />
-                                                    </li>
-                                                    <li>
-                                                        <p class="element_menu_input_fields_descriptions">
-                                                            { "The moment of inertia about y axis:" }
-                                                        </p>
-                                                        <input
-                                                            id={ MOMENT_OF_INERTIA_ABOUT_Y_AXIS },
-                                                            value=
-                                                                {
-                                                                    if let Some(moment_of_inertia_y) =
-                                                                        self.state.selected_element.moment_of_inertia_about_y_axis
-                                                                    {
-                                                                        moment_of_inertia_y.to_string()
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        "".to_string()
-                                                                    }
-                                                                },
-                                                            type="number",
-                                                            min={ 0 },
-                                                        />
-                                                    </li>
-                                                    <li>
-                                                        <p class="element_menu_input_fields_descriptions">
-                                                            { "The torsion constant:" }
-                                                        </p>
-                                                        <input
-                                                            id={ TORSION_CONSTANT },
-                                                            value=
-                                                                {
-                                                                    if let Some(torsion_constant) =
-                                                                        self.state.selected_element.torsion_constant
-                                                                    {
-                                                                        torsion_constant.to_string()
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        "".to_string()
-                                                                    }
-                                                                },
-                                                            type="number",
-                                                            min={ 0 },
-                                                        />
-                                                    </li>
-                                                </>
-                                            }
-                                        },
+                                    // ElementType::OtherType =>
+                                    //     {
+                                    //         html!
+                                    //         {
+                                    //             <>
+                                    //                 <li>
+                                    //                     <p class="element_menu_input_fields_descriptions">
+                                    //                         { "The moment of inertia about x axis:" }
+                                    //                     </p>
+                                    //                     <input
+                                    //                         id={ MOMENT_OF_INERTIA_ABOUT_X_AXIS },
+                                    //                         value=
+                                    //                             {
+                                    //                                 if let Some(moment_of_inertia_x) =
+                                    //                                     self.state.selected_element.moment_of_inertia_about_x_axis
+                                    //                                 {
+                                    //                                     moment_of_inertia_x.to_string()
+                                    //                                 }
+                                    //                                 else
+                                    //                                 {
+                                    //                                     "".to_string()
+                                    //                                 }
+                                    //                             },
+                                    //                         type="number",
+                                    //                         min={ 0 },
+                                    //                     />
+                                    //                 </li>
+                                    //                 <li>
+                                    //                     <p class="element_menu_input_fields_descriptions">
+                                    //                         { "The moment of inertia about y axis:" }
+                                    //                     </p>
+                                    //                     <input
+                                    //                         id={ MOMENT_OF_INERTIA_ABOUT_Y_AXIS },
+                                    //                         value=
+                                    //                             {
+                                    //                                 if let Some(moment_of_inertia_y) =
+                                    //                                     self.state.selected_element.moment_of_inertia_about_y_axis
+                                    //                                 {
+                                    //                                     moment_of_inertia_y.to_string()
+                                    //                                 }
+                                    //                                 else
+                                    //                                 {
+                                    //                                     "".to_string()
+                                    //                                 }
+                                    //                             },
+                                    //                         type="number",
+                                    //                         min={ 0 },
+                                    //                     />
+                                    //                 </li>
+                                    //                 <li>
+                                    //                     <p class="element_menu_input_fields_descriptions">
+                                    //                         { "The torsion constant:" }
+                                    //                     </p>
+                                    //                     <input
+                                    //                         id={ TORSION_CONSTANT },
+                                    //                         value=
+                                    //                             {
+                                    //                                 if let Some(torsion_constant) =
+                                    //                                     self.state.selected_element.torsion_constant
+                                    //                                 {
+                                    //                                     torsion_constant.to_string()
+                                    //                                 }
+                                    //                                 else
+                                    //                                 {
+                                    //                                     "".to_string()
+                                    //                                 }
+                                    //                             },
+                                    //                         type="number",
+                                    //                         min={ 0 },
+                                    //                     />
+                                    //                 </li>
+                                    //             </>
+                                    //         }
+                                    //     },
                                 }
                             }
                         </ul>

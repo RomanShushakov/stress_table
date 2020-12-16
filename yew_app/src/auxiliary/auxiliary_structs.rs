@@ -62,7 +62,7 @@ pub struct DrawnNode
 pub enum ElementType
 {
     Truss2n2ip,
-    OtherType,
+    // OtherType,
 }
 
 
@@ -73,16 +73,16 @@ impl ElementType
         match self
         {
             ElementType::Truss2n2ip => String::from("Truss2n2ip"),
-            ElementType::OtherType => String::from("OtherType"),
+            // ElementType::OtherType => String::from("OtherType"),
         }
     }
 
 
     pub fn iterator() -> Iter<'static, ElementType>
     {
-        static TYPES: [ElementType; 2] =
+        static TYPES: [ElementType; 1] =
             [
-                Truss2n2ip, OtherType,
+                Truss2n2ip, // OtherType,
             ];
         TYPES.iter()
     }
@@ -99,7 +99,7 @@ pub struct AuxElement
     pub young_modulus: f32,
     pub area: f32,
     pub area_2: Option<f32>,
-    pub moment_of_inertia_about_x_axis: Option<f32>,
-    pub moment_of_inertia_about_y_axis: Option<f32>,
-    pub torsion_constant: Option<f32>,
+    // pub moment_of_inertia_about_x_axis: Option<f32>,
+    // pub moment_of_inertia_about_y_axis: Option<f32>,
+    // pub torsion_constant: Option<f32>,
 }

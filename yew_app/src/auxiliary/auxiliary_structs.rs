@@ -58,7 +58,7 @@ pub struct DrawnNode
 }
 
 
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Clone, Debug)]
 pub enum ElementType
 {
     Truss2n2ip,
@@ -89,7 +89,7 @@ impl ElementType
 }
 
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug)]
 pub struct AuxElement
 {
     pub element_type: ElementType,
@@ -102,29 +102,4 @@ pub struct AuxElement
     pub moment_of_inertia_about_x_axis: Option<f32>,
     pub moment_of_inertia_about_y_axis: Option<f32>,
     pub torsion_constant: Option<f32>,
-}
-
-
-#[derive(Clone, PartialEq)]
-pub struct AuxTruss2n2ip
-{
-    pub number: u16,
-    pub node_1_number: u16,
-    pub node_2_number: u16,
-    pub young_modulus: f32,
-    pub area: f32,
-    pub area_2: Option<f32>,
-}
-
-
-#[derive(Clone, PartialEq)]
-pub struct OtherType
-{
-    pub number: u16,
-    pub node_1_number: u16,
-    pub node_2_number: u16,
-    pub young_modulus: f32,
-    pub moment_of_inertia_about_x_axis: f32,
-    pub moment_of_inertia_about_y_axis: f32,
-    pub torsion_constant: f32,
 }

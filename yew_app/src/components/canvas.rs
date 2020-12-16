@@ -7,7 +7,7 @@ use yew::virtual_dom::VNode;
 use web_sys::{ CanvasRenderingContext2d, HtmlCanvasElement };
 
 use crate::fe::node::FeNode;
-use crate::auxiliary::{AuxTruss2n2ip, DrawnNode, View};
+use crate::auxiliary::{DrawnNode, View, AuxElement};
 
 
 const CANVAS_ID: &str = "canvas";
@@ -25,7 +25,7 @@ pub struct Props
     pub canvas_width: u32,
     pub canvas_height: u32,
     pub nodes: Vec<FeNode<u16, f64>>,
-    pub aux_truss2n2ip_elements: Vec<AuxTruss2n2ip>,
+    pub aux_elements: Vec<AuxElement>,
 }
 
 
@@ -228,17 +228,17 @@ impl Canvas
                 // context.restore();
             }
 
-            if !self.props.aux_truss2n2ip_elements.is_empty()
+            if !self.props.aux_elements.is_empty()
             {
-                for truss_element in self.props.aux_truss2n2ip_elements.iter()
+                for aux_element in self.props.aux_elements.iter()
                 {
                     let node_1_position = drawn_nodes
                         .iter()
-                        .position(|node| node.number == truss_element.node_1_number).unwrap();
+                        .position(|node| node.number == aux_element.node_1_number).unwrap();
                     let drawn_node_1 = drawn_nodes[node_1_position].to_owned();
                     let node_2_position = drawn_nodes
                         .iter()
-                        .position(|node| node.number == truss_element.node_2_number).unwrap();
+                        .position(|node| node.number == aux_element.node_2_number).unwrap();
                     let drawn_node_2 = drawn_nodes[node_2_position].to_owned();
 
                     context.begin_path();
@@ -268,7 +268,7 @@ impl Canvas
                     context.set_fill_style(&CANVAS_ELEMENTS_COLOR.into());
                     context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
                     context.fill_text(
-                        &truss_element.number.to_string(),
+                        &aux_element.number.to_string(),
                         x_center - axis_line_length / 20f64,
                         y_center + axis_line_length / 20f64)
                         .unwrap();

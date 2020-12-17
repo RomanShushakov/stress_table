@@ -1,5 +1,5 @@
 use crate::{FeNode, NUMBER_OF_DOF};
-use crate::fe::elements::element::{FElement};
+use crate::fe::elements::f_element::{FElement};
 use std::hash::Hash;
 use crate::math::matrix::Matrix;
 use crate::fe::fe_aux_structs::{compose_stiffness_submatrices_and_displacements, Displacement, Force};
@@ -130,7 +130,7 @@ impl<T, V, W> FeModel<T, V, W>
                                 (
                                     format!
                                         (
-                                            "there are no stiffness to withstand displacement: {:?} \
+                                            "There are no stiffness to withstand displacement: {:?} \
                                             applied at node: {:?}",
                                             component,
                                             node_number
@@ -146,7 +146,7 @@ impl<T, V, W> FeModel<T, V, W>
                                     (
                                         format!
                                             (
-                                                "there are no stiffness to withstand force: {:?} \
+                                                "There are no stiffness to withstand force: {:?} \
                                                 applied at node: {:?}",
                                                 component,
                                                 node_number
@@ -368,7 +368,7 @@ impl<T, V, W> FeModel<T, V, W>
         }
         else
         {
-            return Err("global stiffness matrix not prepared yet, the structure cannot be analyzed!".to_string())
+            return Err("Global stiffness matrix not prepared yet, the structure cannot be analyzed!".to_string())
         }
     }
 }

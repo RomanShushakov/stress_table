@@ -139,6 +139,7 @@ impl Component for ViewMenu
             <>
                 <button
                     class="button",
+                    disabled=true,
                     onclick=self.link.callback(|_| Msg::ShowHideViewMenu),
                 >
                     { "View" }
@@ -166,7 +167,6 @@ impl Component for ViewMenu
                                 name={ VIEW_INPUT_NAME },
                                 value={ View::PlaneZY.as_str() },
                                 checked={ self.props.view == View::PlaneZY },
-                                disabled=true,
                             />
                             <label for={ PLANE_ZY_VIEW_ID }>
                                 { View::PlaneZY.as_str() }
@@ -180,7 +180,6 @@ impl Component for ViewMenu
                                 name={ VIEW_INPUT_NAME },
                                 value={ View::PlaneXZ.as_str() },
                                 checked={ self.props.view == View::PlaneXZ },
-                                disabled=true,
                             />
                             <label for={ PLANE_XZ_VIEW_ID }>
                                 { View::PlaneXZ.as_str() }
@@ -194,7 +193,6 @@ impl Component for ViewMenu
                                 name={ VIEW_INPUT_NAME },
                                 value={ View::Isometric.as_str() },
                                 checked={ self.props.view == View::Isometric },
-                                disabled=true,
                             />
                             <label for={ ISOMETRIC_VIEW_ID }>
                                 { View::Isometric.as_str() }

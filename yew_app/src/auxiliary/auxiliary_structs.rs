@@ -99,7 +99,21 @@ pub struct AuxElement
     pub young_modulus: f32,
     pub area: f32,
     pub area_2: Option<f32>,
+
     // pub moment_of_inertia_about_x_axis: Option<f32>,
     // pub moment_of_inertia_about_y_axis: Option<f32>,
     // pub torsion_constant: Option<f32>,
+}
+
+
+pub struct AuxDisplacement
+{
+    pub number: u16,
+    pub node_number: u16,
+    pub x_direction_value: Option<f32>,
+    pub y_direction_value: Option<f32>,
+    pub z_direction_value: Option<f32>,
+    pub xy_plane_value: Option<f32>,
+    pub zx_plane_value: Option<f32>,
+    pub yz_plane_value: Option<f32>,
 }

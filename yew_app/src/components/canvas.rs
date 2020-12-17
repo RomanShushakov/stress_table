@@ -6,7 +6,7 @@ use web_sys::Node;
 use yew::virtual_dom::VNode;
 use web_sys::{ CanvasRenderingContext2d, HtmlCanvasElement };
 
-use crate::fe::node::FeNode;
+use crate::fe::fe_node::FeNode;
 use crate::auxiliary::{DrawnNode, View, AuxElement};
 
 

@@ -1,2 +1,2 @@
-pub mod truss;
-pub mod element;
+pub mod truss_element;
+pub mod f_element;

@@ -1,5 +1,5 @@
 use std::ops::Range;
-use crate::fe::node::FeNode;
+use crate::fe::fe_node::FeNode;
 use std::collections::HashMap;
 use std::hash::Hash;
 

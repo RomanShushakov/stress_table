@@ -10,7 +10,7 @@ use std::slice::Iter;
 use self::ElementType::*;
 
 use crate::{AnalysisType, AuxElement, ElementType};
-use crate::fe::node::FeNode;
+use crate::fe::fe_node::FeNode;
 use crate::Coordinates;
 
 
@@ -184,7 +184,7 @@ impl ElementMenu
     }
 
 
-    fn read_inputted_data(&self, input_field: &str) -> f32
+    fn read_inputted_properties(&self, input_field: &str) -> f32
     {
         let window = web_sys::window().unwrap();
         let document = window.document().unwrap();
@@ -226,14 +226,17 @@ impl Component for ElementMenu
                 // moment_of_inertia_about_y_axis: None,
                 // torsion_constant: None,
             };
-        Self { props, link, state:
-                State
+        Self
+        {
+            props,
+            link,
+            state: State
                 {
                     new_element_number: default_element_number,
                     selected_element_number: default_element_number,
                     selected_element: default_element,
                 }
-            }
+        }
     }
 
 
@@ -310,14 +313,14 @@ impl Component for ElementMenu
                             "The element's node 1 and node 2 are the same.");
                         return false;
                     }
-                    let selected_element_young_modulus = self.read_inputted_data(YOUNG_MODULUS);
+                    let selected_element_young_modulus = self.read_inputted_properties(YOUNG_MODULUS);
                     if selected_element_young_modulus <= 0f32
                     {
                         yew::services::DialogService::alert(
                             "The element's Young's modulus should be greater than 0.");
                         return false;
                     }
-                    let selected_element_area = self.read_inputted_data(AREA);
+                    let selected_element_area = self.read_inputted_properties(AREA);
                     if selected_element_area <= 0f32
                     {
                         yew::services::DialogService::alert(
@@ -328,7 +331,7 @@ impl Component for ElementMenu
                     {
                         Truss2n2ip =>
                             {
-                                let selected_element_area_2 = self.read_inputted_data(AREA_2);
+                                let selected_element_area_2 = self.read_inputted_properties(AREA_2);
                                 let node_1_number_position = self.props.nodes
                                     .iter()
                                     .position(|node| node.number == selected_element_node_1_inputted_number);

@@ -7,37 +7,42 @@ use web_sys::
 use wasm_bindgen::JsCast;
 
 use crate::fe::fe_node::FeNode;
-use crate::Coordinates;
-use crate::AnalysisType;
+use crate::{Coordinates, AnalysisType, AuxDisplacement, AuxElement};
 
 
-const NODE_MENU_ID: &str = "node_menu";
-const NODE_MENU: &str = "node_menu";
+const DISPLACEMENT_MENU_ID: &str = "displacement_menu";
+const DISPLACEMENT_MENU: &str = "displacement_menu";
 const HIDDEN: &str = "hidden";
-const NODE_SELECT_ID: &str = "node_select";
-const NODE_X_COORD: &str = "node_x_coord";
-const NODE_Y_COORD: &str = "node_y_coord";
-const NODE_Z_COORD: &str = "node_z_coord";
+const DISPLACEMENT_SELECT_ID: &str = "displacement_select";
+const NODE_NUMBER: &str = "node_number";
+const DISPLACEMENT_IN_X_DIRECTION: &str = "displacement_x_direction";
+const DISPLACEMENT_IN_Y_DIRECTION: &str = "displacement_y_direction";
+const DISPLACEMENT_IN_Z_DIRECTION: &str = "displacement_z_direction";
+const ROTATION_IN_XY_PLANE: &str = "rotation_in_xy_plane";
+const ROTATION_IN_YZ_PLANE: &str = "rotation_in_yz_plane";
+const ROTATION_IN_ZX_PLANE: &str = "rotation_in_zx_plane";
 
 
 #[derive(Properties, PartialEq, Clone)]
 pub struct Props
 {
     pub analysis_type: Option<AnalysisType>,
-    pub nodes: Vec<FeNode<u16, f64>>,
-    pub add_node: Callback<FeNode<u16, f64>>,
-    pub update_node: Callback<(usize, FeNode<u16, f64>)>,
-    pub remove_node: Callback<usize>,
+    pub aux_elements: Vec<AuxElement>,
+    pub aux_displacements: Vec<AuxDisplacement>,
+    pub add_aux_displacement: Callback<AuxDisplacement>,
+    pub update_aux_displacement: Callback<(usize, AuxDisplacement)>,
+    pub remove_aux_displacement: Callback<usize>,
 }
 
 
 struct State
 {
-    selected_node: FeNode<u16, f64>,
+    selected_displacement: AuxDisplacement,
+
 }
 
 
-pub struct NodeMenu
+pub struct DisplacementMenu
 {
     link: ComponentLink<Self>,
     props: Props,
@@ -48,72 +53,83 @@ pub struct NodeMenu
 pub enum Msg
 {
     ShowHideNodeMenu,
-    SelectNode(ChangeData),
-    ApplyNodeDataChange,
-    RemoveNode,
+    SelectDisplacement(ChangeData),
+    UpdateEditNodeNumber(String),
+    SelectDisplacementXInputOption(ChangeData),
+    SelectDisplacementYInputOption(ChangeData),
+    SelectDisplacementZInputOption(ChangeData),
+    SelectRotationXYInputOption(ChangeData),
+    SelectRotationYZInputOption(ChangeData),
+    SelectRotationZXInputOption(ChangeData),
+    ApplyDisplacementDataChange,
+    RemoveDisplacement,
 }
 
 
-impl NodeMenu
+impl DisplacementMenu
 {
-    fn show_hide_node_menu(&self)
+    fn show_hide_displacement_menu(&self)
     {
         let window = web_sys::window().unwrap();
         let document = window.document().unwrap();
-        let element = document.get_element_by_id(NODE_MENU_ID).unwrap();
+        let element = document.get_element_by_id(DISPLACEMENT_MENU_ID).unwrap();
         let class_list: DomTokenList = element.class_list();
         if class_list.contains(HIDDEN)
         {
-            element.set_class_name(NODE_MENU);
+            element.set_class_name(DISPLACEMENT_MENU);
         }
         else
         {
-            element.set_class_name(&(NODE_MENU.to_owned() + " " + HIDDEN));
+            element.set_class_name(&(DISPLACEMENT_MENU.to_owned() + " " + HIDDEN));
         }
     }
 
 
-    fn update_node_menu(&mut self)
+    fn update_numbers_in_displacement_menu(&mut self)
     {
         let window = web_sys::window().unwrap();
         let document = window.document().unwrap();
-        let element = document.get_element_by_id(NODE_SELECT_ID).unwrap();
+        let element = document.get_element_by_id(DISPLACEMENT_SELECT_ID).unwrap();
         let select = element.dyn_into::<HtmlSelectElement>()
             .map_err(|_| ())
             .unwrap();
         let options: HtmlOptionsCollection = select.options();
-        options.set_length(self.props.nodes.len() as u32 + 1);
+        options.set_length(self.props.aux_displacements.len() as u32 + 1);
         let number =
             {
                 let mut n = 0;
-                for (i, node) in self.props.nodes.iter().enumerate()
+                for (i, displacement) in self.props.aux_displacements.iter().enumerate()
                 {
                     if let Ok(option) = HtmlOptionElement::new()
                     {
-                        option.set_value(&node.number.to_string());
-                        option.set_text(&node.number.to_string());
+                        option.set_value(&displacement.number.to_string());
+                        option.set_text(&displacement.number.to_string());
                         options.set(i as u32, Some(&option)).unwrap();
                     }
-                    if node.number > n
+                    if displacement.number > n
                     {
-                        n = node.number;
+                        n = displacement.number;
                     }
                 }
                 n + 1
             };
-        let (x, y, z) = (0.0, 0.0, 0.0);
-        self.state.selected_node = FeNode { number, coordinates: Coordinates { x, y, z } };
+        self.state.selected_displacement = AuxDisplacement
+            {
+                number, node_number: 1u16,
+                x_direction_value: None, y_direction_value: None, z_direction_value: None,
+                xy_plane_value: None, yz_plane_value: None, zx_plane_value: None,
+            };
         if let Ok(option) = HtmlOptionElement::new()
         {
             option.set_value(&number.to_string());
             option.set_text(&format!("{} New", number));
-            options.set(self.props.nodes.len() as u32, Some(&option)).unwrap();
+            options.set(self.props.aux_displacements.len() as u32, Some(&option)).unwrap();
         }
-        options.set_selected_index(self.props.nodes.len() as i32).unwrap();
+        options.set_selected_index(self.props.aux_displacements.len() as i32).unwrap();
     }
 
 
-    fn read_inputted_coordinate(&self, input_field: &str) -> f64
+    fn read_inputted_displacement(&self, input_field: &str) -> f64
     {
         let window = web_sys::window().unwrap();
         let document = window.document().unwrap();
@@ -133,7 +149,7 @@ impl NodeMenu
 }
 
 
-impl Component for NodeMenu
+impl Component for DisplacementMenu
 {
     type Message = Msg;
     type Properties = Props;
@@ -141,8 +157,13 @@ impl Component for NodeMenu
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self
     {
-        let selected_node = FeNode { number: 1, coordinates: Coordinates { x: 0.0, y: 0.0, z: 0.0 } };
-        Self { props, link, state: State { selected_node } }
+        let selected_displacement = AuxDisplacement
+            {
+                number: 1u16, node_number: 1u16,
+                x_direction_value: None, y_direction_value: None, z_direction_value: None,
+                xy_plane_value: None, yz_plane_value: None, zx_plane_value: None,
+            };
+        Self { props, link, state: State { selected_displacement } }
     }
 
 
@@ -150,39 +171,62 @@ impl Component for NodeMenu
     {
         match msg
         {
-            Msg::ShowHideNodeMenu => self.show_hide_node_menu(),
-            Msg::SelectNode(data) =>
+            Msg::ShowHideNodeMenu => self.show_hide_displacement_menu(),
+            Msg::SelectDisplacement(data) =>
                 {
                     match data
                     {
-                        ChangeData::Select(select_node) =>
+                        ChangeData::Select(select_displacement) =>
                             {
-                                if let Some(position) = self.props.nodes
+                                if let Some(position) = self.props.aux_displacements
                                         .iter()
-                                        .position(|node| node.number.to_string() == select_node.value())
+                                        .position(|displacement| displacement.number.to_string() == select_displacement.value())
                                 {
-                                    self.state.selected_node = self.props.nodes[position].to_owned();
+                                    self.state.selected_displacement = self.props.aux_displacements[position].to_owned();
                                 }
                                 else
                                 {
-                                    let number = select_node.value().parse::<u16>().unwrap();
-                                    let (x, y, z) = (0.0, 0.0, 0.0);
-                                    self.state.selected_node = FeNode { number, coordinates: Coordinates { x, y, z } };
+                                    let number = select_displacement.value().parse::<u16>().unwrap();
+                                    self.state.selected_displacement = AuxDisplacement
+                                        {
+                                            number, node_number: 1u16,
+                                            x_direction_value: None, y_direction_value: None, z_direction_value: None,
+                                            xy_plane_value: None, yz_plane_value: None, zx_plane_value: None,
+                                        };
                                 }
                             },
                         _ => (),
                     }
                 },
-            Msg::ApplyNodeDataChange =>
+            Msg::UpdateEditNodeNumber(value) =>
                 {
-                    self.state.selected_node.coordinates.x = self.read_inputted_coordinate(NODE_X_COORD);
-                    self.state.selected_node.coordinates.y = self.read_inputted_coordinate(NODE_Y_COORD);
+                    if let Ok(node_number) = value.parse::<u16>()
+                    {
+                        if node_number <= 0u16
+                        {
+                            yew::services::DialogService::alert(
+                            "Node number cannot be less than 1.");
+                            return false;
+                        }
+                        self.state.selected_displacement.node_number = node_number;
+                    }
+                    else
+                    {
+                        yew::services::DialogService::alert(
+                            "You use incorrect node number input format.");
+                        return false;
+                    }
+                },
+            Msg::ApplyDisplacementDataChange =>
+                {
+                    self.state.selected_node.coordinates.x = self.read_inputted_displacement(DISPLACEMENT_IN_X_DIRECTION);
+                    self.state.selected_node.coordinates.y = self.read_inputted_displacement(NODE_Y_COORD);
                     if let Some(analysis_type) = &self.props.analysis_type
                     {
                         match analysis_type
                         {
                             AnalysisType::ThreeDimensional => self.state.selected_node.coordinates.z =
-                                self.read_inputted_coordinate(NODE_Z_COORD),
+                                self.read_inputted_displacement(NODE_Z_COORD),
                             _ => (),
                         }
                     }
@@ -234,7 +278,7 @@ impl Component for NodeMenu
                             "The node with the same coordinates is already in use.");
                     }
                 },
-            Msg::RemoveNode =>
+            Msg::RemoveDisplacement =>
                 {
                     if let Some(position) =
                     self.props.nodes
@@ -254,7 +298,7 @@ impl Component for NodeMenu
         if self.props != props
         {
             self.props = props;
-            self.update_node_menu();
+            self.update_numbers_in_displacement_menu();
             true
         }
         else

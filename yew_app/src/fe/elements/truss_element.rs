@@ -1,4 +1,4 @@
-use crate::fe::node::FeNode;
+use crate::fe::fe_node::FeNode;
 use crate::math::math_aux_traits::{One, FloatNum};
 use crate::math::matrix::Matrix;
 use crate::NUMBER_OF_DOF;
@@ -7,12 +7,12 @@ use crate::fe::fe_aux_structs::
         SubMatrixIndexes, compose_stiffness_submatrices_and_displacements,
         Stiffness, Displacement, StrainStressComponent, StrainStress, Strain, Stress
     };
-use crate::fe::elements::element::{FElement};
+use crate::fe::elements::f_element::{FElement};
 use std::ops::{Add, Sub, Mul, Div, AddAssign, MulAssign};
 use std::fmt::{Display, Debug};
 use std::collections::HashMap;
 use std::hash::Hash;
-use crate::fe::elements::element::ElementInfo;
+use crate::fe::elements::f_element::ElementInfo;
 
 
 #[derive(Debug)]

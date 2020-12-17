@@ -3,10 +3,10 @@ use math::math_aux_structs::Coordinates;
 
 
 mod fe;
-use fe::node::FeNode;
-use fe::elements::truss::Truss2n2ip;
-use fe::elements::element::FElement;
-use fe::solver::FeModel;
+use fe::fe_node::FeNode;
+use fe::elements::truss_element::Truss2n2ip;
+use fe::elements::f_element::FElement;
+use fe::fe_solver::FeModel;
 use std::rc::Rc;
 use std::cell::RefCell;
 use crate::fe::fe_aux_structs::{Displacement, AxisComponent};

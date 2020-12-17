@@ -19,16 +19,16 @@ use yew::services::resize::{WindowDimensions, ResizeTask, ResizeService};
 mod math;
 use math::math_aux_structs::Coordinates;
 mod fe;
-use fe::node::FeNode;
-use fe::elements::truss::Truss2n2ip;
-use fe::elements::element::FElement;
-use fe::solver::FeModel;
+use fe::fe_node::FeNode;
+use fe::elements::truss_element::Truss2n2ip;
+use fe::elements::f_element::FElement;
+use fe::fe_solver::FeModel;
 use fe::fe_aux_structs::{Displacement, AxisComponent};
 
 mod components;
 use components::{AnalysisTypeMenu, NodeMenu, Canvas, ElementMenu, ViewMenu};
 mod auxiliary;
-use auxiliary::{AuxElement, AnalysisType, View, ElementType};
+use auxiliary::{AuxElement, AnalysisType, View, ElementType, AuxDisplacement};
 
 
 pub const NUMBER_OF_DOF: i32 = 6;
@@ -42,7 +42,7 @@ struct State
     canvas_height: u32,
     nodes: Vec<FeNode<u16, f64>>,
     aux_elements: Vec<AuxElement>,
-
+    aux_displacements: Vec<AuxDisplacement>,
     max_stress: Option<f64>,
     error_message: Option<String>,
 }
@@ -68,6 +68,9 @@ enum Msg
     AddAuxElement(AuxElement),
     UpdateAuxElement((usize, AuxElement)),
     RemoveAuxElement(usize),
+    AddAuxDisplacement(AuxDisplacement),
+    UpdateAuxDisplacement((usize, AuxDisplacement)),
+    RemoveAuxDisplacement(usize),
     Submit,
 }
 
@@ -196,6 +199,7 @@ impl Component for Model
                     analysis_type: None, view: View::PlaneXY,
                     canvas_width: width, canvas_height: height,
                     nodes: Vec::new(), aux_elements: Vec::new(),
+                    aux_displacements: Vec::new(),
                     max_stress: None, error_message: None,
                 },
             resize_task: None, resize_service: ResizeService::new(),
@@ -236,12 +240,24 @@ impl Component for Model
                             self.state.aux_elements.remove(*position);
                         }
                     }
+                    if let Some(position) = self.state.aux_displacements
+                        .iter()
+                        .position(|displacement| displacement.node_number == removed_node.number)
+                    {
+                        self.state.aux_displacements.remove(position);
+                    }
                 },
             Msg::AddAuxElement(element) => self.state.aux_elements.push(element),
             Msg::UpdateAuxElement(data) => self.state.aux_elements[data.0] = data.1,
             Msg::RemoveAuxElement(position) =>
                 {
                     self.state.aux_elements.remove(position);
+                },
+            Msg::AddAuxDisplacement(displacement) => self.state.aux_displacements.push(displacement),
+            Msg::UpdateAuxDisplacement(data) => self.state.aux_displacements[data.0] = data.1,
+            Msg::RemoveAuxDisplacement(position) =>
+                {
+                    self.state.aux_displacements.remove(position);
                 },
             Msg::Submit =>
                 {
@@ -300,8 +316,8 @@ impl Component for Model
                             update_aux_element=handle_update_aux_element,
                             remove_aux_element=handle_remove_aux_element,
                         />
-                        <button class="button">{ "Force" }</button>
                         <button class="button">{ "Displacement" }</button>
+                        <button class="button">{ "Force" }</button>
                         <button class="button" onclick=self.link.callback(|_| Msg::Submit)>{ "Submit" }</button>
                     </div>
                     <div class="canvas">

@@ -7,20 +7,27 @@ use web_sys::
 use wasm_bindgen::JsCast;
 
 use crate::fe::fe_node::FeNode;
-use crate::{Coordinates, AnalysisType, AuxDisplacement, AuxElement};
+use crate::{Coordinates, AnalysisType, AuxDisplacement, AuxElement, ElementType};
+use crate::auxiliary::AuxDisplacementInputOption;
 
 
 const DISPLACEMENT_MENU_ID: &str = "displacement_menu";
 const DISPLACEMENT_MENU: &str = "displacement_menu";
 const HIDDEN: &str = "hidden";
 const DISPLACEMENT_SELECT_ID: &str = "displacement_select";
-const NODE_NUMBER: &str = "node_number";
-const DISPLACEMENT_IN_X_DIRECTION: &str = "displacement_x_direction";
-const DISPLACEMENT_IN_Y_DIRECTION: &str = "displacement_y_direction";
-const DISPLACEMENT_IN_Z_DIRECTION: &str = "displacement_z_direction";
-const ROTATION_IN_XY_PLANE: &str = "rotation_in_xy_plane";
-const ROTATION_IN_YZ_PLANE: &str = "rotation_in_yz_plane";
-const ROTATION_IN_ZX_PLANE: &str = "rotation_in_zx_plane";
+const DISPLACEMENT_MENU_INPUT_FIELD: &str = "displacement_menu_input";
+const DISPLACEMENT_IN_X_DIRECTION_INPUT_NAME: &str = "displacement_x_direction_input_name";
+const DISPLACEMENT_IN_X_DIRECTION_VALUE: &str = "displacement_x_direction_value";
+const DISPLACEMENT_IN_Y_DIRECTION_INPUT_NAME: &str = "displacement_y_direction_input_name";
+const DISPLACEMENT_IN_Y_DIRECTION_VALUE: &str = "displacement_y_direction_value";
+const DISPLACEMENT_IN_Z_DIRECTION_INPUT_NAME: &str = "displacement_z_direction_input_name";
+const DISPLACEMENT_IN_Z_DIRECTION_VALUE: &str = "displacement_z_direction_value";
+const ROTATION_IN_XY_PLANE_INPUT_NAME: &str = "rotation_in_xy_plane_input_name";
+const ROTATION_IN_XY_PLANE_VALUE: &str = "rotation_in_xy_plane_value";
+const ROTATION_IN_YZ_PLANE_INPUT_NAME: &str = "rotation_in_yz_plane_input_name";
+const ROTATION_IN_YZ_PLANE_VALUE: &str = "rotation_in_yz_plane_value";
+const ROTATION_IN_ZX_PLANE_INPUT_NAME: &str = "rotation_in_zx_plane_input_name";
+const ROTATION_IN_ZX_PLANE_VALUE: &str = "rotation_in_zx_plane_input_name_value";
 
 
 #[derive(Properties, PartialEq, Clone)]
@@ -38,7 +45,12 @@ pub struct Props
 struct State
 {
     selected_displacement: AuxDisplacement,
-
+    displacement_x_is_active: bool,
+    displacement_y_is_active: bool,
+    displacement_z_is_active: bool,
+    rotation_xy_is_active: bool,
+    rotation_yz_is_active: bool,
+    rotation_zx_is_active: bool,
 }
 
 
@@ -52,7 +64,7 @@ pub struct DisplacementMenu
 
 pub enum Msg
 {
-    ShowHideNodeMenu,
+    ShowHideDisplacementMenu,
     SelectDisplacement(ChangeData),
     UpdateEditNodeNumber(String),
     SelectDisplacementXInputOption(ChangeData),
@@ -119,6 +131,12 @@ impl DisplacementMenu
                 x_direction_value: None, y_direction_value: None, z_direction_value: None,
                 xy_plane_value: None, yz_plane_value: None, zx_plane_value: None,
             };
+        self.state.displacement_x_is_active = false;
+        self.state.displacement_y_is_active = false;
+        self.state.displacement_z_is_active = false;
+        self.state.rotation_xy_is_active = false;
+        self.state.rotation_yz_is_active = false;
+        self.state.rotation_zx_is_active = false;
         if let Ok(option) = HtmlOptionElement::new()
         {
             option.set_value(&number.to_string());
@@ -129,7 +147,7 @@ impl DisplacementMenu
     }
 
 
-    fn read_inputted_displacement(&self, input_field: &str) -> f64
+    fn read_inputted_displacement(&self, input_field: &str) -> Option<f32>
     {
         let window = web_sys::window().unwrap();
         let document = window.document().unwrap();
@@ -137,13 +155,13 @@ impl DisplacementMenu
         let input_element = element.dyn_into::<HtmlInputElement>()
             .map_err(|_| ())
             .unwrap();
-        if let Ok(coord) = input_element.value().parse::<f64>()
+        if let Ok(displacement) = input_element.value().parse::<f32>()
         {
-            coord
+            Some(displacement)
         }
         else
         {
-            0.0
+            None
         }
     }
 }
@@ -157,13 +175,27 @@ impl Component for DisplacementMenu
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self
     {
-        let selected_displacement = AuxDisplacement
+        let selected_displacement =
+            AuxDisplacement
             {
                 number: 1u16, node_number: 1u16,
                 x_direction_value: None, y_direction_value: None, z_direction_value: None,
                 xy_plane_value: None, yz_plane_value: None, zx_plane_value: None,
             };
-        Self { props, link, state: State { selected_displacement } }
+        Self
+        {
+            props, link, state:
+            State
+            {
+                selected_displacement,
+                displacement_x_is_active: false,
+                displacement_y_is_active: false,
+                displacement_z_is_active: false,
+                rotation_xy_is_active: false,
+                rotation_yz_is_active: false,
+                rotation_zx_is_active: false,
+            }
+        }
     }
 
 
@@ -171,7 +203,7 @@ impl Component for DisplacementMenu
     {
         match msg
         {
-            Msg::ShowHideNodeMenu => self.show_hide_displacement_menu(),
+            Msg::ShowHideDisplacementMenu => self.show_hide_displacement_menu(),
             Msg::SelectDisplacement(data) =>
                 {
                     match data
@@ -180,9 +212,58 @@ impl Component for DisplacementMenu
                             {
                                 if let Some(position) = self.props.aux_displacements
                                         .iter()
-                                        .position(|displacement| displacement.number.to_string() == select_displacement.value())
+                                        .position(|displacement|
+                                            displacement.number.to_string() == select_displacement.value())
                                 {
                                     self.state.selected_displacement = self.props.aux_displacements[position].to_owned();
+                                    if let Some(displacement_x) =
+                                        self.props.aux_displacements[position].to_owned().x_direction_value
+                                    {
+                                        if displacement_x != 0f32
+                                        {
+                                            self.state.displacement_x_is_active = true;
+                                        }
+                                    }
+                                    if let Some(displacement_y) =
+                                        self.props.aux_displacements[position].to_owned().y_direction_value
+                                    {
+                                        if displacement_y != 0f32
+                                        {
+                                            self.state.displacement_y_is_active = true;
+                                        }
+                                    }
+                                    if let Some(displacement_z) =
+                                        self.props.aux_displacements[position].to_owned().z_direction_value
+                                    {
+                                        if displacement_z != 0f32
+                                        {
+                                            self.state.displacement_z_is_active = true;
+                                        }
+                                    }
+                                    if let Some(rotation_xy) =
+                                        self.props.aux_displacements[position].to_owned().xy_plane_value
+                                    {
+                                        if rotation_xy != 0f32
+                                        {
+                                            self.state.rotation_xy_is_active = true;
+                                        }
+                                    }
+                                    if let Some(rotation_yz) =
+                                        self.props.aux_displacements[position].to_owned().yz_plane_value
+                                    {
+                                        if rotation_yz != 0f32
+                                        {
+                                            self.state.rotation_yz_is_active = true;
+                                        }
+                                    }
+                                    if let Some(rotation_zx) =
+                                        self.props.aux_displacements[position].to_owned().zx_plane_value
+                                    {
+                                        if rotation_zx != 0f32
+                                        {
+                                            self.state.rotation_zx_is_active = true;
+                                        }
+                                    }
                                 }
                                 else
                                 {
@@ -193,6 +274,12 @@ impl Component for DisplacementMenu
                                             x_direction_value: None, y_direction_value: None, z_direction_value: None,
                                             xy_plane_value: None, yz_plane_value: None, zx_plane_value: None,
                                         };
+                                    self.state.displacement_x_is_active = false;
+                                    self.state.displacement_y_is_active = false;
+                                    self.state.displacement_z_is_active = false;
+                                    self.state.rotation_xy_is_active = false;
+                                    self.state.rotation_yz_is_active = false;
+                                    self.state.rotation_zx_is_active = false;
                                 }
                             },
                         _ => (),
@@ -217,75 +304,221 @@ impl Component for DisplacementMenu
                         return false;
                     }
                 },
+            Msg::SelectDisplacementXInputOption(data) =>
+                {
+                    match data
+                    {
+                        ChangeData::Value(x_input_option) =>
+                            {
+                                if x_input_option == AuxDisplacementInputOption::Free.as_str()
+                                {
+                                    self.state.displacement_x_is_active = false;
+                                }
+                                if x_input_option == AuxDisplacementInputOption::Restrained.as_str()
+                                {
+                                    self.state.displacement_x_is_active = false;
+                                    self.state.selected_displacement.x_direction_value = Some(0f32);
+                                }
+                                if x_input_option == AuxDisplacementInputOption::Value.as_str()
+                                {
+                                    self.state.displacement_x_is_active = true;
+                                }
+                                // return false;
+                            },
+                        _ => (),
+                    }
+                },
+            Msg::SelectDisplacementYInputOption(data) =>
+                {
+                    match data
+                    {
+                        ChangeData::Value(y_input_option) =>
+                            {
+                                if y_input_option == AuxDisplacementInputOption::Free.as_str()
+                                {
+                                    self.state.displacement_y_is_active = false;
+                                }
+                                if y_input_option == AuxDisplacementInputOption::Restrained.as_str()
+                                {
+                                    self.state.displacement_y_is_active = false;
+                                    self.state.selected_displacement.y_direction_value = Some(0f32);
+                                }
+                                if y_input_option == AuxDisplacementInputOption::Value.as_str()
+                                {
+                                    self.state.displacement_y_is_active = true;
+                                }
+                                return false;
+                            }
+                        _ => (),
+                    }
+                },
+            Msg::SelectDisplacementZInputOption(data) =>
+                {
+                    match data
+                    {
+                        ChangeData::Value(z_input_option) =>
+                            {
+                                if z_input_option == AuxDisplacementInputOption::Free.as_str()
+                                {
+                                    self.state.displacement_z_is_active = false;
+                                }
+                                if z_input_option == AuxDisplacementInputOption::Restrained.as_str()
+                                {
+                                    self.state.displacement_z_is_active = false;
+                                    self.state.selected_displacement.z_direction_value = Some(0f32);
+                                }
+                                if z_input_option == AuxDisplacementInputOption::Value.as_str()
+                                {
+                                    self.state.displacement_z_is_active = true;
+                                }
+                                return false;
+                            }
+                        _ => (),
+                    }
+                },
+            Msg::SelectRotationXYInputOption(data) =>
+                {
+                    match data
+                    {
+                        ChangeData::Value(xy_input_option) =>
+                            {
+                                if xy_input_option == AuxDisplacementInputOption::Free.as_str()
+                                {
+                                    self.state.rotation_xy_is_active = false;
+                                }
+                                if xy_input_option == AuxDisplacementInputOption::Restrained.as_str()
+                                {
+                                    self.state.rotation_xy_is_active = false;
+                                    self.state.selected_displacement.xy_plane_value = Some(0f32);
+                                }
+                                if xy_input_option == AuxDisplacementInputOption::Value.as_str()
+                                {
+                                    self.state.rotation_xy_is_active = true;
+                                }
+                                return false;
+                            }
+                        _ => (),
+                    }
+                },
+            Msg::SelectRotationYZInputOption(data) =>
+                {
+                    match data
+                    {
+                        ChangeData::Value(yz_input_option) =>
+                            {
+                                if yz_input_option == AuxDisplacementInputOption::Free.as_str()
+                                {
+                                    self.state.rotation_yz_is_active = false;
+                                }
+                                if yz_input_option == AuxDisplacementInputOption::Restrained.as_str()
+                                {
+                                    self.state.rotation_yz_is_active = false;
+                                    self.state.selected_displacement.yz_plane_value = Some(0f32);
+                                }
+                                if yz_input_option == AuxDisplacementInputOption::Value.as_str()
+                                {
+                                    self.state.rotation_yz_is_active = true;
+                                }
+                                return false;
+                            }
+                        _ => (),
+                    }
+                },
+            Msg::SelectRotationZXInputOption(data) =>
+                {
+                    match data
+                    {
+                        ChangeData::Value(zx_input_option) =>
+                            {
+                                if zx_input_option == AuxDisplacementInputOption::Free.as_str()
+                                {
+                                    self.state.rotation_zx_is_active = false;
+                                }
+                                if zx_input_option == AuxDisplacementInputOption::Restrained.as_str()
+                                {
+                                    self.state.rotation_zx_is_active = false;
+                                    self.state.selected_displacement.zx_plane_value = Some(0f32);
+                                }
+                                if zx_input_option == AuxDisplacementInputOption::Value.as_str()
+                                {
+                                    self.state.rotation_zx_is_active = true;
+                                }
+                                return false;
+                            }
+                        _ => (),
+                    }
+                },
             Msg::ApplyDisplacementDataChange =>
                 {
-                    self.state.selected_node.coordinates.x = self.read_inputted_displacement(DISPLACEMENT_IN_X_DIRECTION);
-                    self.state.selected_node.coordinates.y = self.read_inputted_displacement(NODE_Y_COORD);
-                    if let Some(analysis_type) = &self.props.analysis_type
+                    if self.state.displacement_x_is_active
                     {
-                        match analysis_type
-                        {
-                            AnalysisType::ThreeDimensional => self.state.selected_node.coordinates.z =
-                                self.read_inputted_displacement(NODE_Z_COORD),
-                            _ => (),
-                        }
+                        self.state.selected_displacement.x_direction_value =
+                            self.read_inputted_displacement(DISPLACEMENT_IN_X_DIRECTION_VALUE);
                     }
-                    if let None = self.props.nodes
-                        .iter()
-                        .position(|existed_node|
-                            {
-                                if let Some(analysis_type) = &self.props.analysis_type
-                                {
-                                    match analysis_type
-                                    {
-                                        AnalysisType::ThreeDimensional =>
-                                            {
-                                                (existed_node.coordinates.x == self.state.selected_node.coordinates.x) &&
-                                                (existed_node.coordinates.y == self.state.selected_node.coordinates.y) &&
-                                                (existed_node.coordinates.z == self.state.selected_node.coordinates.z)
-                                            },
-                                        AnalysisType::TwoDimensional =>
-                                            {
-                                                (existed_node.coordinates.x == self.state.selected_node.coordinates.x) &&
-                                                (existed_node.coordinates.y == self.state.selected_node.coordinates.y)
-                                            },
-
-                                    }
-                                }
-                                else
-                                {
-                                    (existed_node.coordinates.x == self.state.selected_node.coordinates.x) &&
-                                    (existed_node.coordinates.y == self.state.selected_node.coordinates.y)
-                                }
-                            }
-                        )
+                    if self.state.displacement_y_is_active
                     {
-                        if let Some(position) = self.props.nodes
-                            .iter()
-                            .position(|node| node.number == self.state.selected_node.number)
-                        {
+                        self.state.selected_displacement.y_direction_value =
+                            self.read_inputted_displacement(DISPLACEMENT_IN_Y_DIRECTION_VALUE);
+                    }
+                    if self.state.displacement_z_is_active
+                    {
+                        self.state.selected_displacement.z_direction_value =
+                            self.read_inputted_displacement(DISPLACEMENT_IN_Z_DIRECTION_VALUE);
+                    }
+                    if self.state.rotation_xy_is_active
+                    {
+                        self.state.selected_displacement.xy_plane_value =
+                            self.read_inputted_displacement(ROTATION_IN_XY_PLANE_VALUE);
+                    }
+                    if self.state.rotation_yz_is_active
+                    {
+                        self.state.selected_displacement.yz_plane_value =
+                            self.read_inputted_displacement(ROTATION_IN_YZ_PLANE_VALUE);
+                    }
+                   if self.state.rotation_zx_is_active
+                    {
+                        self.state.selected_displacement.zx_plane_value =
+                            self.read_inputted_displacement(ROTATION_IN_ZX_PLANE_VALUE);
+                    }
 
-                            self.props.update_node.emit((position, self.state.selected_node.to_owned()));
-                        }
-                        else
-                        {
-                            self.props.add_node.emit(self.state.selected_node.to_owned());
-                        }
+                    if let None = self.props.aux_elements
+                        .iter()
+                        .position(|element|
+                              {
+                                  match element.element_type
+                                  {
+                                      ElementType::Truss2n2ip =>
+                                          {
+                                              (element.node_1_number == self.state.selected_displacement.node_number) ||
+                                              (element.node_2_number == self.state.selected_displacement.node_number)
+                                          },
+                                  }
+                              })
+                    {
+                        yew::services::DialogService::alert(
+                            "The selected node does not used in any element.");
+                        return false;
+                    }
+                    if let Some(position) = self.props.aux_displacements
+                        .iter()
+                        .position(|displacement| displacement.number == self.state.selected_displacement.number)
+                    {
+
+                        self.props.update_aux_displacement.emit((position, self.state.selected_displacement.to_owned()));
                     }
                     else
                     {
-                        yew::services::DialogService::alert(
-                            "The node with the same coordinates is already in use.");
+                        self.props.add_aux_displacement.emit(self.state.selected_displacement.to_owned());
                     }
                 },
             Msg::RemoveDisplacement =>
                 {
                     if let Some(position) =
-                    self.props.nodes
+                    self.props.aux_displacements
                         .iter()
-                        .position(|node| node.number == self.state.selected_node.number)
+                        .position(|displacement| displacement.number == self.state.selected_displacement.number)
                     {
-                        self.props.remove_node.emit(position);
+                        self.props.remove_aux_displacement.emit(position);
                     }
                 },
         }
@@ -314,24 +547,24 @@ impl Component for DisplacementMenu
         {
             <>
                 <button
-                    class="button", onclick=self.link.callback(|_| Msg::ShowHideNodeMenu),
+                    class="button", onclick=self.link.callback(|_| Msg::ShowHideDisplacementMenu),
                     disabled={ if self.props.analysis_type.is_some() { false } else { true } },
                 >
-                    { "Node" }
+                    { "Displacement" }
                 </button>
-                <div id = { NODE_MENU_ID } class={ NODE_MENU.to_owned() + " " + HIDDEN }>
-                    <div class="node_menu_input_fields">
-                        <ul class="node_menu_input_fields_list">
+                <div id = { DISPLACEMENT_MENU_ID } class={ DISPLACEMENT_MENU.to_owned() + " " + HIDDEN }>
+                    <div class="displacement_menu_input_fields">
+                        <ul class="displacement_menu_input_fields_list">
                             <li>
                                 {
                                     html!
                                     {
                                         <select
-                                            id={ NODE_SELECT_ID },
-                                            onchange=self.link.callback(|data: ChangeData| Msg::SelectNode(data)),
+                                            id={ DISPLACEMENT_SELECT_ID },
+                                            onchange=self.link.callback(|data: ChangeData| Msg::SelectDisplacement(data)),
                                         >
-                                            <option value={ self.state.selected_node.number }>
-                                                { format!("{} New", self.state.selected_node.number) }
+                                            <option value={ self.state.selected_displacement.number }>
+                                                { format!("{} New", self.state.selected_displacement.number) }
                                             </option>
                                         </select>
                                     }
@@ -342,69 +575,128 @@ impl Component for DisplacementMenu
                                 {
                                     <>
                                         <li>
-                                            <p class="node_menu_input_fields_descriptions">
-                                                { "X coordinate:" }
+                                            <p class="displacement_menu_input_fields_descriptions">
+                                                { "Node number:" }
                                             </p>
                                             <input
-                                                id={ NODE_X_COORD },
-                                                value={ self.state.selected_node.coordinates.x },
+                                                value={ self.state.selected_displacement.node_number },
                                                 type="number",
+                                                min = { 1 },
+                                                oninput=self.link.callback(|d: InputData| Msg::UpdateEditNodeNumber(d.value))
                                             />
                                         </li>
                                         <li>
                                             <p class="node_menu_input_fields_descriptions">
-                                                { "Y coordinate:" }
+                                                { "Displacement in the X direction:" }
                                             </p>
-                                            <input
-                                                id={ NODE_Y_COORD },
-                                                value={ self.state.selected_node.coordinates.y },
-                                                type="number",
-                                            />
-                                        </li>
-                                        {
-                                            if let Some(analysis_type) = &self.props.analysis_type
-                                            {
-                                                match analysis_type
-                                                {
-                                                    AnalysisType::ThreeDimensional =>
+                                            <div class="displacement_input_field_container">
+                                                <input
+                                                    class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                    onchange=self.link.callback(|data: ChangeData| Msg::SelectDisplacementXInputOption(data)),
+                                                    type="radio", id={ DISPLACEMENT_IN_X_DIRECTION_INPUT_NAME },
+                                                    name={ DISPLACEMENT_IN_X_DIRECTION_INPUT_NAME },
+                                                    value={ AuxDisplacementInputOption::Free.as_str() },
+                                                    checked={ self.state.selected_displacement.x_direction_value.is_none() },
+                                                />
+                                                <label for={ DISPLACEMENT_IN_X_DIRECTION_INPUT_NAME }>
+                                                    { AuxDisplacementInputOption::Free.as_str() }
+                                                </label>
+                                            </div>
+                                            <div class="displacement_input_field_container">
+                                                <input
+                                                    class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                    onchange=self.link.callback(|data: ChangeData| Msg::SelectDisplacementXInputOption(data)),
+                                                    type="radio", id={ DISPLACEMENT_IN_X_DIRECTION_INPUT_NAME },
+                                                    name={ DISPLACEMENT_IN_X_DIRECTION_INPUT_NAME },
+                                                    value={ AuxDisplacementInputOption::Restrained.as_str() },
+                                                    checked=
                                                         {
-                                                            html!
+                                                            if let Some(value) = self.state.selected_displacement.x_direction_value
                                                             {
-                                                                <li>
-                                                                    <p class="node_menu_input_fields_descriptions">
-                                                                        { "Z coordinate:" }
-                                                                    </p>
-                                                                    <input
-                                                                        id={ NODE_Z_COORD },
-                                                                        value={ self.state.selected_node.coordinates.z },
-                                                                        type="number",
-                                                                    />
-                                                                </li>
+                                                                if value == 0f32
+                                                                {
+                                                                    true
+                                                                }
+                                                                else
+                                                                {
+                                                                    false
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                false
                                                             }
                                                         },
-                                                    AnalysisType::TwoDimensional => html! {},
-                                                }
-                                            }
-                                            else
-                                            {
-                                                html! {}
-                                            }
-                                        }
+                                                />
+                                                <label for={ DISPLACEMENT_IN_X_DIRECTION_INPUT_NAME }>
+                                                    { AuxDisplacementInputOption::Restrained.as_str() }
+                                                </label>
+                                            </div>
+                                            <div class="displacement_input_field_container">
+                                                <input
+                                                    class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                    onchange=self.link.callback(|data: ChangeData| Msg::SelectDisplacementXInputOption(data)),
+                                                    type="radio", id={ DISPLACEMENT_IN_X_DIRECTION_INPUT_NAME },
+                                                    name={ DISPLACEMENT_IN_X_DIRECTION_INPUT_NAME },
+                                                    value={ AuxDisplacementInputOption::Value.as_str() },
+                                                    checked=
+                                                        {
+                                                            if let Some(value) = self.state.selected_displacement.x_direction_value
+                                                            {
+                                                                if value != 0f32
+                                                                {
+                                                                    true
+                                                                }
+                                                                else
+                                                                {
+                                                                    false
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                false
+                                                            }
+                                                        },
+                                                />
+                                                <label for={ DISPLACEMENT_IN_X_DIRECTION_INPUT_NAME }>
+                                                    { AuxDisplacementInputOption::Value.as_str() }
+                                                </label>
+                                            </div>
+                                            <input
+                                                id={ DISPLACEMENT_IN_X_DIRECTION_VALUE },
+                                                value=
+                                                    {
+                                                        if let Some(value) = self.state.selected_displacement.x_direction_value
+                                                        {
+                                                            value.to_string()
+                                                        }
+                                                        else
+                                                        {
+                                                            "".to_string()
+                                                        }
+                                                    },
+                                                type="number",
+                                                disabled=
+                                                    {
+                                                        !self.state.displacement_x_is_active
+                                                    },
+                                            />
+                                        </li>
                                     </>
                                 }
                             }
                         </ul>
                     </div>
-                    <div class="node_menu_buttons">
+                    <div class="displacement_menu_buttons">
                         <button
-                            class="node_menu_button",
-                            onclick=self.link.callback(|_| Msg::ApplyNodeDataChange),
+                            class="displacement_menu_button",
+                            onclick=self.link.callback(|_| Msg::ApplyDisplacementDataChange),
                         >
                             { "Apply" }
                         </button>
                         <button
-                            class="node_menu_button",
-                            onclick=self.link.callback(|_| Msg::RemoveNode),
+                            class="displacement_menu_button",
+                            onclick=self.link.callback(|_| Msg::RemoveDisplacement),
                         >
                             { "Remove" }
                         </button>

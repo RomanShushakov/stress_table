@@ -26,7 +26,7 @@ use fe::fe_solver::FeModel;
 use fe::fe_aux_structs::{Displacement, AxisComponent};
 
 mod components;
-use components::{AnalysisTypeMenu, NodeMenu, Canvas, ElementMenu, ViewMenu};
+use components::{AnalysisTypeMenu, NodeMenu, Canvas, ElementMenu, ViewMenu, DisplacementMenu};
 mod auxiliary;
 use auxiliary::{AuxElement, AnalysisType, View, ElementType, AuxDisplacement};
 
@@ -291,6 +291,12 @@ impl Component for Model
             self.link.callback(|data: (usize, AuxElement)| Msg::UpdateAuxElement(data));
         let handle_remove_aux_element =
             self.link.callback(|position: usize| Msg::RemoveAuxElement(position));
+        let handle_add_aux_displacement =
+            self.link.callback(|displacement: AuxDisplacement| Msg::AddAuxDisplacement(displacement));
+        let handle_update_aux_displacement =
+            self.link.callback(|data: (usize, AuxDisplacement)| Msg::UpdateAuxDisplacement(data));
+        let handle_remove_aux_displacement =
+            self.link.callback(|position: usize| Msg::RemoveAuxDisplacement(position));
         html! {
             <div class="container">
                 <div class="preprocessor">
@@ -316,7 +322,14 @@ impl Component for Model
                             update_aux_element=handle_update_aux_element,
                             remove_aux_element=handle_remove_aux_element,
                         />
-                        <button class="button">{ "Displacement" }</button>
+                        <DisplacementMenu
+                            analysis_type=self.state.analysis_type.to_owned(),
+                            aux_elements=self.state.aux_elements.to_owned(),
+                            aux_displacements=self.state.aux_displacements.to_owned(),
+                            add_aux_displacement=handle_add_aux_displacement,
+                            update_aux_displacement=handle_update_aux_displacement,
+                            remove_aux_displacement=handle_remove_aux_displacement,
+                        />
                         <button class="button">{ "Force" }</button>
                         <button class="button" onclick=self.link.callback(|_| Msg::Submit)>{ "Submit" }</button>
                     </div>

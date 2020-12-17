@@ -106,6 +106,7 @@ pub struct AuxElement
 }
 
 
+#[derive(Clone, PartialEq, Debug)]
 pub struct AuxDisplacement
 {
     pub number: u16,
@@ -116,4 +117,26 @@ pub struct AuxDisplacement
     pub xy_plane_value: Option<f32>,
     pub zx_plane_value: Option<f32>,
     pub yz_plane_value: Option<f32>,
+}
+
+
+pub enum AuxDisplacementInputOption
+{
+    Free,
+    Restrained,
+    Value,
+}
+
+
+impl AuxDisplacementInputOption
+{
+    pub fn as_str(&self) -> String
+    {
+        match self
+        {
+            AuxDisplacementInputOption::Free => String::from("Free"),
+            AuxDisplacementInputOption::Restrained => String::from("Restrained"),
+            AuxDisplacementInputOption::Value => String::from("Value"),
+        }
+    }
 }

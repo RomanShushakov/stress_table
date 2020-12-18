@@ -223,6 +223,14 @@ impl Component for DisplacementMenu
                                         {
                                             self.state.displacement_x_is_active = true;
                                         }
+                                        else
+                                        {
+                                            self.state.displacement_x_is_active = false;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        self.state.displacement_x_is_active = false;
                                     }
                                     if let Some(displacement_y) =
                                         self.props.aux_displacements[position].to_owned().y_direction_value
@@ -231,6 +239,14 @@ impl Component for DisplacementMenu
                                         {
                                             self.state.displacement_y_is_active = true;
                                         }
+                                        else
+                                        {
+                                            self.state.displacement_y_is_active = false;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        self.state.displacement_y_is_active = false;
                                     }
                                     if let Some(displacement_z) =
                                         self.props.aux_displacements[position].to_owned().z_direction_value
@@ -239,6 +255,14 @@ impl Component for DisplacementMenu
                                         {
                                             self.state.displacement_z_is_active = true;
                                         }
+                                        else
+                                        {
+                                            self.state.displacement_z_is_active = false;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        self.state.displacement_z_is_active = false;
                                     }
                                     if let Some(rotation_xy) =
                                         self.props.aux_displacements[position].to_owned().xy_plane_value
@@ -247,6 +271,14 @@ impl Component for DisplacementMenu
                                         {
                                             self.state.rotation_xy_is_active = true;
                                         }
+                                        else
+                                        {
+                                            self.state.rotation_xy_is_active = false;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        self.state.rotation_xy_is_active = false;
                                     }
                                     if let Some(rotation_yz) =
                                         self.props.aux_displacements[position].to_owned().yz_plane_value
@@ -255,6 +287,14 @@ impl Component for DisplacementMenu
                                         {
                                             self.state.rotation_yz_is_active = true;
                                         }
+                                        else
+                                        {
+                                            self.state.rotation_yz_is_active = false;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        self.state.rotation_yz_is_active = false;
                                     }
                                     if let Some(rotation_zx) =
                                         self.props.aux_displacements[position].to_owned().zx_plane_value
@@ -263,6 +303,14 @@ impl Component for DisplacementMenu
                                         {
                                             self.state.rotation_zx_is_active = true;
                                         }
+                                        else
+                                        {
+                                            self.state.rotation_zx_is_active = false;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        self.state.rotation_zx_is_active = false;
                                     }
                                 }
                                 else
@@ -295,6 +343,24 @@ impl Component for DisplacementMenu
                             "Node number cannot be less than 1.");
                             return false;
                         }
+                        if let None = self.props.aux_elements
+                            .iter()
+                            .position(|element|
+                                {
+                                    match element.element_type
+                                    {
+                                        ElementType::Truss2n2ip =>
+                                            {
+                                                (element.node_1_number == node_number) ||
+                                                (element.node_2_number == node_number)
+                                            },
+                                    }
+                                })
+                        {
+                            yew::services::DialogService::alert(
+                            "The selected node does not used in any element.");
+                            return false;
+                        }
                         self.state.selected_displacement.node_number = node_number;
                     }
                     else
@@ -313,6 +379,7 @@ impl Component for DisplacementMenu
                                 if x_input_option == AuxDisplacementInputOption::Free.as_str()
                                 {
                                     self.state.displacement_x_is_active = false;
+                                    self.state.selected_displacement.x_direction_value = None;
                                 }
                                 if x_input_option == AuxDisplacementInputOption::Restrained.as_str()
                                 {
@@ -639,24 +706,25 @@ impl Component for DisplacementMenu
                                                     type="radio", id={ DISPLACEMENT_IN_X_DIRECTION_INPUT_NAME },
                                                     name={ DISPLACEMENT_IN_X_DIRECTION_INPUT_NAME },
                                                     value={ AuxDisplacementInputOption::Value.as_str() },
-                                                    checked=
-                                                        {
-                                                            if let Some(value) = self.state.selected_displacement.x_direction_value
-                                                            {
-                                                                if value != 0f32
-                                                                {
-                                                                    true
-                                                                }
-                                                                else
-                                                                {
-                                                                    false
-                                                                }
-                                                            }
-                                                            else
-                                                            {
-                                                                false
-                                                            }
-                                                        },
+                                                    checked={ self.state.displacement_x_is_active },
+                                                    // checked=
+                                                    //     {
+                                                    //         if let Some(value) = self.state.selected_displacement.x_direction_value
+                                                    //         {
+                                                    //             if value != 0f32
+                                                    //             {
+                                                    //                 true
+                                                    //             }
+                                                    //             else
+                                                    //             {
+                                                    //                 false
+                                                    //             }
+                                                    //         }
+                                                    //         else
+                                                    //         {
+                                                    //             false
+                                                    //         }
+                                                    //     },
                                                 />
                                                 <label for={ DISPLACEMENT_IN_X_DIRECTION_INPUT_NAME }>
                                                     { AuxDisplacementInputOption::Value.as_str() }

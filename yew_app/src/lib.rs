@@ -240,11 +240,26 @@ impl Component for Model
                             self.state.aux_elements.remove(*position);
                         }
                     }
-                    if let Some(position) = self.state.aux_displacements
-                        .iter()
-                        .position(|displacement| displacement.node_number == removed_node.number)
+                    let mut i = (self.state.aux_displacements.len() - 1) as i32;
+                    while i >= 0
                     {
-                        self.state.aux_displacements.remove(position);
+                        if let None = self.state.aux_elements
+                            .iter()
+                            .position(|element|
+                                {
+                                    match element.element_type
+                                    {
+                                        ElementType::Truss2n2ip =>
+                                            {
+                                                (element.node_1_number == self.state.aux_displacements[i as usize].node_number) ||
+                                                (element.node_2_number == self.state.aux_displacements[i as usize].node_number)
+                                            },
+                                    }
+                                })
+                        {
+                            self.state.aux_displacements.remove(i as usize);
+                        }
+                        i -= 1;
                     }
                 },
             Msg::AddAuxElement(element) => self.state.aux_elements.push(element),
@@ -252,6 +267,27 @@ impl Component for Model
             Msg::RemoveAuxElement(position) =>
                 {
                     self.state.aux_elements.remove(position);
+                    let mut i = (self.state.aux_displacements.len() - 1) as i32;
+                    while i > 0
+                    {
+                        if let None = self.state.aux_elements
+                            .iter()
+                            .position(|element|
+                                {
+                                    match element.element_type
+                                    {
+                                        ElementType::Truss2n2ip =>
+                                            {
+                                                (element.node_1_number == self.state.aux_displacements[i as usize].node_number) ||
+                                                (element.node_2_number == self.state.aux_displacements[i as usize].node_number)
+                                            },
+                                    }
+                                })
+                        {
+                            self.state.aux_displacements.remove(i as usize);
+                        }
+                        i -= 1;
+                    }
                 },
             Msg::AddAuxDisplacement(displacement) => self.state.aux_displacements.push(displacement),
             Msg::UpdateAuxDisplacement(data) => self.state.aux_displacements[data.0] = data.1,

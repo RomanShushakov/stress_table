@@ -386,6 +386,7 @@ impl Component for Model
                             canvas_height=self.state.canvas_height,
                             nodes=self.state.nodes.to_owned(),
                             aux_elements=self.state.aux_elements.to_owned(),
+                            aux_displacements=self.state.aux_displacements.to_owned(),
                         />
                     </div>
                 </div>

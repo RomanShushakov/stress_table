@@ -170,6 +170,35 @@ impl DisplacementMenu
             None
         }
     }
+
+
+    fn check_rotation_stiffness(&self, node_number: u16) -> bool
+    {
+        let mut rotational_stiffness_statuses = Vec::new();
+        for element in &self.props.aux_elements
+        {
+            match element.element_type
+            {
+                ElementType::Truss2n2ip =>
+                    {
+                        if (element.node_1_number == node_number) ||
+                           (element.node_2_number == node_number)
+                        {
+                            rotational_stiffness_statuses.push(false);
+                        }
+                    },
+                ElementType::OtherType =>
+                    {
+                        if (element.node_1_number == node_number) ||
+                           (element.node_2_number == node_number)
+                        {
+                            rotational_stiffness_statuses.push(true);
+                        }
+                    }
+            }
+        }
+        rotational_stiffness_statuses.iter().any(|status| *status == true)
+    }
 }
 
 
@@ -332,7 +361,7 @@ impl Component for DisplacementMenu
                                         {
                                             number,
                                             node_number: 1u16,
-                                            is_rotation_stiffness_enabled: false,
+                                            is_rotation_stiffness_enabled: self.check_rotation_stiffness(1u16),
                                             x_direction_value: None,
                                             y_direction_value: None,
                                             z_direction_value: None,
@@ -384,30 +413,7 @@ impl Component for DisplacementMenu
                             "The selected node does not used in any element.");
                             return false;
                         }
-                        let mut rotational_stiffness_statuses = Vec::new();
-                        for element in &self.props.aux_elements
-                        {
-                            match element.element_type
-                            {
-                                ElementType::Truss2n2ip =>
-                                    {
-                                        if (element.node_1_number == node_number) ||
-                                           (element.node_2_number == node_number)
-                                        {
-                                            rotational_stiffness_statuses.push(false);
-                                        }
-                                    },
-                                ElementType::OtherType =>
-                                    {
-                                        if (element.node_1_number == node_number) ||
-                                           (element.node_2_number == node_number)
-                                        {
-                                            rotational_stiffness_statuses.push(true);
-                                        }
-                                    }
-                            }
-                        }
-                        if rotational_stiffness_statuses.iter().any(|status| *status == true)
+                        if self.check_rotation_stiffness(node_number)
                         {
                             self.state.selected_displacement.is_rotation_stiffness_enabled = true;
                         }
@@ -657,6 +663,14 @@ impl Component for DisplacementMenu
         {
             self.props = props;
             self.update_numbers_in_displacement_menu();
+            if self.check_rotation_stiffness(self.state.selected_displacement.node_number)
+            {
+                self.state.selected_displacement.is_rotation_stiffness_enabled = true;
+            }
+            else
+            {
+                self.state.selected_displacement.is_rotation_stiffness_enabled = false;
+            }
             true
         }
         else

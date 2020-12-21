@@ -7,7 +7,7 @@ use yew::virtual_dom::VNode;
 use web_sys::{ CanvasRenderingContext2d, HtmlCanvasElement };
 
 use crate::fe::fe_node::FeNode;
-use crate::auxiliary::{DrawnNode, View, AuxElement};
+use crate::auxiliary::{DrawnNode, View, AuxElement, ElementType, AuxDisplacement};
 
 
 const CANVAS_ID: &str = "canvas";
@@ -16,6 +16,7 @@ const CANVAS_X_AXIS_COLOR: &str = "red";
 const CANVAS_Y_AXIS_COLOR: &str = "green";
 const CANVAS_NODES_COLOR: &str = "black";
 const CANVAS_ELEMENTS_COLOR: &str = "blue";
+const CANVAS_DISPLACEMENTS_COLOR: &str = "orange";
 
 
 #[derive(Properties, PartialEq, Clone)]
@@ -26,6 +27,7 @@ pub struct Props
     pub canvas_height: u32,
     pub nodes: Vec<FeNode<u16, f64>>,
     pub aux_elements: Vec<AuxElement>,
+    pub aux_displacements: Vec<AuxDisplacement>,
 }
 
 
@@ -232,51 +234,133 @@ impl Canvas
             {
                 for aux_element in self.props.aux_elements.iter()
                 {
-                    let node_1_position = drawn_nodes
+                    match aux_element.element_type
+                    {
+                        ElementType::Truss2n2ip =>
+                            {
+                                let node_1_position = drawn_nodes
+                                    .iter()
+                                    .position(|node| node.number == aux_element.node_1_number).unwrap();
+                                let drawn_node_1 = drawn_nodes[node_1_position].to_owned();
+                                let node_2_position = drawn_nodes
+                                    .iter()
+                                    .position(|node| node.number == aux_element.node_2_number).unwrap();
+                                let drawn_node_2 = drawn_nodes[node_2_position].to_owned();
+
+                                context.begin_path();
+                                context.move_to(drawn_node_1.x, drawn_node_1.y);
+                                context.set_stroke_style(&CANVAS_ELEMENTS_COLOR.into());
+                                context.line_to(drawn_node_2.x, drawn_node_2.y);
+                                context.stroke();
+
+                                let x_center = (drawn_node_1.x + drawn_node_2.x) / 2f64;
+                                let y_center = (drawn_node_1.y + drawn_node_2.y) / 2f64;
+
+                                context.begin_path();
+                                context.set_stroke_style(&CANVAS_BACKGROUND_COLOR.into());
+                                context
+                                .arc(
+                                    x_center,
+                                    y_center,
+                                    axis_line_length / 10f64,
+                                    0.0,
+                                    f64::consts::PI * 2.0)
+                                .unwrap();
+                                context.set_fill_style(&CANVAS_BACKGROUND_COLOR.into());
+                                context.fill();
+                                context.stroke();
+
+                                context.begin_path();
+                                context.set_fill_style(&CANVAS_ELEMENTS_COLOR.into());
+                                context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
+                                context.fill_text(
+                                    &aux_element.number.to_string(),
+                                    x_center - axis_line_length / 20f64,
+                                    y_center + axis_line_length / 20f64)
+                                    .unwrap();
+                                context.stroke();
+                            },
+                        ElementType::OtherType =>
+                            {
+                                let node_1_position = drawn_nodes
+                                    .iter()
+                                    .position(|node| node.number == aux_element.node_1_number).unwrap();
+                                let drawn_node_1 = drawn_nodes[node_1_position].to_owned();
+                                let node_2_position = drawn_nodes
+                                    .iter()
+                                    .position(|node| node.number == aux_element.node_2_number).unwrap();
+                                let drawn_node_2 = drawn_nodes[node_2_position].to_owned();
+
+                                context.begin_path();
+                                context.move_to(drawn_node_1.x, drawn_node_1.y);
+                                context.set_stroke_style(&CANVAS_ELEMENTS_COLOR.into());
+                                context.line_to(drawn_node_2.x, drawn_node_2.y);
+                                context.stroke();
+
+                                let x_center = (drawn_node_1.x + drawn_node_2.x) / 2f64;
+                                let y_center = (drawn_node_1.y + drawn_node_2.y) / 2f64;
+
+                                context.begin_path();
+                                context.set_stroke_style(&CANVAS_BACKGROUND_COLOR.into());
+                                context
+                                .arc(
+                                    x_center,
+                                    y_center,
+                                    axis_line_length / 10f64,
+                                    0.0,
+                                    f64::consts::PI * 2.0)
+                                .unwrap();
+                                context.set_fill_style(&CANVAS_BACKGROUND_COLOR.into());
+                                context.fill();
+                                context.stroke();
+
+                                context.begin_path();
+                                context.set_fill_style(&CANVAS_ELEMENTS_COLOR.into());
+                                context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
+                                context.fill_text(
+                                    &aux_element.number.to_string(),
+                                    x_center - axis_line_length / 20f64,
+                                    y_center + axis_line_length / 20f64)
+                                    .unwrap();
+                                context.stroke();
+                            },
+                    }
+                }
+            }
+
+            if !self.props.aux_displacements.is_empty()
+            {
+                for aux_displacement in self.props.aux_displacements.iter()
+                {
+                    let node_position = drawn_nodes
                         .iter()
-                        .position(|node| node.number == aux_element.node_1_number).unwrap();
-                    let drawn_node_1 = drawn_nodes[node_1_position].to_owned();
-                    let node_2_position = drawn_nodes
-                        .iter()
-                        .position(|node| node.number == aux_element.node_2_number).unwrap();
-                    let drawn_node_2 = drawn_nodes[node_2_position].to_owned();
+                        .position(|node| node.number == aux_displacement.node_number).unwrap();
+                    let drawn_node = drawn_nodes[node_position].to_owned();
 
                     context.begin_path();
-                    context.move_to(drawn_node_1.x, drawn_node_1.y);
-                    context.set_stroke_style(&CANVAS_ELEMENTS_COLOR.into());
-                    context.line_to(drawn_node_2.x, drawn_node_2.y);
-                    context.stroke();
-
-                    let x_center = (drawn_node_1.x + drawn_node_2.x) / 2f64;
-                    let y_center = (drawn_node_1.y + drawn_node_2.y) / 2f64;
-
-                    context.begin_path();
-                    context.set_stroke_style(&CANVAS_BACKGROUND_COLOR.into());
-                    context
-                    .arc(
-                        x_center,
-                        y_center,
-                        axis_line_length / 10f64,
-                        0.0,
-                        f64::consts::PI * 2.0)
-                    .unwrap();
-                    context.set_fill_style(&CANVAS_BACKGROUND_COLOR.into());
+                    context.move_to(drawn_node.x, drawn_node.y + axis_line_length / 25f64);
+                    context.set_stroke_style(&CANVAS_DISPLACEMENTS_COLOR.into());
+                    context.line_to(
+                        drawn_node.x - axis_line_length / 24f64,
+                        drawn_node.y + axis_line_length / 25f64 + axis_line_length / 12f64);
+                    context.line_to(
+                        drawn_node.x + axis_line_length / 24f64,
+                        drawn_node.y + axis_line_length / 25f64 + axis_line_length / 12f64);
+                    context.line_to(drawn_node.x, drawn_node.y + axis_line_length / 25f64);
+                    context.set_fill_style(&CANVAS_DISPLACEMENTS_COLOR.into());
                     context.fill();
-                    context.stroke();
 
-                    context.begin_path();
-                    context.set_fill_style(&CANVAS_ELEMENTS_COLOR.into());
                     context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
                     context.fill_text(
-                        &aux_element.number.to_string(),
-                        x_center - axis_line_length / 20f64,
-                        y_center + axis_line_length / 20f64)
+                        &aux_displacement.number.to_string(),
+                        drawn_node.x + axis_line_length / 10f64,
+                        drawn_node.y + axis_line_length / 25f64 + axis_line_length / 10f64)
                         .unwrap();
                     context.stroke();
+
                 }
             }
         }
-
         let node = Node::from(canvas);
         let vnode = VNode::VRef(node);
         vnode

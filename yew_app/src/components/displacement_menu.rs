@@ -127,9 +127,15 @@ impl DisplacementMenu
             };
         self.state.selected_displacement = AuxDisplacement
             {
-                number, node_number: 1u16,
-                x_direction_value: None, y_direction_value: None, z_direction_value: None,
-                xy_plane_value: None, yz_plane_value: None, zx_plane_value: None,
+                number,
+                node_number: 1u16,
+                is_rotation_stiffness_enabled: false,
+                x_direction_value: None,
+                y_direction_value: None,
+                z_direction_value: None,
+                xy_plane_value: None,
+                yz_plane_value: None,
+                zx_plane_value: None,
             };
         self.state.displacement_x_is_active = false;
         self.state.displacement_y_is_active = false;
@@ -178,9 +184,15 @@ impl Component for DisplacementMenu
         let selected_displacement =
             AuxDisplacement
             {
-                number: 1u16, node_number: 1u16,
-                x_direction_value: None, y_direction_value: None, z_direction_value: None,
-                xy_plane_value: None, yz_plane_value: None, zx_plane_value: None,
+                number: 1u16,
+                node_number: 1u16,
+                is_rotation_stiffness_enabled: false,
+                x_direction_value: None,
+                y_direction_value: None,
+                z_direction_value: None,
+                xy_plane_value: None,
+                yz_plane_value: None,
+                zx_plane_value: None,
             };
         Self
         {
@@ -318,9 +330,15 @@ impl Component for DisplacementMenu
                                     let number = select_displacement.value().parse::<u16>().unwrap();
                                     self.state.selected_displacement = AuxDisplacement
                                         {
-                                            number, node_number: 1u16,
-                                            x_direction_value: None, y_direction_value: None, z_direction_value: None,
-                                            xy_plane_value: None, yz_plane_value: None, zx_plane_value: None,
+                                            number,
+                                            node_number: 1u16,
+                                            is_rotation_stiffness_enabled: false,
+                                            x_direction_value: None,
+                                            y_direction_value: None,
+                                            z_direction_value: None,
+                                            xy_plane_value: None,
+                                            yz_plane_value: None,
+                                            zx_plane_value: None,
                                         };
                                     self.state.displacement_x_is_active = false;
                                     self.state.displacement_y_is_active = false;
@@ -354,12 +372,48 @@ impl Component for DisplacementMenu
                                                 (element.node_1_number == node_number) ||
                                                 (element.node_2_number == node_number)
                                             },
+                                        ElementType::OtherType =>
+                                            {
+                                                (element.node_1_number == node_number) ||
+                                                (element.node_2_number == node_number)
+                                            },
                                     }
                                 })
                         {
                             yew::services::DialogService::alert(
                             "The selected node does not used in any element.");
                             return false;
+                        }
+                        let mut rotational_stiffness_statuses = Vec::new();
+                        for element in &self.props.aux_elements
+                        {
+                            match element.element_type
+                            {
+                                ElementType::Truss2n2ip =>
+                                    {
+                                        if (element.node_1_number == node_number) ||
+                                           (element.node_2_number == node_number)
+                                        {
+                                            rotational_stiffness_statuses.push(false);
+                                        }
+                                    },
+                                ElementType::OtherType =>
+                                    {
+                                        if (element.node_1_number == node_number) ||
+                                           (element.node_2_number == node_number)
+                                        {
+                                            rotational_stiffness_statuses.push(true);
+                                        }
+                                    }
+                            }
+                        }
+                        if rotational_stiffness_statuses.iter().any(|status| *status == true)
+                        {
+                            self.state.selected_displacement.is_rotation_stiffness_enabled = true;
+                        }
+                        else
+                        {
+                            self.state.selected_displacement.is_rotation_stiffness_enabled = false;
                         }
                         self.state.selected_displacement.node_number = node_number;
                     }
@@ -390,7 +444,6 @@ impl Component for DisplacementMenu
                                 {
                                     self.state.displacement_x_is_active = true;
                                 }
-                                // return false;
                             },
                         _ => (),
                     }
@@ -404,6 +457,7 @@ impl Component for DisplacementMenu
                                 if y_input_option == AuxDisplacementInputOption::Free.as_str()
                                 {
                                     self.state.displacement_y_is_active = false;
+                                    self.state.selected_displacement.y_direction_value = None;
                                 }
                                 if y_input_option == AuxDisplacementInputOption::Restrained.as_str()
                                 {
@@ -414,7 +468,6 @@ impl Component for DisplacementMenu
                                 {
                                     self.state.displacement_y_is_active = true;
                                 }
-                                return false;
                             }
                         _ => (),
                     }
@@ -428,6 +481,7 @@ impl Component for DisplacementMenu
                                 if z_input_option == AuxDisplacementInputOption::Free.as_str()
                                 {
                                     self.state.displacement_z_is_active = false;
+                                    self.state.selected_displacement.z_direction_value = None;
                                 }
                                 if z_input_option == AuxDisplacementInputOption::Restrained.as_str()
                                 {
@@ -438,7 +492,6 @@ impl Component for DisplacementMenu
                                 {
                                     self.state.displacement_z_is_active = true;
                                 }
-                                return false;
                             }
                         _ => (),
                     }
@@ -452,6 +505,7 @@ impl Component for DisplacementMenu
                                 if xy_input_option == AuxDisplacementInputOption::Free.as_str()
                                 {
                                     self.state.rotation_xy_is_active = false;
+                                    self.state.selected_displacement.xy_plane_value = None;
                                 }
                                 if xy_input_option == AuxDisplacementInputOption::Restrained.as_str()
                                 {
@@ -462,7 +516,6 @@ impl Component for DisplacementMenu
                                 {
                                     self.state.rotation_xy_is_active = true;
                                 }
-                                return false;
                             }
                         _ => (),
                     }
@@ -476,6 +529,7 @@ impl Component for DisplacementMenu
                                 if yz_input_option == AuxDisplacementInputOption::Free.as_str()
                                 {
                                     self.state.rotation_yz_is_active = false;
+                                    self.state.selected_displacement.yz_plane_value = None;
                                 }
                                 if yz_input_option == AuxDisplacementInputOption::Restrained.as_str()
                                 {
@@ -486,7 +540,6 @@ impl Component for DisplacementMenu
                                 {
                                     self.state.rotation_yz_is_active = true;
                                 }
-                                return false;
                             }
                         _ => (),
                     }
@@ -500,6 +553,7 @@ impl Component for DisplacementMenu
                                 if zx_input_option == AuxDisplacementInputOption::Free.as_str()
                                 {
                                     self.state.rotation_zx_is_active = false;
+                                    self.state.selected_displacement.zx_plane_value = None;
                                 }
                                 if zx_input_option == AuxDisplacementInputOption::Restrained.as_str()
                                 {
@@ -510,7 +564,6 @@ impl Component for DisplacementMenu
                                 {
                                     self.state.rotation_zx_is_active = true;
                                 }
-                                return false;
                             }
                         _ => (),
                     }
@@ -555,6 +608,11 @@ impl Component for DisplacementMenu
                                   match element.element_type
                                   {
                                       ElementType::Truss2n2ip =>
+                                          {
+                                              (element.node_1_number == self.state.selected_displacement.node_number) ||
+                                              (element.node_2_number == self.state.selected_displacement.node_number)
+                                          },
+                                      ElementType::OtherType =>
                                           {
                                               (element.node_1_number == self.state.selected_displacement.node_number) ||
                                               (element.node_2_number == self.state.selected_displacement.node_number)
@@ -653,7 +711,7 @@ impl Component for DisplacementMenu
                                             />
                                         </li>
                                         <li>
-                                            <p class="node_menu_input_fields_descriptions">
+                                            <p class="displacement_menu_input_fields_descriptions">
                                                 { "Displacement in the X direction:" }
                                             </p>
                                             <div class="displacement_input_field_container">
@@ -707,24 +765,6 @@ impl Component for DisplacementMenu
                                                     name={ DISPLACEMENT_IN_X_DIRECTION_INPUT_NAME },
                                                     value={ AuxDisplacementInputOption::Value.as_str() },
                                                     checked={ self.state.displacement_x_is_active },
-                                                    // checked=
-                                                    //     {
-                                                    //         if let Some(value) = self.state.selected_displacement.x_direction_value
-                                                    //         {
-                                                    //             if value != 0f32
-                                                    //             {
-                                                    //                 true
-                                                    //             }
-                                                    //             else
-                                                    //             {
-                                                    //                 false
-                                                    //             }
-                                                    //         }
-                                                    //         else
-                                                    //         {
-                                                    //             false
-                                                    //         }
-                                                    //     },
                                                 />
                                                 <label for={ DISPLACEMENT_IN_X_DIRECTION_INPUT_NAME }>
                                                     { AuxDisplacementInputOption::Value.as_str() }
@@ -750,6 +790,550 @@ impl Component for DisplacementMenu
                                                     },
                                             />
                                         </li>
+                                        <li>
+                                            <p class="displacement_menu_input_fields_descriptions">
+                                                { "Displacement in the Y direction:" }
+                                            </p>
+                                            <div class="displacement_input_field_container">
+                                                <input
+                                                    class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                    onchange=self.link.callback(|data: ChangeData| Msg::SelectDisplacementYInputOption(data)),
+                                                    type="radio", id={ DISPLACEMENT_IN_Y_DIRECTION_INPUT_NAME },
+                                                    name={ DISPLACEMENT_IN_Y_DIRECTION_INPUT_NAME },
+                                                    value={ AuxDisplacementInputOption::Free.as_str() },
+                                                    checked={ self.state.selected_displacement.y_direction_value.is_none() },
+                                                />
+                                                <label for={ DISPLACEMENT_IN_Y_DIRECTION_INPUT_NAME }>
+                                                    { AuxDisplacementInputOption::Free.as_str() }
+                                                </label>
+                                            </div>
+                                            <div class="displacement_input_field_container">
+                                                <input
+                                                    class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                    onchange=self.link.callback(|data: ChangeData| Msg::SelectDisplacementYInputOption(data)),
+                                                    type="radio", id={ DISPLACEMENT_IN_Y_DIRECTION_INPUT_NAME },
+                                                    name={ DISPLACEMENT_IN_Y_DIRECTION_INPUT_NAME },
+                                                    value={ AuxDisplacementInputOption::Restrained.as_str() },
+                                                    checked=
+                                                        {
+                                                            if let Some(value) = self.state.selected_displacement.y_direction_value
+                                                            {
+                                                                if value == 0f32
+                                                                {
+                                                                    true
+                                                                }
+                                                                else
+                                                                {
+                                                                    false
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                false
+                                                            }
+                                                        },
+                                                />
+                                                <label for={ DISPLACEMENT_IN_Y_DIRECTION_INPUT_NAME }>
+                                                    { AuxDisplacementInputOption::Restrained.as_str() }
+                                                </label>
+                                            </div>
+                                            <div class="displacement_input_field_container">
+                                                <input
+                                                    class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                    onchange=self.link.callback(|data: ChangeData| Msg::SelectDisplacementYInputOption(data)),
+                                                    type="radio", id={ DISPLACEMENT_IN_Y_DIRECTION_INPUT_NAME },
+                                                    name={ DISPLACEMENT_IN_Y_DIRECTION_INPUT_NAME },
+                                                    value={ AuxDisplacementInputOption::Value.as_str() },
+                                                    checked={ self.state.displacement_y_is_active },
+                                                />
+                                                <label for={ DISPLACEMENT_IN_Y_DIRECTION_INPUT_NAME }>
+                                                    { AuxDisplacementInputOption::Value.as_str() }
+                                                </label>
+                                            </div>
+                                            <input
+                                                id={ DISPLACEMENT_IN_Y_DIRECTION_VALUE },
+                                                value=
+                                                    {
+                                                        if let Some(value) = self.state.selected_displacement.y_direction_value
+                                                        {
+                                                            value.to_string()
+                                                        }
+                                                        else
+                                                        {
+                                                            "".to_string()
+                                                        }
+                                                    },
+                                                type="number",
+                                                disabled=
+                                                    {
+                                                        !self.state.displacement_y_is_active
+                                                    },
+                                            />
+                                        </li>
+                                        {
+                                            if let Some(analysis_type) = &self.props.analysis_type
+                                            {
+                                                match analysis_type
+                                                {
+                                                    AnalysisType::TwoDimensional =>
+                                                        {
+                                                            if self.state.selected_displacement.is_rotation_stiffness_enabled
+                                                            {
+                                                                html!
+                                                                {
+                                                                    <li>
+                                                                        <p class="displacement_menu_input_fields_descriptions">
+                                                                            { "Rotation in the XY plane:" }
+                                                                        </p>
+                                                                        <div class="displacement_input_field_container">
+                                                                            <input
+                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                                                onchange=self.link.callback(|data: ChangeData| Msg::SelectRotationXYInputOption(data)),
+                                                                                type="radio",
+                                                                                id={ ROTATION_IN_XY_PLANE_INPUT_NAME },
+                                                                                name={ ROTATION_IN_XY_PLANE_INPUT_NAME },
+                                                                                value={ AuxDisplacementInputOption::Free.as_str() },
+                                                                                checked={ self.state.selected_displacement.xy_plane_value.is_none() },
+                                                                            />
+                                                                            <label for={ ROTATION_IN_XY_PLANE_INPUT_NAME }>
+                                                                                { AuxDisplacementInputOption::Free.as_str() }
+                                                                            </label>
+                                                                        </div>
+                                                                        <div class="displacement_input_field_container">
+                                                                            <input
+                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                                                onchange=self.link.callback(|data: ChangeData| Msg::SelectRotationXYInputOption(data)),
+                                                                                type="radio",
+                                                                                id={ ROTATION_IN_XY_PLANE_INPUT_NAME },
+                                                                                name={ ROTATION_IN_XY_PLANE_INPUT_NAME },
+                                                                                value={ AuxDisplacementInputOption::Restrained.as_str() },
+                                                                                checked=
+                                                                                    {
+                                                                                        if let Some(value) = self.state.selected_displacement.xy_plane_value
+                                                                                        {
+                                                                                            if value == 0f32
+                                                                                            {
+                                                                                                true
+                                                                                            }
+                                                                                            else
+                                                                                            {
+                                                                                                false
+                                                                                            }
+                                                                                        }
+                                                                                        else
+                                                                                        {
+                                                                                            false
+                                                                                        }
+                                                                                    },
+                                                                            />
+                                                                            <label for={ ROTATION_IN_XY_PLANE_INPUT_NAME }>
+                                                                                { AuxDisplacementInputOption::Restrained.as_str() }
+                                                                            </label>
+                                                                        </div>
+                                                                        <div class="displacement_input_field_container">
+                                                                            <input
+                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                                                onchange=self.link.callback(|data: ChangeData| Msg::SelectRotationXYInputOption(data)),
+                                                                                type="radio",
+                                                                                id={ ROTATION_IN_XY_PLANE_INPUT_NAME },
+                                                                                name={ ROTATION_IN_XY_PLANE_INPUT_NAME },
+                                                                                value={ AuxDisplacementInputOption::Value.as_str() },
+                                                                                checked={ self.state.rotation_xy_is_active },
+                                                                            />
+                                                                            <label for={ ROTATION_IN_XY_PLANE_INPUT_NAME }>
+                                                                                { AuxDisplacementInputOption::Value.as_str() }
+                                                                            </label>
+                                                                        </div>
+                                                                        <input
+                                                                            id={ ROTATION_IN_XY_PLANE_VALUE },
+                                                                            value=
+                                                                                {
+                                                                                    if let Some(value) = self.state.selected_displacement.xy_plane_value
+                                                                                    {
+                                                                                        value.to_string()
+                                                                                    }
+                                                                                    else
+                                                                                    {
+                                                                                        "".to_string()
+                                                                                    }
+                                                                                },
+                                                                            type="number",
+                                                                            disabled=
+                                                                                {
+                                                                                    !self.state.rotation_xy_is_active
+                                                                                },
+                                                                        />
+                                                                    </li>
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                html! {  }
+                                                            }
+                                                        },
+                                                    AnalysisType::ThreeDimensional =>
+                                                        {
+                                                            html!
+                                                            {
+                                                                <>
+                                                                    <li>
+                                                                        <p class="displacement_menu_input_fields_descriptions">
+                                                                            { "Displacement in the Z direction:" }
+                                                                        </p>
+                                                                        <div class="displacement_input_field_container">
+                                                                            <input
+                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                                                onchange=self.link.callback(|data: ChangeData| Msg::SelectDisplacementZInputOption(data)),
+                                                                                type="radio",
+                                                                                id={ DISPLACEMENT_IN_Z_DIRECTION_INPUT_NAME },
+                                                                                name={ DISPLACEMENT_IN_Z_DIRECTION_INPUT_NAME },
+                                                                                value={ AuxDisplacementInputOption::Free.as_str() },
+                                                                                checked={ self.state.selected_displacement.z_direction_value.is_none() },
+                                                                            />
+                                                                            <label for={ DISPLACEMENT_IN_Z_DIRECTION_INPUT_NAME }>
+                                                                                { AuxDisplacementInputOption::Free.as_str() }
+                                                                            </label>
+                                                                        </div>
+                                                                        <div class="displacement_input_field_container">
+                                                                            <input
+                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                                                onchange=self.link.callback(|data: ChangeData| Msg::SelectDisplacementZInputOption(data)),
+                                                                                type="radio",
+                                                                                id={ DISPLACEMENT_IN_Z_DIRECTION_INPUT_NAME },
+                                                                                name={ DISPLACEMENT_IN_Z_DIRECTION_INPUT_NAME },
+                                                                                value={ AuxDisplacementInputOption::Restrained.as_str() },
+                                                                                checked=
+                                                                                    {
+                                                                                        if let Some(value) = self.state.selected_displacement.z_direction_value
+                                                                                        {
+                                                                                            if value == 0f32
+                                                                                            {
+                                                                                                true
+                                                                                            }
+                                                                                            else
+                                                                                            {
+                                                                                                false
+                                                                                            }
+                                                                                        }
+                                                                                        else
+                                                                                        {
+                                                                                            false
+                                                                                        }
+                                                                                    },
+                                                                            />
+                                                                            <label for={ DISPLACEMENT_IN_Z_DIRECTION_INPUT_NAME }>
+                                                                                { AuxDisplacementInputOption::Restrained.as_str() }
+                                                                            </label>
+                                                                        </div>
+                                                                        <div class="displacement_input_field_container">
+                                                                            <input
+                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                                                onchange=self.link.callback(|data: ChangeData| Msg::SelectDisplacementZInputOption(data)),
+                                                                                type="radio",
+                                                                                id={ DISPLACEMENT_IN_Z_DIRECTION_INPUT_NAME },
+                                                                                name={ DISPLACEMENT_IN_Z_DIRECTION_INPUT_NAME },
+                                                                                value={ AuxDisplacementInputOption::Value.as_str() },
+                                                                                checked={ self.state.displacement_z_is_active },
+                                                                            />
+                                                                            <label for={ DISPLACEMENT_IN_Z_DIRECTION_INPUT_NAME }>
+                                                                                { AuxDisplacementInputOption::Value.as_str() }
+                                                                            </label>
+                                                                        </div>
+                                                                        <input
+                                                                            id={ DISPLACEMENT_IN_Z_DIRECTION_VALUE },
+                                                                            value=
+                                                                                {
+                                                                                    if let Some(value) = self.state.selected_displacement.z_direction_value
+                                                                                    {
+                                                                                        value.to_string()
+                                                                                    }
+                                                                                    else
+                                                                                    {
+                                                                                        "".to_string()
+                                                                                    }
+                                                                                },
+                                                                            type="number",
+                                                                            disabled=
+                                                                                {
+                                                                                    !self.state.displacement_z_is_active
+                                                                                },
+                                                                        />
+                                                                    </li>
+                                                                    {
+                                                                        if self.state.selected_displacement.is_rotation_stiffness_enabled
+                                                                        {
+                                                                            html!
+                                                                            {
+                                                                                <>
+                                                                                    <li>
+                                                                                        <p class="displacement_menu_input_fields_descriptions">
+                                                                                            { "Rotation in the XY plane:" }
+                                                                                        </p>
+                                                                                        <div class="displacement_input_field_container">
+                                                                                            <input
+                                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                                                                onchange=self.link.callback(|data: ChangeData| Msg::SelectRotationXYInputOption(data)),
+                                                                                                type="radio",
+                                                                                                id={ ROTATION_IN_XY_PLANE_INPUT_NAME },
+                                                                                                name={ ROTATION_IN_XY_PLANE_INPUT_NAME },
+                                                                                                value={ AuxDisplacementInputOption::Free.as_str() },
+                                                                                                checked={ self.state.selected_displacement.xy_plane_value.is_none() },
+                                                                                            />
+                                                                                            <label for={ ROTATION_IN_XY_PLANE_INPUT_NAME }>
+                                                                                                { AuxDisplacementInputOption::Free.as_str() }
+                                                                                            </label>
+                                                                                        </div>
+                                                                                        <div class="displacement_input_field_container">
+                                                                                            <input
+                                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                                                                onchange=self.link.callback(|data: ChangeData| Msg::SelectRotationXYInputOption(data)),
+                                                                                                type="radio",
+                                                                                                id={ ROTATION_IN_XY_PLANE_INPUT_NAME },
+                                                                                                name={ ROTATION_IN_XY_PLANE_INPUT_NAME },
+                                                                                                value={ AuxDisplacementInputOption::Restrained.as_str() },
+                                                                                                checked=
+                                                                                                    {
+                                                                                                        if let Some(value) = self.state.selected_displacement.xy_plane_value
+                                                                                                        {
+                                                                                                            if value == 0f32
+                                                                                                            {
+                                                                                                                true
+                                                                                                            }
+                                                                                                            else
+                                                                                                            {
+                                                                                                                false
+                                                                                                            }
+                                                                                                        }
+                                                                                                        else
+                                                                                                        {
+                                                                                                            false
+                                                                                                        }
+                                                                                                    },
+                                                                                            />
+                                                                                            <label for={ ROTATION_IN_XY_PLANE_INPUT_NAME }>
+                                                                                                { AuxDisplacementInputOption::Restrained.as_str() }
+                                                                                            </label>
+                                                                                        </div>
+                                                                                        <div class="displacement_input_field_container">
+                                                                                            <input
+                                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                                                                onchange=self.link.callback(|data: ChangeData| Msg::SelectRotationXYInputOption(data)),
+                                                                                                type="radio",
+                                                                                                id={ ROTATION_IN_XY_PLANE_INPUT_NAME },
+                                                                                                name={ ROTATION_IN_XY_PLANE_INPUT_NAME },
+                                                                                                value={ AuxDisplacementInputOption::Value.as_str() },
+                                                                                                checked={ self.state.rotation_xy_is_active },
+                                                                                            />
+                                                                                            <label for={ ROTATION_IN_XY_PLANE_INPUT_NAME }>
+                                                                                                { AuxDisplacementInputOption::Value.as_str() }
+                                                                                            </label>
+                                                                                        </div>
+                                                                                        <input
+                                                                                            id={ ROTATION_IN_XY_PLANE_VALUE },
+                                                                                            value=
+                                                                                                {
+                                                                                                    if let Some(value) = self.state.selected_displacement.xy_plane_value
+                                                                                                    {
+                                                                                                        value.to_string()
+                                                                                                    }
+                                                                                                    else
+                                                                                                    {
+                                                                                                        "".to_string()
+                                                                                                    }
+                                                                                                },
+                                                                                            type="number",
+                                                                                            disabled=
+                                                                                                {
+                                                                                                    !self.state.rotation_xy_is_active
+                                                                                                },
+                                                                                        />
+                                                                                    </li>
+                                                                                    <li>
+                                                                                        <p class="displacement_menu_input_fields_descriptions">
+                                                                                            { "Rotation in the YZ plane:" }
+                                                                                        </p>
+                                                                                        <div class="displacement_input_field_container">
+                                                                                            <input
+                                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                                                                onchange=self.link.callback(|data: ChangeData| Msg::SelectRotationYZInputOption(data)),
+                                                                                                type="radio",
+                                                                                                id={ ROTATION_IN_YZ_PLANE_INPUT_NAME },
+                                                                                                name={ ROTATION_IN_YZ_PLANE_INPUT_NAME },
+                                                                                                value={ AuxDisplacementInputOption::Free.as_str() },
+                                                                                                checked={ self.state.selected_displacement.yz_plane_value.is_none() },
+                                                                                            />
+                                                                                            <label for={ ROTATION_IN_YZ_PLANE_INPUT_NAME }>
+                                                                                                { AuxDisplacementInputOption::Free.as_str() }
+                                                                                            </label>
+                                                                                        </div>
+                                                                                        <div class="displacement_input_field_container">
+                                                                                            <input
+                                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                                                                onchange=self.link.callback(|data: ChangeData| Msg::SelectRotationYZInputOption(data)),
+                                                                                                type="radio",
+                                                                                                id={ ROTATION_IN_YZ_PLANE_INPUT_NAME },
+                                                                                                name={ ROTATION_IN_YZ_PLANE_INPUT_NAME },
+                                                                                                value={ AuxDisplacementInputOption::Restrained.as_str() },
+                                                                                                checked=
+                                                                                                    {
+                                                                                                        if let Some(value) = self.state.selected_displacement.yz_plane_value
+                                                                                                        {
+                                                                                                            if value == 0f32
+                                                                                                            {
+                                                                                                                true
+                                                                                                            }
+                                                                                                            else
+                                                                                                            {
+                                                                                                                false
+                                                                                                            }
+                                                                                                        }
+                                                                                                        else
+                                                                                                        {
+                                                                                                            false
+                                                                                                        }
+                                                                                                    },
+                                                                                            />
+                                                                                            <label for={ ROTATION_IN_YZ_PLANE_INPUT_NAME }>
+                                                                                                { AuxDisplacementInputOption::Restrained.as_str() }
+                                                                                            </label>
+                                                                                        </div>
+                                                                                        <div class="displacement_input_field_container">
+                                                                                            <input
+                                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                                                                onchange=self.link.callback(|data: ChangeData| Msg::SelectRotationYZInputOption(data)),
+                                                                                                type="radio",
+                                                                                                id={ ROTATION_IN_YZ_PLANE_INPUT_NAME },
+                                                                                                name={ ROTATION_IN_YZ_PLANE_INPUT_NAME },
+                                                                                                value={ AuxDisplacementInputOption::Value.as_str() },
+                                                                                                checked={ self.state.rotation_yz_is_active },
+                                                                                            />
+                                                                                            <label for={ ROTATION_IN_YZ_PLANE_INPUT_NAME }>
+                                                                                                { AuxDisplacementInputOption::Value.as_str() }
+                                                                                            </label>
+                                                                                        </div>
+                                                                                        <input
+                                                                                            id={ ROTATION_IN_YZ_PLANE_VALUE },
+                                                                                            value=
+                                                                                                {
+                                                                                                    if let Some(value) = self.state.selected_displacement.yz_plane_value
+                                                                                                    {
+                                                                                                        value.to_string()
+                                                                                                    }
+                                                                                                    else
+                                                                                                    {
+                                                                                                        "".to_string()
+                                                                                                    }
+                                                                                                },
+                                                                                            type="number",
+                                                                                            disabled=
+                                                                                                {
+                                                                                                    !self.state.rotation_yz_is_active
+                                                                                                },
+                                                                                        />
+                                                                                    </li>
+                                                                                    <li>
+                                                                                        <p class="displacement_menu_input_fields_descriptions">
+                                                                                            { "Rotation in the ZX plane:" }
+                                                                                        </p>
+                                                                                        <div class="displacement_input_field_container">
+                                                                                            <input
+                                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                                                                onchange=self.link.callback(|data: ChangeData| Msg::SelectRotationZXInputOption(data)),
+                                                                                                type="radio",
+                                                                                                id={ ROTATION_IN_ZX_PLANE_INPUT_NAME },
+                                                                                                name={ ROTATION_IN_ZX_PLANE_INPUT_NAME },
+                                                                                                value={ AuxDisplacementInputOption::Free.as_str() },
+                                                                                                checked={ self.state.selected_displacement.zx_plane_value.is_none() },
+                                                                                            />
+                                                                                            <label for={ ROTATION_IN_ZX_PLANE_INPUT_NAME }>
+                                                                                                { AuxDisplacementInputOption::Free.as_str() }
+                                                                                            </label>
+                                                                                        </div>
+                                                                                        <div class="displacement_input_field_container">
+                                                                                            <input
+                                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                                                                onchange=self.link.callback(|data: ChangeData| Msg::SelectRotationZXInputOption(data)),
+                                                                                                type="radio",
+                                                                                                id={ ROTATION_IN_ZX_PLANE_INPUT_NAME },
+                                                                                                name={ ROTATION_IN_ZX_PLANE_INPUT_NAME },
+                                                                                                value={ AuxDisplacementInputOption::Restrained.as_str() },
+                                                                                                checked=
+                                                                                                    {
+                                                                                                        if let Some(value) = self.state.selected_displacement.zx_plane_value
+                                                                                                        {
+                                                                                                            if value == 0f32
+                                                                                                            {
+                                                                                                                true
+                                                                                                            }
+                                                                                                            else
+                                                                                                            {
+                                                                                                                false
+                                                                                                            }
+                                                                                                        }
+                                                                                                        else
+                                                                                                        {
+                                                                                                            false
+                                                                                                        }
+                                                                                                    },
+                                                                                            />
+                                                                                            <label for={ ROTATION_IN_ZX_PLANE_INPUT_NAME }>
+                                                                                                { AuxDisplacementInputOption::Restrained.as_str() }
+                                                                                            </label>
+                                                                                        </div>
+                                                                                        <div class="displacement_input_field_container">
+                                                                                            <input
+                                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                                                                onchange=self.link.callback(|data: ChangeData| Msg::SelectRotationZXInputOption(data)),
+                                                                                                type="radio",
+                                                                                                id={ ROTATION_IN_ZX_PLANE_INPUT_NAME },
+                                                                                                name={ ROTATION_IN_ZX_PLANE_INPUT_NAME },
+                                                                                                value={ AuxDisplacementInputOption::Value.as_str() },
+                                                                                                checked={ self.state.rotation_zx_is_active },
+                                                                                            />
+                                                                                            <label for={ ROTATION_IN_ZX_PLANE_INPUT_NAME }>
+                                                                                                { AuxDisplacementInputOption::Value.as_str() }
+                                                                                            </label>
+                                                                                        </div>
+                                                                                        <input
+                                                                                            id={ ROTATION_IN_ZX_PLANE_VALUE },
+                                                                                            value=
+                                                                                                {
+                                                                                                    if let Some(value) = self.state.selected_displacement.zx_plane_value
+                                                                                                    {
+                                                                                                        value.to_string()
+                                                                                                    }
+                                                                                                    else
+                                                                                                    {
+                                                                                                        "".to_string()
+                                                                                                    }
+                                                                                                },
+                                                                                            type="number",
+                                                                                            disabled=
+                                                                                                {
+                                                                                                    !self.state.rotation_zx_is_active
+                                                                                                },
+                                                                                        />
+                                                                                    </li>
+                                                                                </>
+                                                                            }
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            html! {  }
+                                                                        }
+                                                                    }
+                                                                </>
+                                                            }
+                                                        }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                html! {  }
+                                            }
+                                        }
+
+
                                     </>
                                 }
                             }

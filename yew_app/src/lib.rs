@@ -1,4 +1,4 @@
-#![recursion_limit="2048"]
+#![recursion_limit="16384"]
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::cell::RefCell;
@@ -120,7 +120,7 @@ impl Model
                             );
                         elements.push(Rc::new(RefCell::new(truss_element)));
                     },
-                // ElementType::OtherType => (),
+                ElementType::OtherType => (),
             }
         }
         let mut applied_displacements = HashMap::new();
@@ -254,6 +254,11 @@ impl Component for Model
                                                 (element.node_1_number == self.state.aux_displacements[i as usize].node_number) ||
                                                 (element.node_2_number == self.state.aux_displacements[i as usize].node_number)
                                             },
+                                        ElementType::OtherType =>
+                                            {
+                                                (element.node_1_number == self.state.aux_displacements[i as usize].node_number) ||
+                                                (element.node_2_number == self.state.aux_displacements[i as usize].node_number)
+                                            },
                                     }
                                 })
                         {
@@ -277,6 +282,11 @@ impl Component for Model
                                     match element.element_type
                                     {
                                         ElementType::Truss2n2ip =>
+                                            {
+                                                (element.node_1_number == self.state.aux_displacements[i as usize].node_number) ||
+                                                (element.node_2_number == self.state.aux_displacements[i as usize].node_number)
+                                            },
+                                        ElementType::OtherType =>
                                             {
                                                 (element.node_1_number == self.state.aux_displacements[i as usize].node_number) ||
                                                 (element.node_2_number == self.state.aux_displacements[i as usize].node_number)

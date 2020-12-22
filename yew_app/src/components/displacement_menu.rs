@@ -27,7 +27,7 @@ const ROTATION_IN_XY_PLANE_VALUE: &str = "rotation_in_xy_plane_value";
 const ROTATION_IN_YZ_PLANE_INPUT_NAME: &str = "rotation_in_yz_plane_input_name";
 const ROTATION_IN_YZ_PLANE_VALUE: &str = "rotation_in_yz_plane_value";
 const ROTATION_IN_ZX_PLANE_INPUT_NAME: &str = "rotation_in_zx_plane_input_name";
-const ROTATION_IN_ZX_PLANE_VALUE: &str = "rotation_in_zx_plane_input_name_value";
+const ROTATION_IN_ZX_PLANE_VALUE: &str = "rotation_in_zx_plane_value";
 
 
 #[derive(Properties, PartialEq, Clone)]

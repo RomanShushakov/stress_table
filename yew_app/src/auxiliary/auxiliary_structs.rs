@@ -116,8 +116,8 @@ pub struct AuxDisplacement
     pub y_direction_value: Option<f32>,
     pub z_direction_value: Option<f32>,
     pub xy_plane_value: Option<f32>,
-    pub zx_plane_value: Option<f32>,
     pub yz_plane_value: Option<f32>,
+    pub zx_plane_value: Option<f32>,
 }
 
 
@@ -140,4 +140,19 @@ impl AuxDisplacementInputOption
             AuxDisplacementInputOption::Value => String::from("Value"),
         }
     }
+}
+
+
+#[derive(Clone, PartialEq, Debug)]
+pub struct AuxForce
+{
+    pub number: u16,
+    pub node_number: u16,
+    pub is_rotation_stiffness_enabled: bool,
+    pub force_x_value: Option<f32>,
+    pub force_y_value: Option<f32>,
+    pub force_z_value: Option<f32>,
+    pub moment_xy_value: Option<f32>,
+    pub moment_yz_value: Option<f32>,
+    pub moment_zx_value: Option<f32>,
 }

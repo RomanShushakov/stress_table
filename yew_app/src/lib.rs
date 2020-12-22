@@ -26,9 +26,12 @@ use fe::fe_solver::FeModel;
 use fe::fe_aux_structs::{Displacement, AxisComponent};
 
 mod components;
-use components::{AnalysisTypeMenu, NodeMenu, Canvas, ElementMenu, ViewMenu, DisplacementMenu};
+use components::
+    {
+        AnalysisTypeMenu, NodeMenu, Canvas, ElementMenu, ViewMenu, DisplacementMenu, ForceMenu
+    };
 mod auxiliary;
-use auxiliary::{AuxElement, AnalysisType, View, ElementType, AuxDisplacement};
+use auxiliary::{AuxElement, AnalysisType, View, ElementType, AuxDisplacement, AuxForce};
 
 
 pub const NUMBER_OF_DOF: i32 = 6;
@@ -43,6 +46,7 @@ struct State
     nodes: Vec<FeNode<u16, f64>>,
     aux_elements: Vec<AuxElement>,
     aux_displacements: Vec<AuxDisplacement>,
+    aux_forces: Vec<AuxForce>,
     max_stress: Option<f64>,
     error_message: Option<String>,
 }
@@ -71,6 +75,9 @@ enum Msg
     AddAuxDisplacement(AuxDisplacement),
     UpdateAuxDisplacement((usize, AuxDisplacement)),
     RemoveAuxDisplacement(usize),
+    AddAuxForce(AuxForce),
+    UpdateAuxForce((usize, AuxForce)),
+    RemoveAuxForce(usize),
     Submit,
 }
 
@@ -90,6 +97,68 @@ impl Model
     {
         self.state.canvas_width = (dimensions.width as f32 * 0.8) as u32;
         self.state.canvas_height = (dimensions.height as f32 * 0.8) as u32;
+    }
+
+
+    fn remove_uncoupled_displacements(&mut self)
+    {
+        let mut i = (self.state.aux_displacements.len() - 1) as i32;
+        while i >= 0
+        {
+            if let None = self.state.aux_elements
+                .iter()
+                .position(|element|
+                    {
+                        match element.element_type
+                        {
+                            ElementType::Truss2n2ip =>
+                                {
+                                    (element.node_1_number == self.state.aux_displacements[i as usize].node_number) ||
+                                    (element.node_2_number == self.state.aux_displacements[i as usize].node_number)
+                                },
+                            ElementType::OtherType =>
+                                {
+                                    (element.node_1_number == self.state.aux_displacements[i as usize].node_number) ||
+                                    (element.node_2_number == self.state.aux_displacements[i as usize].node_number)
+                                },
+                        }
+                    })
+            {
+                self.state.aux_displacements.remove(i as usize);
+            }
+            i -= 1;
+        }
+    }
+
+
+    fn remove_uncoupled_forces(&mut self)
+    {
+        let mut i = (self.state.aux_forces.len() - 1) as i32;
+        while i >= 0
+        {
+            if let None = self.state.aux_elements
+                .iter()
+                .position(|element|
+                    {
+                        match element.element_type
+                        {
+                            ElementType::Truss2n2ip =>
+                                {
+                                    (element.node_1_number == self.state.aux_forces[i as usize].node_number) ||
+                                    (element.node_2_number == self.state.aux_forces[i as usize].node_number)
+                                },
+                            ElementType::OtherType =>
+                                {
+                                    (element.node_1_number == self.state.aux_forces[i as usize].node_number) ||
+                                    (element.node_2_number == self.state.aux_forces[i as usize].node_number)
+                                },
+                        }
+                    })
+            {
+                self.state.aux_forces.remove(i as usize);
+            }
+            i -= 1;
+        }
     }
 
 
@@ -124,10 +193,40 @@ impl Model
             }
         }
         let mut applied_displacements = HashMap::new();
-        applied_displacements.insert(Displacement { component: AxisComponent::U, node_number: 3 }, 0.0);
-        applied_displacements.insert(Displacement { component: AxisComponent::V, node_number: 3 }, 0.0);
-        applied_displacements.insert(Displacement { component: AxisComponent::U, node_number: 4 }, 0.0);
-        applied_displacements.insert(Displacement { component: AxisComponent::V, node_number: 1 }, -0.025);
+        for aux_displacement in &self.state.aux_displacements
+        {
+            let node_number = aux_displacement.node_number;
+            if let Some(u_displacement) = aux_displacement.x_direction_value
+            {
+                applied_displacements.insert(Displacement { component: AxisComponent::U, node_number }, u_displacement);
+            }
+            if let Some(v_displacement) = aux_displacement.y_direction_value
+            {
+                applied_displacements.insert(Displacement { component: AxisComponent::V, node_number }, v_displacement);
+            }
+            if let Some(w_displacement) = aux_displacement.z_direction_value
+            {
+                applied_displacements.insert(Displacement { component: AxisComponent::W, node_number }, w_displacement);
+            }
+            if let Some(theta_u) = aux_displacement.yz_plane_value
+            {
+                applied_displacements.insert(Displacement { component: AxisComponent::ThetaU, node_number }, theta_u);
+            }
+            if let Some(theta_v) = aux_displacement.zx_plane_value
+            {
+                applied_displacements.insert(Displacement { component: AxisComponent::ThetaV, node_number }, theta_v);
+            }
+            if let Some(theta_w) = aux_displacement.xy_plane_value
+            {
+                applied_displacements.insert(Displacement { component: AxisComponent::ThetaW, node_number }, theta_w);
+            }
+        }
+
+        // applied_displacements.insert(Displacement { component: AxisComponent::U, node_number: 3 }, 0.0);
+        // applied_displacements.insert(Displacement { component: AxisComponent::V, node_number: 3 }, 0.0);
+        // applied_displacements.insert(Displacement { component: AxisComponent::U, node_number: 4 }, 0.0);
+        // applied_displacements.insert(Displacement { component: AxisComponent::V, node_number: 1 }, -0.025);
+
         let mut model = FeModel::create(self.state.nodes.to_owned(), elements, applied_displacements, None);
         model.compose_global_stiffness_matrix()?;
         model.analyze()?;
@@ -196,11 +295,16 @@ impl Component for Model
             link,
             state: State
                 {
-                    analysis_type: None, view: View::PlaneXY,
-                    canvas_width: width, canvas_height: height,
-                    nodes: Vec::new(), aux_elements: Vec::new(),
+                    analysis_type: None,
+                    view: View::PlaneXY,
+                    canvas_width: width,
+                    canvas_height: height,
+                    nodes: Vec::new(),
+                    aux_elements: Vec::new(),
                     aux_displacements: Vec::new(),
-                    max_stress: None, error_message: None,
+                    aux_forces: Vec::new(),
+                    max_stress: None,
+                    error_message: None,
                 },
             resize_task: None, resize_service: ResizeService::new(),
         }
@@ -223,13 +327,30 @@ impl Component for Model
                     let mut aux_elements_deletion_positions = Vec::new();
                     for (pos, element) in self.state.aux_elements.iter().enumerate()
                     {
-                        if element.node_1_number == removed_node.number
+                        match element.element_type
                         {
-                            aux_elements_deletion_positions.push(pos);
-                        }
-                        if element.node_2_number == removed_node.number
-                        {
-                            aux_elements_deletion_positions.push(pos);
+                            ElementType::Truss2n2ip =>
+                                {
+                                    if element.node_1_number == removed_node.number
+                                    {
+                                        aux_elements_deletion_positions.push(pos);
+                                    }
+                                    if element.node_2_number == removed_node.number
+                                    {
+                                        aux_elements_deletion_positions.push(pos);
+                                    }
+                                },
+                            ElementType::OtherType =>
+                                {
+                                    if element.node_1_number == removed_node.number
+                                    {
+                                        aux_elements_deletion_positions.push(pos);
+                                    }
+                                    if element.node_2_number == removed_node.number
+                                    {
+                                        aux_elements_deletion_positions.push(pos);
+                                    }
+                                },
                         }
                     }
                     if !aux_elements_deletion_positions.is_empty()
@@ -241,69 +362,28 @@ impl Component for Model
                         }
                     }
                     let mut i = (self.state.aux_displacements.len() - 1) as i32;
-                    while i >= 0
-                    {
-                        if let None = self.state.aux_elements
-                            .iter()
-                            .position(|element|
-                                {
-                                    match element.element_type
-                                    {
-                                        ElementType::Truss2n2ip =>
-                                            {
-                                                (element.node_1_number == self.state.aux_displacements[i as usize].node_number) ||
-                                                (element.node_2_number == self.state.aux_displacements[i as usize].node_number)
-                                            },
-                                        ElementType::OtherType =>
-                                            {
-                                                (element.node_1_number == self.state.aux_displacements[i as usize].node_number) ||
-                                                (element.node_2_number == self.state.aux_displacements[i as usize].node_number)
-                                            },
-                                    }
-                                })
-                        {
-                            self.state.aux_displacements.remove(i as usize);
-                        }
-                        i -= 1;
-                    }
+                    self.remove_uncoupled_displacements();
+                    self.remove_uncoupled_forces();
                 },
             Msg::AddAuxElement(element) => self.state.aux_elements.push(element),
             Msg::UpdateAuxElement(data) => self.state.aux_elements[data.0] = data.1,
             Msg::RemoveAuxElement(position) =>
                 {
                     self.state.aux_elements.remove(position);
-                    let mut i = (self.state.aux_displacements.len() - 1) as i32;
-                    while i > 0
-                    {
-                        if let None = self.state.aux_elements
-                            .iter()
-                            .position(|element|
-                                {
-                                    match element.element_type
-                                    {
-                                        ElementType::Truss2n2ip =>
-                                            {
-                                                (element.node_1_number == self.state.aux_displacements[i as usize].node_number) ||
-                                                (element.node_2_number == self.state.aux_displacements[i as usize].node_number)
-                                            },
-                                        ElementType::OtherType =>
-                                            {
-                                                (element.node_1_number == self.state.aux_displacements[i as usize].node_number) ||
-                                                (element.node_2_number == self.state.aux_displacements[i as usize].node_number)
-                                            },
-                                    }
-                                })
-                        {
-                            self.state.aux_displacements.remove(i as usize);
-                        }
-                        i -= 1;
-                    }
+                    self.remove_uncoupled_displacements();
+                    self.remove_uncoupled_forces();
                 },
             Msg::AddAuxDisplacement(displacement) => self.state.aux_displacements.push(displacement),
             Msg::UpdateAuxDisplacement(data) => self.state.aux_displacements[data.0] = data.1,
             Msg::RemoveAuxDisplacement(position) =>
                 {
                     self.state.aux_displacements.remove(position);
+                },
+            Msg::AddAuxForce(force) => self.state.aux_forces.push(force),
+            Msg::UpdateAuxForce(data) => self.state.aux_forces[data.0] = data.1,
+            Msg::RemoveAuxForce(position) =>
+                {
+                    self.state.aux_forces.remove(position);
                 },
             Msg::Submit =>
                 {
@@ -343,6 +423,9 @@ impl Component for Model
             self.link.callback(|data: (usize, AuxDisplacement)| Msg::UpdateAuxDisplacement(data));
         let handle_remove_aux_displacement =
             self.link.callback(|position: usize| Msg::RemoveAuxDisplacement(position));
+        let handle_add_aux_force = self.link.callback(|force: AuxForce| Msg::AddAuxForce(force));
+        let handle_update_aux_force = self.link.callback(|data: (usize, AuxForce)| Msg::UpdateAuxForce(data));
+        let handle_remove_aux_force = self.link.callback(|position: usize| Msg::RemoveAuxForce(position));
         html! {
             <div class="container">
                 <div class="preprocessor">
@@ -376,7 +459,14 @@ impl Component for Model
                             update_aux_displacement=handle_update_aux_displacement,
                             remove_aux_displacement=handle_remove_aux_displacement,
                         />
-                        <button class="button">{ "Force" }</button>
+                        <ForceMenu
+                            analysis_type=self.state.analysis_type.to_owned(),
+                            aux_elements=self.state.aux_elements.to_owned(),
+                            aux_forces=self.state.aux_forces.to_owned(),
+                            add_aux_force=handle_add_aux_force,
+                            update_aux_force=handle_update_aux_force,
+                            remove_aux_force=handle_remove_aux_force,
+                        />
                         <button class="button" onclick=self.link.callback(|_| Msg::Submit)>{ "Submit" }</button>
                     </div>
                     <div class="canvas">

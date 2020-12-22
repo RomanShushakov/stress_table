@@ -188,6 +188,10 @@ impl<T, V, W> FeModel<T, V, W>
         let mut result_reactions = HashMap::new();
         if let Some(state) = &self.state
         {
+            if state.displacements_indexes.len() == self.applied_displacements.len()
+            {
+                return Err("All displacements are restrained, the structure cannot be analyzed!".to_string())
+            }
             let mut k_aa_matrix: Matrix<V> = Matrix::zeros
                 (
                     state.displacements_indexes.len() - self.applied_displacements.len(),

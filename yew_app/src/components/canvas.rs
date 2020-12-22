@@ -493,6 +493,95 @@ impl Canvas
                             context.stroke();
                         }
                     }
+                    if let Some(moment_xy) = aux_force.moment_xy_value
+                    {
+                        if moment_xy > 0f32
+                        {
+                            context.begin_path();
+                            context.set_stroke_style(&CANVAS_FORCE_COLOR.into());
+                            context
+                                .arc(
+                                    drawn_node.x,
+                                    drawn_node.y,
+                                    axis_line_length / 3f64,
+                                    f64::consts::PI * 5f64 / 4f64,
+                                    f64::consts::PI / 4f64
+                                    )
+                                .unwrap();
+                            context.stroke();
+
+                            context.begin_path();
+                            context.move_to(
+                                drawn_node.x - axis_line_length / 3f64 * f64::consts::FRAC_1_SQRT_2,
+                                drawn_node.y - axis_line_length / 3f64 * f64::consts::FRAC_1_SQRT_2);
+                            context.line_to(
+                                drawn_node.x - axis_line_length / 3f64 * f64::consts::FRAC_1_SQRT_2 +
+                                    axis_line_length / 10f64 * (f64::consts::PI / 8f64).sin(),
+                                drawn_node.y - axis_line_length / 3f64 * f64::consts::FRAC_1_SQRT_2 -
+                                    axis_line_length / 10f64 * (f64::consts::PI / 8f64).cos());
+                            context.line_to(
+                                drawn_node.x - axis_line_length / 3f64 * f64::consts::FRAC_1_SQRT_2 +
+                                    axis_line_length / 10f64 * (f64::consts::PI / 8f64).cos(),
+                                drawn_node.y - axis_line_length / 3f64 * f64::consts::FRAC_1_SQRT_2 -
+                                    axis_line_length / 10f64 * (f64::consts::PI / 8f64).sin());
+                            context.line_to(
+                                drawn_node.x - axis_line_length / 3f64 * f64::consts::FRAC_1_SQRT_2,
+                                drawn_node.y - axis_line_length / 3f64 * f64::consts::FRAC_1_SQRT_2);
+                            context.set_fill_style(&CANVAS_FORCE_COLOR.into());
+                            context.fill();
+                            context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
+                            context.fill_text(
+                                &moment_xy.to_string(),
+                                drawn_node.x - axis_line_length / 3f64 * f64::consts::FRAC_1_SQRT_2 -
+                                    (moment_xy.to_string().chars().count() as f64 + 1f64) * axis_line_length / 14f64,
+                                drawn_node.y - axis_line_length / 3f64 * f64::consts::FRAC_1_SQRT_2)
+                                .unwrap();
+                            context.stroke();
+                        }
+                        if moment_xy < 0f32
+                        {
+                            context.begin_path();
+                            context.set_stroke_style(&CANVAS_FORCE_COLOR.into());
+                            context
+                                .arc(
+                                    drawn_node.x,
+                                    drawn_node.y,
+                                    axis_line_length / 3f64,
+                                    f64::consts::PI / 4f64,
+                                    f64::consts::PI * 5f64 / 4f64
+                                    )
+                                .unwrap();
+
+                            context.stroke();
+                            context.begin_path();
+                            context.move_to(
+                                drawn_node.x - axis_line_length / 3f64 * f64::consts::FRAC_1_SQRT_2,
+                                drawn_node.y - axis_line_length / 3f64 * f64::consts::FRAC_1_SQRT_2);
+                            context.line_to(
+                                drawn_node.x - axis_line_length / 3f64 * f64::consts::FRAC_1_SQRT_2 -
+                                    axis_line_length / 10f64 * (f64::consts::PI / 8f64).sin(),
+                                drawn_node.y - axis_line_length / 3f64 * f64::consts::FRAC_1_SQRT_2 +
+                                    axis_line_length / 10f64 * (f64::consts::PI / 8f64).cos());
+                            context.line_to(
+                                drawn_node.x - axis_line_length / 3f64 * f64::consts::FRAC_1_SQRT_2 -
+                                    axis_line_length / 10f64 * (f64::consts::PI / 8f64).cos(),
+                                drawn_node.y - axis_line_length / 3f64 * f64::consts::FRAC_1_SQRT_2 +
+                                    axis_line_length / 10f64 * (f64::consts::PI / 8f64).sin());
+                            context.line_to(
+                                drawn_node.x - axis_line_length / 3f64 * f64::consts::FRAC_1_SQRT_2,
+                                drawn_node.y - axis_line_length / 3f64 * f64::consts::FRAC_1_SQRT_2);
+                            context.set_fill_style(&CANVAS_FORCE_COLOR.into());
+                            context.fill();
+                            context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
+                            context.fill_text(
+                                &moment_xy.to_string(),
+                                drawn_node.x - axis_line_length / 3f64 * f64::consts::FRAC_1_SQRT_2 -
+                                    (moment_xy.to_string().chars().count() as f64 + 1f64) * axis_line_length / 14f64,
+                                drawn_node.y - axis_line_length / 3f64 * f64::consts::FRAC_1_SQRT_2)
+                                .unwrap();
+                            context.stroke();
+                        }
+                    }
                 }
             }
         }

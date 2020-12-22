@@ -361,7 +361,6 @@ impl Component for Model
                             self.state.aux_elements.remove(*position);
                         }
                     }
-                    let mut i = (self.state.aux_displacements.len() - 1) as i32;
                     self.remove_uncoupled_displacements();
                     self.remove_uncoupled_forces();
                 },
@@ -477,6 +476,7 @@ impl Component for Model
                             nodes=self.state.nodes.to_owned(),
                             aux_elements=self.state.aux_elements.to_owned(),
                             aux_displacements=self.state.aux_displacements.to_owned(),
+                            aux_forces=self.state.aux_forces.to_owned(),
                         />
                     </div>
                 </div>

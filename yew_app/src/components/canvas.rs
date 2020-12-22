@@ -7,7 +7,7 @@ use yew::virtual_dom::VNode;
 use web_sys::{ CanvasRenderingContext2d, HtmlCanvasElement };
 
 use crate::fe::fe_node::FeNode;
-use crate::auxiliary::{DrawnNode, View, AuxElement, ElementType, AuxDisplacement};
+use crate::auxiliary::{DrawnNode, View, AuxElement, ElementType, AuxDisplacement, AuxForce};
 
 
 const CANVAS_ID: &str = "canvas";
@@ -17,6 +17,7 @@ const CANVAS_Y_AXIS_COLOR: &str = "green";
 const CANVAS_NODES_COLOR: &str = "black";
 const CANVAS_ELEMENTS_COLOR: &str = "blue";
 const CANVAS_DISPLACEMENTS_COLOR: &str = "orange";
+const CANVAS_FORCE_COLOR: &str = "magenta";
 
 
 #[derive(Properties, PartialEq, Clone)]
@@ -28,6 +29,7 @@ pub struct Props
     pub nodes: Vec<FeNode<u16, f64>>,
     pub aux_elements: Vec<AuxElement>,
     pub aux_displacements: Vec<AuxDisplacement>,
+    pub aux_forces: Vec<AuxForce>,
 }
 
 
@@ -69,8 +71,8 @@ impl Canvas
             .dyn_into::<CanvasRenderingContext2d>()
             .unwrap();
 
-        let x_origin = base_dimension as f64 / 30f64;
-        let y_origin = self.props.canvas_height as f64 - base_dimension as f64 / 30f64;
+        let x_origin = base_dimension as f64 / 45f64;
+        let y_origin = self.props.canvas_height as f64 - base_dimension as f64 / 45f64;
         let axis_line_length = base_dimension as f64 / 7f64;
         let axis_line_width = axis_line_length / 50f64;
 
@@ -358,6 +360,139 @@ impl Canvas
                         .unwrap();
                     context.stroke();
 
+                }
+            }
+
+            if !self.props.aux_forces.is_empty()
+            {
+                for aux_force in self.props.aux_forces.iter()
+                {
+                    let node_position = drawn_nodes
+                        .iter()
+                        .position(|node| node.number == aux_force.node_number).unwrap();
+                    let drawn_node = drawn_nodes[node_position].to_owned();
+
+                    context.begin_path();
+                    context.set_fill_style(&CANVAS_FORCE_COLOR.into());
+                    context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
+                    context.fill_text(
+                        &format!("#{}", aux_force.number),
+                        drawn_node.x + axis_line_length / 14f64,
+                        drawn_node.y - axis_line_length / 14f64)
+                        .unwrap();
+                    context.stroke();
+
+                    if let Some(force_x) = aux_force.force_x_value
+                    {
+                        if force_x > 0f32
+                        {
+                            context.begin_path();
+                            context.move_to(drawn_node.x + axis_line_length / 25f64, drawn_node.y);
+                            context.set_stroke_style(&CANVAS_FORCE_COLOR.into());
+                            context.line_to(
+                                drawn_node.x + axis_line_length / 2f64 - axis_line_length / 10f64,
+                                drawn_node.y);
+                            context.move_to(drawn_node.x + axis_line_length / 2f64, drawn_node.y);
+                            context.line_to(
+                                drawn_node.x + axis_line_length / 2f64 - axis_line_length / 10f64,
+                                drawn_node.y + axis_line_length / 30f64);
+                            context.line_to(
+                                drawn_node.x + axis_line_length / 2f64 - axis_line_length / 10f64,
+                                drawn_node.y - axis_line_length / 30f64);
+                            context.line_to(drawn_node.x + axis_line_length / 2f64, drawn_node.y);
+                            context.set_fill_style(&CANVAS_FORCE_COLOR.into());
+                            context.fill();
+                            context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
+                            context.fill_text(
+                                &force_x.to_string(),
+                                drawn_node.x + axis_line_length / 2f64,
+                                drawn_node.y - axis_line_length / 14f64)
+                                .unwrap();
+                            context.stroke();
+                        }
+                        if force_x < 0f32
+                        {
+                            context.begin_path();
+                            context.move_to(drawn_node.x - axis_line_length / 25f64, drawn_node.y);
+                            context.set_stroke_style(&CANVAS_FORCE_COLOR.into());
+                            context.line_to(
+                                drawn_node.x - axis_line_length / 2f64 + axis_line_length / 10f64,
+                                drawn_node.y);
+                            context.move_to(drawn_node.x - axis_line_length / 2f64, drawn_node.y);
+                            context.line_to(
+                                drawn_node.x - axis_line_length / 2f64 + axis_line_length / 10f64,
+                                drawn_node.y + axis_line_length / 30f64);
+                            context.line_to(
+                                drawn_node.x - axis_line_length / 2f64 + axis_line_length / 10f64,
+                                drawn_node.y - axis_line_length / 30f64);
+                            context.line_to(drawn_node.x - axis_line_length / 2f64, drawn_node.y);
+                            context.set_fill_style(&CANVAS_FORCE_COLOR.into());
+                            context.fill();
+                            context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
+                            context.fill_text(
+                                &force_x.to_string(),
+                                drawn_node.x - axis_line_length / 2f64 - (force_x.to_string().chars().count() as f64 * axis_line_length / 14f64),
+                                drawn_node.y - axis_line_length / 14f64)
+                                .unwrap();
+                            context.stroke();
+                        }
+                    }
+
+                    if let Some(force_y) = aux_force.force_y_value
+                    {
+                        if force_y > 0f32
+                        {
+                            context.begin_path();
+                            context.move_to(drawn_node.x, drawn_node.y - axis_line_length / 25f64);
+                            context.set_stroke_style(&CANVAS_FORCE_COLOR.into());
+                            context.line_to(
+                                drawn_node.x,
+                                drawn_node.y - axis_line_length / 2f64 + axis_line_length / 10f64);
+                            context.move_to(drawn_node.x, drawn_node.y - axis_line_length / 2f64);
+                            context.line_to(
+                                drawn_node.x + axis_line_length / 30f64,
+                                drawn_node.y - axis_line_length / 2f64 + axis_line_length / 10f64);
+                            context.line_to(
+                                drawn_node.x - axis_line_length / 30f64,
+                                drawn_node.y - axis_line_length / 2f64 + axis_line_length / 10f64);
+                            context.line_to(drawn_node.x, drawn_node.y - axis_line_length / 2f64);
+                            context.set_fill_style(&CANVAS_FORCE_COLOR.into());
+                            context.fill();
+                            context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
+                            context.fill_text(
+                                &force_y.to_string(),
+                                drawn_node.x + axis_line_length / 14f64,
+                                drawn_node.y - axis_line_length / 2f64)
+                                .unwrap();
+                            context.stroke();
+                        }
+                        if force_y < 0f32
+                        {
+                            context.begin_path();
+                            context.move_to(drawn_node.x, drawn_node.y + axis_line_length / 25f64);
+                            context.set_stroke_style(&CANVAS_FORCE_COLOR.into());
+                            context.line_to(
+                                drawn_node.x,
+                                drawn_node.y + axis_line_length / 2f64 - axis_line_length / 10f64);
+                            context.move_to(drawn_node.x, drawn_node.y + axis_line_length / 2f64);
+                            context.line_to(
+                                drawn_node.x + axis_line_length / 30f64,
+                                drawn_node.y + axis_line_length / 2f64 - axis_line_length / 10f64);
+                            context.line_to(
+                                drawn_node.x - axis_line_length / 30f64,
+                                drawn_node.y + axis_line_length / 2f64 - axis_line_length / 10f64);
+                            context.line_to(drawn_node.x, drawn_node.y + axis_line_length / 2f64);
+                            context.set_fill_style(&CANVAS_FORCE_COLOR.into());
+                            context.fill();
+                            context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
+                            context.fill_text(
+                                &force_y.to_string(),
+                                drawn_node.x + axis_line_length / 14f64,
+                                drawn_node.y + axis_line_length / 2f64 + axis_line_length / 14f64)
+                                .unwrap();
+                            context.stroke();
+                        }
+                    }
                 }
             }
         }

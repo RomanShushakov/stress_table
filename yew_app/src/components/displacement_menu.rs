@@ -576,70 +576,84 @@ impl Component for DisplacementMenu
                 },
             Msg::ApplyDisplacementDataChange =>
                 {
-                    if self.state.displacement_x_is_active
-                    {
-                        self.state.selected_displacement.x_direction_value =
-                            self.read_inputted_displacement(DISPLACEMENT_IN_X_DIRECTION_VALUE);
-                    }
-                    if self.state.displacement_y_is_active
-                    {
-                        self.state.selected_displacement.y_direction_value =
-                            self.read_inputted_displacement(DISPLACEMENT_IN_Y_DIRECTION_VALUE);
-                    }
-                    if self.state.displacement_z_is_active
-                    {
-                        self.state.selected_displacement.z_direction_value =
-                            self.read_inputted_displacement(DISPLACEMENT_IN_Z_DIRECTION_VALUE);
-                    }
-                    if self.state.rotation_xy_is_active
-                    {
-                        self.state.selected_displacement.xy_plane_value =
-                            self.read_inputted_displacement(ROTATION_IN_XY_PLANE_VALUE);
-                    }
-                    if self.state.rotation_yz_is_active
-                    {
-                        self.state.selected_displacement.yz_plane_value =
-                            self.read_inputted_displacement(ROTATION_IN_YZ_PLANE_VALUE);
-                    }
-                   if self.state.rotation_zx_is_active
-                    {
-                        self.state.selected_displacement.zx_plane_value =
-                            self.read_inputted_displacement(ROTATION_IN_ZX_PLANE_VALUE);
-                    }
-
-                    if let None = self.props.aux_elements
+                    if let None = self.props.aux_displacements
                         .iter()
-                        .position(|element|
-                              {
-                                  match element.element_type
+                        .position(|displacement|
+                            {
+                                (displacement.node_number == self.state.selected_displacement.node_number) &&
+                                (displacement.number != self.state.selected_displacement.number)
+                            })
+                    {
+                        if self.state.displacement_x_is_active
+                        {
+                            self.state.selected_displacement.x_direction_value =
+                                self.read_inputted_displacement(DISPLACEMENT_IN_X_DIRECTION_VALUE);
+                        }
+                        if self.state.displacement_y_is_active
+                        {
+                            self.state.selected_displacement.y_direction_value =
+                                self.read_inputted_displacement(DISPLACEMENT_IN_Y_DIRECTION_VALUE);
+                        }
+                        if self.state.displacement_z_is_active
+                        {
+                            self.state.selected_displacement.z_direction_value =
+                                self.read_inputted_displacement(DISPLACEMENT_IN_Z_DIRECTION_VALUE);
+                        }
+                        if self.state.rotation_xy_is_active
+                        {
+                            self.state.selected_displacement.xy_plane_value =
+                                self.read_inputted_displacement(ROTATION_IN_XY_PLANE_VALUE);
+                        }
+                        if self.state.rotation_yz_is_active
+                        {
+                            self.state.selected_displacement.yz_plane_value =
+                                self.read_inputted_displacement(ROTATION_IN_YZ_PLANE_VALUE);
+                        }
+                       if self.state.rotation_zx_is_active
+                        {
+                            self.state.selected_displacement.zx_plane_value =
+                                self.read_inputted_displacement(ROTATION_IN_ZX_PLANE_VALUE);
+                        }
+
+                        if let None = self.props.aux_elements
+                            .iter()
+                            .position(|element|
                                   {
-                                      ElementType::Truss2n2ip =>
-                                          {
-                                              (element.node_1_number == self.state.selected_displacement.node_number) ||
-                                              (element.node_2_number == self.state.selected_displacement.node_number)
-                                          },
-                                      ElementType::OtherType =>
-                                          {
-                                              (element.node_1_number == self.state.selected_displacement.node_number) ||
-                                              (element.node_2_number == self.state.selected_displacement.node_number)
-                                          },
-                                  }
-                              })
-                    {
-                        yew::services::DialogService::alert(
-                            "The selected node does not used in any element.");
-                        return false;
-                    }
-                    if let Some(position) = self.props.aux_displacements
-                        .iter()
-                        .position(|displacement| displacement.number == self.state.selected_displacement.number)
-                    {
+                                      match element.element_type
+                                      {
+                                          ElementType::Truss2n2ip =>
+                                              {
+                                                  (element.node_1_number == self.state.selected_displacement.node_number) ||
+                                                  (element.node_2_number == self.state.selected_displacement.node_number)
+                                              },
+                                          ElementType::OtherType =>
+                                              {
+                                                  (element.node_1_number == self.state.selected_displacement.node_number) ||
+                                                  (element.node_2_number == self.state.selected_displacement.node_number)
+                                              },
+                                      }
+                                  })
+                        {
+                            yew::services::DialogService::alert(
+                                "The selected node does not used in any element.");
+                            return false;
+                        }
+                        if let Some(position) = self.props.aux_displacements
+                            .iter()
+                            .position(|displacement| displacement.number == self.state.selected_displacement.number)
+                        {
 
-                        self.props.update_aux_displacement.emit((position, self.state.selected_displacement.to_owned()));
+                            self.props.update_aux_displacement.emit((position, self.state.selected_displacement.to_owned()));
+                        }
+                        else
+                        {
+                            self.props.add_aux_displacement.emit(self.state.selected_displacement.to_owned());
+                        }
                     }
                     else
                     {
-                        self.props.add_aux_displacement.emit(self.state.selected_displacement.to_owned());
+                        yew::services::DialogService::alert(
+                            "The displacement is already applied to the selected node.");
                     }
                 },
             Msg::RemoveDisplacement =>

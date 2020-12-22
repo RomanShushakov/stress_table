@@ -299,71 +299,85 @@ impl Component for ForceMenu
                 },
             Msg::ApplyForceDataChange =>
                 {
-                    self.state.selected_force.force_x_value =
-                        self.read_inputted_force(FORCE_IN_X_DIRECTION_VALUE);
-                    self.state.selected_force.force_y_value =
-                        self.read_inputted_force(FORCE_IN_Y_DIRECTION_VALUE);
-                    if let Some(analysis_type) = &self.props.analysis_type
-                    {
-                        match analysis_type
-                        {
-                            AnalysisType::TwoDimensional =>
-                                {
-                                    if self.state.selected_force.is_rotation_stiffness_enabled
-                                    {
-                                        self.state.selected_force.moment_xy_value =
-                                            self.read_inputted_force(MOMENT_IN_XY_PLANE_VALUE);
-                                    }
-                                },
-                            AnalysisType::ThreeDimensional =>
-                                {
-                                    self.state.selected_force.force_z_value =
-                                        self.read_inputted_force(FORCE_IN_Z_DIRECTION_VALUE);
-                                    if self.state.selected_force.is_rotation_stiffness_enabled
-                                    {
-                                        self.state.selected_force.moment_xy_value =
-                                            self.read_inputted_force(MOMENT_IN_XY_PLANE_VALUE);
-                                        self.state.selected_force.moment_yz_value =
-                                            self.read_inputted_force(MOMENT_IN_YZ_PLANE_VALUE);
-                                        self.state.selected_force.moment_zx_value =
-                                            self.read_inputted_force(MOMENT_IN_ZX_PLANE_VALUE);
-                                    }
-                                }
-                        }
-                    }
-                    if let None = self.props.aux_elements
+                    if let None = self.props.aux_forces
                         .iter()
-                        .position(|element|
+                        .position(|force|
                             {
-                                match element.element_type
-                                {
-                                    ElementType::Truss2n2ip =>
-                                        {
-                                            (element.node_1_number == self.state.selected_force.node_number) ||
-                                            (element.node_2_number == self.state.selected_force.node_number)
-                                        },
-                                    ElementType::OtherType =>
-                                        {
-                                            (element.node_1_number == self.state.selected_force.node_number) ||
-                                            (element.node_2_number == self.state.selected_force.node_number)
-                                        },
-                                }
+                                (force.node_number == self.state.selected_force.node_number) &&
+                                (force.number != self.state.selected_force.number)
                             })
                     {
-                        yew::services::DialogService::alert(
-                            "The selected node does not used in any element.");
-                        return false;
-                    }
-                    if let Some(position) = self.props.aux_forces
-                        .iter()
-                        .position(|force| force.number == self.state.selected_force.number)
-                    {
+                        self.state.selected_force.force_x_value =
+                            self.read_inputted_force(FORCE_IN_X_DIRECTION_VALUE);
+                        self.state.selected_force.force_y_value =
+                            self.read_inputted_force(FORCE_IN_Y_DIRECTION_VALUE);
+                        if let Some(analysis_type) = &self.props.analysis_type
+                        {
+                            match analysis_type
+                            {
+                                AnalysisType::TwoDimensional =>
+                                    {
+                                        if self.state.selected_force.is_rotation_stiffness_enabled
+                                        {
+                                            self.state.selected_force.moment_xy_value =
+                                                self.read_inputted_force(MOMENT_IN_XY_PLANE_VALUE);
+                                        }
+                                    },
+                                AnalysisType::ThreeDimensional =>
+                                    {
+                                        self.state.selected_force.force_z_value =
+                                            self.read_inputted_force(FORCE_IN_Z_DIRECTION_VALUE);
+                                        if self.state.selected_force.is_rotation_stiffness_enabled
+                                        {
+                                            self.state.selected_force.moment_xy_value =
+                                                self.read_inputted_force(MOMENT_IN_XY_PLANE_VALUE);
+                                            self.state.selected_force.moment_yz_value =
+                                                self.read_inputted_force(MOMENT_IN_YZ_PLANE_VALUE);
+                                            self.state.selected_force.moment_zx_value =
+                                                self.read_inputted_force(MOMENT_IN_ZX_PLANE_VALUE);
+                                        }
+                                    }
+                            }
+                        }
+                        if let None = self.props.aux_elements
+                            .iter()
+                            .position(|element|
+                                {
+                                    match element.element_type
+                                    {
+                                        ElementType::Truss2n2ip =>
+                                            {
+                                                (element.node_1_number == self.state.selected_force.node_number) ||
+                                                (element.node_2_number == self.state.selected_force.node_number)
+                                            },
+                                        ElementType::OtherType =>
+                                            {
+                                                (element.node_1_number == self.state.selected_force.node_number) ||
+                                                (element.node_2_number == self.state.selected_force.node_number)
+                                            },
+                                    }
+                                })
+                        {
+                            yew::services::DialogService::alert(
+                                "The selected node does not used in any element.");
+                            return false;
+                        }
+                        if let Some(position) = self.props.aux_forces
+                            .iter()
+                            .position(|force| force.number == self.state.selected_force.number)
+                        {
 
-                        self.props.update_aux_force.emit((position, self.state.selected_force.to_owned()));
+                            self.props.update_aux_force.emit((position, self.state.selected_force.to_owned()));
+                        }
+                        else
+                        {
+                            self.props.add_aux_force.emit(self.state.selected_force.to_owned());
+                        }
                     }
                     else
                     {
-                        self.props.add_aux_force.emit(self.state.selected_force.to_owned());
+                        yew::services::DialogService::alert(
+                            "The force is already applied to the selected node.");
                     }
                 },
             Msg::RemoveForce =>

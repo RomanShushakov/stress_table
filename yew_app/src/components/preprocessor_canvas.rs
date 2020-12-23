@@ -10,7 +10,6 @@ use crate::fe::fe_node::FeNode;
 use crate::auxiliary::{DrawnNode, View, AuxElement, ElementType, AuxDisplacement, AuxForce};
 
 
-const CANVAS_ID: &str = "canvas";
 const CANVAS_BACKGROUND_COLOR: &str = "white";
 const CANVAS_X_AXIS_COLOR: &str = "red";
 const CANVAS_Y_AXIS_COLOR: &str = "green";
@@ -33,21 +32,20 @@ pub struct Props
 }
 
 
-pub struct Canvas
+pub struct PreprocessorCanvas
 {
     // link: ComponentLink<Self>,
     props: Props,
 }
 
 
-impl Canvas
+impl PreprocessorCanvas
 {
     fn draw_plane_xy(&self) -> Html
     {
         let window = web_sys::window().unwrap();
         let document = window.document().unwrap();
         let element = document.create_element("canvas").unwrap();
-        element.set_id(CANVAS_ID);
         let canvas = element.dyn_into::<HtmlCanvasElement>()
             .map_err(|_| ())
             .unwrap();
@@ -431,7 +429,8 @@ impl Canvas
                             context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
                             context.fill_text(
                                 &force_x.to_string(),
-                                drawn_node.x - axis_line_length / 2f64 - (force_x.to_string().chars().count() as f64 * axis_line_length / 14f64),
+                                drawn_node.x - axis_line_length / 2f64 -
+                                    (force_x.to_string().chars().count() as f64 * axis_line_length / 14f64),
                                 drawn_node.y - axis_line_length / 14f64)
                                 .unwrap();
                             context.stroke();
@@ -592,7 +591,7 @@ impl Canvas
 }
 
 
-impl Component for Canvas
+impl Component for PreprocessorCanvas
 {
     type Message = ();
     type Properties = Props;

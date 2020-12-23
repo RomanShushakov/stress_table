@@ -28,13 +28,21 @@ use fe::fe_aux_structs::{Displacement, AxisComponent, Force};
 mod components;
 use components::
     {
-        AnalysisTypeMenu, NodeMenu, Canvas, ElementMenu, ViewMenu, DisplacementMenu, ForceMenu
+        AnalysisTypeMenu, NodeMenu, PreprocessorCanvas, ElementMenu, ViewMenu, DisplacementMenu, ForceMenu
     };
 mod auxiliary;
 use auxiliary::{AuxElement, AnalysisType, View, ElementType, AuxDisplacement, AuxForce};
 
 
 pub const NUMBER_OF_DOF: i32 = 6;
+
+const MAIN_CLASS: &str = "main";
+const MAIN_CONTAINER_CLASS: &str = "main_container";
+const PREPROCESSOR_CLASS: &str = "preprocessor";
+const PREPROCESSOR_MENU_CLASS: &str = "preprocessor_menu";
+pub const PREPROCESSOR_BUTTON_CLASS: &str = "preprocessor_button";
+const PREPROCESSOR_CANVAS_CLASS: &str = "preprocessor_canvas";
+const ANALYSIS_ERROR_CLASS: &str = "analysis_error";
 
 
 struct State
@@ -48,7 +56,7 @@ struct State
     aux_displacements: Vec<AuxDisplacement>,
     aux_forces: Vec<AuxForce>,
     max_stress: Option<f64>,
-    error_message: Option<String>,
+    analysis_error_message: Option<String>,
 }
 
 
@@ -79,6 +87,7 @@ enum Msg
     UpdateAuxForce((usize, AuxForce)),
     RemoveAuxForce(usize),
     Submit,
+    ResetAnalysisErrorMessage,
 }
 
 
@@ -348,7 +357,7 @@ impl Component for Model
                     aux_displacements: Vec::new(),
                     aux_forces: Vec::new(),
                     max_stress: None,
-                    error_message: None,
+                    analysis_error_message: None,
                 },
             resize_task: None, resize_service: ResizeService::new(),
         }
@@ -433,9 +442,10 @@ impl Component for Model
                     match self.submit()
                     {
                         Ok(stress) => self.state.max_stress = Some(stress),
-                        Err(msg) => self.state.error_message = Some(msg),
+                        Err(msg) => self.state.analysis_error_message = Some(msg),
                     }
                 },
+            Msg::ResetAnalysisErrorMessage => self.state.analysis_error_message = None,
         }
         true
     }
@@ -469,93 +479,104 @@ impl Component for Model
         let handle_add_aux_force = self.link.callback(|force: AuxForce| Msg::AddAuxForce(force));
         let handle_update_aux_force = self.link.callback(|data: (usize, AuxForce)| Msg::UpdateAuxForce(data));
         let handle_remove_aux_force = self.link.callback(|position: usize| Msg::RemoveAuxForce(position));
-        html! {
-            <div class="container">
-                <div class="preprocessor">
-                    <div class="menu">
-                        <AnalysisTypeMenu
-                            analysis_type=self.state.analysis_type.to_owned(),
-                            add_analysis_type=handle_add_analysis_type,
-                        />
-                        <ViewMenu
-                            view=self.state.view.to_owned(),
-                            change_view=handle_change_view,
-                        />
-                        <NodeMenu
-                            analysis_type=self.state.analysis_type.to_owned(),
-                            nodes=self.state.nodes.to_owned(), add_node=handle_add_node,
-                            update_node=handle_update_node, remove_node=handle_remove_node,
-                        />
-                        <ElementMenu
-                            analysis_type=self.state.analysis_type.to_owned(),
-                            nodes=self.state.nodes.to_owned(),
-                            aux_elements=self.state.aux_elements.to_owned(),
-                            add_aux_element=handle_add_aux_element,
-                            update_aux_element=handle_update_aux_element,
-                            remove_aux_element=handle_remove_aux_element,
-                        />
-                        <DisplacementMenu
-                            analysis_type=self.state.analysis_type.to_owned(),
-                            aux_elements=self.state.aux_elements.to_owned(),
-                            aux_displacements=self.state.aux_displacements.to_owned(),
-                            add_aux_displacement=handle_add_aux_displacement,
-                            update_aux_displacement=handle_update_aux_displacement,
-                            remove_aux_displacement=handle_remove_aux_displacement,
-                        />
-                        <ForceMenu
-                            analysis_type=self.state.analysis_type.to_owned(),
-                            aux_elements=self.state.aux_elements.to_owned(),
-                            aux_forces=self.state.aux_forces.to_owned(),
-                            add_aux_force=handle_add_aux_force,
-                            update_aux_force=handle_update_aux_force,
-                            remove_aux_force=handle_remove_aux_force,
-                        />
-                        <button class="button"
-                            onclick=self.link.callback(|_| Msg::Submit),
-                            disabled={ !self.check_preprocessor_data() }
-                        >
-                            { "Submit" }
-                        </button>
+        html!
+        {
+            <main class={ MAIN_CLASS }>
+                <div class={ MAIN_CONTAINER_CLASS }>
+                    <div class={ PREPROCESSOR_CLASS }>
+                        <div class={ PREPROCESSOR_MENU_CLASS }>
+                            <AnalysisTypeMenu
+                                analysis_type=self.state.analysis_type.to_owned(),
+                                add_analysis_type=handle_add_analysis_type,
+                            />
+                            <ViewMenu
+                                view=self.state.view.to_owned(),
+                                change_view=handle_change_view,
+                            />
+                            <NodeMenu
+                                analysis_type=self.state.analysis_type.to_owned(),
+                                nodes=self.state.nodes.to_owned(), add_node=handle_add_node,
+                                update_node=handle_update_node, remove_node=handle_remove_node,
+                            />
+                            <ElementMenu
+                                analysis_type=self.state.analysis_type.to_owned(),
+                                nodes=self.state.nodes.to_owned(),
+                                aux_elements=self.state.aux_elements.to_owned(),
+                                add_aux_element=handle_add_aux_element,
+                                update_aux_element=handle_update_aux_element,
+                                remove_aux_element=handle_remove_aux_element,
+                            />
+                            <DisplacementMenu
+                                analysis_type=self.state.analysis_type.to_owned(),
+                                aux_elements=self.state.aux_elements.to_owned(),
+                                aux_displacements=self.state.aux_displacements.to_owned(),
+                                add_aux_displacement=handle_add_aux_displacement,
+                                update_aux_displacement=handle_update_aux_displacement,
+                                remove_aux_displacement=handle_remove_aux_displacement,
+                            />
+                            <ForceMenu
+                                analysis_type=self.state.analysis_type.to_owned(),
+                                aux_elements=self.state.aux_elements.to_owned(),
+                                aux_forces=self.state.aux_forces.to_owned(),
+                                add_aux_force=handle_add_aux_force,
+                                update_aux_force=handle_update_aux_force,
+                                remove_aux_force=handle_remove_aux_force,
+                            />
+                            <button class={ PREPROCESSOR_BUTTON_CLASS }
+                                onclick=self.link.callback(|_| Msg::Submit),
+                                disabled={ !self.check_preprocessor_data() },
+                            >
+                                { "Submit" }
+                            </button>
+                        </div>
+                        <div class={ PREPROCESSOR_CANVAS_CLASS }>
+                            <PreprocessorCanvas
+                                view=self.state.view.to_owned(),
+                                canvas_width=self.state.canvas_width,
+                                canvas_height=self.state.canvas_height,
+                                nodes=self.state.nodes.to_owned(),
+                                aux_elements=self.state.aux_elements.to_owned(),
+                                aux_displacements=self.state.aux_displacements.to_owned(),
+                                aux_forces=self.state.aux_forces.to_owned(),
+                            />
+                        </div>
                     </div>
-                    <div class="canvas">
-                        <Canvas
-                            view=self.state.view.to_owned(),
-                            canvas_width=self.state.canvas_width,
-                            canvas_height=self.state.canvas_height,
-                            nodes=self.state.nodes.to_owned(),
-                            aux_elements=self.state.aux_elements.to_owned(),
-                            aux_displacements=self.state.aux_displacements.to_owned(),
-                            aux_forces=self.state.aux_forces.to_owned(),
-                        />
-                    </div>
+                    // {
+                    //     if let Some(max_stress) = self.state.max_stress
+                    //     {
+                    //         html!
+                    //         {
+                    //             <p>{ max_stress }</p>
+                    //         }
+                    //     }
+                    //     else
+                    //     {
+                    //         html! {}
+                    //     }
+                    // }
+                    {
+                        if let Some(error_message) = &self.state.analysis_error_message
+                        {
+                            html!
+                            {
+                                <div class={ ANALYSIS_ERROR_CLASS }>
+                                    <p>{ error_message }</p>
+                                    <button
+                                        class="button"
+                                        onclick=self.link.callback(|_| Msg::ResetAnalysisErrorMessage)
+                                    >
+                                        { "Hide" }
+                                    </button>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            html! {}
+                        }
+                    }
                 </div>
-                {
-                    if let Some(max_stress) = self.state.max_stress
-                    {
-                        html!
-                        {
-                            <p>{ max_stress }</p>
-                        }
-                    }
-                    else
-                    {
-                        html! {}
-                    }
-                }
-                {
-                    if let Some(error_message) = &self.state.error_message
-                    {
-                        html!
-                        {
-                            <p>{ error_message }</p>
-                        }
-                    }
-                    else
-                    {
-                        html! {}
-                    }
-                }
-            </div>
+            </main>
         }
     }
 

@@ -11,7 +11,7 @@ body {
 }
 
 
-.container {
+.main_container {
     display: flex;
     align-items: start;
     box-sizing: content-box;
@@ -31,7 +31,7 @@ body {
 }
 
 
-.menu {
+.preprocessor_menu {
     display: flex;
     align-items: center;
     align-self: start;
@@ -43,7 +43,7 @@ body {
 }
 
 
-.button {
+.preprocessor_button {
     margin-right: 0.5rem;
     width: 10.0rem;
 }

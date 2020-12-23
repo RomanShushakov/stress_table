@@ -1,15 +1,19 @@
 use yew::prelude::*;
 use web_sys::DomTokenList;
-use crate::AnalysisType;
+use crate::{AnalysisType, PREPROCESSOR_BUTTON_CLASS};
 
 
 const ANALYSIS_TYPE_MENU_ID: &str = "analysis_type_menu";
-const ANALYSIS_TYPE_MENU: &str = "analysis_type_menu";
+const ANALYSIS_TYPE_MENU_CLASS: &str = "analysis_type_menu";
+const ANALYSIS_TYPE_MENU_INPUT_FIELDS_CONTAINER_CLASS: &str = "analysis_type_menu_input_fields_container";
+const ANALYSIS_TYPE_MENU_INPUT_FIELD_CONTAINER_CLASS: &str = "analysis_type_menu_input_field_container";
+const ANALYSIS_TYPE_MENU_INPUT_FIELD_CLASS: &str = "analysis_type_menu_input_field";
+const ANALYSIS_TYPE_MENU_BUTTONS_CONTAINER_CLASS: &str = "analysis_type_menu_buttons";
+const ANALYSIS_TYPE_MENU_BUTTON_CLASS: &str = "analysis_type_menu_button";
 const HIDDEN: &str = "hidden";
 const ANALYSIS_TYPE_INPUT_NAME: &str = "analysis_type";
 const TWO_DIMENSIONAL_ANALYSIS_TYPE_ID: &str = "two_dimensional_analysis";
 const THREE_DIMENSIONAL_ANALYSIS_TYPE_ID: &str = "three_dimensional_analysis";
-const ANALYSIS_TYPE_MENU_INPUT_FIELD: &str = "analysis_type_menu_input";
 
 
 #[derive(Properties, PartialEq, Clone)]
@@ -52,11 +56,11 @@ impl AnalysisTypeMenu
         let class_list: DomTokenList = element.class_list();
         if class_list.contains(HIDDEN)
         {
-            element.set_class_name(ANALYSIS_TYPE_MENU);
+            element.set_class_name(ANALYSIS_TYPE_MENU_CLASS);
         }
         else
         {
-            element.set_class_name(&(ANALYSIS_TYPE_MENU.to_owned() + " " + HIDDEN));
+            element.set_class_name(&(ANALYSIS_TYPE_MENU_CLASS.to_owned() + " " + HIDDEN));
         }
     }
 
@@ -66,7 +70,7 @@ impl AnalysisTypeMenu
         let window = web_sys::window().unwrap();
         let document = window.document().unwrap();
         let element = document.get_element_by_id(ANALYSIS_TYPE_MENU_ID).unwrap();
-        element.set_class_name(&(ANALYSIS_TYPE_MENU.to_owned() + " " + HIDDEN));
+        element.set_class_name(&(ANALYSIS_TYPE_MENU_CLASS.to_owned() + " " + HIDDEN));
     }
 }
 
@@ -136,7 +140,7 @@ impl Component for AnalysisTypeMenu
         {
             <>
                 <button
-                    class="button",
+                    class={ PREPROCESSOR_BUTTON_CLASS },
                     disabled=
                         {
                             if self.props.analysis_type.is_some()
@@ -153,13 +157,17 @@ impl Component for AnalysisTypeMenu
                 >
                     { "Analysis type" }
                 </button>
-                <div id = { ANALYSIS_TYPE_MENU_ID } class={ ANALYSIS_TYPE_MENU.to_owned() + " " + HIDDEN }>
-                    <div class="analysis_type_menu_input_fields">
-                        <div class="analysis_type_input_field_container">
+                <div
+                    id={ ANALYSIS_TYPE_MENU_ID },
+                    class={ ANALYSIS_TYPE_MENU_CLASS.to_owned() + " " + HIDDEN }
+                >
+                    <div class={ ANALYSIS_TYPE_MENU_INPUT_FIELDS_CONTAINER_CLASS }>
+                        <div class={ ANALYSIS_TYPE_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                             <input
-                                class={ ANALYSIS_TYPE_MENU_INPUT_FIELD },
+                                class={ ANALYSIS_TYPE_MENU_INPUT_FIELD_CLASS },
                                 onchange=self.link.callback(|data: ChangeData| Msg::SelectAnalysisType(data)),
-                                type="radio", id={ TWO_DIMENSIONAL_ANALYSIS_TYPE_ID },
+                                type="radio",
+                                id={ TWO_DIMENSIONAL_ANALYSIS_TYPE_ID },
                                 name={ ANALYSIS_TYPE_INPUT_NAME },
                                 value={ AnalysisType::TwoDimensional.as_str() },
                                 checked=true
@@ -168,11 +176,12 @@ impl Component for AnalysisTypeMenu
                                 { AnalysisType::TwoDimensional.as_str() }
                             </label>
                         </div>
-                        <div class="analysis_type_input_field_container">
+                        <div class={ ANALYSIS_TYPE_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                             <input
-                                class={ ANALYSIS_TYPE_MENU_INPUT_FIELD },
+                                class={ ANALYSIS_TYPE_MENU_INPUT_FIELD_CLASS },
                                 onchange=self.link.callback(|data: ChangeData| Msg::SelectAnalysisType(data)),
-                                type="radio", id={ THREE_DIMENSIONAL_ANALYSIS_TYPE_ID },
+                                type="radio",
+                                id={ THREE_DIMENSIONAL_ANALYSIS_TYPE_ID },
                                 name={ ANALYSIS_TYPE_INPUT_NAME },
                                 value={ AnalysisType::ThreeDimensional.as_str() },
                                 // disabled=true,
@@ -182,10 +191,10 @@ impl Component for AnalysisTypeMenu
                             </label>
                         </div>
                     </div>
-                    <div class="analysis_type_menu_buttons">
+                    <div class={ ANALYSIS_TYPE_MENU_BUTTONS_CONTAINER_CLASS }>
                         <button
-                            class="analysis_type_menu_button",
-                            onclick=self.link.callback(|_| Msg::ApplyAnalysisType),
+                            class={ ANALYSIS_TYPE_MENU_BUTTON_CLASS },
+                            onclick=self.link.callback(|_| Msg::ApplyAnalysisType)
                         >
                             { "Apply" }
                         </button>

@@ -47,3 +47,8 @@ body {
     margin-right: 0.5rem;
     width: 10.0rem;
 }
+
+
+input {
+    width: 10rem;
+}

@@ -7,15 +7,23 @@ use web_sys::
 use wasm_bindgen::JsCast;
 
 use crate::fe::fe_node::FeNode;
-use crate::{Coordinates, AnalysisType, AuxDisplacement, AuxElement, ElementType};
+use crate::
+    {
+        Coordinates, AnalysisType, AuxDisplacement, AuxElement, ElementType,
+        PREPROCESSOR_BUTTON_CLASS
+    };
 use crate::auxiliary::AuxDisplacementInputOption;
 
 
 const DISPLACEMENT_MENU_ID: &str = "displacement_menu";
-const DISPLACEMENT_MENU: &str = "displacement_menu";
+const DISPLACEMENT_MENU_CLASS: &str = "displacement_menu";
+const DISPLACEMENT_MENU_INPUT_FIELDS_CONTAINER_CLASS: &str = "displacement_menu_input_fields_container";
+const DISPLACEMENT_MENU_INPUT_FIELDS_LIST_CLASS: &str = "displacement_menu_input_fields_list";
+const DISPLACEMENT_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS: &str = "displacement_menu_input_fields_descriptions";
+const DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS: &str = "displacement_input_field_container";
 const HIDDEN: &str = "hidden";
 const DISPLACEMENT_SELECT_ID: &str = "displacement_select";
-const DISPLACEMENT_MENU_INPUT_FIELD: &str = "displacement_menu_input";
+const DISPLACEMENT_MENU_INPUT_FIELD_CLASS: &str = "displacement_menu_input_field";
 const DISPLACEMENT_IN_X_DIRECTION_INPUT_NAME: &str = "displacement_x_direction_input_name";
 const DISPLACEMENT_IN_X_DIRECTION_VALUE: &str = "displacement_x_direction_value";
 const DISPLACEMENT_IN_Y_DIRECTION_INPUT_NAME: &str = "displacement_y_direction_input_name";
@@ -28,6 +36,8 @@ const ROTATION_IN_YZ_PLANE_INPUT_NAME: &str = "rotation_in_yz_plane_input_name";
 const ROTATION_IN_YZ_PLANE_VALUE: &str = "rotation_in_yz_plane_value";
 const ROTATION_IN_ZX_PLANE_INPUT_NAME: &str = "rotation_in_zx_plane_input_name";
 const ROTATION_IN_ZX_PLANE_VALUE: &str = "rotation_in_zx_plane_value";
+const DISPLACEMENT_MENU_BUTTONS_CONTAINER_CLASS: &str = "displacement_menu_buttons";
+const DISPLACEMENT_MENU_BUTTON_CLASS: &str = "displacement_menu_button";
 
 
 #[derive(Properties, PartialEq, Clone)]
@@ -88,11 +98,11 @@ impl DisplacementMenu
         let class_list: DomTokenList = element.class_list();
         if class_list.contains(HIDDEN)
         {
-            element.set_class_name(DISPLACEMENT_MENU);
+            element.set_class_name(DISPLACEMENT_MENU_CLASS);
         }
         else
         {
-            element.set_class_name(&(DISPLACEMENT_MENU.to_owned() + " " + HIDDEN));
+            element.set_class_name(&(DISPLACEMENT_MENU_CLASS.to_owned() + " " + HIDDEN));
         }
     }
 
@@ -718,14 +728,15 @@ impl Component for DisplacementMenu
         {
             <>
                 <button
-                    class="button", onclick=self.link.callback(|_| Msg::ShowHideDisplacementMenu),
+                    class={ PREPROCESSOR_BUTTON_CLASS },
+                    onclick=self.link.callback(|_| Msg::ShowHideDisplacementMenu),
                     disabled={ if self.props.analysis_type.is_some() { false } else { true } },
                 >
                     { "Displacement" }
                 </button>
-                <div id = { DISPLACEMENT_MENU_ID } class={ DISPLACEMENT_MENU.to_owned() + " " + HIDDEN }>
-                    <div class="displacement_menu_input_fields">
-                        <ul class="displacement_menu_input_fields_list">
+                <div id = { DISPLACEMENT_MENU_ID } class={ DISPLACEMENT_MENU_CLASS.to_owned() + " " + HIDDEN }>
+                    <div class={ DISPLACEMENT_MENU_INPUT_FIELDS_CONTAINER_CLASS }>
+                        <ul class={ DISPLACEMENT_MENU_INPUT_FIELDS_LIST_CLASS }>
                             <li>
                                 {
                                     html!
@@ -746,7 +757,7 @@ impl Component for DisplacementMenu
                                 {
                                     <>
                                         <li>
-                                            <p class="displacement_menu_input_fields_descriptions">
+                                            <p class={ DISPLACEMENT_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
                                                 { "Node number:" }
                                             </p>
                                             <input
@@ -757,12 +768,12 @@ impl Component for DisplacementMenu
                                             />
                                         </li>
                                         <li>
-                                            <p class="displacement_menu_input_fields_descriptions">
+                                            <p class={ DISPLACEMENT_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
                                                 { "Displacement in the X direction:" }
                                             </p>
-                                            <div class="displacement_input_field_container">
+                                            <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                                                 <input
-                                                    class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                    class={ DISPLACEMENT_MENU_INPUT_FIELD_CLASS },
                                                     onchange=self.link.callback(|data: ChangeData| Msg::SelectDisplacementXInputOption(data)),
                                                     type="radio", id={ DISPLACEMENT_IN_X_DIRECTION_INPUT_NAME },
                                                     name={ DISPLACEMENT_IN_X_DIRECTION_INPUT_NAME },
@@ -773,9 +784,9 @@ impl Component for DisplacementMenu
                                                     { AuxDisplacementInputOption::Free.as_str() }
                                                 </label>
                                             </div>
-                                            <div class="displacement_input_field_container">
+                                            <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                                                 <input
-                                                    class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                    class={ DISPLACEMENT_MENU_INPUT_FIELD_CLASS },
                                                     onchange=self.link.callback(|data: ChangeData| Msg::SelectDisplacementXInputOption(data)),
                                                     type="radio", id={ DISPLACEMENT_IN_X_DIRECTION_INPUT_NAME },
                                                     name={ DISPLACEMENT_IN_X_DIRECTION_INPUT_NAME },
@@ -803,9 +814,9 @@ impl Component for DisplacementMenu
                                                     { AuxDisplacementInputOption::Restrained.as_str() }
                                                 </label>
                                             </div>
-                                            <div class="displacement_input_field_container">
+                                            <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                                                 <input
-                                                    class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                    class={ DISPLACEMENT_MENU_INPUT_FIELD_CLASS },
                                                     onchange=self.link.callback(|data: ChangeData| Msg::SelectDisplacementXInputOption(data)),
                                                     type="radio", id={ DISPLACEMENT_IN_X_DIRECTION_INPUT_NAME },
                                                     name={ DISPLACEMENT_IN_X_DIRECTION_INPUT_NAME },
@@ -837,12 +848,12 @@ impl Component for DisplacementMenu
                                             />
                                         </li>
                                         <li>
-                                            <p class="displacement_menu_input_fields_descriptions">
+                                            <p class={ DISPLACEMENT_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
                                                 { "Displacement in the Y direction:" }
                                             </p>
-                                            <div class="displacement_input_field_container">
+                                            <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                                                 <input
-                                                    class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                    class={ DISPLACEMENT_MENU_INPUT_FIELD_CLASS },
                                                     onchange=self.link.callback(|data: ChangeData| Msg::SelectDisplacementYInputOption(data)),
                                                     type="radio", id={ DISPLACEMENT_IN_Y_DIRECTION_INPUT_NAME },
                                                     name={ DISPLACEMENT_IN_Y_DIRECTION_INPUT_NAME },
@@ -853,9 +864,9 @@ impl Component for DisplacementMenu
                                                     { AuxDisplacementInputOption::Free.as_str() }
                                                 </label>
                                             </div>
-                                            <div class="displacement_input_field_container">
+                                            <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                                                 <input
-                                                    class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                    class={ DISPLACEMENT_MENU_INPUT_FIELD_CLASS },
                                                     onchange=self.link.callback(|data: ChangeData| Msg::SelectDisplacementYInputOption(data)),
                                                     type="radio", id={ DISPLACEMENT_IN_Y_DIRECTION_INPUT_NAME },
                                                     name={ DISPLACEMENT_IN_Y_DIRECTION_INPUT_NAME },
@@ -883,9 +894,9 @@ impl Component for DisplacementMenu
                                                     { AuxDisplacementInputOption::Restrained.as_str() }
                                                 </label>
                                             </div>
-                                            <div class="displacement_input_field_container">
+                                            <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                                                 <input
-                                                    class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                    class={ DISPLACEMENT_MENU_INPUT_FIELD_CLASS },
                                                     onchange=self.link.callback(|data: ChangeData| Msg::SelectDisplacementYInputOption(data)),
                                                     type="radio", id={ DISPLACEMENT_IN_Y_DIRECTION_INPUT_NAME },
                                                     name={ DISPLACEMENT_IN_Y_DIRECTION_INPUT_NAME },
@@ -928,12 +939,12 @@ impl Component for DisplacementMenu
                                                                 html!
                                                                 {
                                                                     <li>
-                                                                        <p class="displacement_menu_input_fields_descriptions">
+                                                                        <p class={ DISPLACEMENT_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
                                                                             { "Rotation in the XY plane:" }
                                                                         </p>
-                                                                        <div class="displacement_input_field_container">
+                                                                        <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                                                                             <input
-                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD_CLASS },
                                                                                 onchange=self.link.callback(|data: ChangeData| Msg::SelectRotationXYInputOption(data)),
                                                                                 type="radio",
                                                                                 id={ ROTATION_IN_XY_PLANE_INPUT_NAME },
@@ -945,9 +956,9 @@ impl Component for DisplacementMenu
                                                                                 { AuxDisplacementInputOption::Free.as_str() }
                                                                             </label>
                                                                         </div>
-                                                                        <div class="displacement_input_field_container">
+                                                                        <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                                                                             <input
-                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD_CLASS },
                                                                                 onchange=self.link.callback(|data: ChangeData| Msg::SelectRotationXYInputOption(data)),
                                                                                 type="radio",
                                                                                 id={ ROTATION_IN_XY_PLANE_INPUT_NAME },
@@ -976,9 +987,9 @@ impl Component for DisplacementMenu
                                                                                 { AuxDisplacementInputOption::Restrained.as_str() }
                                                                             </label>
                                                                         </div>
-                                                                        <div class="displacement_input_field_container">
+                                                                        <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                                                                             <input
-                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD_CLASS },
                                                                                 onchange=self.link.callback(|data: ChangeData| Msg::SelectRotationXYInputOption(data)),
                                                                                 type="radio",
                                                                                 id={ ROTATION_IN_XY_PLANE_INPUT_NAME },
@@ -1023,12 +1034,12 @@ impl Component for DisplacementMenu
                                                             {
                                                                 <>
                                                                     <li>
-                                                                        <p class="displacement_menu_input_fields_descriptions">
+                                                                        <p class={ DISPLACEMENT_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
                                                                             { "Displacement in the Z direction:" }
                                                                         </p>
-                                                                        <div class="displacement_input_field_container">
+                                                                        <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                                                                             <input
-                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD_CLASS },
                                                                                 onchange=self.link.callback(|data: ChangeData| Msg::SelectDisplacementZInputOption(data)),
                                                                                 type="radio",
                                                                                 id={ DISPLACEMENT_IN_Z_DIRECTION_INPUT_NAME },
@@ -1040,9 +1051,9 @@ impl Component for DisplacementMenu
                                                                                 { AuxDisplacementInputOption::Free.as_str() }
                                                                             </label>
                                                                         </div>
-                                                                        <div class="displacement_input_field_container">
+                                                                        <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                                                                             <input
-                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD_CLASS },
                                                                                 onchange=self.link.callback(|data: ChangeData| Msg::SelectDisplacementZInputOption(data)),
                                                                                 type="radio",
                                                                                 id={ DISPLACEMENT_IN_Z_DIRECTION_INPUT_NAME },
@@ -1071,9 +1082,9 @@ impl Component for DisplacementMenu
                                                                                 { AuxDisplacementInputOption::Restrained.as_str() }
                                                                             </label>
                                                                         </div>
-                                                                        <div class="displacement_input_field_container">
+                                                                        <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                                                                             <input
-                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD_CLASS },
                                                                                 onchange=self.link.callback(|data: ChangeData| Msg::SelectDisplacementZInputOption(data)),
                                                                                 type="radio",
                                                                                 id={ DISPLACEMENT_IN_Z_DIRECTION_INPUT_NAME },
@@ -1112,12 +1123,12 @@ impl Component for DisplacementMenu
                                                                             {
                                                                                 <>
                                                                                     <li>
-                                                                                        <p class="displacement_menu_input_fields_descriptions">
+                                                                                        <p class={ DISPLACEMENT_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
                                                                                             { "Rotation in the XY plane:" }
                                                                                         </p>
-                                                                                        <div class="displacement_input_field_container">
+                                                                                        <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                                                                                             <input
-                                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD_CLASS },
                                                                                                 onchange=self.link.callback(|data: ChangeData| Msg::SelectRotationXYInputOption(data)),
                                                                                                 type="radio",
                                                                                                 id={ ROTATION_IN_XY_PLANE_INPUT_NAME },
@@ -1129,9 +1140,9 @@ impl Component for DisplacementMenu
                                                                                                 { AuxDisplacementInputOption::Free.as_str() }
                                                                                             </label>
                                                                                         </div>
-                                                                                        <div class="displacement_input_field_container">
+                                                                                        <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                                                                                             <input
-                                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD_CLASS },
                                                                                                 onchange=self.link.callback(|data: ChangeData| Msg::SelectRotationXYInputOption(data)),
                                                                                                 type="radio",
                                                                                                 id={ ROTATION_IN_XY_PLANE_INPUT_NAME },
@@ -1160,9 +1171,9 @@ impl Component for DisplacementMenu
                                                                                                 { AuxDisplacementInputOption::Restrained.as_str() }
                                                                                             </label>
                                                                                         </div>
-                                                                                        <div class="displacement_input_field_container">
+                                                                                        <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                                                                                             <input
-                                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD_CLASS },
                                                                                                 onchange=self.link.callback(|data: ChangeData| Msg::SelectRotationXYInputOption(data)),
                                                                                                 type="radio",
                                                                                                 id={ ROTATION_IN_XY_PLANE_INPUT_NAME },
@@ -1195,12 +1206,12 @@ impl Component for DisplacementMenu
                                                                                         />
                                                                                     </li>
                                                                                     <li>
-                                                                                        <p class="displacement_menu_input_fields_descriptions">
+                                                                                        <p class={ DISPLACEMENT_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
                                                                                             { "Rotation in the YZ plane:" }
                                                                                         </p>
-                                                                                        <div class="displacement_input_field_container">
+                                                                                        <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                                                                                             <input
-                                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD_CLASS },
                                                                                                 onchange=self.link.callback(|data: ChangeData| Msg::SelectRotationYZInputOption(data)),
                                                                                                 type="radio",
                                                                                                 id={ ROTATION_IN_YZ_PLANE_INPUT_NAME },
@@ -1212,9 +1223,9 @@ impl Component for DisplacementMenu
                                                                                                 { AuxDisplacementInputOption::Free.as_str() }
                                                                                             </label>
                                                                                         </div>
-                                                                                        <div class="displacement_input_field_container">
+                                                                                        <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                                                                                             <input
-                                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD_CLASS },
                                                                                                 onchange=self.link.callback(|data: ChangeData| Msg::SelectRotationYZInputOption(data)),
                                                                                                 type="radio",
                                                                                                 id={ ROTATION_IN_YZ_PLANE_INPUT_NAME },
@@ -1243,9 +1254,9 @@ impl Component for DisplacementMenu
                                                                                                 { AuxDisplacementInputOption::Restrained.as_str() }
                                                                                             </label>
                                                                                         </div>
-                                                                                        <div class="displacement_input_field_container">
+                                                                                        <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                                                                                             <input
-                                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD_CLASS },
                                                                                                 onchange=self.link.callback(|data: ChangeData| Msg::SelectRotationYZInputOption(data)),
                                                                                                 type="radio",
                                                                                                 id={ ROTATION_IN_YZ_PLANE_INPUT_NAME },
@@ -1278,12 +1289,12 @@ impl Component for DisplacementMenu
                                                                                         />
                                                                                     </li>
                                                                                     <li>
-                                                                                        <p class="displacement_menu_input_fields_descriptions">
+                                                                                        <p class={ DISPLACEMENT_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
                                                                                             { "Rotation in the ZX plane:" }
                                                                                         </p>
-                                                                                        <div class="displacement_input_field_container">
+                                                                                        <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                                                                                             <input
-                                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD_CLASS },
                                                                                                 onchange=self.link.callback(|data: ChangeData| Msg::SelectRotationZXInputOption(data)),
                                                                                                 type="radio",
                                                                                                 id={ ROTATION_IN_ZX_PLANE_INPUT_NAME },
@@ -1295,9 +1306,9 @@ impl Component for DisplacementMenu
                                                                                                 { AuxDisplacementInputOption::Free.as_str() }
                                                                                             </label>
                                                                                         </div>
-                                                                                        <div class="displacement_input_field_container">
+                                                                                        <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                                                                                             <input
-                                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD_CLASS },
                                                                                                 onchange=self.link.callback(|data: ChangeData| Msg::SelectRotationZXInputOption(data)),
                                                                                                 type="radio",
                                                                                                 id={ ROTATION_IN_ZX_PLANE_INPUT_NAME },
@@ -1326,9 +1337,9 @@ impl Component for DisplacementMenu
                                                                                                 { AuxDisplacementInputOption::Restrained.as_str() }
                                                                                             </label>
                                                                                         </div>
-                                                                                        <div class="displacement_input_field_container">
+                                                                                        <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                                                                                             <input
-                                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD },
+                                                                                                class={ DISPLACEMENT_MENU_INPUT_FIELD_CLASS },
                                                                                                 onchange=self.link.callback(|data: ChangeData| Msg::SelectRotationZXInputOption(data)),
                                                                                                 type="radio",
                                                                                                 id={ ROTATION_IN_ZX_PLANE_INPUT_NAME },
@@ -1385,15 +1396,15 @@ impl Component for DisplacementMenu
                             }
                         </ul>
                     </div>
-                    <div class="displacement_menu_buttons">
+                    <div class={ DISPLACEMENT_MENU_BUTTONS_CONTAINER_CLASS }>
                         <button
-                            class="displacement_menu_button",
+                            class={ DISPLACEMENT_MENU_BUTTON_CLASS },
                             onclick=self.link.callback(|_| Msg::ApplyDisplacementDataChange),
                         >
                             { "Apply" }
                         </button>
                         <button
-                            class="displacement_menu_button",
+                            class={ DISPLACEMENT_MENU_BUTTON_CLASS },
                             onclick=self.link.callback(|_| Msg::RemoveDisplacement),
                         >
                             { "Remove" }

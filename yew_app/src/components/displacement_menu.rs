@@ -199,6 +199,17 @@ impl DisplacementMenu
         }
         rotational_stiffness_statuses.iter().any(|status| *status == true)
     }
+
+
+    fn check_inputted_data(&self) -> bool
+    {
+        self.state.selected_displacement.x_direction_value.is_some() ||
+        self.state.selected_displacement.y_direction_value.is_some() ||
+        self.state.selected_displacement.z_direction_value.is_some() ||
+        self.state.selected_displacement.xy_plane_value.is_some() ||
+        self.state.selected_displacement.yz_plane_value.is_some() ||
+        self.state.selected_displacement.zx_plane_value.is_some()
+    }
 }
 
 
@@ -613,6 +624,13 @@ impl Component for DisplacementMenu
                         {
                             self.state.selected_displacement.zx_plane_value =
                                 self.read_inputted_displacement(ROTATION_IN_ZX_PLANE_VALUE);
+                        }
+
+                        if !self.check_inputted_data()
+                        {
+                            yew::services::DialogService::alert(
+                                "The some displacement value must be specified.");
+                            return false;
                         }
 
                         if let None = self.props.aux_elements

@@ -174,6 +174,54 @@ impl ForceMenu
         }
         rotational_stiffness_statuses.iter().any(|status| *status == true)
     }
+
+
+    fn check_inputted_data(&self) -> bool
+    {
+        if let Some(force_x) = self.state.selected_force.force_x_value
+        {
+            if force_x != 0f32
+            {
+                return true;
+            }
+        }
+        if let Some(force_y) = self.state.selected_force.force_y_value
+        {
+            if force_y != 0f32
+            {
+                return true;
+            }
+        }
+        if let Some(force_z) = self.state.selected_force.force_z_value
+        {
+            if force_z != 0f32
+            {
+                return true;
+            }
+        }
+        if let Some(moment_xy) = self.state.selected_force.moment_xy_value
+        {
+            if moment_xy != 0f32
+            {
+                return true;
+            }
+        }
+        if let Some(moment_yz) = self.state.selected_force.moment_yz_value
+        {
+            if moment_yz != 0f32
+            {
+                return true;
+            }
+        }
+        if let Some(moment_zx) = self.state.selected_force.moment_zx_value
+        {
+            if moment_zx != 0f32
+            {
+                return true;
+            }
+        }
+        false
+    }
 }
 
 
@@ -339,6 +387,14 @@ impl Component for ForceMenu
                                     }
                             }
                         }
+
+                        if !self.check_inputted_data()
+                        {
+                            yew::services::DialogService::alert(
+                                "The some force value must be specified.");
+                            return false;
+                        }
+
                         if let None = self.props.aux_elements
                             .iter()
                             .position(|element|

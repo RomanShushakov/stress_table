@@ -23,7 +23,7 @@ use fe::fe_node::FeNode;
 use fe::elements::truss_element::Truss2n2ip;
 use fe::elements::f_element::FElement;
 use fe::fe_solver::FeModel;
-use fe::fe_aux_structs::{Displacement, AxisComponent};
+use fe::fe_aux_structs::{Displacement, AxisComponent, Force};
 
 mod components;
 use components::
@@ -162,6 +162,24 @@ impl Model
     }
 
 
+    fn check_preprocessor_data(&self) -> bool
+    {
+        if self.state.nodes.is_empty()
+        {
+            return false;
+        }
+        if self.state.aux_elements.is_empty()
+        {
+            return false;
+        }
+        if self.state.aux_displacements.is_empty()
+        {
+            return false;
+        }
+        true
+    }
+
+
     fn submit(&mut self) -> Result<f64, String>
     {
         self.state.nodes.sort_unstable_by(|a, b| a.number.partial_cmp(&b.number).unwrap());
@@ -222,12 +240,38 @@ impl Model
             }
         }
 
-        // applied_displacements.insert(Displacement { component: AxisComponent::U, node_number: 3 }, 0.0);
-        // applied_displacements.insert(Displacement { component: AxisComponent::V, node_number: 3 }, 0.0);
-        // applied_displacements.insert(Displacement { component: AxisComponent::U, node_number: 4 }, 0.0);
-        // applied_displacements.insert(Displacement { component: AxisComponent::V, node_number: 1 }, -0.025);
-
-        let mut model = FeModel::create(self.state.nodes.to_owned(), elements, applied_displacements, None);
+        let mut applied_forces = HashMap::new();
+        for aux_force in &self.state.aux_forces
+        {
+            let node_number = aux_force.node_number;
+            if let Some(force_x) = aux_force.force_x_value
+            {
+                applied_forces.insert(Force { component: AxisComponent::U, node_number }, force_x);
+            }
+            if let Some(force_y) = aux_force.force_y_value
+            {
+                applied_forces.insert(Force { component: AxisComponent::V, node_number }, force_y);
+            }
+            if let Some(force_z) = aux_force.force_z_value
+            {
+                applied_forces.insert(Force { component: AxisComponent::W, node_number }, force_z);
+            }
+            if let Some(moment_xy) = aux_force.moment_xy_value
+            {
+                applied_forces.insert(Force { component: AxisComponent::ThetaW, node_number }, moment_xy);
+            }
+            if let Some(moment_yz) = aux_force.moment_yz_value
+            {
+                applied_forces.insert(Force { component: AxisComponent::ThetaU, node_number }, moment_yz);
+            }
+            if let Some(moment_zx) = aux_force.moment_zx_value
+            {
+                applied_forces.insert(Force { component: AxisComponent::ThetaV, node_number }, moment_zx);
+            }
+        }
+        let mut model = FeModel::create(
+            self.state.nodes.to_owned(), elements, applied_displacements,
+            if !applied_forces.is_empty() { Some(applied_forces) } else { None });
         model.compose_global_stiffness_matrix()?;
         model.analyze()?;
 
@@ -466,7 +510,12 @@ impl Component for Model
                             update_aux_force=handle_update_aux_force,
                             remove_aux_force=handle_remove_aux_force,
                         />
-                        <button class="button" onclick=self.link.callback(|_| Msg::Submit)>{ "Submit" }</button>
+                        <button class="button"
+                            onclick=self.link.callback(|_| Msg::Submit),
+                            disabled={ !self.check_preprocessor_data() }
+                        >
+                            { "Submit" }
+                        </button>
                     </div>
                     <div class="canvas">
                         <Canvas

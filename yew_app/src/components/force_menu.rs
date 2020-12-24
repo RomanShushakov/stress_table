@@ -7,12 +7,21 @@ use web_sys::
 use wasm_bindgen::JsCast;
 
 use crate::fe::fe_node::FeNode;
-use crate::{Coordinates, AnalysisType, AuxDisplacement, AuxElement, ElementType, AuxForce};
+use crate::
+    {
+        Coordinates, AnalysisType, AuxDisplacement, AuxElement, ElementType, AuxForce,
+        PREPROCESSOR_BUTTON_CLASS
+    };
 use crate::auxiliary::AuxDisplacementInputOption;
 
 
 const FORCE_MENU_ID: &str = "force_menu";
-const FORCE_MENU: &str = "force_menu";
+const FORCE_MENU_CLASS: &str = "force_menu";
+const FORCE_MENU_INPUT_FIELDS_CONTAINER_CLASS: &str = "force_menu_input_fields_container";
+const FORCE_MENU_INPUT_FIELDS_LIST_CLASS: &str = "force_menu_input_fields_list";
+const FORCE_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS: &str = "force_menu_input_fields_descriptions";
+const FORCE_MENU_BUTTONS_CONTAINER_CLASS: &str = "force_menu_buttons";
+const FORCE_MENU_BUTTON_CLASS: &str = "force_menu_button";
 const HIDDEN: &str = "hidden";
 const FORCE_SELECT_ID: &str = "force_select";
 const FORCE_IN_X_DIRECTION_VALUE: &str = "force_x_value";
@@ -69,11 +78,11 @@ impl ForceMenu
         let class_list: DomTokenList = element.class_list();
         if class_list.contains(HIDDEN)
         {
-            element.set_class_name(FORCE_MENU);
+            element.set_class_name(FORCE_MENU_CLASS);
         }
         else
         {
-            element.set_class_name(&(FORCE_MENU.to_owned() + " " + HIDDEN));
+            element.set_class_name(&(FORCE_MENU_CLASS.to_owned() + " " + HIDDEN));
         }
     }
 
@@ -480,14 +489,14 @@ impl Component for ForceMenu
         {
             <>
                 <button
-                    class="button", onclick=self.link.callback(|_| Msg::ShowHideForceMenu),
+                    class={ PREPROCESSOR_BUTTON_CLASS }, onclick=self.link.callback(|_| Msg::ShowHideForceMenu),
                     disabled={ if self.props.analysis_type.is_some() { false } else { true } },
                 >
                     { "Force" }
                 </button>
-                <div id = { FORCE_MENU_ID } class={ FORCE_MENU.to_owned() + " " + HIDDEN }>
-                    <div class="force_menu_input_fields">
-                        <ul class="force_menu_input_fields_list">
+                <div id = { FORCE_MENU_ID } class={ FORCE_MENU_CLASS.to_owned() + " " + HIDDEN }>
+                    <div class={ FORCE_MENU_INPUT_FIELDS_CONTAINER_CLASS }>
+                        <ul class={ FORCE_MENU_INPUT_FIELDS_LIST_CLASS }>
                             <li>
                                 {
                                     html!
@@ -508,7 +517,7 @@ impl Component for ForceMenu
                                 {
                                     <>
                                         <li>
-                                            <p class="force_menu_input_fields_descriptions">
+                                            <p class={ FORCE_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
                                                 { "Node number:" }
                                             </p>
                                             <input
@@ -519,7 +528,7 @@ impl Component for ForceMenu
                                             />
                                         </li>
                                         <li>
-                                            <p class="force_menu_input_fields_descriptions">
+                                            <p class={ FORCE_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
                                                 { "Force in the X direction:" }
                                             </p>
                                             <input
@@ -539,7 +548,7 @@ impl Component for ForceMenu
                                             />
                                         </li>
                                         <li>
-                                            <p class="force_menu_input_fields_descriptions">
+                                            <p class={ FORCE_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
                                                 { "Force in the Y direction:" }
                                             </p>
                                             <input
@@ -570,7 +579,7 @@ impl Component for ForceMenu
                                                                 html!
                                                                 {
                                                                     <li>
-                                                                        <p class="force_menu_input_fields_descriptions">
+                                                                        <p class={ FORCE_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
                                                                             { "Moment in the XY plane:" }
                                                                         </p>
                                                                         <input
@@ -602,7 +611,7 @@ impl Component for ForceMenu
                                                             {
                                                                 <>
                                                                     <li>
-                                                                        <p class="force_menu_input_fields_descriptions">
+                                                                        <p class={ FORCE_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
                                                                             { "Force in the Z direction:" }
                                                                         </p>
                                                                         <input
@@ -628,7 +637,7 @@ impl Component for ForceMenu
                                                                             {
                                                                                 <>
                                                                                     <li>
-                                                                                        <p class="force_menu_input_fields_descriptions">
+                                                                                        <p class={ FORCE_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
                                                                                             { "Moment in the XY plane:" }
                                                                                         </p>
                                                                                         <input
@@ -648,7 +657,7 @@ impl Component for ForceMenu
                                                                                         />
                                                                                     </li>
                                                                                     <li>
-                                                                                        <p class="force_menu_input_fields_descriptions">
+                                                                                        <p class={ FORCE_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
                                                                                             { "MOMENT in the YZ plane:" }
                                                                                         </p>
                                                                                         <input
@@ -668,7 +677,7 @@ impl Component for ForceMenu
                                                                                         />
                                                                                     </li>
                                                                                     <li>
-                                                                                        <p class="force_menu_input_fields_descriptions">
+                                                                                        <p class={ FORCE_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
                                                                                             { "Moment in the ZX plane:" }
                                                                                         </p>
                                                                                         <input
@@ -710,15 +719,15 @@ impl Component for ForceMenu
                             }
                         </ul>
                     </div>
-                    <div class="force_menu_buttons">
+                    <div class={ FORCE_MENU_BUTTONS_CONTAINER_CLASS }>
                         <button
-                            class="force_menu_button",
+                            class={ FORCE_MENU_BUTTON_CLASS },
                             onclick=self.link.callback(|_| Msg::ApplyForceDataChange),
                         >
                             { "Apply" }
                         </button>
                         <button
-                            class="force_menu_button",
+                            class={ FORCE_MENU_BUTTON_CLASS },
                             onclick=self.link.callback(|_| Msg::RemoveForce),
                         >
                             { "Remove" }

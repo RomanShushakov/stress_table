@@ -7,12 +7,16 @@ use web_sys::
 use wasm_bindgen::JsCast;
 
 use crate::fe::fe_node::FeNode;
-use crate::Coordinates;
-use crate::AnalysisType;
+use crate::{Coordinates, AnalysisType, PREPROCESSOR_BUTTON_CLASS};
 
 
 const NODE_MENU_ID: &str = "node_menu";
 const NODE_MENU: &str = "node_menu";
+const NODE_MENU_INPUT_FIELDS_CONTAINER_CLASS: &str = "node_menu_input_fields_container";
+const NODE_MENU_INPUT_FIELDS_LIST_CLASS: &str = "node_menu_input_fields_list";
+const NODE_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS: &str = "node_menu_input_fields_descriptions";
+const NODE_MENU_BUTTONS_CONTAINER_CLASS: &str = "node_menu_buttons";
+const NODE_MENU_BUTTON_CLASS: &str = "node_menu_button";
 const HIDDEN: &str = "hidden";
 const NODE_SELECT_ID: &str = "node_select";
 const NODE_X_COORD: &str = "node_x_coord";
@@ -270,14 +274,14 @@ impl Component for NodeMenu
         {
             <>
                 <button
-                    class="button", onclick=self.link.callback(|_| Msg::ShowHideNodeMenu),
+                    class={ PREPROCESSOR_BUTTON_CLASS }, onclick=self.link.callback(|_| Msg::ShowHideNodeMenu),
                     disabled={ if self.props.analysis_type.is_some() { false } else { true } },
                 >
                     { "Node" }
                 </button>
                 <div id = { NODE_MENU_ID } class={ NODE_MENU.to_owned() + " " + HIDDEN }>
-                    <div class="node_menu_input_fields">
-                        <ul class="node_menu_input_fields_list">
+                    <div class={ NODE_MENU_INPUT_FIELDS_CONTAINER_CLASS }>
+                        <ul class={ NODE_MENU_INPUT_FIELDS_LIST_CLASS }>
                             <li>
                                 {
                                     html!
@@ -298,7 +302,7 @@ impl Component for NodeMenu
                                 {
                                     <>
                                         <li>
-                                            <p class="node_menu_input_fields_descriptions">
+                                            <p class={ NODE_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
                                                 { "X coordinate:" }
                                             </p>
                                             <input
@@ -308,7 +312,7 @@ impl Component for NodeMenu
                                             />
                                         </li>
                                         <li>
-                                            <p class="node_menu_input_fields_descriptions">
+                                            <p class={ NODE_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
                                                 { "Y coordinate:" }
                                             </p>
                                             <input
@@ -327,7 +331,7 @@ impl Component for NodeMenu
                                                             html!
                                                             {
                                                                 <li>
-                                                                    <p class="node_menu_input_fields_descriptions">
+                                                                    <p class={ NODE_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
                                                                         { "Z coordinate:" }
                                                                     </p>
                                                                     <input
@@ -351,15 +355,15 @@ impl Component for NodeMenu
                             }
                         </ul>
                     </div>
-                    <div class="node_menu_buttons">
+                    <div class={ NODE_MENU_BUTTONS_CONTAINER_CLASS }>
                         <button
-                            class="node_menu_button",
+                            class={ NODE_MENU_BUTTON_CLASS },
                             onclick=self.link.callback(|_| Msg::ApplyNodeDataChange),
                         >
                             { "Apply" }
                         </button>
                         <button
-                            class="node_menu_button",
+                            class={ NODE_MENU_BUTTON_CLASS },
                             onclick=self.link.callback(|_| Msg::RemoveNode),
                         >
                             { "Remove" }

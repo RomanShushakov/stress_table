@@ -14,7 +14,7 @@
 }
 
 
-.element_menu_input_fields {
+.element_menu_input_fields_container {
     display: flex;
     align-items: center;
     align-self: start;

@@ -11,13 +11,17 @@ use self::ElementType::*;
 
 use crate::{AnalysisType, AuxElement, ElementType};
 use crate::fe::fe_node::FeNode;
-use crate::Coordinates;
+use crate::{Coordinates, PREPROCESSOR_BUTTON_CLASS};
 
 
 const ELEMENT_TYPE_SELECT_ID: &str = "element_type_select";
-
 const ELEMENT_MENU_ID: &str = "element_menu";
-const ELEMENT_MENU: &str = "element_menu";
+const ELEMENT_MENU_CLASS: &str = "element_menu";
+const ELEMENT_MENU_INPUT_FIELDS_CONTAINER_CLASS: &str = "element_menu_input_fields_container";
+const ELEMENT_MENU_INPUT_FIELDS_LIST_CLASS: &str = "element_menu_input_fields_list";
+const ELEMENT_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS: &str = "element_menu_input_fields_descriptions";
+const ELEMENT_MENU_BUTTONS_CONTAINER_CLASS: &str = "element_menu_buttons";
+const ELEMENT_MENU_BUTTON_CLASS: &str = "element_menu_button";
 const HIDDEN: &str = "hidden";
 const ELEMENT_NUMBER_SELECT_ID: &str = "element_number_select";
 const NODE_1_NUMBER: &str = "first_node_number";
@@ -80,11 +84,11 @@ impl ElementMenu
         let class_list: DomTokenList = element.class_list();
         if class_list.contains(HIDDEN)
         {
-            element.set_class_name(ELEMENT_MENU);
+            element.set_class_name(ELEMENT_MENU_CLASS);
         }
         else
         {
-            element.set_class_name(&(ELEMENT_MENU.to_owned() + " " + HIDDEN));
+            element.set_class_name(&(ELEMENT_MENU_CLASS.to_owned() + " " + HIDDEN));
         }
     }
 
@@ -537,14 +541,14 @@ impl Component for ElementMenu
         {
             <>
                 <button
-                    class="button", onclick=self.link.callback(|_| Msg::ShowHideElementMenu),
+                    class={ PREPROCESSOR_BUTTON_CLASS }, onclick=self.link.callback(|_| Msg::ShowHideElementMenu),
                     disabled={ if self.props.analysis_type.is_some() { false } else { true } },
                 >
                     { "Element" }
                 </button>
-                <div id = { ELEMENT_MENU_ID } class={ ELEMENT_MENU.to_owned() + " " + HIDDEN }>
-                    <div class="element_menu_input_fields">
-                        <ul class="element_menu_input_fields_list">
+                <div id = { ELEMENT_MENU_ID } class={ ELEMENT_MENU_CLASS.to_owned() + " " + HIDDEN }>
+                    <div class={ ELEMENT_MENU_INPUT_FIELDS_CONTAINER_CLASS }>
+                        <ul class={ ELEMENT_MENU_INPUT_FIELDS_LIST_CLASS }>
                             <li>
                                 {
                                     html!
@@ -561,7 +565,7 @@ impl Component for ElementMenu
                                 }
                             </li>
                             <li>
-                                <p class="element_menu_input_fields_descriptions">
+                                <p class={ ELEMENT_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
                                     { "Element type:" }
                                 </p>
                                 <select
@@ -584,7 +588,7 @@ impl Component for ElementMenu
                                 </select>
                             </li>
                             <li>
-                                <p class="element_menu_input_fields_descriptions">
+                                <p class={ ELEMENT_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
                                     { "1st node number:" }
                                 </p>
                                 <input
@@ -597,7 +601,7 @@ impl Component for ElementMenu
                                 />
                             </li>
                             <li>
-                                <p class="element_menu_input_fields_descriptions">
+                                <p class={ ELEMENT_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
                                     { "2nd node number:" }
                                 </p>
                                 <input
@@ -609,7 +613,7 @@ impl Component for ElementMenu
                                 />
                             </li>
                             <li>
-                                <p class="element_menu_input_fields_descriptions">
+                                <p class={ ELEMENT_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
                                     { "Young's modulus:" }
                                 </p>
                                 <input
@@ -620,7 +624,7 @@ impl Component for ElementMenu
                                 />
                             </li>
                             <li>
-                                <p class="element_menu_input_fields_descriptions">
+                                <p class={ ELEMENT_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
                                     { "Cross section area:" }
                                 </p>
                                 <input
@@ -638,7 +642,7 @@ impl Component for ElementMenu
                                             html!
                                             {
                                                 <li>
-                                                    <p class="element_menu_input_fields_descriptions">
+                                                    <p class={ ELEMENT_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
                                                         { "Cross section area 2 (Optional value used for tapered element):" }
                                                     </p>
                                                     <input
@@ -666,7 +670,7 @@ impl Component for ElementMenu
                                             {
                                                 <>
                                                     <li>
-                                                        <p class="element_menu_input_fields_descriptions">
+                                                        <p class={ ELEMENT_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
                                                             { "The moment of inertia about x axis:" }
                                                         </p>
                                                         <input
@@ -688,7 +692,7 @@ impl Component for ElementMenu
                                                         />
                                                     </li>
                                                     <li>
-                                                        <p class="element_menu_input_fields_descriptions">
+                                                        <p class={ ELEMENT_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
                                                             { "The moment of inertia about y axis:" }
                                                         </p>
                                                         <input
@@ -710,7 +714,7 @@ impl Component for ElementMenu
                                                         />
                                                     </li>
                                                     <li>
-                                                        <p class="element_menu_input_fields_descriptions">
+                                                        <p class={ ELEMENT_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
                                                             { "The torsion constant:" }
                                                         </p>
                                                         <input
@@ -738,15 +742,15 @@ impl Component for ElementMenu
                             }
                         </ul>
                     </div>
-                    <div class="element_menu_buttons">
+                    <div class={ ELEMENT_MENU_BUTTONS_CONTAINER_CLASS }>
                         <button
-                            class="element_menu_button",
+                            class={ ELEMENT_MENU_BUTTON_CLASS },
                             onclick=self.link.callback(|_| Msg::ApplyAuxElementDataChange),
                         >
                             { "Apply" }
                         </button>
                         <button
-                            class="element_menu_button",
+                            class={ ELEMENT_MENU_BUTTON_CLASS },
                             onclick=self.link.callback(|_| Msg::RemoveAuxElement),
                         >
                             { "Remove" }

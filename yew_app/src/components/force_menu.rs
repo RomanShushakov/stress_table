@@ -6,13 +6,11 @@ use web_sys::
     };
 use wasm_bindgen::JsCast;
 
-use crate::fe::fe_node::FeNode;
 use crate::
     {
-        Coordinates, AnalysisType, AuxDisplacement, AuxElement, ElementType, AuxForce,
+        AnalysisType, AuxElement, ElementType, AuxForce,
         PREPROCESSOR_BUTTON_CLASS
     };
-use crate::auxiliary::AuxDisplacementInputOption;
 
 
 const FORCE_MENU_ID: &str = "force_menu";

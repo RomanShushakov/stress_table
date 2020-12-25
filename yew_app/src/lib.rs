@@ -11,8 +11,8 @@ use web_sys::Node;
 use yew::virtual_dom::VNode;
 use web_sys::
     {
-        CanvasRenderingContext2d, HtmlSelectElement, HtmlOptionElement, HtmlCanvasElement,
-        HtmlOptionsCollection, DomTokenList,
+        CanvasRenderingContext2d, HtmlSelectElement, HtmlOptionElement,
+        HtmlCanvasElement, HtmlOptionsCollection, DomTokenList,
     };
 use yew::services::resize::{WindowDimensions, ResizeTask, ResizeService};
 
@@ -28,10 +28,15 @@ use fe::fe_aux_structs::{Displacement, AxisComponent, Force};
 mod components;
 use components::
     {
-        AnalysisTypeMenu, NodeMenu, PreprocessorCanvas, ElementMenu, ViewMenu, DisplacementMenu, ForceMenu
+        AnalysisTypeMenu, NodeMenu, PreprocessorCanvas, ElementMenu,
+        ViewMenu, DisplacementMenu, ForceMenu
     };
 mod auxiliary;
-use auxiliary::{AuxElement, AnalysisType, View, ElementType, AuxDisplacement, AuxForce};
+use auxiliary::
+    {
+        AuxElement, AnalysisType, View, ElementType, AuxDisplacement,
+        AuxForce, AnalysisResult
+    };
 
 
 pub const NUMBER_OF_DOF: i32 = 6;
@@ -43,6 +48,8 @@ const PREPROCESSOR_MENU_CLASS: &str = "preprocessor_menu";
 pub const PREPROCESSOR_BUTTON_CLASS: &str = "preprocessor_button";
 const PREPROCESSOR_CANVAS_CLASS: &str = "preprocessor_canvas";
 const ANALYSIS_ERROR_CLASS: &str = "analysis_error";
+const ANALYSIS_ERROR_MESSAGE_CLASS: &str = "analysis_error_message";
+const ANALYSIS_ERROR_BUTTON_CLASS: &str = "analysis_error_button";
 
 
 struct State
@@ -55,8 +62,8 @@ struct State
     aux_elements: Vec<AuxElement>,
     aux_displacements: Vec<AuxDisplacement>,
     aux_forces: Vec<AuxForce>,
-    max_stress: Option<f64>,
     analysis_error_message: Option<String>,
+    analysis_result: Option<AnalysisResult>,
 }
 
 
@@ -189,7 +196,7 @@ impl Model
     }
 
 
-    fn submit(&mut self) -> Result<f64, String>
+    fn submit(&mut self) -> Result<AnalysisResult, String>
     {
         self.state.nodes.sort_unstable_by(|a, b| a.number.partial_cmp(&b.number).unwrap());
         let mut elements: Vec<Rc<RefCell<dyn FElement<_, _, _>>>> = Vec::new();
@@ -282,35 +289,36 @@ impl Model
             self.state.nodes.to_owned(), elements, applied_displacements,
             if !applied_forces.is_empty() { Some(applied_forces) } else { None });
         model.compose_global_stiffness_matrix()?;
-        model.analyze()?;
+        model.calculate_reactions_and_displacements()?;
 
-        let mut max_stress = 0f64;
+        if let Some(ref global_analysis_result) = model.global_analysis_result
+        {
+            let displacements = global_analysis_result.displacements.to_owned();
+            let reactions = global_analysis_result.reactions.to_owned();
+            yew::services::ConsoleService::log(&format!("Reactions: {:?}", reactions));
+            yew::services::ConsoleService::log(&format!("Displacements: {:?}", displacements));
 
-        if let Some(ref analysis_result) = model.analysis_result
-        {
-            yew::services::ConsoleService::log(&format!("Reactions: {:?}", analysis_result.reactions));
-            yew::services::ConsoleService::log(&format!("Displacements: {:?}", analysis_result.displacements));
-        }
-        for element in model.elements
-        {
-            let global_displacements =
-                &model.analysis_result.as_ref().unwrap().displacements;
-            let strains_and_stresses =
-                element
-                    .borrow_mut()
-                    .calculate_strains_and_stresses(global_displacements)?;
-            for (k, v) in strains_and_stresses
+            let mut strains_and_stresses = HashMap::new();
+            for element in model.elements
             {
-                for stress_strain in v
+                let element_strains_and_stresses =
+                    element
+                        .borrow_mut()
+                        .calculate_strains_and_stresses(&displacements)?;
+
+                for (k, v) in element_strains_and_stresses
                 {
-                    if stress_strain.stress.value > max_stress
-                    {
-                        max_stress = stress_strain.stress.value;
-                    }
+                    yew::services::ConsoleService::log(&format!("Strains and stresses: {:?}, {:?}", k, v));
+                    strains_and_stresses.insert(k, v);
                 }
             }
+
+            Ok(AnalysisResult { displacements, reactions, strains_and_stresses })
         }
-        Ok(max_stress)
+        else
+        {
+            Err("Global analysis results could not be extracted".to_string())
+        }
     }
 }
 
@@ -356,8 +364,8 @@ impl Component for Model
                     aux_elements: Vec::new(),
                     aux_displacements: Vec::new(),
                     aux_forces: Vec::new(),
-                    max_stress: None,
                     analysis_error_message: None,
+                    analysis_result: None,
                 },
             resize_task: None, resize_service: ResizeService::new(),
         }
@@ -441,7 +449,7 @@ impl Component for Model
                 {
                     match self.submit()
                     {
-                        Ok(stress) => self.state.max_stress = Some(stress),
+                        Ok(analysis_result) => self.state.analysis_result = Some(analysis_result),
                         Err(msg) => self.state.analysis_error_message = Some(msg),
                     }
                 },
@@ -541,31 +549,18 @@ impl Component for Model
                             />
                         </div>
                     </div>
-                    // {
-                    //     if let Some(max_stress) = self.state.max_stress
-                    //     {
-                    //         html!
-                    //         {
-                    //             <p>{ max_stress }</p>
-                    //         }
-                    //     }
-                    //     else
-                    //     {
-                    //         html! {}
-                    //     }
-                    // }
                     {
                         if let Some(error_message) = &self.state.analysis_error_message
                         {
                             html!
                             {
                                 <div class={ ANALYSIS_ERROR_CLASS }>
-                                    <p>{ error_message }</p>
+                                    <p class={ ANALYSIS_ERROR_MESSAGE_CLASS }>{ error_message }</p>
                                     <button
-                                        class="button"
+                                        class={ ANALYSIS_ERROR_BUTTON_CLASS },
                                         onclick=self.link.callback(|_| Msg::ResetAnalysisErrorMessage)
                                     >
-                                        { "Hide" }
+                                        { "Hide message" }
                                     </button>
                                 </div>
                             }

@@ -134,8 +134,8 @@ fn main() -> Result<(), String>
     //     println!("{:?}", state.forces_indexes);
     //     println!("{:?}", state.stiffness_matrix);
     // }
-    model.analyze()?;
-    if let Some(ref analysis_result) = model.analysis_result
+    model.calculate_reactions_and_displacements()?;
+    if let Some(ref analysis_result) = model.global_analysis_result
     {
         println!("Reactions: {:?}", analysis_result.reactions);
         println!("Displacements: {:?}", analysis_result.displacements);
@@ -143,7 +143,7 @@ fn main() -> Result<(), String>
     for element in model.elements
     {
         let global_displacements =
-            &model.analysis_result.as_ref().unwrap().displacements;
+            &model.global_analysis_result.as_ref().unwrap().displacements;
         let strains_and_stresses =
             element
                 .borrow_mut()

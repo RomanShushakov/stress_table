@@ -1,5 +1,8 @@
 use std::slice::Iter;
 use self::ElementType::*;
+use crate::fe::fe_aux_structs::{Displacement, Force, StrainStress};
+
+use std::collections::HashMap;
 
 
 #[derive(Clone, PartialEq)]
@@ -155,4 +158,12 @@ pub struct AuxForce
     pub moment_xy_value: Option<f32>,
     pub moment_yz_value: Option<f32>,
     pub moment_zx_value: Option<f32>,
+}
+
+
+pub struct AnalysisResult
+{
+    pub displacements: HashMap<Displacement<u16>, f64>,
+    pub reactions: HashMap<Force<u16>, f64>,
+    pub strains_and_stresses: HashMap<u16, Vec<StrainStress<f64>>>,
 }

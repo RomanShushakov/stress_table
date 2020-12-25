@@ -8,11 +8,11 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt::Debug;
-use crate::math::math_aux_traits::One;
+use crate::math::math_aux_traits::{One, FloatNum};
 
 
 #[derive(Debug, Clone)]
-pub struct AnalysisResult<T, V>
+pub struct GlobalAnalysisResult<T, V>
 {
     pub displacements: HashMap<Displacement<T>, V>,
     pub reactions: HashMap<Force<T>, V>,
@@ -36,17 +36,18 @@ pub struct FeModel<T, V, W>
     pub applied_displacements: HashMap<Displacement<T>, W>,
     pub applied_forces: Option<HashMap<Force<T>, W>>,
     pub state: Option<State<T, V>>,
-    pub analysis_result: Option<AnalysisResult<T, V>>,
+    pub global_analysis_result: Option<GlobalAnalysisResult<T, V>>,
 }
 
 
 impl<T, V, W> FeModel<T, V, W>
     where T: Hash + Copy + Eq + Debug,
           V: Default + AddAssign + Copy + One + Debug +
-             PartialEq<f64> + Add + Mul + MulAssign +
+             PartialEq + Add + Mul + MulAssign +
              Add<Output = V> + Mul<Output = V> +
              From<W> + Sub + Sub<Output = V> + Div +
-             Div<Output = V> + SubAssign,
+             Div<Output = V> + SubAssign + FloatNum,
+
           W: Default + Copy + Debug + One + Add +
              Sub + Mul + Div + AddAssign +
              MulAssign +
@@ -58,7 +59,7 @@ impl<T, V, W> FeModel<T, V, W>
         applied_displacements: HashMap<Displacement<T>, W>,
         applied_forces: Option<HashMap<Force<T>, W>>) -> FeModel<T, V, W>
     {
-        FeModel { nodes, elements, applied_displacements, applied_forces, state: None, analysis_result: None }
+        FeModel { nodes, elements, applied_displacements, applied_forces, state: None, global_analysis_result: None }
     }
 
 
@@ -112,7 +113,7 @@ impl<T, V, W> FeModel<T, V, W>
         let mut i = 0;
         while i < global_stiffness_matrix_elements.len()
         {
-            if global_stiffness_matrix_elements[i][i] == 0f64
+            if global_stiffness_matrix_elements[i][i] == V::default()
             {
                 global_stiffness_matrix_elements.remove(i);
 
@@ -182,7 +183,7 @@ impl<T, V, W> FeModel<T, V, W>
     }
 
 
-    pub fn analyze(&mut self) -> Result<(), String>
+    pub fn calculate_reactions_and_displacements(&mut self) -> Result<(), String>
     {
         let mut result_displacements: HashMap<Displacement<T>, V> = HashMap::new();
         let mut result_reactions = HashMap::new();
@@ -190,7 +191,7 @@ impl<T, V, W> FeModel<T, V, W>
         {
             if state.displacements_indexes.len() == self.applied_displacements.len()
             {
-                return Err("All possible displacements were restrained, the structure cannot be analyzed.".to_string())
+                return Err("All possible displacements were restrained, the structure cannot be analyzed.".to_string());
             }
             let mut k_aa_matrix: Matrix<V> = Matrix::zeros
                 (
@@ -350,8 +351,16 @@ impl<T, V, W> FeModel<T, V, W>
                 {
                     let node_number = displacement.node_number;
                     let component = displacement.component;
-                    result_displacements
-                        .insert(Displacement { node_number, component }, displacements.elements[i][0]);
+                    let displacement_value = displacements.elements[i][0];
+                    if !displacement_value.is_nan()
+                    {
+                        result_displacements
+                            .insert(Displacement { node_number, component }, displacement_value);
+                    }
+                    else
+                    {
+                        return Err("The NaN value of displacement was defined.".to_string());
+                    }
                 }
             }
             let k_bb_u_b = k_bb_matrix.multiply_by_matrix(&u_b_matrix)?;
@@ -361,12 +370,20 @@ impl<T, V, W> FeModel<T, V, W>
             {
                 if let Some(reaction) = reactions_indexes.get(&i)
                 {
-                    result_reactions.insert(*reaction, reactions.elements[i][0].to_owned());
+                    let reaction_value = reactions.elements[i][0];
+                    if !reaction_value.is_nan()
+                    {
+                        result_reactions.insert(*reaction, reaction_value);
+                    }
+                    else
+                    {
+                        return Err("The NaN value of reaction was defined.".to_string());
+                    }
                 }
             }
-            self.analysis_result = Some
+            self.global_analysis_result = Some
                 (
-                    AnalysisResult { displacements: result_displacements, reactions: result_reactions }
+                    GlobalAnalysisResult { displacements: result_displacements, reactions: result_reactions }
                 );
             Ok(())
         }

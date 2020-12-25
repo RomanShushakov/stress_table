@@ -52,3 +52,27 @@ body {
 input {
     width: 10rem;
 }
+
+
+.analysis_error {
+    display: flex;
+    align-self: start;
+    align-items: center;
+    box-sizing: content-box;
+    flex-direction: row;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+
+.analysis_error_message {
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+
+.analysis_error_button {
+    font-size: 0.85rem;
+    margin-left: 0.25rem;
+}

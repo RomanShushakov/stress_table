@@ -143,7 +143,7 @@ impl Component for ViewMenu
             <>
                 <button
                     class={ PREPROCESSOR_BUTTON_CLASS },
-                    disabled=true,
+                    // disabled=true,
                     onclick=self.link.callback(|_| Msg::ShowHideViewMenu),
                 >
                     { "View" }

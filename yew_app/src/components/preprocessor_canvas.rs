@@ -1,4 +1,3 @@
-use wasm_bindgen::prelude::*;
 use yew::prelude::*;
 use std::f64;
 use wasm_bindgen::JsCast;

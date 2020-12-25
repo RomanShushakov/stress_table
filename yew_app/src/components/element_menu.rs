@@ -6,12 +6,11 @@ use web_sys::
     };
 use wasm_bindgen::JsCast;
 
-use std::slice::Iter;
 use self::ElementType::*;
 
 use crate::{AnalysisType, AuxElement, ElementType};
 use crate::fe::fe_node::FeNode;
-use crate::{Coordinates, PREPROCESSOR_BUTTON_CLASS};
+use crate::PREPROCESSOR_BUTTON_CLASS;
 
 
 const ELEMENT_TYPE_SELECT_ID: &str = "element_type_select";

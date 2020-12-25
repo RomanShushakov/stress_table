@@ -69,3 +69,18 @@ impl FloatNum for f64
         self.is_nan()
     }
 }
+
+
+impl FloatNum for f32
+{
+    fn sqrt(self) -> f32
+    {
+        self.sqrt()
+    }
+
+
+    fn is_nan(self) -> bool
+    {
+        self.is_nan()
+    }
+}

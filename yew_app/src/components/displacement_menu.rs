@@ -6,10 +6,9 @@ use web_sys::
     };
 use wasm_bindgen::JsCast;
 
-use crate::fe::fe_node::FeNode;
 use crate::
     {
-        Coordinates, AnalysisType, AuxDisplacement, AuxElement, ElementType,
+        AnalysisType, AuxDisplacement, AuxElement, ElementType,
         PREPROCESSOR_BUTTON_CLASS
     };
 use crate::auxiliary::AuxDisplacementInputOption;

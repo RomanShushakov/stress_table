@@ -55,7 +55,7 @@ pub enum StrainStressComponent
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Strain<V>
 {
     pub component: StrainStressComponent,
@@ -63,7 +63,7 @@ pub struct Strain<V>
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Stress<V>
 {
     pub component: StrainStressComponent,
@@ -71,7 +71,7 @@ pub struct Stress<V>
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct StrainStress<V>
 {
     pub strain: Strain<V>,

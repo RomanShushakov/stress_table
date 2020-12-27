@@ -1,0 +1,6 @@
+.postprocessor_canvas {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #000000;
+    margin-top: 0.5rem;
+}

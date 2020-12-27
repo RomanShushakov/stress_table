@@ -401,7 +401,7 @@ impl PreprocessorCanvas
                             context.fill();
                             context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
                             context.fill_text(
-                                &force_x.to_string(),
+                                &format!("{:.2}", force_x),
                                 drawn_node.x + axis_line_length / 2f64,
                                 drawn_node.y - axis_line_length / 14f64)
                                 .unwrap();
@@ -427,9 +427,9 @@ impl PreprocessorCanvas
                             context.fill();
                             context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
                             context.fill_text(
-                                &force_x.to_string(),
+                                &format!("{:.2}", force_x),
                                 drawn_node.x - axis_line_length / 2f64 -
-                                    (force_x.to_string().chars().count() as f64 * axis_line_length / 14f64),
+                                    (format!("{:.2}", force_x).chars().count() as f64 * axis_line_length / 14f64),
                                 drawn_node.y - axis_line_length / 14f64)
                                 .unwrap();
                             context.stroke();
@@ -458,7 +458,7 @@ impl PreprocessorCanvas
                             context.fill();
                             context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
                             context.fill_text(
-                                &force_y.to_string(),
+                                &format!("{:.2}", force_y),
                                 drawn_node.x + axis_line_length / 14f64,
                                 drawn_node.y - axis_line_length / 2f64)
                                 .unwrap();
@@ -484,7 +484,7 @@ impl PreprocessorCanvas
                             context.fill();
                             context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
                             context.fill_text(
-                                &force_y.to_string(),
+                                &format!("{:.2}", force_y),
                                 drawn_node.x + axis_line_length / 14f64,
                                 drawn_node.y + axis_line_length / 2f64 + axis_line_length / 14f64)
                                 .unwrap();
@@ -529,9 +529,9 @@ impl PreprocessorCanvas
                             context.fill();
                             context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
                             context.fill_text(
-                                &moment_xy.to_string(),
+                                &format!("{:.2}", moment_xy),
                                 drawn_node.x - axis_line_length / 3f64 * f64::consts::FRAC_1_SQRT_2 -
-                                    (moment_xy.to_string().chars().count() as f64 + 1f64) * axis_line_length / 14f64,
+                                    (format!("{:.2}", moment_xy).chars().count() as f64 + 1f64) * axis_line_length / 14f64,
                                 drawn_node.y - axis_line_length / 3f64 * f64::consts::FRAC_1_SQRT_2)
                                 .unwrap();
                             context.stroke();
@@ -572,9 +572,9 @@ impl PreprocessorCanvas
                             context.fill();
                             context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
                             context.fill_text(
-                                &moment_xy.to_string(),
+                                &format!("{:.2}", moment_xy),
                                 drawn_node.x - axis_line_length / 3f64 * f64::consts::FRAC_1_SQRT_2 -
-                                    (moment_xy.to_string().chars().count() as f64 + 1f64) * axis_line_length / 14f64,
+                                    (format!("{:.2}", moment_xy).chars().count() as f64 + 1f64) * axis_line_length / 14f64,
                                 drawn_node.y - axis_line_length / 3f64 * f64::consts::FRAC_1_SQRT_2)
                                 .unwrap();
                             context.stroke();

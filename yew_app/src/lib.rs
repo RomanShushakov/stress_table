@@ -29,7 +29,7 @@ mod components;
 use components::
     {
         AnalysisTypeMenu, NodeMenu, PreprocessorCanvas, ElementMenu,
-        ViewMenu, DisplacementMenu, ForceMenu, ResultViewMenu
+        ViewMenu, DisplacementMenu, ForceMenu, ResultViewMenu, PostprocessorCanvas,
     };
 mod auxiliary;
 use auxiliary::
@@ -461,7 +461,7 @@ impl Component for Model
                             {
                                 self.state.analysis_error_message = Some(msg);
                                 self.state.analysis_result = None;
-                                // self.state.result_view = None;
+                                self.state.result_view = None;
                             },
                     }
                 },
@@ -596,6 +596,39 @@ impl Component for Model
                                             change_result_view=handle_change_result_view,
                                         />
                                     </div>
+                                    {
+                                        if let Some(result_view) = &self.state.result_view
+                                        {
+                                            match result_view
+                                            {
+                                                ResultView::PrintAllResults =>
+                                                    {
+                                                        html! {  }
+                                                    },
+                                                _ =>
+                                                    {
+                                                        html!
+                                                        {
+                                                            <div class={ POSTPROCESSOR_CANVAS_CLASS }>
+                                                                <PostprocessorCanvas
+                                                                    view=self.state.view.to_owned(),
+                                                                    canvas_width=self.state.canvas_width,
+                                                                    canvas_height=self.state.canvas_height,
+                                                                    nodes=self.state.nodes.to_owned(),
+                                                                    aux_elements=self.state.aux_elements.to_owned(),
+                                                                    analysis_result=analysis_result,
+                                                                    result_view=result_view,
+                                                                />
+                                                            </div>
+                                                        }
+                                                    }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            html! {  }
+                                        }
+                                    }
                                 </div>
                             }
                         }

@@ -161,6 +161,7 @@ pub struct AuxForce
 }
 
 
+#[derive(Clone, PartialEq)]
 pub struct AnalysisResult
 {
     pub displacements: HashMap<Displacement<u16>, f64>,

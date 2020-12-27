@@ -148,7 +148,7 @@ impl Component for ViewMenu
                 >
                     { "View" }
                 </button>
-                <div id = { VIEW_MENU_ID } class={ VIEW_MENU_ID.to_owned() + " " + HIDDEN }>
+                <div id = { VIEW_MENU_ID } class={ VIEW_MENU_CLASS.to_owned() + " " + HIDDEN }>
                     <div class={ VIEW_MENU_INPUT_FIELDS_CONTAINER_CLASS }>
                         <div class={ VIEW_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                             <input

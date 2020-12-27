@@ -29,13 +29,13 @@ mod components;
 use components::
     {
         AnalysisTypeMenu, NodeMenu, PreprocessorCanvas, ElementMenu,
-        ViewMenu, DisplacementMenu, ForceMenu
+        ViewMenu, DisplacementMenu, ForceMenu, ResultViewMenu
     };
 mod auxiliary;
 use auxiliary::
     {
         AuxElement, AnalysisType, View, ElementType, AuxDisplacement,
-        AuxForce, AnalysisResult
+        AuxForce, AnalysisResult, ResultView
     };
 
 
@@ -50,6 +50,10 @@ const PREPROCESSOR_CANVAS_CLASS: &str = "preprocessor_canvas";
 const ANALYSIS_ERROR_CLASS: &str = "analysis_error";
 const ANALYSIS_ERROR_MESSAGE_CLASS: &str = "analysis_error_message";
 const ANALYSIS_ERROR_BUTTON_CLASS: &str = "analysis_error_button";
+const POSTPROCESSOR_CLASS: &str = "postprocessor";
+const POSTPROCESSOR_MENU_CLASS: &str = "postprocessor_menu";
+pub const POSTPROCESSOR_BUTTON_CLASS: &str = "postprocessor_button";
+const POSTPROCESSOR_CANVAS_CLASS: &str = "postprocessor_canvas";
 
 
 struct State
@@ -64,6 +68,7 @@ struct State
     aux_forces: Vec<AuxForce>,
     analysis_error_message: Option<String>,
     analysis_result: Option<AnalysisResult>,
+    result_view: Option<ResultView>,
 }
 
 
@@ -95,6 +100,7 @@ enum Msg
     RemoveAuxForce(usize),
     Submit,
     ResetAnalysisErrorMessage,
+    ChangeResultView(ResultView),
 }
 
 
@@ -366,6 +372,7 @@ impl Component for Model
                     aux_forces: Vec::new(),
                     analysis_error_message: None,
                     analysis_result: None,
+                    result_view: None,
                 },
             resize_task: None, resize_service: ResizeService::new(),
         }
@@ -450,10 +457,16 @@ impl Component for Model
                     match self.submit()
                     {
                         Ok(analysis_result) => self.state.analysis_result = Some(analysis_result),
-                        Err(msg) => self.state.analysis_error_message = Some(msg),
+                        Err(msg) =>
+                            {
+                                self.state.analysis_error_message = Some(msg);
+                                self.state.analysis_result = None;
+                                // self.state.result_view = None;
+                            },
                     }
                 },
             Msg::ResetAnalysisErrorMessage => self.state.analysis_error_message = None,
+            Msg::ChangeResultView(result_view) => self.state.result_view = Some(result_view),
         }
         true
     }
@@ -487,6 +500,7 @@ impl Component for Model
         let handle_add_aux_force = self.link.callback(|force: AuxForce| Msg::AddAuxForce(force));
         let handle_update_aux_force = self.link.callback(|data: (usize, AuxForce)| Msg::UpdateAuxForce(data));
         let handle_remove_aux_force = self.link.callback(|position: usize| Msg::RemoveAuxForce(position));
+        let handle_change_result_view = self.link.callback(|result_view: ResultView| Msg::ChangeResultView(result_view));
         html!
         {
             <main class={ MAIN_CLASS }>
@@ -562,6 +576,26 @@ impl Component for Model
                                     >
                                         { "Hide message" }
                                     </button>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            html! {}
+                        }
+                    }
+                    {
+                        if let Some(analysis_result) = &self.state.analysis_result
+                        {
+                            html!
+                            {
+                                <div class={ POSTPROCESSOR_CLASS }>
+                                    <div class={ POSTPROCESSOR_MENU_CLASS }>
+                                        <ResultViewMenu
+                                            result_view=self.state.result_view.to_owned(),
+                                            change_result_view=handle_change_result_view,
+                                        />
+                                    </div>
                                 </div>
                             }
                         }

@@ -167,3 +167,26 @@ pub struct AnalysisResult
     pub reactions: HashMap<Force<u16>, f64>,
     pub strains_and_stresses: HashMap<u16, Vec<StrainStress<f64>>>,
 }
+
+
+#[derive(Clone, PartialEq)]
+pub enum ResultView
+{
+    PlotStresses,
+    PlotReactions,
+    PrintAllResults,
+}
+
+
+impl ResultView
+{
+    pub fn as_str(&self) -> String
+    {
+        match self
+        {
+            ResultView::PlotStresses => String::from("Plot stresses"),
+            ResultView::PlotReactions => String::from("Plot reactions"),
+            ResultView::PrintAllResults => String::from("Print all results"),
+        }
+    }
+}

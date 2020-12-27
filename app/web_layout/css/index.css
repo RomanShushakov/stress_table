@@ -76,3 +76,31 @@ input {
     font-size: 0.85rem;
     margin-left: 0.25rem;
 }
+
+
+.postprocessor {
+    display: flex;
+    align-items: start;
+    box-sizing: content-box;
+    flex-direction: row;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+
+.postprocessor_menu {
+    display: flex;
+    align-items: center;
+    align-self: start;
+    box-sizing: content-box;
+    flex-direction: column;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+
+.postprocessor_button {
+    margin-right: 0.5rem;
+    width: 10.0rem;
+}

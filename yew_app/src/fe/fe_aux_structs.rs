@@ -51,7 +51,8 @@ pub struct SubMatrixIndexes
 #[derive(Debug, Eq, PartialEq, Hash, Copy, Clone)]
 pub enum StrainStressComponent
 {
-    XX
+    XX,
+    Other,
 }
 
 

@@ -261,7 +261,7 @@ impl PreprocessorCanvas
                                 .arc(
                                     x_center,
                                     y_center,
-                                    axis_line_length / 10f64,
+                                    aux_element.number.to_string().chars().count() as f64 * axis_line_length / 10f64,
                                     0.0,
                                     f64::consts::PI * 2.0)
                                 .unwrap();
@@ -305,7 +305,7 @@ impl PreprocessorCanvas
                                 .arc(
                                     x_center,
                                     y_center,
-                                    axis_line_length / 10f64,
+                                    aux_element.number.to_string().chars().count() as f64 * axis_line_length / 10f64,
                                     0.0,
                                     f64::consts::PI * 2.0)
                                 .unwrap();

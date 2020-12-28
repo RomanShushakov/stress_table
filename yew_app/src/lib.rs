@@ -23,7 +23,7 @@ use fe::fe_node::FeNode;
 use fe::elements::truss_element::Truss2n2ip;
 use fe::elements::f_element::FElement;
 use fe::fe_solver::FeModel;
-use fe::fe_aux_structs::{Displacement, AxisComponent, Force};
+use fe::fe_aux_structs::{Displacement, AxisComponent, Force, StrainStressComponent};
 
 mod components;
 use components::
@@ -35,7 +35,7 @@ mod auxiliary;
 use auxiliary::
     {
         AuxElement, AnalysisType, View, ElementType, AuxDisplacement,
-        AuxForce, AnalysisResult, ResultView
+        AuxForce, AnalysisResult, ResultView, MinMaxValues
     };
 
 
@@ -304,7 +304,8 @@ impl Model
             yew::services::ConsoleService::log(&format!("Reactions: {:?}", reactions));
             yew::services::ConsoleService::log(&format!("Displacements: {:?}", displacements));
 
-            let mut strains_and_stresses = HashMap::new();
+            let mut all_strains_and_stresses = HashMap::new();
+            let mut min_max_stress_values: HashMap<StrainStressComponent, MinMaxValues> = HashMap::new();
             for element in model.elements
             {
                 let element_strains_and_stresses =
@@ -312,14 +313,47 @@ impl Model
                         .borrow_mut()
                         .calculate_strains_and_stresses(&displacements)?;
 
-                for (k, v) in element_strains_and_stresses
+                for (element_number, strains_stresses) in element_strains_and_stresses
                 {
-                    yew::services::ConsoleService::log(&format!("Strains and stresses: {:?}, {:?}", k, v));
-                    strains_and_stresses.insert(k, v);
+                    yew::services::ConsoleService::log(&format!("Strains and stresses: {:?}, {:?}", element_number, strains_stresses));
+                    all_strains_and_stresses.insert(element_number, strains_stresses.to_owned());
+                    for strain_stress in &strains_stresses
+                    {
+                        let current_stress_component = strain_stress.stress.component;
+                        let current_stress_value = strain_stress.stress.value;
+                        if let Some(min_max_values) = min_max_stress_values.get_mut(&current_stress_component)
+                        {
+                            if current_stress_value < min_max_values.min_value
+                            {
+                                min_max_values.min_value = current_stress_value;
+                            }
+                            if current_stress_value > min_max_values.max_value
+                            {
+                                min_max_values.max_value = current_stress_value;
+                            }
+                        }
+                        else
+                        {
+                            min_max_stress_values.insert(
+                                current_stress_component,
+                                MinMaxValues
+                                    {
+                                        min_value: current_stress_value,
+                                        max_value: current_stress_value,
+                                    }
+                                );
+                        }
+                    }
                 }
             }
-
-            Ok(AnalysisResult { displacements, reactions, strains_and_stresses })
+            yew::services::ConsoleService::log(&format!("Min max stress values: {:?}", min_max_stress_values));
+            Ok(AnalysisResult
+                {
+                    displacements,
+                    reactions,
+                    strains_and_stresses: all_strains_and_stresses,
+                    min_max_stress_values
+                })
         }
         else
         {

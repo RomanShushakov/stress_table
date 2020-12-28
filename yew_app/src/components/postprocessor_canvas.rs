@@ -6,8 +6,8 @@ use yew::virtual_dom::VNode;
 use web_sys::{ CanvasRenderingContext2d, HtmlCanvasElement };
 
 use crate::fe::fe_node::FeNode;
-use crate::auxiliary::{DrawnNode, View, AuxElement, ElementType, AnalysisResult, ResultView};
-use crate::fe::fe_aux_structs::AxisComponent;
+use crate::auxiliary::{DrawnNode, View, AuxElement, ElementType, AnalysisResult, ResultView, MinMaxValues};
+use crate::fe::fe_aux_structs::{AxisComponent, StrainStressComponent};
 
 
 const CANVAS_BACKGROUND_COLOR: &str = "white";
@@ -16,6 +16,31 @@ const CANVAS_Y_AXIS_COLOR: &str = "green";
 const CANVAS_NODES_COLOR: &str = "black";
 const CANVAS_ELEMENTS_COLOR: &str = "blue";
 const CANVAS_REACTION_COLOR: &str = "magenta";
+
+
+fn define_color(color_value: f64) -> String
+{
+    if  (color_value >= 0f64) && (color_value <= 255f64)
+    {
+        format!("rgb(0, {}, 255)", color_value as u8)
+    }
+    else if (color_value > 255f64) && (color_value <= 510f64)
+    {
+        format!("rgb(0, 255, {}", (510f64 - color_value) as u8)
+    }
+    else if (color_value > 510f64) && (color_value <= 765f64)
+    {
+        format!("rgb({}, 255, 0", (color_value - 510f64) as u8)
+    }
+    else if (color_value > 765f64) && (color_value <= 1020f64)
+    {
+        format!("rgb(255, {}, 0", (1020f64 - color_value) as u8)
+    }
+    else
+    {
+        "rgb(0, 0, 255)".to_string()
+    }
+}
 
 
 #[derive(Properties, PartialEq, Clone)]
@@ -40,7 +65,7 @@ pub struct PostprocessorCanvas
 
 impl PostprocessorCanvas
 {
-    fn draw_reactions_on_plane_xy(&self) -> Html
+    fn plot_reactions_on_plane_xy(&self) -> Html
     {
         let window = web_sys::window().unwrap();
         let document = window.document().unwrap();
@@ -250,7 +275,7 @@ impl PostprocessorCanvas
                                 .arc(
                                     x_center,
                                     y_center,
-                                    axis_line_length / 10f64,
+                                    aux_element.number.to_string().chars().count() as f64 * axis_line_length / 10f64,
                                     0.0,
                                     f64::consts::PI * 2.0)
                                 .unwrap();
@@ -294,7 +319,7 @@ impl PostprocessorCanvas
                                 .arc(
                                     x_center,
                                     y_center,
-                                    axis_line_length / 10f64,
+                                    aux_element.number.to_string().chars().count() as f64 * axis_line_length / 10f64,
                                     0.0,
                                     f64::consts::PI * 2.0)
                                 .unwrap();
@@ -580,6 +605,310 @@ impl PostprocessorCanvas
         let vnode = VNode::VRef(node);
         vnode
     }
+
+
+    fn plot_stresses_on_plane_xy(&self, component: StrainStressComponent, min_max_values: &MinMaxValues) -> Html
+    {
+        let window = web_sys::window().unwrap();
+        let document = window.document().unwrap();
+        let element = document.create_element("canvas").unwrap();
+        let canvas = element.dyn_into::<HtmlCanvasElement>()
+            .map_err(|_| ())
+            .unwrap();
+        canvas.set_width(self.props.canvas_width);
+        canvas.set_height(self.props.canvas_height);
+        let base_dimension =
+            {
+                if self.props.canvas_width < self.props.canvas_height
+                {
+                    self.props.canvas_width
+                }
+                else
+                {
+                    self.props.canvas_height
+                }
+            };
+        let context = canvas
+            .get_context("2d")
+            .unwrap()
+            .unwrap()
+            .dyn_into::<CanvasRenderingContext2d>()
+            .unwrap();
+
+        let x_origin = base_dimension as f64 / 45f64;
+        let y_origin = self.props.canvas_height as f64 - base_dimension as f64 / 45f64;
+        let axis_line_length = base_dimension as f64 / 7f64;
+        let axis_line_width = axis_line_length / 50f64;
+
+        context.begin_path();
+        context.move_to(x_origin, y_origin);
+        context.set_line_width(axis_line_width);
+        context.set_stroke_style(&CANVAS_X_AXIS_COLOR.into());
+        context.line_to(x_origin + axis_line_length - axis_line_length / 7f64, y_origin);
+        context.move_to(x_origin + axis_line_length, y_origin);
+        context.line_to(
+            x_origin + axis_line_length - axis_line_length / 7f64,
+            y_origin - axis_line_length / 25f64);
+        context.line_to(
+            x_origin + axis_line_length - axis_line_length / 7f64,
+            y_origin + axis_line_length / 25f64);
+        context.line_to(x_origin + axis_line_length, y_origin);
+        context.set_fill_style(&CANVAS_X_AXIS_COLOR.into());
+        context.fill();
+        context.set_font(&format!("{}px Serif", axis_line_length as i32 / 6));
+        context.fill_text(
+            "X",
+            x_origin + axis_line_length + axis_line_length / 10f64,
+            y_origin + axis_line_length / 7f64)
+            .unwrap();
+        context.stroke();
+
+        context.begin_path();
+        context.move_to(x_origin, y_origin);
+        context.set_stroke_style(&CANVAS_Y_AXIS_COLOR.into());
+        context.line_to(x_origin, y_origin - axis_line_length + axis_line_length / 7f64);
+        context.move_to(x_origin, y_origin - axis_line_length);
+        context.line_to(
+            x_origin - axis_line_length / 25f64,
+            y_origin - axis_line_length + axis_line_length / 7f64);
+        context.line_to(
+            x_origin + axis_line_length / 25f64,
+            y_origin - axis_line_length + axis_line_length / 7f64);
+        context.line_to(x_origin, y_origin - axis_line_length);
+        context.set_fill_style(&CANVAS_Y_AXIS_COLOR.into());
+        context.fill();
+        context.set_font(&format!("{}px Serif", axis_line_length as i32 / 6));
+        context.fill_text(
+            "Y",
+            x_origin - axis_line_length / 7f64,
+            y_origin - axis_line_length - axis_line_length / 10f64)
+            .unwrap();
+        context.stroke();
+
+        if !self.props.nodes.is_empty()
+        {
+            let mut drawn_nodes = Vec::new();
+            if self.props.nodes.len() == 1
+            {
+                drawn_nodes.push(DrawnNode
+                    {
+                        number: self.props.nodes[0].number,
+                        x: (self.props.canvas_width / 2) as f64,
+                        y: (self.props.canvas_height / 2) as f64,
+                    });
+            }
+            else
+            {
+                let (mut x_min, mut x_max, mut y_min, mut y_max) =
+                (
+                    self.props.nodes[0].coordinates.x, self.props.nodes[0].coordinates.x,
+                    self.props.nodes[0].coordinates.y, self.props.nodes[0].coordinates.y
+                );
+                for node in &self.props.nodes
+                {
+                    if node.coordinates.x < x_min
+                    {
+                        x_min = node.coordinates.x;
+                    }
+                    if node.coordinates.x > x_max
+                    {
+                        x_max = node.coordinates.x;
+                    }
+                    if node.coordinates.y < y_min
+                    {
+                        y_min = node.coordinates.y;
+                    }
+                    if node.coordinates.y > y_max
+                    {
+                        y_max = node.coordinates.y;
+                    }
+                }
+                for node in &self.props.nodes
+                {
+                    let x_inter = 0.1 * self.props.canvas_width as f64 + (node.coordinates.x - x_min) *
+                        0.8 * self.props.canvas_width as f64 / (x_max - x_min);
+                    let y_inter = 0.1 * self.props.canvas_height as f64 + (node.coordinates.y - y_min) *
+                        0.8 * self.props.canvas_height as f64 / (y_max - y_min);
+                    let x_imaging =
+                        {
+                            if !x_inter.is_nan()
+                            {
+                                x_inter
+                            }
+                            else
+                            {
+                                (self.props.canvas_width / 2) as f64
+                            }
+                        };
+                    let y_imaging =
+                        {
+                            if !y_inter.is_nan()
+                            {
+                                y_inter
+                            }
+                            else
+                            {
+                                (self.props.canvas_height / 2) as f64
+                            }
+                        };
+                    drawn_nodes.push(DrawnNode
+                        {
+                            number: node.number,
+                            x: x_imaging,
+                            y: self.props.canvas_height as f64 - y_imaging,
+                        });
+                }
+            }
+
+            for node in drawn_nodes.iter()
+            {
+                context.begin_path();
+                context.move_to(node.x, node.y);
+                context.set_stroke_style(&CANVAS_NODES_COLOR.into());
+                context
+                    .arc(
+                        node.x,
+                        node.y,
+                        axis_line_length / 25f64,
+                        0.0,
+                        f64::consts::PI * 2.0)
+                    .unwrap();
+                context.set_fill_style(&CANVAS_NODES_COLOR.into());
+                context.fill();
+
+                context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
+                context.fill_text(
+                    &node.number.to_string(),
+                    node.x - axis_line_length / 6f64,
+                    node.y + axis_line_length / 6f64)
+                    .unwrap();
+                context.stroke();
+            }
+
+
+            if !self.props.aux_elements.is_empty()
+            {
+                for aux_element in self.props.aux_elements.iter()
+                {
+                    match aux_element.element_type
+                    {
+                        ElementType::Truss2n2ip =>
+                            {
+                                let node_1_position = drawn_nodes
+                                    .iter()
+                                    .position(|node| node.number == aux_element.node_1_number).unwrap();
+                                let drawn_node_1 = drawn_nodes[node_1_position].to_owned();
+                                let node_2_position = drawn_nodes
+                                    .iter()
+                                    .position(|node| node.number == aux_element.node_2_number).unwrap();
+                                let drawn_node_2 = drawn_nodes[node_2_position].to_owned();
+
+                                match component
+                                {
+                                    StrainStressComponent::XX =>
+                                        {
+                                            let current_element_strains_and_stresses =
+                                                self.props.analysis_result.strains_and_stresses.get(&aux_element.number).unwrap();
+                                            let current_element_stress_xx_position = current_element_strains_and_stresses
+                                                .iter()
+                                                .position(|strain_stress|
+                                                    {
+                                                        strain_stress.stress.component == StrainStressComponent::XX
+                                                    })
+                                                .unwrap();
+                                            let current_element_stress_xx_value =
+                                                current_element_strains_and_stresses[current_element_stress_xx_position].stress.value;
+
+                                            let current_color_value =
+                                                {
+                                                    if (min_max_values.max_value - min_max_values.min_value) == 0f64
+                                                    {
+                                                        0f64
+                                                    }
+                                                    else
+                                                    {
+                                                        (current_element_stress_xx_value -
+                                                            min_max_values.min_value) * 1020f64 /
+                                                            (min_max_values.max_value - min_max_values.min_value)
+                                                    }
+                                                };
+                                            let current_color = define_color(current_color_value);
+
+                                            context.begin_path();
+                                            context.move_to(drawn_node_1.x, drawn_node_1.y);
+                                            context.set_stroke_style(&current_color.as_str().into());
+                                            context.line_to(drawn_node_2.x, drawn_node_2.y);
+                                            context.stroke();
+
+                                            let x_center = (drawn_node_1.x + drawn_node_2.x) / 2f64;
+                                            let y_center = (drawn_node_1.y + drawn_node_2.y) / 2f64;
+
+                                            context.begin_path();
+                                            context.set_stroke_style(&CANVAS_BACKGROUND_COLOR.into());
+                                            context
+                                            .arc(
+                                                x_center,
+                                                y_center,
+                                                format!("{:.2}", current_element_stress_xx_value).chars().count() as f64 * axis_line_length / 28f64,
+                                                0.0,
+                                                f64::consts::PI * 2.0)
+                                            .unwrap();
+                                            context.set_fill_style(&CANVAS_BACKGROUND_COLOR.into());
+                                            context.fill();
+                                            context.stroke();
+
+                                            context.begin_path();
+                                            context.set_fill_style(&current_color.as_str().into());
+                                            context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
+                                            context.fill_text(
+                                                &format!("{:.2}", current_element_stress_xx_value),
+                                                x_center - format!("{:.2}", current_element_stress_xx_value).chars().count() as f64 * axis_line_length / 28f64,
+                                                y_center + axis_line_length / 20f64)
+                                                .unwrap();
+                                            context.stroke();
+                                        },
+                                    _ =>
+                                        {
+                                            context.begin_path();
+                                            context.move_to(drawn_node_1.x, drawn_node_1.y);
+                                            context.set_stroke_style(&CANVAS_NODES_COLOR.into());
+                                            context.line_to(drawn_node_2.x, drawn_node_2.y);
+                                            context.stroke();
+                                        }
+                                }
+                            },
+                        ElementType::OtherType =>
+                            {
+                                let node_1_position = drawn_nodes
+                                    .iter()
+                                    .position(|node| node.number == aux_element.node_1_number).unwrap();
+                                let drawn_node_1 = drawn_nodes[node_1_position].to_owned();
+                                let node_2_position = drawn_nodes
+                                    .iter()
+                                    .position(|node| node.number == aux_element.node_2_number).unwrap();
+                                let drawn_node_2 = drawn_nodes[node_2_position].to_owned();
+
+                                match component
+                                {
+                                    _ =>
+                                        {
+                                            context.begin_path();
+                                            context.move_to(drawn_node_1.x, drawn_node_1.y);
+                                            context.set_stroke_style(&CANVAS_NODES_COLOR.into());
+                                            context.line_to(drawn_node_2.x, drawn_node_2.y);
+                                            context.stroke();
+                                        }
+                                }
+                            },
+                    }
+                }
+            }
+        }
+        let node = Node::from(canvas);
+        let vnode = VNode::VRef(node);
+        vnode
+    }
+
 }
 
 
@@ -626,12 +955,27 @@ impl Component for PostprocessorCanvas
                         ResultView::PlotStresses =>
                             html!
                             {
-                                <p>{ ResultView::PlotStresses.as_str() }</p>
+                                <>
+                                    {
+                                        if let Some(min_max_stress_values) =
+                                            self.props.analysis_result.min_max_stress_values.get(&StrainStressComponent::XX)
+                                        {
+                                            html!
+                                            {
+                                                { self.plot_stresses_on_plane_xy(StrainStressComponent::XX, min_max_stress_values) }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            html! {  }
+                                        }
+                                    }
+                                </>
                             },
                         ResultView::PlotReactions =>
                             html!
                             {
-                                { self.draw_reactions_on_plane_xy() }
+                                { self.plot_reactions_on_plane_xy() }
                             },
                         _ => html! {  }
                     }

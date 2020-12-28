@@ -305,7 +305,7 @@ impl PreprocessorCanvas
                                 .arc(
                                     x_center,
                                     y_center,
-                                    aux_element.number.to_string().chars().count() as f64 * axis_line_length / 10f64,
+                                    aux_element.number.to_string().chars().count() as f64 * axis_line_length / 28f64,
                                     0.0,
                                     f64::consts::PI * 2.0)
                                 .unwrap();
@@ -318,7 +318,7 @@ impl PreprocessorCanvas
                                 context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
                                 context.fill_text(
                                     &aux_element.number.to_string(),
-                                    x_center - axis_line_length / 20f64,
+                                    x_center - aux_element.number.to_string().chars().count() as f64 * axis_line_length / 28f64,
                                     y_center + axis_line_length / 20f64)
                                     .unwrap();
                                 context.stroke();

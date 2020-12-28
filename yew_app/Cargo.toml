@@ -29,4 +29,5 @@ features = [
   'HtmlOptionElement',
   'DomTokenList',
   'HtmlInputElement',
+  'CanvasGradient'
 ]

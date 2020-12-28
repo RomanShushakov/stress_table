@@ -3,7 +3,7 @@ use std::f64;
 use wasm_bindgen::JsCast;
 use web_sys::Node;
 use yew::virtual_dom::VNode;
-use web_sys::{ CanvasRenderingContext2d, HtmlCanvasElement };
+use web_sys::{ CanvasRenderingContext2d, HtmlCanvasElement, CanvasGradient };
 
 use crate::fe::fe_node::FeNode;
 use crate::auxiliary::{DrawnNode, View, AuxElement, ElementType, AnalysisResult, ResultView, MinMaxValues};
@@ -849,7 +849,9 @@ impl PostprocessorCanvas
                                             .arc(
                                                 x_center,
                                                 y_center,
-                                                format!("{:.2}", current_element_stress_xx_value).chars().count() as f64 * axis_line_length / 28f64,
+                                                format!("{:.2}", current_element_stress_xx_value)
+                                                    .chars()
+                                                    .count() as f64 * axis_line_length / 28f64,
                                                 0.0,
                                                 f64::consts::PI * 2.0)
                                             .unwrap();
@@ -862,9 +864,34 @@ impl PostprocessorCanvas
                                             context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
                                             context.fill_text(
                                                 &format!("{:.2}", current_element_stress_xx_value),
-                                                x_center - format!("{:.2}", current_element_stress_xx_value).chars().count() as f64 * axis_line_length / 28f64,
+                                                x_center - format!("{:.2}", current_element_stress_xx_value)
+                                                    .chars()
+                                                    .count() as f64 * axis_line_length / 28f64,
                                                 y_center + axis_line_length / 20f64)
                                                 .unwrap();
+                                            context.stroke();
+
+                                            context.begin_path();
+                                            let gradient: CanvasGradient = context
+                                                .create_linear_gradient(
+                                                    self.props.canvas_width as f64 * 0.025,
+                                                    self.props.canvas_height as f64 * 0.35,
+                                                    self.props.canvas_width as f64 * 0.025,
+                                                    self.props.canvas_height as f64 * 0.1,
+                                                );
+                                            gradient.add_color_stop(0f32, "rgb(0, 0, 255)").unwrap();
+                                            gradient.add_color_stop(0.25, "rgb(0, 255, 255)").unwrap();
+                                            gradient.add_color_stop(0.5, "rgb(0, 255, 0)").unwrap();
+                                            gradient.add_color_stop(0.75, "rgb(255, 255, 0)").unwrap();
+                                            gradient.add_color_stop(1f32, "rgb(255, 0, 0)").unwrap();
+
+                                            context.set_fill_style(&gradient.into());
+                                            context.fill_rect(
+                                                self.props.canvas_width as f64 * 0.025,
+                                                self.props.canvas_height as f64 * 0.1,
+                                                self.props.canvas_width as f64 * 0.015,
+                                                self.props.canvas_height as f64 * 0.25,
+                                            );
                                             context.stroke();
                                         },
                                     _ =>
@@ -982,6 +1009,5 @@ impl Component for PostprocessorCanvas
                 }
             _ => html! {}
         }
-
     }
 }

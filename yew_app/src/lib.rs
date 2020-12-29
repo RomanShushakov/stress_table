@@ -62,6 +62,7 @@ struct State
     view: View,
     canvas_width: u32,
     canvas_height: u32,
+    is_preprocessor_active: bool,
     nodes: Vec<FeNode<u16, f64>>,
     aux_elements: Vec<AuxElement>,
     aux_displacements: Vec<AuxDisplacement>,
@@ -100,6 +101,7 @@ enum Msg
     RemoveAuxForce(usize),
     Submit,
     ResetAnalysisErrorMessage,
+    EditStructure,
     ChangeResultView(ResultView),
 }
 
@@ -400,6 +402,7 @@ impl Component for Model
                     view: View::PlaneXY,
                     canvas_width: width,
                     canvas_height: height,
+                    is_preprocessor_active: true,
                     nodes: Vec::new(),
                     aux_elements: Vec::new(),
                     aux_displacements: Vec::new(),
@@ -490,7 +493,11 @@ impl Component for Model
                 {
                     match self.submit()
                     {
-                        Ok(analysis_result) => self.state.analysis_result = Some(analysis_result),
+                        Ok(analysis_result) =>
+                            {
+                                self.state.analysis_result = Some(analysis_result);
+                                self.state.is_preprocessor_active = false;
+                            },
                         Err(msg) =>
                             {
                                 self.state.analysis_error_message = Some(msg);
@@ -500,6 +507,12 @@ impl Component for Model
                     }
                 },
             Msg::ResetAnalysisErrorMessage => self.state.analysis_error_message = None,
+            Msg::EditStructure =>
+                {
+                    self.state.is_preprocessor_active = true;
+                    self.state.analysis_result = None;
+                    self.state.result_view = None;
+                },
             Msg::ChangeResultView(result_view) => self.state.result_view = Some(result_view),
         }
         true
@@ -551,11 +564,13 @@ impl Component for Model
                             />
                             <NodeMenu
                                 analysis_type=self.state.analysis_type.to_owned(),
+                                is_preprocessor_active=self.state.is_preprocessor_active,
                                 nodes=self.state.nodes.to_owned(), add_node=handle_add_node,
                                 update_node=handle_update_node, remove_node=handle_remove_node,
                             />
                             <ElementMenu
                                 analysis_type=self.state.analysis_type.to_owned(),
+                                is_preprocessor_active=self.state.is_preprocessor_active,
                                 nodes=self.state.nodes.to_owned(),
                                 aux_elements=self.state.aux_elements.to_owned(),
                                 add_aux_element=handle_add_aux_element,
@@ -564,6 +579,7 @@ impl Component for Model
                             />
                             <DisplacementMenu
                                 analysis_type=self.state.analysis_type.to_owned(),
+                                is_preprocessor_active=self.state.is_preprocessor_active,
                                 aux_elements=self.state.aux_elements.to_owned(),
                                 aux_displacements=self.state.aux_displacements.to_owned(),
                                 add_aux_displacement=handle_add_aux_displacement,
@@ -572,6 +588,7 @@ impl Component for Model
                             />
                             <ForceMenu
                                 analysis_type=self.state.analysis_type.to_owned(),
+                                is_preprocessor_active=self.state.is_preprocessor_active,
                                 aux_elements=self.state.aux_elements.to_owned(),
                                 aux_forces=self.state.aux_forces.to_owned(),
                                 add_aux_force=handle_add_aux_force,
@@ -580,7 +597,17 @@ impl Component for Model
                             />
                             <button class={ PREPROCESSOR_BUTTON_CLASS }
                                 onclick=self.link.callback(|_| Msg::Submit),
-                                disabled={ !self.check_preprocessor_data() },
+                                disabled=
+                                    {
+                                        if self.check_preprocessor_data() && self.state.is_preprocessor_active
+                                        {
+                                            false
+                                        }
+                                        else
+                                        {
+                                            true
+                                        }
+                                    },
                             >
                                 { "Submit" }
                             </button>
@@ -625,6 +652,12 @@ impl Component for Model
                             {
                                 <div class={ POSTPROCESSOR_CLASS }>
                                     <div class={ POSTPROCESSOR_MENU_CLASS }>
+                                        <button
+                                            class={ POSTPROCESSOR_BUTTON_CLASS },
+                                            onclick=self.link.callback(|_| Msg::EditStructure),
+                                        >
+                                            { "Edit model" }
+                                        </button>
                                         <ResultViewMenu
                                             result_view=self.state.result_view.to_owned(),
                                             change_result_view=handle_change_result_view,

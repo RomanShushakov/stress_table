@@ -43,6 +43,7 @@ const DISPLACEMENT_MENU_BUTTON_CLASS: &str = "displacement_menu_button";
 pub struct Props
 {
     pub analysis_type: Option<AnalysisType>,
+    pub is_preprocessor_active: bool,
     pub aux_elements: Vec<AuxElement>,
     pub aux_displacements: Vec<AuxDisplacement>,
     pub add_aux_displacement: Callback<AuxDisplacement>,
@@ -729,7 +730,17 @@ impl Component for DisplacementMenu
                 <button
                     class={ PREPROCESSOR_BUTTON_CLASS },
                     onclick=self.link.callback(|_| Msg::ShowHideDisplacementMenu),
-                    disabled={ if self.props.analysis_type.is_some() { false } else { true } },
+                    disabled=
+                        {
+                            if self.props.analysis_type.is_some() && self.props.is_preprocessor_active
+                            {
+                                false
+                            }
+                            else
+                            {
+                                true
+                            }
+                        },
                 >
                     { "Displacement" }
                 </button>

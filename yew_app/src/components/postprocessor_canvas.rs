@@ -10,10 +10,10 @@ use crate::auxiliary::{DrawnNode, View, AuxElement, ElementType, AnalysisResult,
 use crate::fe::fe_aux_structs::{AxisComponent, StrainStressComponent};
 
 
-const CANVAS_BACKGROUND_COLOR: &str = "white";
+const CANVAS_BACKGROUND_COLOR: &str = "black";
 const CANVAS_X_AXIS_COLOR: &str = "red";
 const CANVAS_Y_AXIS_COLOR: &str = "green";
-const CANVAS_NODES_COLOR: &str = "black";
+const CANVAS_NODES_COLOR: &str = "white";
 const CANVAS_ELEMENTS_COLOR: &str = "blue";
 const CANVAS_REACTION_COLOR: &str = "magenta";
 
@@ -92,6 +92,16 @@ impl PostprocessorCanvas
             .unwrap()
             .dyn_into::<CanvasRenderingContext2d>()
             .unwrap();
+
+        context.begin_path();
+        context.set_fill_style(&CANVAS_BACKGROUND_COLOR.into());
+        context.fill_rect(
+            0f64,
+            0f64,
+            self.props.canvas_width as f64,
+            self.props.canvas_height as f64,
+        );
+        context.stroke();
 
         let x_origin = base_dimension as f64 / 45f64;
         let y_origin = self.props.canvas_height as f64 - base_dimension as f64 / 45f64;
@@ -218,31 +228,6 @@ impl PostprocessorCanvas
                 }
             }
 
-            for node in drawn_nodes.iter()
-            {
-                context.begin_path();
-                context.move_to(node.x, node.y);
-                context.set_stroke_style(&CANVAS_NODES_COLOR.into());
-                context
-                    .arc(
-                        node.x,
-                        node.y,
-                        axis_line_length / 25f64,
-                        0.0,
-                        f64::consts::PI * 2.0)
-                    .unwrap();
-                context.set_fill_style(&CANVAS_NODES_COLOR.into());
-                context.fill();
-
-                context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
-                context.fill_text(
-                    &node.number.to_string(),
-                    node.x - axis_line_length / 6f64,
-                    node.y + axis_line_length / 6f64)
-                    .unwrap();
-                context.stroke();
-            }
-
             if !self.props.aux_elements.is_empty()
             {
                 for aux_element in self.props.aux_elements.iter()
@@ -339,6 +324,31 @@ impl PostprocessorCanvas
                             },
                     }
                 }
+            }
+
+            for node in drawn_nodes.iter()
+            {
+                context.begin_path();
+                context.move_to(node.x, node.y);
+                context.set_stroke_style(&CANVAS_NODES_COLOR.into());
+                context
+                    .arc(
+                        node.x,
+                        node.y,
+                        axis_line_length / 25f64,
+                        0.0,
+                        f64::consts::PI * 2.0)
+                    .unwrap();
+                context.set_fill_style(&CANVAS_NODES_COLOR.into());
+                context.fill();
+
+                context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
+                context.fill_text(
+                    &node.number.to_string(),
+                    node.x - axis_line_length / 6f64,
+                    node.y + axis_line_length / 6f64)
+                    .unwrap();
+                context.stroke();
             }
 
             for (reaction, reaction_value) in &self.props.analysis_result.reactions
@@ -597,9 +607,17 @@ impl PostprocessorCanvas
                         },
                     _ => (),
                 }
-
-
             }
+
+            context.begin_path();
+            context.set_fill_style(&CANVAS_NODES_COLOR.into());
+            context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
+            context.fill_text(
+                "Reactions",
+                x_origin,
+                self.props.canvas_height as f64 * 0.05)
+                .unwrap();
+            context.stroke();
         }
         let node = Node::from(canvas);
         let vnode = VNode::VRef(node);
@@ -635,14 +653,24 @@ impl PostprocessorCanvas
             .dyn_into::<CanvasRenderingContext2d>()
             .unwrap();
 
+        context.begin_path();
+        context.set_fill_style(&CANVAS_BACKGROUND_COLOR.into());
+        context.fill_rect(
+            0f64,
+            0f64,
+            self.props.canvas_width as f64,
+            self.props.canvas_height as f64,
+        );
+        context.stroke();
+
         let x_origin = base_dimension as f64 / 45f64;
         let y_origin = self.props.canvas_height as f64 - base_dimension as f64 / 45f64;
         let axis_line_length = base_dimension as f64 / 7f64;
-        let axis_line_width = axis_line_length / 50f64;
+        // let axis_line_width = axis_line_length / 50f64;
 
         context.begin_path();
         context.move_to(x_origin, y_origin);
-        context.set_line_width(axis_line_width);
+        // context.set_line_width(axis_line_width);
         context.set_stroke_style(&CANVAS_X_AXIS_COLOR.into());
         context.line_to(x_origin + axis_line_length - axis_line_length / 7f64, y_origin);
         context.move_to(x_origin + axis_line_length, y_origin);
@@ -760,32 +788,6 @@ impl PostprocessorCanvas
                 }
             }
 
-            for node in drawn_nodes.iter()
-            {
-                context.begin_path();
-                context.move_to(node.x, node.y);
-                context.set_stroke_style(&CANVAS_NODES_COLOR.into());
-                context
-                    .arc(
-                        node.x,
-                        node.y,
-                        axis_line_length / 25f64,
-                        0.0,
-                        f64::consts::PI * 2.0)
-                    .unwrap();
-                context.set_fill_style(&CANVAS_NODES_COLOR.into());
-                context.fill();
-
-                context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
-                context.fill_text(
-                    &node.number.to_string(),
-                    node.x - axis_line_length / 6f64,
-                    node.y + axis_line_length / 6f64)
-                    .unwrap();
-                context.stroke();
-            }
-
-
             if !self.props.aux_elements.is_empty()
             {
                 for aux_element in self.props.aux_elements.iter()
@@ -874,9 +876,9 @@ impl PostprocessorCanvas
                                             context.begin_path();
                                             let gradient: CanvasGradient = context
                                                 .create_linear_gradient(
-                                                    self.props.canvas_width as f64 * 0.025,
+                                                    x_origin,
                                                     self.props.canvas_height as f64 * 0.35,
-                                                    self.props.canvas_width as f64 * 0.025,
+                                                    x_origin,
                                                     self.props.canvas_height as f64 * 0.1,
                                                 );
                                             gradient.add_color_stop(0f32, "rgb(0, 0, 255)").unwrap();
@@ -884,14 +886,71 @@ impl PostprocessorCanvas
                                             gradient.add_color_stop(0.5, "rgb(0, 255, 0)").unwrap();
                                             gradient.add_color_stop(0.75, "rgb(255, 255, 0)").unwrap();
                                             gradient.add_color_stop(1f32, "rgb(255, 0, 0)").unwrap();
-
                                             context.set_fill_style(&gradient.into());
                                             context.fill_rect(
-                                                self.props.canvas_width as f64 * 0.025,
+                                                x_origin,
                                                 self.props.canvas_height as f64 * 0.1,
                                                 self.props.canvas_width as f64 * 0.015,
                                                 self.props.canvas_height as f64 * 0.25,
                                             );
+                                            context.stroke();
+
+                                            context.begin_path();
+                                            context.set_fill_style(&CANVAS_NODES_COLOR.into());
+                                            context.set_font(&format!("{}px Serif", axis_line_length / 8f64));
+                                            context.fill_text(
+                                                "Stress,",
+                                                x_origin,
+                                                self.props.canvas_height as f64 * 0.07)
+                                                .unwrap();
+                                            context.fill_text(
+                                                "Component: XX",
+                                                x_origin,
+                                                self.props.canvas_height as f64 * 0.09)
+                                                .unwrap();
+                                            context.stroke();
+
+                                            context.begin_path();
+                                            context.set_fill_style(&CANVAS_NODES_COLOR.into());
+                                            context.set_font(&format!("{}px Serif", axis_line_length / 8f64));
+                                            context.fill_text(
+                                                &format!("{:+.3e}", min_max_values.max_value),
+                                                x_origin + self.props.canvas_width as f64 * 0.025,
+                                                self.props.canvas_height as f64 * 0.1 + axis_line_length / 16f64)
+                                                .unwrap();
+                                            context.fill_text(
+                                                &format!("{:+.3e}", min_max_values.min_value),
+                                                x_origin + self.props.canvas_width as f64 * 0.025,
+                                                self.props.canvas_height as f64 * 0.35 + axis_line_length / 16f64)
+                                                .unwrap();
+                                            context.stroke();
+
+                                            context.begin_path();
+                                            context.set_stroke_style(&CANVAS_NODES_COLOR.into());
+                                            context.move_to(
+                                                x_origin,
+                                                self.props.canvas_height as f64 * 0.1);
+                                            context.line_to(
+                                                x_origin + self.props.canvas_width as f64 * 0.0225,
+                                                self.props.canvas_height as f64 * 0.1);
+                                            context.move_to(
+                                                x_origin,
+                                                self.props.canvas_height as f64 * 0.35);
+                                            context.line_to(
+                                                x_origin + self.props.canvas_width as f64 * 0.0225,
+                                                self.props.canvas_height as f64 * 0.35);
+                                            context.move_to(
+                                                x_origin,
+                                                self.props.canvas_height as f64 * 0.1);
+                                            context.line_to(
+                                                x_origin,
+                                                self.props.canvas_height as f64 * 0.35);
+                                            context.move_to(
+                                                x_origin + self.props.canvas_width as f64 * 0.015,
+                                                self.props.canvas_height as f64 * 0.1);
+                                            context.line_to(
+                                                x_origin + self.props.canvas_width as f64 * 0.015,
+                                                self.props.canvas_height as f64 * 0.35);
                                             context.stroke();
                                         },
                                     _ =>
@@ -929,6 +988,31 @@ impl PostprocessorCanvas
                             },
                     }
                 }
+            }
+
+            for node in drawn_nodes.iter()
+            {
+                context.begin_path();
+                context.move_to(node.x, node.y);
+                context.set_stroke_style(&CANVAS_NODES_COLOR.into());
+                context
+                    .arc(
+                        node.x,
+                        node.y,
+                        axis_line_length / 25f64,
+                        0.0,
+                        f64::consts::PI * 2.0)
+                    .unwrap();
+                context.set_fill_style(&CANVAS_NODES_COLOR.into());
+                context.fill();
+
+                context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
+                context.fill_text(
+                    &node.number.to_string(),
+                    node.x - axis_line_length / 6f64,
+                    node.y + axis_line_length / 6f64)
+                    .unwrap();
+                context.stroke();
             }
         }
         let node = Node::from(canvas);

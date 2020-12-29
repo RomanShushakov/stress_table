@@ -34,6 +34,7 @@ const MOMENT_IN_ZX_PLANE_VALUE: &str = "moment_in_zx_plane_value";
 pub struct Props
 {
     pub analysis_type: Option<AnalysisType>,
+    pub is_preprocessor_active: bool,
     pub aux_elements: Vec<AuxElement>,
     pub aux_forces: Vec<AuxForce>,
     pub add_aux_force: Callback<AuxForce>,
@@ -488,7 +489,17 @@ impl Component for ForceMenu
             <>
                 <button
                     class={ PREPROCESSOR_BUTTON_CLASS }, onclick=self.link.callback(|_| Msg::ShowHideForceMenu),
-                    disabled={ if self.props.analysis_type.is_some() { false } else { true } },
+                    disabled=
+                        {
+                            if self.props.analysis_type.is_some() && self.props.is_preprocessor_active
+                            {
+                                false
+                            }
+                            else
+                            {
+                                true
+                            }
+                        },
                 >
                     { "Force" }
                 </button>

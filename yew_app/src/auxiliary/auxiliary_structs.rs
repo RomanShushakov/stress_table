@@ -103,7 +103,7 @@ pub struct AuxElement
     pub area: f32,
     pub area_2: Option<f32>,
 
-    pub moment_of_inertia_about_x_axis: Option<f32>,
+    pub moment_of_inertia_about_z_axis: Option<f32>,
     pub moment_of_inertia_about_y_axis: Option<f32>,
     pub torsion_constant: Option<f32>,
 }

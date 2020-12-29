@@ -28,6 +28,7 @@ const NODE_Z_COORD: &str = "node_z_coord";
 pub struct Props
 {
     pub analysis_type: Option<AnalysisType>,
+    pub is_preprocessor_active: bool,
     pub nodes: Vec<FeNode<u16, f64>>,
     pub add_node: Callback<FeNode<u16, f64>>,
     pub update_node: Callback<(usize, FeNode<u16, f64>)>,
@@ -275,7 +276,17 @@ impl Component for NodeMenu
             <>
                 <button
                     class={ PREPROCESSOR_BUTTON_CLASS }, onclick=self.link.callback(|_| Msg::ShowHideNodeMenu),
-                    disabled={ if self.props.analysis_type.is_some() { false } else { true } },
+                    disabled=
+                        {
+                            if self.props.analysis_type.is_some() && self.props.is_preprocessor_active
+                            {
+                                false
+                            }
+                            else
+                            {
+                                true
+                            }
+                        },
                 >
                     { "Node" }
                 </button>

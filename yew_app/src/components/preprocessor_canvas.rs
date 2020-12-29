@@ -68,6 +68,16 @@ impl PreprocessorCanvas
             .dyn_into::<CanvasRenderingContext2d>()
             .unwrap();
 
+        context.begin_path();
+        context.set_fill_style(&CANVAS_BACKGROUND_COLOR.into());
+        context.fill_rect(
+            0f64,
+            0f64,
+            self.props.canvas_width as f64,
+            self.props.canvas_height as f64,
+        );
+        context.stroke();
+
         let x_origin = base_dimension as f64 / 45f64;
         let y_origin = self.props.canvas_height as f64 - base_dimension as f64 / 45f64;
         let axis_line_length = base_dimension as f64 / 7f64;
@@ -193,42 +203,6 @@ impl PreprocessorCanvas
                 }
             }
 
-            for node in drawn_nodes.iter()
-            {
-                context.begin_path();
-                context.move_to(node.x, node.y);
-                context.set_stroke_style(&CANVAS_NODES_COLOR.into());
-                context
-                    .arc(
-                        node.x,
-                        node.y,
-                        axis_line_length / 25f64,
-                        0.0,
-                        f64::consts::PI * 2.0)
-                    .unwrap();
-                context.set_fill_style(&CANVAS_NODES_COLOR.into());
-                context.fill();
-
-                // context.save();
-                // context.translate(node.1 - axis_line_length / 6f64,node.2 + axis_line_length / 6f64).unwrap();
-                // context.rotate(f64::consts::PI / 2.0).unwrap();
-
-                context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
-                context.fill_text(
-                    &node.number.to_string(),
-                    node.x - axis_line_length / 6f64,
-                    node.y + axis_line_length / 6f64)
-                    .unwrap();
-                // context.fill_text(
-                //     &node.0.to_string(),
-                //     0f64,
-                //     0f64)
-                //     .unwrap();
-                context.stroke();
-
-                // context.restore();
-            }
-
             if !self.props.aux_elements.is_empty()
             {
                 for aux_element in self.props.aux_elements.iter()
@@ -325,6 +299,42 @@ impl PreprocessorCanvas
                             },
                     }
                 }
+            }
+
+            for node in drawn_nodes.iter()
+            {
+                context.begin_path();
+                context.move_to(node.x, node.y);
+                context.set_stroke_style(&CANVAS_NODES_COLOR.into());
+                context
+                    .arc(
+                        node.x,
+                        node.y,
+                        axis_line_length / 25f64,
+                        0.0,
+                        f64::consts::PI * 2.0)
+                    .unwrap();
+                context.set_fill_style(&CANVAS_NODES_COLOR.into());
+                context.fill();
+
+                // context.save();
+                // context.translate(node.1 - axis_line_length / 6f64,node.2 + axis_line_length / 6f64).unwrap();
+                // context.rotate(f64::consts::PI / 2.0).unwrap();
+
+                context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
+                context.fill_text(
+                    &node.number.to_string(),
+                    node.x - axis_line_length / 6f64,
+                    node.y + axis_line_length / 6f64)
+                    .unwrap();
+                // context.fill_text(
+                //     &node.0.to_string(),
+                //     0f64,
+                //     0f64)
+                //     .unwrap();
+                context.stroke();
+
+                // context.restore();
             }
 
             if !self.props.aux_displacements.is_empty()

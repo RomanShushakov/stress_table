@@ -29,7 +29,7 @@ const YOUNG_MODULUS: &str = "young_modulus";
 const AREA: &str = "area";
 const AREA_2: &str = "area_2";
 
-const MOMENT_OF_INERTIA_ABOUT_X_AXIS: &str = "moment_of_inertia_about_x_axis";
+const MOMENT_OF_INERTIA_ABOUT_Z_AXIS: &str = "moment_of_inertia_about_z_axis";
 const MOMENT_OF_INERTIA_ABOUT_Y_AXIS: &str = "moment_of_inertia_about_y_axis";
 const TORSION_CONSTANT: &str = "torsion_constant";
 
@@ -38,6 +38,7 @@ const TORSION_CONSTANT: &str = "torsion_constant";
 pub struct Props
 {
     pub analysis_type: Option<AnalysisType>,
+    pub is_preprocessor_active: bool,
     pub nodes: Vec<FeNode<u16, f64>>,
     pub aux_elements: Vec<AuxElement>,
     pub add_aux_element: Callback<AuxElement>,
@@ -128,7 +129,7 @@ impl ElementMenu
             number, node_1_number: 1u16, node_2_number: 2u16,
             young_modulus: 1f32, area: 1f32, area_2: None,
 
-            moment_of_inertia_about_x_axis: None,
+            moment_of_inertia_about_z_axis: None,
             moment_of_inertia_about_y_axis: None,
             torsion_constant: None,
         };
@@ -225,7 +226,7 @@ impl Component for ElementMenu
                 young_modulus: 1f32,
                 area: 1f32, area_2: None,
 
-                moment_of_inertia_about_x_axis: None,
+                moment_of_inertia_about_z_axis: None,
                 moment_of_inertia_about_y_axis: None,
                 torsion_constant: None,
             };
@@ -295,7 +296,7 @@ impl Component for ElementMenu
                                             area: 1f32,
                                             area_2: None,
 
-                                            moment_of_inertia_about_x_axis: None,
+                                            moment_of_inertia_about_z_axis: None,
                                             moment_of_inertia_about_y_axis: None,
                                             torsion_constant: None,
                                         };
@@ -405,8 +406,8 @@ impl Component for ElementMenu
                             },
                         OtherType =>
                             {
-                                let selected_element_moment_of_inertia_x =
-                                    self.read_inputted_properties(MOMENT_OF_INERTIA_ABOUT_X_AXIS);
+                                let selected_element_moment_of_inertia_z =
+                                    self.read_inputted_properties(MOMENT_OF_INERTIA_ABOUT_Z_AXIS);
                                 let selected_element_moment_of_inertia_y =
                                     self.read_inputted_properties(MOMENT_OF_INERTIA_ABOUT_Y_AXIS);
                                 let selected_element_torsion_constant =
@@ -440,11 +441,11 @@ impl Component for ElementMenu
                                 self.state.selected_element.node_2_number = selected_element_node_2_inputted_number;
                                 self.state.selected_element.young_modulus = selected_element_young_modulus;
                                 self.state.selected_element.area = selected_element_area;
-                                self.state.selected_element.moment_of_inertia_about_x_axis =
+                                self.state.selected_element.moment_of_inertia_about_z_axis =
                                     {
-                                        if selected_element_moment_of_inertia_x > 0f32
+                                        if selected_element_moment_of_inertia_z > 0f32
                                         {
-                                            Some(selected_element_moment_of_inertia_x)
+                                            Some(selected_element_moment_of_inertia_z)
                                         }
                                         else
                                         {
@@ -541,7 +542,17 @@ impl Component for ElementMenu
             <>
                 <button
                     class={ PREPROCESSOR_BUTTON_CLASS }, onclick=self.link.callback(|_| Msg::ShowHideElementMenu),
-                    disabled={ if self.props.analysis_type.is_some() { false } else { true } },
+                    disabled=
+                        {
+                            if self.props.analysis_type.is_some() && self.props.is_preprocessor_active
+                            {
+                                false
+                            }
+                            else
+                            {
+                                true
+                            }
+                        },
                 >
                     { "Element" }
                 </button>
@@ -670,16 +681,16 @@ impl Component for ElementMenu
                                                 <>
                                                     <li>
                                                         <p class={ ELEMENT_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
-                                                            { "The moment of inertia about x axis:" }
+                                                            { "The moment of inertia about z axis:" }
                                                         </p>
                                                         <input
-                                                            id={ MOMENT_OF_INERTIA_ABOUT_X_AXIS },
+                                                            id={ MOMENT_OF_INERTIA_ABOUT_Z_AXIS },
                                                             value=
                                                                 {
-                                                                    if let Some(moment_of_inertia_x) =
-                                                                        self.state.selected_element.moment_of_inertia_about_x_axis
+                                                                    if let Some(moment_of_inertia_z) =
+                                                                        self.state.selected_element.moment_of_inertia_about_z_axis
                                                                     {
-                                                                        moment_of_inertia_x.to_string()
+                                                                        moment_of_inertia_z.to_string()
                                                                     }
                                                                     else
                                                                     {

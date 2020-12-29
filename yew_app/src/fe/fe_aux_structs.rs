@@ -52,7 +52,11 @@ pub struct SubMatrixIndexes
 pub enum StrainStressComponent
 {
     XX,
-    Other,
+    YY,
+    ZZ,
+    XY,
+    YZ,
+    ZX,
 }
 
 

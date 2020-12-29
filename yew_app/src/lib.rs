@@ -30,6 +30,7 @@ use components::
     {
         AnalysisTypeMenu, NodeMenu, PreprocessorCanvas, ElementMenu,
         ViewMenu, DisplacementMenu, ForceMenu, ResultViewMenu, PostprocessorCanvas,
+        AllResultsTable,
     };
 mod auxiliary;
 use auxiliary::
@@ -670,7 +671,15 @@ impl Component for Model
                                             {
                                                 ResultView::PrintAllResults =>
                                                     {
-                                                        html! {  }
+                                                        html!
+                                                        {
+                                                            <AllResultsTable
+                                                                nodes=self.state.nodes.to_owned(),
+                                                                aux_elements=self.state.aux_elements.to_owned(),
+                                                                aux_displacements=self.state.aux_displacements.to_owned(),
+                                                                analysis_result=analysis_result.to_owned(),
+                                                            />
+                                                        }
                                                     },
                                                 _ =>
                                                     {

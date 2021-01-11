@@ -98,10 +98,23 @@ input {
     padding-left: 0.5rem;
     padding-right: 0.5rem;
     margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
 }
 
 
 .postprocessor_button {
     margin-right: 0.5rem;
     width: 10.0rem;
+}
+
+
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+  }
+
+
+th, td {
+    width: 56px;
 }

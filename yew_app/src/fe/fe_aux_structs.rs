@@ -3,6 +3,10 @@ use crate::fe::fe_node::FeNode;
 use std::collections::HashMap;
 use std::hash::Hash;
 
+use std::slice::Iter;
+use self::AxisComponent::*;
+use self::StrainStressComponent::*;
+
 
 #[derive(Eq, PartialEq, Hash, Debug, Clone, Copy)]
 pub enum AxisComponent
@@ -13,6 +17,19 @@ pub enum AxisComponent
     ThetaU,
     ThetaV,
     ThetaW,
+}
+
+
+impl AxisComponent
+{
+    pub fn iterator() -> Iter<'static, AxisComponent>
+     {
+        static COMPONENTS: [AxisComponent; 6] =
+            [
+                U, V, W, ThetaW, ThetaU, ThetaV
+            ];
+        COMPONENTS.iter()
+    }
 }
 
 
@@ -57,6 +74,19 @@ pub enum StrainStressComponent
     XY,
     YZ,
     ZX,
+}
+
+
+impl StrainStressComponent
+{
+    pub fn iterator() -> Iter<'static, StrainStressComponent>
+     {
+        static COMPONENTS: [StrainStressComponent; 6] =
+            [
+                XX, YY, ZZ, XY, YZ, ZX
+            ];
+        COMPONENTS.iter()
+    }
 }
 
 

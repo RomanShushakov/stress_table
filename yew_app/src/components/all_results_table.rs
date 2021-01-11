@@ -7,6 +7,9 @@ use crate::
     };
 
 
+const ALL_RESULTS_TABLE_CLASS: &str = "all_results_table";
+
+
 #[derive(Properties, PartialEq, Clone)]
 pub struct Props
 {
@@ -17,11 +20,90 @@ pub struct Props
 }
 
 
-
-
 pub struct AllResultsTable
 {
     props: Props,
+}
+
+
+impl AllResultsTable
+{
+    fn get_reaction_value(&self, node_number: u16, component: AxisComponent) -> String
+    {
+        if let Some(reaction_value) =
+            self.props.analysis_result.reactions
+                .get(&Force { node_number, component })
+        {
+            format!("{:+.3e}", reaction_value)
+        }
+        else
+        {
+            "N/A".to_string()
+        }
+    }
+
+
+    fn get_displacement_value(&self, node_number: u16, component: AxisComponent) -> String
+    {
+        if let Some(displacement_value) =
+            self.props.analysis_result.displacements
+                .get(&Displacement { node_number, component })
+        {
+            format!("{:+.3e}", displacement_value)
+        }
+        else
+        {
+            "N/A".to_string()
+        }
+    }
+
+
+    fn get_strain_value(&self, element_number: u16, component: StrainStressComponent) -> String
+    {
+        if let Some(strains_and_stresses) =
+            self.props.analysis_result.strains_and_stresses
+                .get(&element_number)
+        {
+            if let Some(position) = strains_and_stresses
+                .iter()
+                .position(|strain_stress| strain_stress.strain.component == component)
+            {
+                format!("{:+.3e}", strains_and_stresses[position].strain.value)
+            }
+            else
+            {
+                "N/A".to_string()
+            }
+        }
+        else
+        {
+            "N/A".to_string()
+        }
+    }
+
+
+    fn get_stress_value(&self, element_number: u16, component: StrainStressComponent) -> String
+    {
+        if let Some(strains_and_stresses) =
+            self.props.analysis_result.strains_and_stresses
+                .get(&element_number)
+        {
+            if let Some(position) = strains_and_stresses
+                .iter()
+                .position(|strain_stress| strain_stress.stress.component == component)
+            {
+                format!("{:+.3e}", strains_and_stresses[position].stress.value)
+            }
+            else
+            {
+                "N/A".to_string()
+            }
+        }
+        else
+        {
+            "N/A".to_string()
+        }
+    }
 }
 
 
@@ -60,7 +142,7 @@ impl Component for AllResultsTable
     {
         html!
         {
-            <>
+            <div class={ ALL_RESULTS_TABLE_CLASS }>
                 <table>
                     <thead>
                         <tr>
@@ -83,114 +165,15 @@ impl Component for AllResultsTable
                             {
                                 <tr>
                                     <td>{ format!("node {}", aux_displacement.node_number) }</td>
-                                    <td>
+                                    {
+                                        for AxisComponent::iterator().map(|component|
+                                        html!
                                         {
-                                            if let Some(r_x_value) =
-                                                self.props.analysis_result.reactions
-                                                    .get(&Force
-                                                        {
-                                                            node_number: aux_displacement.node_number,
-                                                            component: AxisComponent::U
-                                                        })
-                                            {
-                                                r_x_value.to_string()
-                                            }
-                                            else
-                                            {
-                                                "N/A".to_string()
-                                            }
-                                        }
-                                    </td>
-                                    <td>
-                                        {
-                                            if let Some(r_y_value) =
-                                                self.props.analysis_result.reactions
-                                                    .get(&Force
-                                                        {
-                                                            node_number: aux_displacement.node_number,
-                                                            component: AxisComponent::V
-                                                        })
-                                            {
-                                                r_y_value.to_string()
-                                            }
-                                            else
-                                            {
-                                                "N/A".to_string()
-                                            }
-                                        }
-                                    </td>
-                                    <td>
-                                        {
-                                            if let Some(r_z_value) =
-                                                self.props.analysis_result.reactions
-                                                    .get(&Force
-                                                        {
-                                                            node_number: aux_displacement.node_number,
-                                                            component: AxisComponent::W
-                                                        })
-                                            {
-                                                r_z_value.to_string()
-                                            }
-                                            else
-                                            {
-                                                "N/A".to_string()
-                                            }
-                                        }
-                                    </td>
-                                    <td>
-                                        {
-                                            if let Some(m_xy_value) =
-                                                self.props.analysis_result.reactions
-                                                    .get(&Force
-                                                        {
-                                                            node_number: aux_displacement.node_number,
-                                                            component: AxisComponent::ThetaW
-                                                        })
-                                            {
-                                                m_xy_value.to_string()
-                                            }
-                                            else
-                                            {
-                                                "N/A".to_string()
-                                            }
-                                        }
-                                    </td>
-                                    <td>
-                                        {
-                                            if let Some(m_yz_value) =
-                                                self.props.analysis_result.reactions
-                                                    .get(&Force
-                                                        {
-                                                            node_number: aux_displacement.node_number,
-                                                            component: AxisComponent::ThetaU
-                                                        })
-                                            {
-                                                m_yz_value.to_string()
-                                            }
-                                            else
-                                            {
-                                                "N/A".to_string()
-                                            }
-                                        }
-                                    </td>
-                                    <td>
-                                        {
-                                            if let Some(m_zx_value) =
-                                                self.props.analysis_result.reactions
-                                                    .get(&Force
-                                                        {
-                                                            node_number: aux_displacement.node_number,
-                                                            component: AxisComponent::ThetaV
-                                                        })
-                                            {
-                                                m_zx_value.to_string()
-                                            }
-                                            else
-                                            {
-                                                "N/A".to_string()
-                                            }
-                                        }
-                                    </td>
+                                            <td>
+                                                { self.get_reaction_value(aux_displacement.node_number, *component) }
+                                            </td>
+                                        })
+                                    }
                                 </tr>
                             })
                         }
@@ -218,114 +201,15 @@ impl Component for AllResultsTable
                             {
                                 <tr>
                                     <td>{ format!("node {}", node.number) }</td>
-                                    <td>
+                                    {
+                                        for AxisComponent::iterator().map(|component|
+                                        html!
                                         {
-                                            if let Some(u_x_value) =
-                                                self.props.analysis_result.displacements
-                                                    .get(&Displacement
-                                                        {
-                                                            node_number: node.number,
-                                                            component: AxisComponent::U
-                                                        })
-                                            {
-                                                u_x_value.to_string()
-                                            }
-                                            else
-                                            {
-                                                "N/A".to_string()
-                                            }
-                                        }
-                                    </td>
-                                    <td>
-                                        {
-                                            if let Some(u_y_value) =
-                                                self.props.analysis_result.displacements
-                                                    .get(&Displacement
-                                                        {
-                                                            node_number: node.number,
-                                                            component: AxisComponent::V
-                                                        })
-                                            {
-                                                u_y_value.to_string()
-                                            }
-                                            else
-                                            {
-                                                "N/A".to_string()
-                                            }
-                                        }
-                                    </td>
-                                    <td>
-                                        {
-                                            if let Some(u_z_value) =
-                                                self.props.analysis_result.displacements
-                                                    .get(&Displacement
-                                                        {
-                                                            node_number: node.number,
-                                                            component: AxisComponent::W
-                                                        })
-                                            {
-                                                u_z_value.to_string()
-                                            }
-                                            else
-                                            {
-                                                "N/A".to_string()
-                                            }
-                                        }
-                                    </td>
-                                    <td>
-                                        {
-                                            if let Some(theta_xy_value) =
-                                                self.props.analysis_result.displacements
-                                                    .get(&Displacement
-                                                        {
-                                                            node_number: node.number,
-                                                            component: AxisComponent::ThetaW
-                                                        })
-                                            {
-                                                theta_xy_value.to_string()
-                                            }
-                                            else
-                                            {
-                                                "N/A".to_string()
-                                            }
-                                        }
-                                    </td>
-                                    <td>
-                                        {
-                                            if let Some(theta_yz_value) =
-                                                self.props.analysis_result.displacements
-                                                    .get(&Displacement
-                                                        {
-                                                            node_number: node.number,
-                                                            component: AxisComponent::ThetaU
-                                                        })
-                                            {
-                                                theta_yz_value.to_string()
-                                            }
-                                            else
-                                            {
-                                                "N/A".to_string()
-                                            }
-                                        }
-                                    </td>
-                                    <td>
-                                        {
-                                            if let Some(theta_zx_value) =
-                                                self.props.analysis_result.displacements
-                                                    .get(&Displacement
-                                                        {
-                                                            node_number: node.number,
-                                                            component: AxisComponent::ThetaV
-                                                        })
-                                            {
-                                                theta_zx_value.to_string()
-                                            }
-                                            else
-                                            {
-                                                "N/A".to_string()
-                                            }
-                                        }
-                                    </td>
+                                            <td>
+                                                { self.get_displacement_value(node.number, *component) }
+                                            </td>
+                                        })
+                                    }
                                 </tr>
                             })
                         }
@@ -353,144 +237,15 @@ impl Component for AllResultsTable
                             {
                                 <tr>
                                     <td>{ format!("element {}", aux_element.number) }</td>
-                                    <td>
+                                    {
+                                        for StrainStressComponent::iterator().map(|component|
+                                        html!
                                         {
-                                            if let Some(strains_and_stresses) =
-                                                self.props.analysis_result.strains_and_stresses
-                                                    .get(&aux_element.number)
-                                            {
-                                                if let Some(position) = strains_and_stresses
-                                                    .iter()
-                                                    .position(|strain_stress| strain_stress.strain.component == StrainStressComponent::XX)
-                                                {
-                                                    strains_and_stresses[position].strain.value.to_string()
-                                                }
-                                                else
-                                                {
-                                                    "N/A".to_string()
-                                                }
-                                            }
-                                            else
-                                            {
-                                                "N/A".to_string()
-                                            }
-                                        }
-                                    </td>
-                                    <td>
-                                        {
-                                            if let Some(strains_and_stresses) =
-                                                self.props.analysis_result.strains_and_stresses
-                                                    .get(&aux_element.number)
-                                            {
-                                                if let Some(position) = strains_and_stresses
-                                                    .iter()
-                                                    .position(|strain_stress| strain_stress.strain.component == StrainStressComponent::YY)
-                                                {
-                                                    strains_and_stresses[position].strain.value.to_string()
-                                                }
-                                                else
-                                                {
-                                                    "N/A".to_string()
-                                                }
-                                            }
-                                            else
-                                            {
-                                                "N/A".to_string()
-                                            }
-                                        }
-                                    </td>
-                                    <td>
-                                        {
-                                            if let Some(strains_and_stresses) =
-                                                self.props.analysis_result.strains_and_stresses
-                                                    .get(&aux_element.number)
-                                            {
-                                                if let Some(position) = strains_and_stresses
-                                                    .iter()
-                                                    .position(|strain_stress| strain_stress.strain.component == StrainStressComponent::ZZ)
-                                                {
-                                                    strains_and_stresses[position].strain.value.to_string()
-                                                }
-                                                else
-                                                {
-                                                    "N/A".to_string()
-                                                }
-                                            }
-                                            else
-                                            {
-                                                "N/A".to_string()
-                                            }
-                                        }
-                                    </td>
-                                    <td>
-                                        {
-                                            if let Some(strains_and_stresses) =
-                                                self.props.analysis_result.strains_and_stresses
-                                                    .get(&aux_element.number)
-                                            {
-                                                if let Some(position) = strains_and_stresses
-                                                    .iter()
-                                                    .position(|strain_stress| strain_stress.strain.component == StrainStressComponent::XY)
-                                                {
-                                                    strains_and_stresses[position].strain.value.to_string()
-                                                }
-                                                else
-                                                {
-                                                    "N/A".to_string()
-                                                }
-                                            }
-                                            else
-                                            {
-                                                "N/A".to_string()
-                                            }
-                                        }
-                                    </td>
-                                    <td>
-                                        {
-                                            if let Some(strains_and_stresses) =
-                                                self.props.analysis_result.strains_and_stresses
-                                                    .get(&aux_element.number)
-                                            {
-                                                if let Some(position) = strains_and_stresses
-                                                    .iter()
-                                                    .position(|strain_stress| strain_stress.strain.component == StrainStressComponent::YZ)
-                                                {
-                                                    strains_and_stresses[position].strain.value.to_string()
-                                                }
-                                                else
-                                                {
-                                                    "N/A".to_string()
-                                                }
-                                            }
-                                            else
-                                            {
-                                                "N/A".to_string()
-                                            }
-                                        }
-                                    </td>
-                                    <td>
-                                        {
-                                            if let Some(strains_and_stresses) =
-                                                self.props.analysis_result.strains_and_stresses
-                                                    .get(&aux_element.number)
-                                            {
-                                                if let Some(position) = strains_and_stresses
-                                                    .iter()
-                                                    .position(|strain_stress| strain_stress.strain.component == StrainStressComponent::ZX)
-                                                {
-                                                    strains_and_stresses[position].strain.value.to_string()
-                                                }
-                                                else
-                                                {
-                                                    "N/A".to_string()
-                                                }
-                                            }
-                                            else
-                                            {
-                                                "N/A".to_string()
-                                            }
-                                        }
-                                    </td>
+                                            <td>
+                                                { self.get_strain_value(aux_element.number, *component) }
+                                            </td>
+                                        })
+                                    }
                                 </tr>
                             })
                         }
@@ -518,150 +273,21 @@ impl Component for AllResultsTable
                             {
                                 <tr>
                                     <td>{ format!("element {}", aux_element.number) }</td>
-                                    <td>
+                                    {
+                                        for StrainStressComponent::iterator().map(|component|
+                                        html!
                                         {
-                                            if let Some(strains_and_stresses) =
-                                                self.props.analysis_result.strains_and_stresses
-                                                    .get(&aux_element.number)
-                                            {
-                                                if let Some(position) = strains_and_stresses
-                                                    .iter()
-                                                    .position(|strain_stress| strain_stress.stress.component == StrainStressComponent::XX)
-                                                {
-                                                    strains_and_stresses[position].stress.value.to_string()
-                                                }
-                                                else
-                                                {
-                                                    "N/A".to_string()
-                                                }
-                                            }
-                                            else
-                                            {
-                                                "N/A".to_string()
-                                            }
-                                        }
-                                    </td>
-                                    <td>
-                                        {
-                                            if let Some(strains_and_stresses) =
-                                                self.props.analysis_result.strains_and_stresses
-                                                    .get(&aux_element.number)
-                                            {
-                                                if let Some(position) = strains_and_stresses
-                                                    .iter()
-                                                    .position(|strain_stress| strain_stress.stress.component == StrainStressComponent::YY)
-                                                {
-                                                    strains_and_stresses[position].stress.value.to_string()
-                                                }
-                                                else
-                                                {
-                                                    "N/A".to_string()
-                                                }
-                                            }
-                                            else
-                                            {
-                                                "N/A".to_string()
-                                            }
-                                        }
-                                    </td>
-                                    <td>
-                                        {
-                                            if let Some(strains_and_stresses) =
-                                                self.props.analysis_result.strains_and_stresses
-                                                    .get(&aux_element.number)
-                                            {
-                                                if let Some(position) = strains_and_stresses
-                                                    .iter()
-                                                    .position(|strain_stress| strain_stress.stress.component == StrainStressComponent::ZZ)
-                                                {
-                                                    strains_and_stresses[position].stress.value.to_string()
-                                                }
-                                                else
-                                                {
-                                                    "N/A".to_string()
-                                                }
-                                            }
-                                            else
-                                            {
-                                                "N/A".to_string()
-                                            }
-                                        }
-                                    </td>
-                                    <td>
-                                        {
-                                            if let Some(strains_and_stresses) =
-                                                self.props.analysis_result.strains_and_stresses
-                                                    .get(&aux_element.number)
-                                            {
-                                                if let Some(position) = strains_and_stresses
-                                                    .iter()
-                                                    .position(|strain_stress| strain_stress.stress.component == StrainStressComponent::XY)
-                                                {
-                                                    strains_and_stresses[position].stress.value.to_string()
-                                                }
-                                                else
-                                                {
-                                                    "N/A".to_string()
-                                                }
-                                            }
-                                            else
-                                            {
-                                                "N/A".to_string()
-                                            }
-                                        }
-                                    </td>
-                                    <td>
-                                        {
-                                            if let Some(strains_and_stresses) =
-                                                self.props.analysis_result.strains_and_stresses
-                                                    .get(&aux_element.number)
-                                            {
-                                                if let Some(position) = strains_and_stresses
-                                                    .iter()
-                                                    .position(|strain_stress| strain_stress.stress.component == StrainStressComponent::YZ)
-                                                {
-                                                    strains_and_stresses[position].stress.value.to_string()
-                                                }
-                                                else
-                                                {
-                                                    "N/A".to_string()
-                                                }
-                                            }
-                                            else
-                                            {
-                                                "N/A".to_string()
-                                            }
-                                        }
-                                    </td>
-                                    <td>
-                                        {
-                                            if let Some(strains_and_stresses) =
-                                                self.props.analysis_result.strains_and_stresses
-                                                    .get(&aux_element.number)
-                                            {
-                                                if let Some(position) = strains_and_stresses
-                                                    .iter()
-                                                    .position(|strain_stress| strain_stress.stress.component == StrainStressComponent::ZX)
-                                                {
-                                                    strains_and_stresses[position].stress.value.to_string()
-                                                }
-                                                else
-                                                {
-                                                    "N/A".to_string()
-                                                }
-                                            }
-                                            else
-                                            {
-                                                "N/A".to_string()
-                                            }
-                                        }
-                                    </td>
+                                            <td>
+                                                { self.get_stress_value(aux_element.number, *component) }
+                                            </td>
+                                        })
+                                    }
                                 </tr>
                             })
                         }
                     </tbody>
                 </table>
-            </>
+            </div>
         }
     }
 }

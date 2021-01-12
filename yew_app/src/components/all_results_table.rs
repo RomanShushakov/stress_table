@@ -19,7 +19,6 @@ pub struct Props
     pub aux_displacements: Vec<AuxDisplacement>,
     pub analysis_result: AnalysisResult,
     pub canvas_width: u32,
-    pub canvas_height: u32,
 }
 
 

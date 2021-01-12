@@ -141,11 +141,11 @@ impl Model
                                     (element.node_1_number == self.state.aux_displacements[i as usize].node_number) ||
                                     (element.node_2_number == self.state.aux_displacements[i as usize].node_number)
                                 },
-                            ElementType::OtherType =>
-                                {
-                                    (element.node_1_number == self.state.aux_displacements[i as usize].node_number) ||
-                                    (element.node_2_number == self.state.aux_displacements[i as usize].node_number)
-                                },
+                            // ElementType::OtherType =>
+                            //     {
+                            //         (element.node_1_number == self.state.aux_displacements[i as usize].node_number) ||
+                            //         (element.node_2_number == self.state.aux_displacements[i as usize].node_number)
+                            //     },
                         }
                     })
             {
@@ -172,11 +172,11 @@ impl Model
                                     (element.node_1_number == self.state.aux_forces[i as usize].node_number) ||
                                     (element.node_2_number == self.state.aux_forces[i as usize].node_number)
                                 },
-                            ElementType::OtherType =>
-                                {
-                                    (element.node_1_number == self.state.aux_forces[i as usize].node_number) ||
-                                    (element.node_2_number == self.state.aux_forces[i as usize].node_number)
-                                },
+                            // ElementType::OtherType =>
+                            //     {
+                            //         (element.node_1_number == self.state.aux_forces[i as usize].node_number) ||
+                            //         (element.node_2_number == self.state.aux_forces[i as usize].node_number)
+                            //     },
                         }
                     })
             {
@@ -232,7 +232,7 @@ impl Model
                             );
                         elements.push(Rc::new(RefCell::new(truss_element)));
                     },
-                ElementType::OtherType => (),
+                // ElementType::OtherType => (),
             }
         }
         let mut applied_displacements = HashMap::new();
@@ -446,17 +446,17 @@ impl Component for Model
                                         aux_elements_deletion_positions.push(pos);
                                     }
                                 },
-                            ElementType::OtherType =>
-                                {
-                                    if element.node_1_number == removed_node.number
-                                    {
-                                        aux_elements_deletion_positions.push(pos);
-                                    }
-                                    if element.node_2_number == removed_node.number
-                                    {
-                                        aux_elements_deletion_positions.push(pos);
-                                    }
-                                },
+                            // ElementType::OtherType =>
+                            //     {
+                            //         if element.node_1_number == removed_node.number
+                            //         {
+                            //             aux_elements_deletion_positions.push(pos);
+                            //         }
+                            //         if element.node_2_number == removed_node.number
+                            //         {
+                            //             aux_elements_deletion_positions.push(pos);
+                            //         }
+                            //     },
                         }
                     }
                     if !aux_elements_deletion_positions.is_empty()
@@ -679,7 +679,6 @@ impl Component for Model
                                                                 aux_displacements=self.state.aux_displacements.to_owned(),
                                                                 analysis_result=analysis_result.to_owned(),
                                                                 canvas_width=self.state.canvas_width,
-                                                                canvas_height=self.state.canvas_height,
                                                             />
                                                         }
                                                     },

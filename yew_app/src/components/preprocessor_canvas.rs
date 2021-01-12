@@ -253,50 +253,50 @@ impl PreprocessorCanvas
                                     .unwrap();
                                 context.stroke();
                             },
-                        ElementType::OtherType =>
-                            {
-                                let node_1_position = drawn_nodes
-                                    .iter()
-                                    .position(|node| node.number == aux_element.node_1_number).unwrap();
-                                let drawn_node_1 = drawn_nodes[node_1_position].to_owned();
-                                let node_2_position = drawn_nodes
-                                    .iter()
-                                    .position(|node| node.number == aux_element.node_2_number).unwrap();
-                                let drawn_node_2 = drawn_nodes[node_2_position].to_owned();
-
-                                context.begin_path();
-                                context.move_to(drawn_node_1.x, drawn_node_1.y);
-                                context.set_stroke_style(&CANVAS_ELEMENTS_COLOR.into());
-                                context.line_to(drawn_node_2.x, drawn_node_2.y);
-                                context.stroke();
-
-                                let x_center = (drawn_node_1.x + drawn_node_2.x) / 2f64;
-                                let y_center = (drawn_node_1.y + drawn_node_2.y) / 2f64;
-
-                                context.begin_path();
-                                context.set_stroke_style(&CANVAS_BACKGROUND_COLOR.into());
-                                context
-                                .arc(
-                                    x_center,
-                                    y_center,
-                                    aux_element.number.to_string().chars().count() as f64 * axis_line_length / 28f64,
-                                    0.0,
-                                    f64::consts::PI * 2.0)
-                                .unwrap();
-                                context.set_fill_style(&CANVAS_BACKGROUND_COLOR.into());
-                                context.fill();
-                                context.stroke();
-
-                                context.begin_path();
-                                context.set_fill_style(&CANVAS_ELEMENTS_COLOR.into());
-                                context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
-                                context.fill_text(
-                                    &aux_element.number.to_string(),
-                                    x_center - aux_element.number.to_string().chars().count() as f64 * axis_line_length / 28f64,
-                                    y_center + axis_line_length / 20f64)
-                                    .unwrap();
-                                context.stroke();
-                            },
+                        // ElementType::OtherType =>
+                        //     {
+                        //         let node_1_position = drawn_nodes
+                        //             .iter()
+                        //             .position(|node| node.number == aux_element.node_1_number).unwrap();
+                        //         let drawn_node_1 = drawn_nodes[node_1_position].to_owned();
+                        //         let node_2_position = drawn_nodes
+                        //             .iter()
+                        //             .position(|node| node.number == aux_element.node_2_number).unwrap();
+                        //         let drawn_node_2 = drawn_nodes[node_2_position].to_owned();
+                        //
+                        //         context.begin_path();
+                        //         context.move_to(drawn_node_1.x, drawn_node_1.y);
+                        //         context.set_stroke_style(&CANVAS_ELEMENTS_COLOR.into());
+                        //         context.line_to(drawn_node_2.x, drawn_node_2.y);
+                        //         context.stroke();
+                        //
+                        //         let x_center = (drawn_node_1.x + drawn_node_2.x) / 2f64;
+                        //         let y_center = (drawn_node_1.y + drawn_node_2.y) / 2f64;
+                        //
+                        //         context.begin_path();
+                        //         context.set_stroke_style(&CANVAS_BACKGROUND_COLOR.into());
+                        //         context
+                        //         .arc(
+                        //             x_center,
+                        //             y_center,
+                        //             aux_element.number.to_string().chars().count() as f64 * axis_line_length / 28f64,
+                        //             0.0,
+                        //             f64::consts::PI * 2.0)
+                        //         .unwrap();
+                        //         context.set_fill_style(&CANVAS_BACKGROUND_COLOR.into());
+                        //         context.fill();
+                        //         context.stroke();
+                        //
+                        //         context.begin_path();
+                        //         context.set_fill_style(&CANVAS_ELEMENTS_COLOR.into());
+                        //         context.set_font(&format!("{}px Serif", axis_line_length / 7f64));
+                        //         context.fill_text(
+                        //             &aux_element.number.to_string(),
+                        //             x_center - aux_element.number.to_string().chars().count() as f64 * axis_line_length / 28f64,
+                        //             y_center + axis_line_length / 20f64)
+                        //             .unwrap();
+                        //         context.stroke();
+                        //     },
                     }
                 }
             }

@@ -170,14 +170,14 @@ impl ForceMenu
                             rotational_stiffness_statuses.push(false);
                         }
                     },
-                ElementType::OtherType =>
-                    {
-                        if (element.node_1_number == node_number) ||
-                           (element.node_2_number == node_number)
-                        {
-                            rotational_stiffness_statuses.push(true);
-                        }
-                    }
+                // ElementType::OtherType =>
+                //     {
+                //         if (element.node_1_number == node_number) ||
+                //            (element.node_2_number == node_number)
+                //         {
+                //             rotational_stiffness_statuses.push(true);
+                //         }
+                //     }
             }
         }
         rotational_stiffness_statuses.iter().any(|status| *status == true)
@@ -324,11 +324,11 @@ impl Component for ForceMenu
                                                 (element.node_1_number == node_number) ||
                                                 (element.node_2_number == node_number)
                                             },
-                                        ElementType::OtherType =>
-                                            {
-                                                (element.node_1_number == node_number) ||
-                                                (element.node_2_number == node_number)
-                                            },
+                                        // ElementType::OtherType =>
+                                        //     {
+                                        //         (element.node_1_number == node_number) ||
+                                        //         (element.node_2_number == node_number)
+                                        //     },
                                     }
                                 })
                         {
@@ -414,11 +414,11 @@ impl Component for ForceMenu
                                                 (element.node_1_number == self.state.selected_force.node_number) ||
                                                 (element.node_2_number == self.state.selected_force.node_number)
                                             },
-                                        ElementType::OtherType =>
-                                            {
-                                                (element.node_1_number == self.state.selected_force.node_number) ||
-                                                (element.node_2_number == self.state.selected_force.node_number)
-                                            },
+                                        // ElementType::OtherType =>
+                                        //     {
+                                        //         (element.node_1_number == self.state.selected_force.node_number) ||
+                                        //         (element.node_2_number == self.state.selected_force.node_number)
+                                        //     },
                                     }
                                 })
                         {

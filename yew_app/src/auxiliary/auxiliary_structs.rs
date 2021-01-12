@@ -65,7 +65,7 @@ pub struct DrawnNode
 pub enum ElementType
 {
     Truss2n2ip,
-    OtherType,
+    // OtherType,
 }
 
 
@@ -76,16 +76,16 @@ impl ElementType
         match self
         {
             ElementType::Truss2n2ip => String::from("Truss2n2ip"),
-            ElementType::OtherType => String::from("OtherType"),
+            // ElementType::OtherType => String::from("OtherType"),
         }
     }
 
 
     pub fn iterator() -> Iter<'static, ElementType>
     {
-        static TYPES: [ElementType; 2] =
+        static TYPES: [ElementType; 1] =
             [
-                Truss2n2ip, OtherType,
+                Truss2n2ip, // OtherType,
             ];
         TYPES.iter()
     }

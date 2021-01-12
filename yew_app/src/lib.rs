@@ -678,6 +678,8 @@ impl Component for Model
                                                                 aux_elements=self.state.aux_elements.to_owned(),
                                                                 aux_displacements=self.state.aux_displacements.to_owned(),
                                                                 analysis_result=analysis_result.to_owned(),
+                                                                canvas_width=self.state.canvas_width,
+                                                                canvas_height=self.state.canvas_height,
                                                             />
                                                         }
                                                     },

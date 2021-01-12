@@ -7,7 +7,8 @@ use crate::
     };
 
 
-const ALL_RESULTS_TABLE_CLASS: &str = "all_results_table";
+const ALL_RESULTS_TABLE_CONTAINER_CLASS: &str = "all_results_table";
+const COMPONENT_NAME_CLASS: &str = "component_name";
 
 
 #[derive(Properties, PartialEq, Clone)]
@@ -17,6 +18,8 @@ pub struct Props
     pub aux_elements: Vec<AuxElement>,
     pub aux_displacements: Vec<AuxDisplacement>,
     pub analysis_result: AnalysisResult,
+    pub canvas_width: u32,
+    pub canvas_height: u32,
 }
 
 
@@ -142,20 +145,50 @@ impl Component for AllResultsTable
     {
         html!
         {
-            <div class={ ALL_RESULTS_TABLE_CLASS }>
-                <table>
+            <div class={ ALL_RESULTS_TABLE_CONTAINER_CLASS }>
+                <table style={ format!("width: {}px;", self.props.canvas_width) }>
                     <thead>
                         <tr>
                             <td rowspan=2></td>
-                            <th colspan=6>{ "Reactions" }</th>
+                            <th colspan=6>{ "Reaction" }</th>
                         </tr>
                         <tr>
-                            <td>{ "Rx" }</td>
-                            <td>{ "Ry" }</td>
-                            <td>{ "Rz" }</td>
-                            <td>{ "Mxy" }</td>
-                            <td>{ "Myz" }</td>
-                            <td>{ "Mzx" }</td>
+                            <td
+                                class={ COMPONENT_NAME_CLASS },
+                                style={ format!("width: {}px;", self.props.canvas_width / 7.0 as u32) }
+                            >
+                                { "Rx" }
+                            </td>
+                            <td
+                                class={ COMPONENT_NAME_CLASS },
+                                style={ format!("width: {}px;", self.props.canvas_width / 7.0 as u32) }
+                            >
+                                { "Ry" }
+                            </td>
+                            <td
+                                class={ COMPONENT_NAME_CLASS },
+                                style={ format!("width: {}px;", self.props.canvas_width / 7.0 as u32) }
+                            >
+                                { "Rz" }
+                            </td>
+                            <td
+                                class={ COMPONENT_NAME_CLASS },
+                                style={ format!("width: {}px;", self.props.canvas_width / 7.0 as u32) }
+                            >
+                                { "Mxy" }
+                            </td>
+                            <td
+                                class={ COMPONENT_NAME_CLASS },
+                                style={ format!("width: {}px;", self.props.canvas_width / 7.0 as u32) }
+                            >
+                                { "Myz" }
+                            </td>
+                            <td
+                                class={ COMPONENT_NAME_CLASS },
+                                style={ format!("width: {}px;", self.props.canvas_width / 7.0 as u32) }
+                            >
+                                { "Mzx" }
+                            </td>
                         </tr>
                     </thead>
                     <tbody>
@@ -164,12 +197,16 @@ impl Component for AllResultsTable
                             html!
                             {
                                 <tr>
-                                    <td>{ format!("node {}", aux_displacement.node_number) }</td>
+                                    <td
+                                        style={ format!("width: {}px;", self.props.canvas_width / 7.0 as u32) }
+                                    >
+                                        { format!("node {}", aux_displacement.node_number) }
+                                    </td>
                                     {
                                         for AxisComponent::iterator().map(|component|
                                         html!
                                         {
-                                            <td>
+                                            <td style={ format!("width: {}px;", self.props.canvas_width / 7.0 as u32) }>
                                                 { self.get_reaction_value(aux_displacement.node_number, *component) }
                                             </td>
                                         })
@@ -179,19 +216,49 @@ impl Component for AllResultsTable
                         }
                     </tbody>
                 </table>
-                <table>
+                <table style={ format!("width: {}px;", self.props.canvas_width) }>
                     <thead>
                         <tr>
                             <td rowspan=2></td>
-                            <th colspan=6>{ "Displacements" }</th>
+                            <th colspan=6>{ "Displacement" }</th>
                         </tr>
                         <tr>
-                            <td>{ "Ux" }</td>
-                            <td>{ "Uy" }</td>
-                            <td>{ "Uz" }</td>
-                            <td>{ "Theta_xy" }</td>
-                            <td>{ "Theta_yz" }</td>
-                            <td>{ "Theta_zx" }</td>
+                            <td
+                                class={ COMPONENT_NAME_CLASS },
+                                style={ format!("width: {}px;", self.props.canvas_width / 7.0 as u32) }
+                            >
+                                { "Ux" }
+                            </td>
+                            <td
+                                class={ COMPONENT_NAME_CLASS },
+                                style={ format!("width: {}px;", self.props.canvas_width / 7.0 as u32) }
+                            >
+                                { "Uy" }
+                            </td>
+                            <td
+                                class={ COMPONENT_NAME_CLASS },
+                                style={ format!("width: {}px;", self.props.canvas_width / 7.0 as u32) }
+                            >
+                                { "Uz" }
+                            </td>
+                            <td
+                                class={ COMPONENT_NAME_CLASS },
+                                style={ format!("width: {}px;", self.props.canvas_width / 7.0 as u32) }
+                            >
+                                { "Theta_xy" }
+                            </td>
+                            <td
+                                class={ COMPONENT_NAME_CLASS },
+                                style={ format!("width: {}px;", self.props.canvas_width / 7.0 as u32) }
+                            >
+                                { "Theta_yz" }
+                            </td>
+                            <td
+                                class={ COMPONENT_NAME_CLASS },
+                                style={ format!("width: {}px;", self.props.canvas_width / 7.0 as u32) }
+                            >
+                                { "Theta_zx" }
+                            </td>
                         </tr>
                     </thead>
                     <tbody>
@@ -200,12 +267,16 @@ impl Component for AllResultsTable
                             html!
                             {
                                 <tr>
-                                    <td>{ format!("node {}", node.number) }</td>
+                                    <td
+                                        style={ format!("width: {}px;", self.props.canvas_width / 7.0 as u32) }
+                                    >
+                                        { format!("node {}", node.number) }
+                                    </td>
                                     {
                                         for AxisComponent::iterator().map(|component|
                                         html!
                                         {
-                                            <td>
+                                            <td style={ format!("width: {}px;", self.props.canvas_width / 7.0 as u32) }>
                                                 { self.get_displacement_value(node.number, *component) }
                                             </td>
                                         })
@@ -215,19 +286,49 @@ impl Component for AllResultsTable
                         }
                     </tbody>
                 </table>
-                <table>
+                <table style={ format!("width: {}px;", self.props.canvas_width) }>
                     <thead>
                         <tr>
                             <td rowspan=2></td>
-                            <th colspan=6>{ "Strains" }</th>
+                            <th colspan=6>{ "Strain" }</th>
                         </tr>
                         <tr>
-                            <td>{ "XX" }</td>
-                            <td>{ "YY" }</td>
-                            <td>{ "ZZ" }</td>
-                            <td>{ "XY" }</td>
-                            <td>{ "YZ" }</td>
-                            <td>{ "ZX" }</td>
+                            <td
+                                class={ COMPONENT_NAME_CLASS },
+                                style={ format!("width: {}px;", self.props.canvas_width / 7.0 as u32) }
+                            >
+                                { "XX" }
+                            </td>
+                            <td
+                                class={ COMPONENT_NAME_CLASS },
+                                style={ format!("width: {}px;", self.props.canvas_width / 7.0 as u32) }
+                            >
+                                { "YY" }
+                            </td>
+                            <td
+                                class={ COMPONENT_NAME_CLASS },
+                                style={ format!("width: {}px;", self.props.canvas_width / 7.0 as u32) }
+                            >
+                                { "ZZ" }
+                            </td>
+                            <td
+                                class={ COMPONENT_NAME_CLASS },
+                                style={ format!("width: {}px;", self.props.canvas_width / 7.0 as u32) }
+                            >
+                                { "XY" }
+                            </td>
+                            <td
+                                class={ COMPONENT_NAME_CLASS },
+                                style={ format!("width: {}px;", self.props.canvas_width / 7.0 as u32) }
+                            >
+                                { "YZ" }
+                            </td>
+                            <td
+                                class={ COMPONENT_NAME_CLASS },
+                                style={ format!("width: {}px;", self.props.canvas_width / 7.0 as u32) }
+                            >
+                                { "ZX" }
+                            </td>
                         </tr>
                     </thead>
                     <tbody>
@@ -236,12 +337,16 @@ impl Component for AllResultsTable
                             html!
                             {
                                 <tr>
-                                    <td>{ format!("element {}", aux_element.number) }</td>
+                                    <td
+                                        style={ format!("width: {}px;", self.props.canvas_width / 7.0 as u32) }
+                                    >
+                                        { format!("element {}", aux_element.number) }
+                                    </td>
                                     {
                                         for StrainStressComponent::iterator().map(|component|
                                         html!
                                         {
-                                            <td>
+                                            <td style={ format!("width: {}px;", self.props.canvas_width / 7.0 as u32) }>
                                                 { self.get_strain_value(aux_element.number, *component) }
                                             </td>
                                         })
@@ -251,19 +356,49 @@ impl Component for AllResultsTable
                         }
                     </tbody>
                 </table>
-                <table>
+                <table style={ format!("width: {}px;", self.props.canvas_width) }>
                     <thead>
                         <tr>
                             <td rowspan=2></td>
-                            <th colspan=6>{ "Stresses" }</th>
+                            <th colspan=6>{ "Stress" }</th>
                         </tr>
                         <tr>
-                            <td>{ "XX" }</td>
-                            <td>{ "YY" }</td>
-                            <td>{ "ZZ" }</td>
-                            <td>{ "XY" }</td>
-                            <td>{ "YZ" }</td>
-                            <td>{ "ZX" }</td>
+                            <td
+                                class={ COMPONENT_NAME_CLASS },
+                                style={ format!("width: {}px;", self.props.canvas_width / 7.0 as u32) }
+                            >
+                                { "XX" }
+                            </td>
+                            <td
+                                class={ COMPONENT_NAME_CLASS },
+                                style={ format!("width: {}px;", self.props.canvas_width / 7.0 as u32) }
+                            >
+                                { "YY" }
+                            </td>
+                            <td
+                                class={ COMPONENT_NAME_CLASS },
+                                style={ format!("width: {}px;", self.props.canvas_width / 7.0 as u32) }
+                            >
+                                { "ZZ" }
+                            </td>
+                            <td
+                                class={ COMPONENT_NAME_CLASS },
+                                style={ format!("width: {}px;", self.props.canvas_width / 7.0 as u32) }
+                            >
+                                { "XY" }
+                            </td>
+                            <td
+                                class={ COMPONENT_NAME_CLASS },
+                                style={ format!("width: {}px;", self.props.canvas_width / 7.0 as u32) }
+                            >
+                                { "YZ" }
+                            </td>
+                            <td
+                                class={ COMPONENT_NAME_CLASS },
+                                style={ format!("width: {}px;", self.props.canvas_width / 7.0 as u32) }
+                            >
+                                { "ZX" }
+                            </td>
                         </tr>
                     </thead>
                     <tbody>
@@ -272,12 +407,16 @@ impl Component for AllResultsTable
                             html!
                             {
                                 <tr>
-                                    <td>{ format!("element {}", aux_element.number) }</td>
+                                    <td
+                                        style={ format!("width: {}px;", self.props.canvas_width / 7.0 as u32) }
+                                    >
+                                        { format!("element {}", aux_element.number) }
+                                    </td>
                                     {
                                         for StrainStressComponent::iterator().map(|component|
                                         html!
                                         {
-                                            <td>
+                                            <td style={ format!("width: {}px;", self.props.canvas_width / 7.0 as u32) }>
                                                 { self.get_stress_value(aux_element.number, *component) }
                                             </td>
                                         })

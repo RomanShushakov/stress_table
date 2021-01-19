@@ -297,7 +297,7 @@ impl Model
         let mut model = FeModel::create(
             self.state.nodes.to_owned(), elements, applied_displacements,
             if !applied_forces.is_empty() { Some(applied_forces) } else { None });
-        model.compose_global_stiffness_matrix()?;
+        model.update_fe_model_state()?;
         model.calculate_reactions_and_displacements()?;
 
         if let Some(ref global_analysis_result) = model.global_analysis_result

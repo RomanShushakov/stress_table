@@ -2,7 +2,7 @@ use crate::{FeNode, NUMBER_OF_DOF};
 use crate::fe::elements::f_element::{FElement};
 use std::hash::Hash;
 use crate::math::matrix::Matrix;
-use crate::fe::fe_aux_structs::{compose_stiffness_submatrices_and_displacements, Displacement, Force};
+use crate::fe::fe_aux_structs::{compose_stiffness_submatrices_and_displacements, Displacement, Force, Stiffness, SubMatrixIndexes};
 use std::ops::{AddAssign, Add, Mul, MulAssign, Sub, Div, SubAssign};
 use std::rc::Rc;
 use std::cell::RefCell;
@@ -63,28 +63,14 @@ impl<T, V, W> FeModel<T, V, W>
     }
 
 
-    pub fn compose_global_stiffness_matrix(&mut self) -> Result<(), String>
+    fn _compose_global_stiffness_matrix_elements(&mut self,
+        global_stiffness_submatrices_indexes: HashMap<Stiffness<T>, SubMatrixIndexes>)
+        -> Result<Vec<Vec<V>>, String>
     {
-        let mut global_stiffness_matrix_elements = Vec::new();
-        for _ in 0..(self.nodes.len() * NUMBER_OF_DOF as usize)
-        {
-            let mut current_row = Vec::new();
-            for _ in 0..(self.nodes.len() * NUMBER_OF_DOF as usize)
-            {
-                current_row.push(Default::default());
-            }
-            global_stiffness_matrix_elements.push(current_row);
-        }
-        let mut nodes = Vec::new();
-        for node in &self.nodes
-        {
-            nodes.push(node);
-        }
-        let (
-            mut global_displacements_indexes,
-            mut global_forces_indexes,
-            global_stiffness_submatrices_indexes) =
-            compose_stiffness_submatrices_and_displacements(NUMBER_OF_DOF as usize, nodes);
+        let mut global_stiffness_matrix_elements = Matrix::zeros(
+        self.nodes.len() * NUMBER_OF_DOF as usize,
+        self.nodes.len() * NUMBER_OF_DOF as usize
+            ).elements;
         for element in &self.elements
         {
             let local_stiffness_matrix = element.borrow_mut().extract_stiffness_matrix()?;
@@ -93,7 +79,7 @@ impl<T, V, W> FeModel<T, V, W>
             for (stiffness_indexes, local_submatrix_indexes) in local_stiffness_submatrices_indexes
             {
                 if let Some(global_submatrix_indexes) =
-                    global_stiffness_submatrices_indexes.get(&stiffness_indexes)
+                global_stiffness_submatrices_indexes.get(&stiffness_indexes)
                 {
                     for (i_local, i_global) in local_submatrix_indexes.row_indexes
                         .to_owned()
@@ -110,6 +96,24 @@ impl<T, V, W> FeModel<T, V, W>
                 }
             }
         }
+        Ok(global_stiffness_matrix_elements)
+    }
+
+
+    pub fn update_fe_model_state(&mut self) -> Result<(), String>
+    {
+        let mut nodes = Vec::new();
+        for node in &self.nodes
+        {
+            nodes.push(node);
+        }
+        let (
+            mut global_displacements_indexes,
+            mut global_forces_indexes,
+            global_stiffness_submatrices_indexes) =
+            compose_stiffness_submatrices_and_displacements(NUMBER_OF_DOF as usize, nodes);
+        let mut global_stiffness_matrix_elements =
+            self._compose_global_stiffness_matrix_elements(global_stiffness_submatrices_indexes)?;
         let mut i = 0;
         while i < global_stiffness_matrix_elements.len()
         {

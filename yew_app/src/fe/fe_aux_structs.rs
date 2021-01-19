@@ -115,7 +115,7 @@ pub struct StrainStress<V>
 
 
 pub fn compose_stiffness_submatrices_and_displacements<T, V>(number_of_dof: usize, nodes: Vec<&FeNode<T, V>>)
-    -> (HashMap<Displacement<T>, usize>, HashMap<Force<T>, usize> ,HashMap<Stiffness<T>, SubMatrixIndexes>)
+    -> (HashMap<Displacement<T>, usize>, HashMap<Force<T>, usize>, HashMap<Stiffness<T>, SubMatrixIndexes>)
         where T: PartialEq + Eq + Hash + Copy
 {
     let mut displacements_indexes = HashMap::new();
@@ -129,17 +129,7 @@ pub fn compose_stiffness_submatrices_and_displacements<T, V>(number_of_dof: usiz
             {
                 for k in 0..number_of_dof
                 {
-
-                    let component = match k
-                        {
-                            0 => Some(AxisComponent::U),
-                            1 => Some(AxisComponent::V),
-                            2 => Some(AxisComponent::W),
-                            3 => Some(AxisComponent::ThetaU),
-                            4 => Some(AxisComponent::ThetaV),
-                            5 => Some(AxisComponent::ThetaW),
-                            _ => None
-                        };
+                    let component = AxisComponent::iterator().nth(k);
                     if let Some(comp) = component
                     {
                         displacements_indexes.insert(
@@ -153,7 +143,7 @@ pub fn compose_stiffness_submatrices_and_displacements<T, V>(number_of_dof: usiz
                             Force
                                 {
                                     node_number: nodes[i].number,
-                                    component: comp
+                                    component: *comp
                                 },
                             i * number_of_dof + k);
                     }

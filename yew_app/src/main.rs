@@ -117,7 +117,7 @@ fn main() -> Result<(), String>
     applied_displacements.insert(Displacement { component: AxisComponent::U, node_number: 3 }, 0.0);
     applied_displacements.insert(Displacement { component: AxisComponent::V, node_number: 3 }, 0.0);
     applied_displacements.insert(Displacement { component: AxisComponent::U, node_number: 4 }, 0.0);
-    // applied_displacements.insert(Displacement { component: Component::V, node_number: 4 }, 0.0);
+    // applied_displacements.insert(Displacement { component: AxisComponent::V, node_number: 4 }, 0.0);
     applied_displacements.insert(Displacement { component: AxisComponent::V, node_number: 1 }, -0.025);
 
     // let mut applied_forces = HashMap::new();
@@ -127,7 +127,7 @@ fn main() -> Result<(), String>
 
     let mut model = FeModel::create(nodes, elements, applied_displacements, None);
 
-    model.compose_global_stiffness_matrix()?;
+    model.update_fe_model_state()?;
     // if let Some(ref state) = model.state
     // {
     //     println!("{:?}", state.displacements_indexes);

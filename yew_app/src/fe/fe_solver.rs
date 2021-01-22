@@ -2,13 +2,21 @@ use crate::{FeNode, NUMBER_OF_DOF};
 use crate::fe::elements::f_element::{FElement};
 use std::hash::Hash;
 use crate::math::matrix::Matrix;
-use crate::fe::fe_aux_structs::{compose_stiffness_submatrices_and_displacements, Displacement, Force, Stiffness, SubMatrixIndexes};
+use crate::fe::fe_aux_structs::{compose_stiffness_submatrices_and_displacements, Displacement, Force, Stiffness, SubMatrixIndexes, AxisComponent};
 use std::ops::{AddAssign, Add, Mul, MulAssign, Sub, Div, SubAssign};
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use crate::math::math_aux_traits::{One, FloatNum};
+use js_sys::Error;
+
+
+enum DofErrorWith
+{
+    Force,
+    Displacement,
+}
 
 
 #[derive(Debug, Clone)]
@@ -100,20 +108,23 @@ impl<T, V, W> FeModel<T, V, W>
     }
 
 
-    pub fn update_fe_model_state(&mut self) -> Result<(), String>
+    fn _return_dof_error(&self, reason: DofErrorWith, node_number: T, component: AxisComponent) -> Result<(), String>
     {
-        let mut nodes = Vec::new();
-        for node in &self.nodes
+        let phrase = match reason
         {
-            nodes.push(node);
-        }
-        let (
-            mut global_displacements_indexes,
-            mut global_forces_indexes,
-            global_stiffness_submatrices_indexes) =
-            compose_stiffness_submatrices_and_displacements(NUMBER_OF_DOF as usize, nodes);
-        let mut global_stiffness_matrix_elements =
-            self._compose_global_stiffness_matrix_elements(global_stiffness_submatrices_indexes)?;
+            DofErrorWith::Displacement => "displacement",
+            DofErrorWith::Force => "force"
+        };
+        Err(format!("There are no stiffness to withstand {}: {:?} applied at node: {:?}",
+                phrase, component, node_number)
+            )
+    }
+
+
+    fn _remove_zero_cells(&self, mut global_displacements_indexes: HashMap<Displacement<T>, usize>,
+        mut global_forces_indexes: HashMap<Force<T>, usize>, mut global_stiffness_matrix_elements: Vec<Vec<V>>)
+        -> Result<(HashMap<Displacement<T>, usize>, HashMap<Force<T>, usize>, Vec<Vec<V>>), String>
+    {
         let mut i = 0;
         while i < global_stiffness_matrix_elements.len()
         {
@@ -131,32 +142,14 @@ impl<T, V, W> FeModel<T, V, W>
                     {
                         if let Some(_) = self.applied_displacements.get(&Displacement { node_number, component })
                         {
-                            return Err
-                                (
-                                    format!
-                                        (
-                                            "There are no stiffness to withstand displacement: {:?} \
-                                            applied at node: {:?}",
-                                            component,
-                                            node_number
-                                        )
-                                );
+                            self._return_dof_error(DofErrorWith::Displacement, node_number, component)?;
                         }
                         global_displacements_indexes.remove(&Displacement { node_number, component });
                         if let Some(applied_forces) = &self.applied_forces
                         {
                             if let Some(_) = applied_forces.get(&Force { node_number, component })
                             {
-                                return Err
-                                    (
-                                        format!
-                                            (
-                                                "There are no stiffness to withstand force: {:?} \
-                                                applied at node: {:?}",
-                                                component,
-                                                node_number
-                                            )
-                                    );
+                                self._return_dof_error(DofErrorWith::Force, node_number, component)?;
                             }
                         }
                         global_forces_indexes.remove(&Force { node_number, component });
@@ -176,11 +169,39 @@ impl<T, V, W> FeModel<T, V, W>
             }
             i += 1;
         }
+        Ok((global_displacements_indexes,
+            global_forces_indexes,
+            global_stiffness_matrix_elements))
+    }
+
+
+    pub fn update_fe_model_state(&mut self) -> Result<(), String>
+    {
+        let mut nodes = Vec::new();
+        for node in &self.nodes
+        {
+            nodes.push(node);
+        }
+        let (
+            mut global_displacements_indexes,
+            mut global_forces_indexes,
+            global_stiffness_submatrices_indexes) =
+            compose_stiffness_submatrices_and_displacements(NUMBER_OF_DOF as usize, nodes);
+        let mut global_stiffness_matrix_elements =
+            self._compose_global_stiffness_matrix_elements(global_stiffness_submatrices_indexes)?;
+        let (
+            updated_global_displacements_indexes,
+            updated_global_forces_indexes,
+            updated_global_stiffness_matrix_elements) =
+            self._remove_zero_cells(
+                global_displacements_indexes,
+                global_forces_indexes,
+                global_stiffness_matrix_elements)?;
         let model_state = State
             {
-                stiffness_matrix: Matrix { elements: global_stiffness_matrix_elements },
-                displacements_indexes: global_displacements_indexes,
-                forces_indexes: global_forces_indexes,
+                stiffness_matrix: Matrix { elements: updated_global_stiffness_matrix_elements },
+                displacements_indexes: updated_global_displacements_indexes,
+                forces_indexes: updated_global_forces_indexes,
             };
         self.state = Some(model_state);
         Ok(())

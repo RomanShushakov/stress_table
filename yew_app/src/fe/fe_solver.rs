@@ -104,6 +104,7 @@ impl<T, V, W> FeModel<T, V, W>
                 }
             }
         }
+        // println!("{:?}\n", global_stiffness_matrix_elements);
         Ok(global_stiffness_matrix_elements)
     }
 
@@ -354,16 +355,16 @@ impl<T, V, W> FeModel<T, V, W>
                         state.stiffness_matrix.elements[*k_bb_indexes[i]][*k_aa_indexes[j]];
                 }
             }
-            // println!("k_aa indexes: {:?}", k_aa_indexes);
-            // println!("k_aa matrix: {:?}", k_aa_matrix);
-            // println!("k_bb indexes: {:?}", k_bb_indexes);
-            // println!("k_bb matrix: {:?}", k_bb_matrix);
-            // println!("k_ab matrix: {:?}", k_ab_matrix);
-            // println!("k_ba matrix: {:?}", k_ba_matrix);
-            // println!("r_a indexes: {:?}", r_a_indexes);
-            // println!("r_a matrix: {:?}", r_a_matrix);
-            // println!("u_b indexes: {:?}", u_b_indexes);
-            // println!("u_b matrix: {:?}", u_b_matrix);
+            println!("k_aa indexes: {:?}", k_aa_indexes);
+            println!("k_aa matrix: {:?}", k_aa_matrix);
+            println!("k_bb indexes: {:?}", k_bb_indexes);
+            println!("k_bb matrix: {:?}", k_bb_matrix);
+            println!("k_ab matrix: {:?}", k_ab_matrix);
+            println!("k_ba matrix: {:?}", k_ba_matrix);
+            println!("r_a indexes: {:?}", r_a_indexes);
+            println!("r_a matrix: {:?}", r_a_matrix);
+            println!("u_b indexes: {:?}", u_b_indexes);
+            println!("u_b matrix: {:?}\n", u_b_matrix);
 
 
             let k_ab_u_b = k_ab_matrix.multiply_by_matrix(&u_b_matrix)?;

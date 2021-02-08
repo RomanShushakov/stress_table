@@ -52,10 +52,11 @@ pub struct Truss2n2ip<T, V, W>
 
 impl<T, V, W> Truss2n2ip<T, V, W>
     where T: Display + Hash + Eq + Copy,
-          V: FloatNum + Copy + One + Default + From<f64> +
+          V: FloatNum + Copy + One + Default + From<f64> + Into<f64> +
              Add<Output = V> + Sub<Output = V> +
              Mul<Output = V> + Div<Output = V> +
-             AddAssign + MulAssign + Debug,
+             AddAssign + MulAssign + PartialEq +
+             PartialOrd + Debug,
           W: Copy + Mul<Output = W> + Into<V>
 {
     pub fn create(
@@ -161,22 +162,78 @@ impl<T, V, W> Truss2n2ip<T, V, W>
 
     fn _compose_rotation_matrix(&mut self)
     {
-        let element_length =
-            ((self.node_2.coordinates.x - self.node_1.coordinates.x) *
-            (self.node_2.coordinates.x - self.node_1.coordinates.x) +
-            (self.node_2.coordinates.y - self.node_1.coordinates.y) *
-            (self.node_2.coordinates.y - self.node_1.coordinates.y) +
-            (self.node_2.coordinates.z - self.node_1.coordinates.z) *
-            (self.node_2.coordinates.z - self.node_1.coordinates.z)).sqrt();
-        let c_x = (self.node_2.coordinates.x - self.node_1.coordinates.x) / element_length;
-        let c_y = (self.node_2.coordinates.y - self.node_1.coordinates.y) / element_length;
-        let c_z = (self.node_2.coordinates.z - self.node_1.coordinates.z) / element_length;
+        let x = (self.node_2.coordinates.x - self.node_1.coordinates.x).into();
+        let y = (self.node_2.coordinates.y - self.node_1.coordinates.y).into();
+        let z = (self.node_2.coordinates.z - self.node_1.coordinates.z).into();
+        let element_length = (x * x + y * y + z * z).sqrt();
+        let u = element_length;
+        let v = 0f64;
+        let w = 0f64;
+        let mut alpha = f64::acos(((x * u + y * v + z * w) /
+            (element_length * element_length)).into());
+        let mut axis_x = 0f64;
+        let mut axis_y = 0f64;
+        let mut axis_z = 0f64;
+        if x != 0f64 && y == 0f64 && z == 0f64
+        {
+            axis_x = x;
+        }
+        else
+        {
+            axis_y = z * element_length;
+            axis_z = - y * element_length;
+        }
+        // let axis_x = V::default();
+        // let axis_y = z * element_length;
+        // let axis_z = y * element_length * V::minus_one();
+        let norm = 1f64 / (axis_x * axis_x + axis_y * axis_y + axis_z * axis_z).sqrt();
+        // println!("norm: {:?}", norm);
+        let x_n = axis_x * norm;
+        let y_n = axis_y * norm;
+        let z_n = axis_z * norm;
+        let c = alpha.cos();
+        let s = alpha.sin();
+        let t = 1f64 - c;
+
+        let abs_tolerance = 1e-15;
+
+        let a_11 = if (t * x_n * x_n + c).abs() < abs_tolerance { 0.0 } else { t * x_n * x_n + c };
+        let a_12 = if (t * x_n * y_n - z_n * s).abs() < abs_tolerance { 0.0 } else { t * x_n * y_n - z_n * s };
+        let a_13 = if (t * x_n * z_n + y_n * s).abs() < abs_tolerance { 0.0 } else { t * x_n * z_n + y_n * s };
+        let a_21 = if (t * x_n * y_n + z_n * s).abs() < abs_tolerance { 0.0 } else { t * x_n * y_n + z_n * s };
+        let a_22 = if (t * y_n * y_n + c).abs() < abs_tolerance { 0.0 } else { t * y_n * y_n + c };
+        let a_23 = if (t * y_n * z_n - x_n * s).abs() < abs_tolerance { 0.0 } else { t * y_n * z_n - x_n * s };
+        let a_31 = if (t * x_n * z_n - y_n * s).abs() < abs_tolerance { 0.0 } else { t * x_n * z_n - y_n * s };
+        let a_32 = if (t * y_n * z_n + x_n * s).abs() < abs_tolerance { 0.0 } else { t * y_n * z_n + x_n * s };
+        let a_33 = if (t * z_n * z_n + c).abs() < abs_tolerance { 0.0 } else { t * z_n * z_n + c };
         let elements = vec!
             [
-                vec![c_x, c_y, c_z],
-                vec![Default::default(), One::one(), Default::default()],
-                vec![Default::default(), Default::default(), One::one()],
+                vec![V::from(a_11), V::from(a_12), V::from(a_13)],
+                vec![V::from(a_21), V::from(a_22), V::from(a_23)],
+                vec![V::from(a_31), V::from(a_32), V::from(a_33)],
             ];
+
+        // let element_length =
+        //     ((self.node_2.coordinates.x - self.node_1.coordinates.x) *
+        //     (self.node_2.coordinates.x - self.node_1.coordinates.x) +
+        //     (self.node_2.coordinates.y - self.node_1.coordinates.y) *
+        //     (self.node_2.coordinates.y - self.node_1.coordinates.y) +
+        //     (self.node_2.coordinates.z - self.node_1.coordinates.z) *
+        //     (self.node_2.coordinates.z - self.node_1.coordinates.z)).sqrt();
+        // let c_x = (self.node_2.coordinates.x - self.node_1.coordinates.x) / element_length;
+        // let c_y = (self.node_2.coordinates.y - self.node_1.coordinates.y) / element_length;
+        // let c_z = (self.node_2.coordinates.z - self.node_1.coordinates.z) / element_length;
+        // println!("a_11: {:?}, c_x: {:?}, alpha: {:?}", a_11, c_x, alpha.to_degrees());
+        // println!("a_12: {:?}, c_y: {:?}, alpha: {:?}", a_12, c_y, alpha.to_degrees());
+        // println!("a_13: {:?}, c_z: {:?}, alpha: {:?}", a_13, c_z, alpha.to_degrees());
+        // println!("a_21: {:?}, a_22: {:?}, a_23: {:?}", a_21, a_22, a_23);
+        // println!("a_31: {:?}, a_32: {:?}, a_33: {:?}\n", a_31, a_32, a_33);
+        // let elements = vec!
+        //     [
+        //         vec![c_x, c_y, c_z],
+        //         vec![Default::default(), One::one(), Default::default()],
+        //         vec![Default::default(), Default::default(), One::one()],
+        //     ];
         let m = Matrix { elements };
 
         let mut rotation_matrix_elements = Vec::new();
@@ -337,10 +394,11 @@ impl<T, V, W> Truss2n2ip<T, V, W>
 
 impl<T, V, W> FElement<T, V, W> for Truss2n2ip<T, V, W>
     where T: Display + Hash + Eq + Copy + Debug,
-          V: FloatNum + Copy + One + Default + From<f64> +
+          V: FloatNum + Copy + One + Default + From<f64> + Into<f64> +
              Add<Output = V> + Sub<Output = V> +
              Mul<Output = V> + Div<Output = V> +
-             AddAssign + MulAssign + Debug,
+             AddAssign + MulAssign + PartialEq +
+             PartialOrd + Debug,
           W: Copy + Mul<Output = W> + Into<V>
 
 {

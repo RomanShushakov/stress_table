@@ -26,16 +26,8 @@ impl<T> Matrix<T>
 {
     pub fn zeros(rows_number: usize, columns_number: usize) -> Matrix<T>
     {
-        let mut zero_elements = Vec::new();
-        for _ in 0..rows_number
-        {
-            let mut current_row = Vec::new();
-            for _ in 0..columns_number
-            {
-                current_row.push(Default::default());
-            }
-            zero_elements.push(current_row);
-        }
+        let zero_row = vec![Default::default(); columns_number];
+        let zero_elements = vec![zero_row; rows_number];
         Matrix { elements: zero_elements }
     }
 

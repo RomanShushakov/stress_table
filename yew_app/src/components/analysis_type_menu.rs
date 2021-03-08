@@ -184,7 +184,7 @@ impl Component for AnalysisTypeMenu
                                 id={ THREE_DIMENSIONAL_ANALYSIS_TYPE_ID },
                                 name={ ANALYSIS_TYPE_INPUT_NAME },
                                 value={ AnalysisType::ThreeDimensional.as_str() },
-                                disabled=true,
+                                // disabled=true,
                             />
                             <label for={ THREE_DIMENSIONAL_ANALYSIS_TYPE_ID }>
                                 { AnalysisType::ThreeDimensional.as_str() }

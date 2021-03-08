@@ -8,20 +8,20 @@ pub struct GlobalCoordinates<T>
 
 
 #[derive(Debug)]
-pub struct FeNode<T, V>
+pub struct FENode<T, V>
 {
     pub number: T,
     pub coordinates: GlobalCoordinates<V>
 }
 
 
-impl<T, V> FeNode<T, V>
+impl<T, V> FENode<T, V>
     where T: PartialEq,
           V: PartialEq,
 {
     pub fn create(number: T, x: V, y: V, z: V) -> Self
     {
-        FeNode { number, coordinates: GlobalCoordinates { x, y, z } }
+        FENode { number, coordinates: GlobalCoordinates { x, y, z } }
     }
 
 
@@ -41,4 +41,14 @@ impl<T, V> FeNode<T, V>
     {
         GlobalCoordinates { x, y, z } == self.coordinates
     }
+}
+
+
+#[derive(Clone, PartialEq)]
+pub struct FENodeData<T, V>
+{
+    pub number: T,
+    pub x: V,
+    pub y: V,
+    pub z: V,
 }

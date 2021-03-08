@@ -1,6 +1,6 @@
 use std::slice::Iter;
 use self::ElementType::*;
-use crate::fe::fe_aux_structs::{Displacement, Force, StrainStress, StrainStressComponent};
+// use crate::fe::fe_aux_structs::{Displacement, Force, StrainStress, StrainStressComponent};
 
 use std::collections::HashMap;
 
@@ -169,14 +169,14 @@ pub struct MinMaxValues
 }
 
 
-#[derive(Clone, PartialEq)]
-pub struct AnalysisResult
-{
-    pub displacements: HashMap<Displacement<u16>, f64>,
-    pub reactions: HashMap<Force<u16>, f64>,
-    pub strains_and_stresses: HashMap<u16, Vec<StrainStress<f64>>>,
-    pub min_max_stress_values: HashMap<StrainStressComponent, MinMaxValues>,
-}
+// #[derive(Clone, PartialEq)]
+// pub struct AnalysisResult
+// {
+//     pub displacements: HashMap<Displacement<u16>, f64>,
+//     pub reactions: HashMap<Force<u16>, f64>,
+//     pub strains_and_stresses: HashMap<u16, Vec<StrainStress<f64>>>,
+//     pub min_max_stress_values: HashMap<StrainStressComponent, MinMaxValues>,
+// }
 
 
 #[derive(Clone, PartialEq)]

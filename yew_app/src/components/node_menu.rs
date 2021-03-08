@@ -5,9 +5,12 @@ use web_sys::
         DomTokenList, HtmlInputElement
     };
 use wasm_bindgen::JsCast;
+use std::rc::Rc;
+use std::cell::RefCell;
 
-use crate::fe::fe_node::FeNode;
-use crate::{Coordinates, AnalysisType, PREPROCESSOR_BUTTON_CLASS};
+use crate::fem::FENodeData;
+use crate::{ElementsNumbers, ElementsValues};
+use crate::{AnalysisType, PREPROCESSOR_BUTTON_CLASS};
 
 
 const NODE_MENU_ID: &str = "node_menu";
@@ -29,16 +32,16 @@ pub struct Props
 {
     pub analysis_type: Option<AnalysisType>,
     pub is_preprocessor_active: bool,
-    pub nodes: Vec<FeNode<u16, f64>>,
-    pub add_node: Callback<FeNode<u16, f64>>,
-    pub update_node: Callback<(usize, FeNode<u16, f64>)>,
-    pub remove_node: Callback<usize>,
+    pub nodes: Vec<FENodeData<ElementsNumbers, ElementsValues>>,
+    pub add_node: Callback<FENodeData<ElementsNumbers, ElementsValues>>,
+    pub update_node: Callback<FENodeData<ElementsNumbers, ElementsValues>>,
+    pub delete_node: Callback<ElementsNumbers>,
 }
 
 
 struct State
 {
-    selected_node: FeNode<u16, f64>,
+    selected_node: FENodeData<ElementsNumbers, ElementsValues>,
 }
 
 
@@ -55,7 +58,7 @@ pub enum Msg
     ShowHideNodeMenu,
     SelectNode(ChangeData),
     ApplyNodeDataChange,
-    RemoveNode,
+    DeleteNode,
 }
 
 
@@ -107,7 +110,7 @@ impl NodeMenu
                 n + 1
             };
         let (x, y, z) = (0.0, 0.0, 0.0);
-        self.state.selected_node = FeNode { number, coordinates: Coordinates { x, y, z } };
+        self.state.selected_node = FENodeData{ number, x, y, z };
         if let Ok(option) = HtmlOptionElement::new()
         {
             option.set_value(&number.to_string());
@@ -118,7 +121,7 @@ impl NodeMenu
     }
 
 
-    fn read_inputted_coordinate(&self, input_field: &str) -> f64
+    fn read_inputted_coordinate(&self, input_field: &str) -> ElementsValues
     {
         let window = web_sys::window().unwrap();
         let document = window.document().unwrap();
@@ -126,7 +129,7 @@ impl NodeMenu
         let input_element = element.dyn_into::<HtmlInputElement>()
             .map_err(|_| ())
             .unwrap();
-        if let Ok(coord) = input_element.value().parse::<f64>()
+        if let Ok(coord) = input_element.value().parse::<ElementsValues>()
         {
             coord
         }
@@ -146,7 +149,7 @@ impl Component for NodeMenu
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self
     {
-        let selected_node = FeNode { number: 1, coordinates: Coordinates { x: 0.0, y: 0.0, z: 0.0 } };
+        let selected_node = FENodeData{ number: 1, x: 0.0, y: 0.0, z: 0.0 };
         Self { props, link, state: State { selected_node } }
     }
 
@@ -163,16 +166,22 @@ impl Component for NodeMenu
                         ChangeData::Select(select_node) =>
                             {
                                 if let Some(position) = self.props.nodes
-                                        .iter()
-                                        .position(|node| node.number.to_string() == select_node.value())
+                                    .iter()
+                                    .position(|node|
+                                        node.number.to_string() == select_node.value())
                                 {
-                                    self.state.selected_node = self.props.nodes[position].to_owned();
+                                    let number = self.props.nodes[position].number;
+                                    let x = self.props.nodes[position].x;
+                                    let y = self.props.nodes[position].y;
+                                    let z = self.props.nodes[position].z;
+                                    self.state.selected_node = FENodeData { number, x, y, z };
                                 }
                                 else
                                 {
-                                    let number = select_node.value().parse::<u16>().unwrap();
+                                    let number = select_node.value()
+                                        .parse::<ElementsNumbers>().unwrap();
                                     let (x, y, z) = (0.0, 0.0, 0.0);
-                                    self.state.selected_node = FeNode { number, coordinates: Coordinates { x, y, z } };
+                                    self.state.selected_node = FENodeData { number, x, y, z };
                                 }
                             },
                         _ => (),
@@ -180,73 +189,40 @@ impl Component for NodeMenu
                 },
             Msg::ApplyNodeDataChange =>
                 {
-                    self.state.selected_node.coordinates.x = self.read_inputted_coordinate(NODE_X_COORD);
-                    self.state.selected_node.coordinates.y = self.read_inputted_coordinate(NODE_Y_COORD);
+                    self.state.selected_node.x =
+                        self.read_inputted_coordinate(NODE_X_COORD);
+                    self.state.selected_node.y =
+                        self.read_inputted_coordinate(NODE_Y_COORD);
                     if let Some(analysis_type) = &self.props.analysis_type
                     {
                         match analysis_type
                         {
-                            AnalysisType::ThreeDimensional => self.state.selected_node.coordinates.z =
+                            AnalysisType::ThreeDimensional =>
+                                self.state.selected_node.z =
                                 self.read_inputted_coordinate(NODE_Z_COORD),
                             _ => (),
                         }
                     }
-                    if let None = self.props.nodes
-                        .iter()
-                        .position(|existed_node|
-                            {
-                                if let Some(analysis_type) = &self.props.analysis_type
-                                {
-                                    match analysis_type
-                                    {
-                                        AnalysisType::ThreeDimensional =>
-                                            {
-                                                (existed_node.coordinates.x == self.state.selected_node.coordinates.x) &&
-                                                (existed_node.coordinates.y == self.state.selected_node.coordinates.y) &&
-                                                (existed_node.coordinates.z == self.state.selected_node.coordinates.z)
-                                            },
-                                        AnalysisType::TwoDimensional =>
-                                            {
-                                                (existed_node.coordinates.x == self.state.selected_node.coordinates.x) &&
-                                                (existed_node.coordinates.y == self.state.selected_node.coordinates.y)
-                                            },
-
-                                    }
-                                }
-                                else
-                                {
-                                    (existed_node.coordinates.x == self.state.selected_node.coordinates.x) &&
-                                    (existed_node.coordinates.y == self.state.selected_node.coordinates.y)
-                                }
-                            }
-                        )
+                    let number = self.state.selected_node.number;
+                    let x = self.state.selected_node.x;
+                    let y = self.state.selected_node.y;
+                    let z = self.state.selected_node.z;
+                    if self.props.nodes.iter().position(|data|
+                        data.number == number).is_none()
                     {
-                        if let Some(position) = self.props.nodes
-                            .iter()
-                            .position(|node| node.number == self.state.selected_node.number)
-                        {
-
-                            self.props.update_node.emit((position, self.state.selected_node.to_owned()));
-                        }
-                        else
-                        {
-                            self.props.add_node.emit(self.state.selected_node.to_owned());
-                        }
+                        self.props.add_node.emit(FENodeData { number, x, y, z });
                     }
                     else
                     {
-                        yew::services::DialogService::alert(
-                            "The node with the same coordinates is already in use.");
+                        self.props.update_node.emit(FENodeData { number, x, y, z });
                     }
                 },
-            Msg::RemoveNode =>
+            Msg::DeleteNode =>
                 {
-                    if let Some(position) =
-                    self.props.nodes
-                        .iter()
-                        .position(|node| node.number == self.state.selected_node.number)
+                    if self.props.nodes.iter().position(|node|
+                        node.number == self.state.selected_node.number).is_some()
                     {
-                        self.props.remove_node.emit(position);
+                        self.props.delete_node.emit(self.state.selected_node.number);
                     }
                 },
         }
@@ -275,10 +251,12 @@ impl Component for NodeMenu
         {
             <>
                 <button
-                    class={ PREPROCESSOR_BUTTON_CLASS }, onclick=self.link.callback(|_| Msg::ShowHideNodeMenu),
+                    class={ PREPROCESSOR_BUTTON_CLASS }, onclick=self.link.callback(|_|
+                        Msg::ShowHideNodeMenu),
                     disabled=
                         {
-                            if self.props.analysis_type.is_some() && self.props.is_preprocessor_active
+                            if self.props.analysis_type.is_some() &&
+                                self.props.is_preprocessor_active
                             {
                                 false
                             }
@@ -299,10 +277,12 @@ impl Component for NodeMenu
                                     {
                                         <select
                                             id={ NODE_SELECT_ID },
-                                            onchange=self.link.callback(|data: ChangeData| Msg::SelectNode(data)),
+                                            onchange=self.link.callback(|data: ChangeData|
+                                                Msg::SelectNode(data)),
                                         >
                                             <option value={ self.state.selected_node.number }>
-                                                { format!("{} New", self.state.selected_node.number) }
+                                                { format!("{} New",
+                                                    self.state.selected_node.number) }
                                             </option>
                                         </select>
                                     }
@@ -318,7 +298,7 @@ impl Component for NodeMenu
                                             </p>
                                             <input
                                                 id={ NODE_X_COORD },
-                                                value={ self.state.selected_node.coordinates.x },
+                                                value={ self.state.selected_node.x },
                                                 type="number",
                                             />
                                         </li>
@@ -328,7 +308,7 @@ impl Component for NodeMenu
                                             </p>
                                             <input
                                                 id={ NODE_Y_COORD },
-                                                value={ self.state.selected_node.coordinates.y },
+                                                value={ self.state.selected_node.y },
                                                 type="number",
                                             />
                                         </li>
@@ -347,7 +327,7 @@ impl Component for NodeMenu
                                                                     </p>
                                                                     <input
                                                                         id={ NODE_Z_COORD },
-                                                                        value={ self.state.selected_node.coordinates.z },
+                                                                        value={ self.state.selected_node.z },
                                                                         type="number",
                                                                     />
                                                                 </li>
@@ -375,9 +355,9 @@ impl Component for NodeMenu
                         </button>
                         <button
                             class={ NODE_MENU_BUTTON_CLASS },
-                            onclick=self.link.callback(|_| Msg::RemoveNode),
+                            onclick=self.link.callback(|_| Msg::DeleteNode),
                         >
-                            { "Remove" }
+                            { "Delete" }
                         </button>
                     </div>
                 </div>

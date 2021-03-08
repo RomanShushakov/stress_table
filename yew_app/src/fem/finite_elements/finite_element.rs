@@ -1,4 +1,4 @@
-use crate::fem::{FeNode, Truss2n2ip, StiffnessGroup, ElementAnalysisData, Displacements};
+use crate::fem::{FENode, Truss2n2ip, StiffnessGroup, ElementAnalysisData, Displacements};
 
 use crate::{ElementsNumbers, ElementsValues};
 use crate::extended_matrix::{ExtendedMatrix, MatrixElementPosition};
@@ -20,7 +20,7 @@ pub enum FEType
 pub struct FEData<T, V>
 {
     pub number: T,
-    pub nodes: Vec<Rc<RefCell<FeNode<T, V>>>>,
+    pub nodes: Vec<Rc<RefCell<FENode<T, V>>>>,
     pub properties: Vec<V>,
 }
 

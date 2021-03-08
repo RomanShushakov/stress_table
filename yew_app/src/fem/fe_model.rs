@@ -1,4 +1,8 @@
-use crate::fem::{FeNode, FEData, FiniteElement, StiffnessGroup, DOFParameterData, BoundaryCondition, GlobalAnalysisResult, Displacements};
+use crate::fem::
+    {
+        FENode, FEData, FiniteElement, StiffnessGroup, DOFParameterData, BoundaryCondition,
+        GlobalAnalysisResult, Displacements, FENodeData
+    };
 use crate::fem::{FEType, GlobalDOFParameter, BCType};
 use crate::fem::compose_stiffness_sub_groups;
 use crate::fem::GLOBAL_DOF;
@@ -37,7 +41,7 @@ pub struct State<T>
 
 pub struct FEModel<T, V>
 {
-    pub nodes: Vec<Rc<RefCell<FeNode<T, V>>>>,
+    pub nodes: Vec<Rc<RefCell<FENode<T, V>>>>,
     pub elements: Vec<FiniteElement<T, V>>,
     pub boundary_conditions: Vec<BoundaryCondition<T, V>>,
     pub state: State<T>,
@@ -150,7 +154,7 @@ impl<T, V> FEModel<T, V>
             node.as_ref().borrow().number_same(number) ||
             node.as_ref().borrow().coordinates_same(x, y, z)).is_none()
         {
-            let node = FeNode::create(number, x, y, z);
+            let node = FENode::create(number, x, y, z);
             self.nodes.push(Rc::new(RefCell::new(node)));
             self.update_stiffness_groups()?;
             Ok(())
@@ -656,5 +660,21 @@ impl<T, V> FEModel<T, V>
         let elements_analysis_results =
             ElementsAnalysisResult::create(elements_analysis_data);
         Ok(elements_analysis_results)
+    }
+
+
+    pub fn extract_nodes_data(&self) -> Vec<FENodeData<T, V>>
+    {
+        let mut data = Vec::new();
+        for node in self.nodes.iter()
+        {
+            let number = node.as_ref().borrow().number;
+            let x = node.as_ref().borrow().coordinates.x;
+            let y = node.as_ref().borrow().coordinates.y;
+            let z = node.as_ref().borrow().coordinates.z;
+            let fe_node_data = FENodeData { number, x, y, z };
+            data.push(fe_node_data);
+        }
+        data
     }
 }

@@ -1,4 +1,4 @@
-#![recursion_limit="16384"]
+#![recursion_limit="32838"]
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::cell::RefCell;
@@ -19,28 +19,28 @@ use yew::services::resize::{WindowDimensions, ResizeTask, ResizeService};
 mod fem;
 mod extended_matrix;
 
-mod math;
-use math::math_aux_structs::Coordinates;
-mod fe;
-use fe::fe_node::FeNode;
-use fe::elements::truss_element::Truss2n2ip;
-use fe::elements::f_element::FElement;
-use fe::fe_solver::FeModel;
-use fe::fe_aux_structs::{Displacement, AxisComponent, Force, StrainStressComponent};
+use fem::FENodeData;
 
 mod components;
 use components::
     {
-        AnalysisTypeMenu, NodeMenu, PreprocessorCanvas, ElementMenu,
-        ViewMenu, DisplacementMenu, ForceMenu, ResultViewMenu, PostprocessorCanvas,
-        AllResultsTable,
+        AnalysisTypeMenu, NodeMenu, // PreprocessorCanvas, ElementMenu,
+        ViewMenu, // DisplacementMenu, ForceMenu, ResultViewMenu, PostprocessorCanvas,
+        // AllResultsTable,
     };
 mod auxiliary;
 use auxiliary::
     {
         AuxElement, AnalysisType, View, ElementType, AuxDisplacement,
-        AuxForce, AnalysisResult, ResultView, MinMaxValues
+        AuxForce, ResultView, MinMaxValues, // AnalysisResult,
     };
+use crate::fem::FEModel;
+
+
+pub type ElementsNumbers = u16;
+pub type ElementsValues = f64;
+
+pub const TOLERANCE: ElementsValues = 1e-6;
 
 
 pub const NUMBER_OF_DOF: i32 = 6;
@@ -67,12 +67,13 @@ struct State
     canvas_width: u32,
     canvas_height: u32,
     is_preprocessor_active: bool,
-    nodes: Vec<FeNode<u16, f64>>,
-    aux_elements: Vec<AuxElement>,
-    aux_displacements: Vec<AuxDisplacement>,
-    aux_forces: Vec<AuxForce>,
+    fem: FEModel<ElementsNumbers, ElementsValues>,
+    // nodes: Vec<FeNode<u16, f64>>,
+    // aux_elements: Vec<AuxElement>,
+    // aux_displacements: Vec<AuxDisplacement>,
+    // aux_forces: Vec<AuxForce>,
     analysis_error_message: Option<String>,
-    analysis_result: Option<AnalysisResult>,
+    // analysis_result: Option<AnalysisResult>,
     result_view: Option<ResultView>,
 }
 
@@ -91,19 +92,19 @@ enum Msg
     ExtractWindowDimensions(WindowDimensions),
     AddAnalysisType(AnalysisType),
     ChangeView(View),
-    AddNode(FeNode<u16, f64>),
-    UpdateNode((usize, FeNode<u16, f64>)),
-    RemoveNode(usize),
-    AddAuxElement(AuxElement),
-    UpdateAuxElement((usize, AuxElement)),
-    RemoveAuxElement(usize),
-    AddAuxDisplacement(AuxDisplacement),
-    UpdateAuxDisplacement((usize, AuxDisplacement)),
-    RemoveAuxDisplacement(usize),
-    AddAuxForce(AuxForce),
-    UpdateAuxForce((usize, AuxForce)),
-    RemoveAuxForce(usize),
-    Submit,
+    AddNode(FENodeData<ElementsNumbers, ElementsValues>),
+    UpdateNode(FENodeData<ElementsNumbers, ElementsValues>),
+    DeleteNode(ElementsNumbers),
+    // AddAuxElement(AuxElement),
+    // UpdateAuxElement((usize, AuxElement)),
+    // RemoveAuxElement(usize),
+    // AddAuxDisplacement(AuxDisplacement),
+    // UpdateAuxDisplacement((usize, AuxDisplacement)),
+    // RemoveAuxDisplacement(usize),
+    // AddAuxForce(AuxForce),
+    // UpdateAuxForce((usize, AuxForce)),
+    // RemoveAuxForce(usize),
+    // Submit,
     ResetAnalysisErrorMessage,
     EditStructure,
     ChangeResultView(ResultView),
@@ -128,79 +129,17 @@ impl Model
     }
 
 
-    fn remove_uncoupled_displacements(&mut self)
-    {
-        let mut i = (self.state.aux_displacements.len() - 1) as i32;
-        while i >= 0
-        {
-            if let None = self.state.aux_elements
-                .iter()
-                .position(|element|
-                    {
-                        match element.element_type
-                        {
-                            ElementType::Truss2n2ip =>
-                                {
-                                    (element.node_1_number == self.state.aux_displacements[i as usize].node_number) ||
-                                    (element.node_2_number == self.state.aux_displacements[i as usize].node_number)
-                                },
-                            // ElementType::OtherType =>
-                            //     {
-                            //         (element.node_1_number == self.state.aux_displacements[i as usize].node_number) ||
-                            //         (element.node_2_number == self.state.aux_displacements[i as usize].node_number)
-                            //     },
-                        }
-                    })
-            {
-                self.state.aux_displacements.remove(i as usize);
-            }
-            i -= 1;
-        }
-    }
-
-
-    fn remove_uncoupled_forces(&mut self)
-    {
-        let mut i = (self.state.aux_forces.len() - 1) as i32;
-        while i >= 0
-        {
-            if let None = self.state.aux_elements
-                .iter()
-                .position(|element|
-                    {
-                        match element.element_type
-                        {
-                            ElementType::Truss2n2ip =>
-                                {
-                                    (element.node_1_number == self.state.aux_forces[i as usize].node_number) ||
-                                    (element.node_2_number == self.state.aux_forces[i as usize].node_number)
-                                },
-                            // ElementType::OtherType =>
-                            //     {
-                            //         (element.node_1_number == self.state.aux_forces[i as usize].node_number) ||
-                            //         (element.node_2_number == self.state.aux_forces[i as usize].node_number)
-                            //     },
-                        }
-                    })
-            {
-                self.state.aux_forces.remove(i as usize);
-            }
-            i -= 1;
-        }
-    }
-
-
     fn check_preprocessor_data(&self) -> bool
     {
-        if self.state.nodes.is_empty()
+        if self.state.fem.nodes.is_empty()
         {
             return false;
         }
-        if self.state.aux_elements.is_empty()
+        if self.state.fem.elements.is_empty()
         {
             return false;
         }
-        if self.state.aux_displacements.is_empty()
+        if self.state.fem.boundary_conditions.is_empty()
         {
             return false;
         }
@@ -208,164 +147,164 @@ impl Model
     }
 
 
-    fn submit(&mut self) -> Result<AnalysisResult, String>
-    {
-        self.state.nodes.sort_unstable_by(|a, b| a.number.partial_cmp(&b.number).unwrap());
-        let mut elements: Vec<Rc<RefCell<dyn FElement<_, _, _>>>> = Vec::new();
-        for aux_element in &self.state.aux_elements
-        {
-            match aux_element.element_type
-            {
-                ElementType::Truss2n2ip =>
-                    {
-                        let node_1_position = self.state.nodes
-                            .iter()
-                            .position(|node| node.number == aux_element.node_1_number)
-                            .unwrap();
-                        let node_1 = self.state.nodes[node_1_position].to_owned();
-                        let node_2_position = self.state.nodes
-                            .iter()
-                            .position(|node| node.number == aux_element.node_2_number)
-                            .unwrap();
-                        let node_2 = self.state.nodes[node_2_position].to_owned();
-                        let truss_element = Truss2n2ip::create(
-                                aux_element.number, node_1, node_2,
-                                aux_element.young_modulus, aux_element.area,
-                                aux_element.area_2,
-                            );
-                        elements.push(Rc::new(RefCell::new(truss_element)));
-                    },
-                // ElementType::OtherType => (),
-            }
-        }
-        let mut applied_displacements = HashMap::new();
-        for aux_displacement in &self.state.aux_displacements
-        {
-            let node_number = aux_displacement.node_number;
-            if let Some(u_displacement) = aux_displacement.x_direction_value
-            {
-                applied_displacements.insert(Displacement { component: AxisComponent::U, node_number }, u_displacement);
-            }
-            if let Some(v_displacement) = aux_displacement.y_direction_value
-            {
-                applied_displacements.insert(Displacement { component: AxisComponent::V, node_number }, v_displacement);
-            }
-            if let Some(w_displacement) = aux_displacement.z_direction_value
-            {
-                applied_displacements.insert(Displacement { component: AxisComponent::W, node_number }, w_displacement);
-            }
-            if let Some(theta_u) = aux_displacement.yz_plane_value
-            {
-                applied_displacements.insert(Displacement { component: AxisComponent::ThetaU, node_number }, theta_u);
-            }
-            if let Some(theta_v) = aux_displacement.zx_plane_value
-            {
-                applied_displacements.insert(Displacement { component: AxisComponent::ThetaV, node_number }, theta_v);
-            }
-            if let Some(theta_w) = aux_displacement.xy_plane_value
-            {
-                applied_displacements.insert(Displacement { component: AxisComponent::ThetaW, node_number }, theta_w);
-            }
-        }
-
-        let mut applied_forces = HashMap::new();
-        for aux_force in &self.state.aux_forces
-        {
-            let node_number = aux_force.node_number;
-            if let Some(force_x) = aux_force.force_x_value
-            {
-                applied_forces.insert(Force { component: AxisComponent::U, node_number }, force_x);
-            }
-            if let Some(force_y) = aux_force.force_y_value
-            {
-                applied_forces.insert(Force { component: AxisComponent::V, node_number }, force_y);
-            }
-            if let Some(force_z) = aux_force.force_z_value
-            {
-                applied_forces.insert(Force { component: AxisComponent::W, node_number }, force_z);
-            }
-            if let Some(moment_xy) = aux_force.moment_xy_value
-            {
-                applied_forces.insert(Force { component: AxisComponent::ThetaW, node_number }, moment_xy);
-            }
-            if let Some(moment_yz) = aux_force.moment_yz_value
-            {
-                applied_forces.insert(Force { component: AxisComponent::ThetaU, node_number }, moment_yz);
-            }
-            if let Some(moment_zx) = aux_force.moment_zx_value
-            {
-                applied_forces.insert(Force { component: AxisComponent::ThetaV, node_number }, moment_zx);
-            }
-        }
-        let mut model = FeModel::create(
-            self.state.nodes.to_owned(), elements, applied_displacements,
-            if !applied_forces.is_empty() { Some(applied_forces) } else { None });
-        model.update_fe_model_state()?;
-        model.calculate_reactions_and_displacements()?;
-
-        if let Some(ref global_analysis_result) = model.global_analysis_result
-        {
-            let displacements = global_analysis_result.displacements.to_owned();
-            let reactions = global_analysis_result.reactions.to_owned();
-            yew::services::ConsoleService::log(&format!("Reactions: {:?}", reactions));
-            yew::services::ConsoleService::log(&format!("Displacements: {:?}", displacements));
-
-            let mut all_strains_and_stresses = HashMap::new();
-            let mut min_max_stress_values: HashMap<StrainStressComponent, MinMaxValues> = HashMap::new();
-            for element in model.elements
-            {
-                let element_strains_and_stresses =
-                    element
-                        .borrow_mut()
-                        .calculate_strains_and_stresses(&displacements)?;
-
-                for (element_number, strains_stresses) in element_strains_and_stresses
-                {
-                    yew::services::ConsoleService::log(&format!("Strains and stresses: {:?}, {:?}", element_number, strains_stresses));
-                    all_strains_and_stresses.insert(element_number, strains_stresses.to_owned());
-                    for strain_stress in &strains_stresses
-                    {
-                        let current_stress_component = strain_stress.stress.component;
-                        let current_stress_value = strain_stress.stress.value;
-                        if let Some(min_max_values) = min_max_stress_values.get_mut(&current_stress_component)
-                        {
-                            if current_stress_value < min_max_values.min_value
-                            {
-                                min_max_values.min_value = current_stress_value;
-                            }
-                            if current_stress_value > min_max_values.max_value
-                            {
-                                min_max_values.max_value = current_stress_value;
-                            }
-                        }
-                        else
-                        {
-                            min_max_stress_values.insert(
-                                current_stress_component,
-                                MinMaxValues
-                                    {
-                                        min_value: current_stress_value,
-                                        max_value: current_stress_value,
-                                    }
-                                );
-                        }
-                    }
-                }
-            }
-            yew::services::ConsoleService::log(&format!("Min max stress values: {:?}", min_max_stress_values));
-            Ok(AnalysisResult
-                {
-                    displacements,
-                    reactions,
-                    strains_and_stresses: all_strains_and_stresses,
-                    min_max_stress_values
-                })
-        }
-        else
-        {
-            Err("Global analysis results could not be extracted".to_string())
-        }
-    }
+    // fn submit(&mut self) -> Result<AnalysisResult, String>
+    // {
+    //     self.state.nodes.sort_unstable_by(|a, b| a.number.partial_cmp(&b.number).unwrap());
+    //     let mut elements: Vec<Rc<RefCell<dyn FElement<_, _, _>>>> = Vec::new();
+    //     for aux_element in &self.state.aux_elements
+    //     {
+    //         match aux_element.element_type
+    //         {
+    //             ElementType::Truss2n2ip =>
+    //                 {
+    //                     let node_1_position = self.state.nodes
+    //                         .iter()
+    //                         .position(|node| node.number == aux_element.node_1_number)
+    //                         .unwrap();
+    //                     let node_1 = self.state.nodes[node_1_position].to_owned();
+    //                     let node_2_position = self.state.nodes
+    //                         .iter()
+    //                         .position(|node| node.number == aux_element.node_2_number)
+    //                         .unwrap();
+    //                     let node_2 = self.state.nodes[node_2_position].to_owned();
+    //                     let truss_element = Truss2n2ip::create(
+    //                             aux_element.number, node_1, node_2,
+    //                             aux_element.young_modulus, aux_element.area,
+    //                             aux_element.area_2,
+    //                         );
+    //                     elements.push(Rc::new(RefCell::new(truss_element)));
+    //                 },
+    //             // ElementType::OtherType => (),
+    //         }
+    //     }
+    //     let mut applied_displacements = HashMap::new();
+    //     for aux_displacement in &self.state.aux_displacements
+    //     {
+    //         let node_number = aux_displacement.node_number;
+    //         if let Some(u_displacement) = aux_displacement.x_direction_value
+    //         {
+    //             applied_displacements.insert(Displacement { component: AxisComponent::U, node_number }, u_displacement);
+    //         }
+    //         if let Some(v_displacement) = aux_displacement.y_direction_value
+    //         {
+    //             applied_displacements.insert(Displacement { component: AxisComponent::V, node_number }, v_displacement);
+    //         }
+    //         if let Some(w_displacement) = aux_displacement.z_direction_value
+    //         {
+    //             applied_displacements.insert(Displacement { component: AxisComponent::W, node_number }, w_displacement);
+    //         }
+    //         if let Some(theta_u) = aux_displacement.yz_plane_value
+    //         {
+    //             applied_displacements.insert(Displacement { component: AxisComponent::ThetaU, node_number }, theta_u);
+    //         }
+    //         if let Some(theta_v) = aux_displacement.zx_plane_value
+    //         {
+    //             applied_displacements.insert(Displacement { component: AxisComponent::ThetaV, node_number }, theta_v);
+    //         }
+    //         if let Some(theta_w) = aux_displacement.xy_plane_value
+    //         {
+    //             applied_displacements.insert(Displacement { component: AxisComponent::ThetaW, node_number }, theta_w);
+    //         }
+    //     }
+    //
+    //     let mut applied_forces = HashMap::new();
+    //     for aux_force in &self.state.aux_forces
+    //     {
+    //         let node_number = aux_force.node_number;
+    //         if let Some(force_x) = aux_force.force_x_value
+    //         {
+    //             applied_forces.insert(Force { component: AxisComponent::U, node_number }, force_x);
+    //         }
+    //         if let Some(force_y) = aux_force.force_y_value
+    //         {
+    //             applied_forces.insert(Force { component: AxisComponent::V, node_number }, force_y);
+    //         }
+    //         if let Some(force_z) = aux_force.force_z_value
+    //         {
+    //             applied_forces.insert(Force { component: AxisComponent::W, node_number }, force_z);
+    //         }
+    //         if let Some(moment_xy) = aux_force.moment_xy_value
+    //         {
+    //             applied_forces.insert(Force { component: AxisComponent::ThetaW, node_number }, moment_xy);
+    //         }
+    //         if let Some(moment_yz) = aux_force.moment_yz_value
+    //         {
+    //             applied_forces.insert(Force { component: AxisComponent::ThetaU, node_number }, moment_yz);
+    //         }
+    //         if let Some(moment_zx) = aux_force.moment_zx_value
+    //         {
+    //             applied_forces.insert(Force { component: AxisComponent::ThetaV, node_number }, moment_zx);
+    //         }
+    //     }
+    //     let mut model = FeModel::create(
+    //         self.state.nodes.to_owned(), elements, applied_displacements,
+    //         if !applied_forces.is_empty() { Some(applied_forces) } else { None });
+    //     model.update_fe_model_state()?;
+    //     model.calculate_reactions_and_displacements()?;
+    //
+    //     if let Some(ref global_analysis_result) = model.global_analysis_result
+    //     {
+    //         let displacements = global_analysis_result.displacements.to_owned();
+    //         let reactions = global_analysis_result.reactions.to_owned();
+    //         yew::services::ConsoleService::log(&format!("Reactions: {:?}", reactions));
+    //         yew::services::ConsoleService::log(&format!("Displacements: {:?}", displacements));
+    //
+    //         let mut all_strains_and_stresses = HashMap::new();
+    //         let mut min_max_stress_values: HashMap<StrainStressComponent, MinMaxValues> = HashMap::new();
+    //         for element in model.elements
+    //         {
+    //             let element_strains_and_stresses =
+    //                 element
+    //                     .borrow_mut()
+    //                     .calculate_strains_and_stresses(&displacements)?;
+    //
+    //             for (element_number, strains_stresses) in element_strains_and_stresses
+    //             {
+    //                 yew::services::ConsoleService::log(&format!("Strains and stresses: {:?}, {:?}", element_number, strains_stresses));
+    //                 all_strains_and_stresses.insert(element_number, strains_stresses.to_owned());
+    //                 for strain_stress in &strains_stresses
+    //                 {
+    //                     let current_stress_component = strain_stress.stress.component;
+    //                     let current_stress_value = strain_stress.stress.value;
+    //                     if let Some(min_max_values) = min_max_stress_values.get_mut(&current_stress_component)
+    //                     {
+    //                         if current_stress_value < min_max_values.min_value
+    //                         {
+    //                             min_max_values.min_value = current_stress_value;
+    //                         }
+    //                         if current_stress_value > min_max_values.max_value
+    //                         {
+    //                             min_max_values.max_value = current_stress_value;
+    //                         }
+    //                     }
+    //                     else
+    //                     {
+    //                         min_max_stress_values.insert(
+    //                             current_stress_component,
+    //                             MinMaxValues
+    //                                 {
+    //                                     min_value: current_stress_value,
+    //                                     max_value: current_stress_value,
+    //                                 }
+    //                             );
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //         yew::services::ConsoleService::log(&format!("Min max stress values: {:?}", min_max_stress_values));
+    //         Ok(AnalysisResult
+    //             {
+    //                 displacements,
+    //                 reactions,
+    //                 strains_and_stresses: all_strains_and_stresses,
+    //                 min_max_stress_values
+    //             })
+    //     }
+    //     else
+    //     {
+    //         Err("Global analysis results could not be extracted".to_string())
+    //     }
+    // }
 }
 
 
@@ -397,6 +336,7 @@ impl Component for Model
                 }
                 (width, height)
             };
+        let fem = FEModel::create();
         Self
         {
             link,
@@ -407,12 +347,13 @@ impl Component for Model
                     canvas_width: width,
                     canvas_height: height,
                     is_preprocessor_active: true,
-                    nodes: Vec::new(),
-                    aux_elements: Vec::new(),
-                    aux_displacements: Vec::new(),
-                    aux_forces: Vec::new(),
+                    fem,
+                    // nodes: Vec::new(),
+                    // aux_elements: Vec::new(),
+                    // aux_displacements: Vec::new(),
+                    // aux_forces: Vec::new(),
                     analysis_error_message: None,
-                    analysis_result: None,
+                    // analysis_result: None,
                     result_view: None,
                 },
             resize_task: None, resize_service: ResizeService::new(),
@@ -428,27 +369,42 @@ impl Component for Model
                 self.extract_window_dimensions(window_dimensions),
             Msg::AddAnalysisType(analysis_type) => self.state.analysis_type = Some(analysis_type),
             Msg::ChangeView(view) => self.state.view = view,
-            Msg::AddNode(node) => self.state.nodes.push(node),
-            Msg::UpdateNode(data) => self.state.nodes[data.0] = data.1,
-            Msg::RemoveNode(position) =>
+            Msg::AddNode(data) =>
                 {
-                    let removed_node = self.state.nodes.remove(position);
-                    let mut aux_elements_deletion_positions = Vec::new();
-                    for (pos, element) in self.state.aux_elements.iter().enumerate()
+                    match self.state.fem.add_node(data.number, data.x, data.y, data.z)
                     {
-                        match element.element_type
-                        {
-                            ElementType::Truss2n2ip =>
-                                {
-                                    if element.node_1_number == removed_node.number
-                                    {
-                                        aux_elements_deletion_positions.push(pos);
-                                    }
-                                    if element.node_2_number == removed_node.number
-                                    {
-                                        aux_elements_deletion_positions.push(pos);
-                                    }
-                                },
+                        Err(e) => self.state.analysis_error_message = Some(e),
+                        _ => (),
+                    }
+                },
+            Msg::UpdateNode(data) => match self.state.fem
+                .update_node(data.number, data.x, data.y, data.z)
+                    {
+                        Err(e) => self.state.analysis_error_message = Some(e),
+                        _ => (),
+                    },
+            Msg::DeleteNode(number) => match self.state.fem.delete_node(number)
+                {
+                    Err(e) => self.state.analysis_error_message = Some(e),
+                    _ => (),
+                },
+                    // let removed_node = self.state.nodes.remove(position);
+                    // let mut aux_elements_deletion_positions = Vec::new();
+                    // for (pos, element) in self.state.aux_elements.iter().enumerate()
+                    // {
+                    //     match element.element_type
+                    //     {
+                    //         ElementType::Truss2n2ip =>
+                    //             {
+                    //                 if element.node_1_number == removed_node.number
+                    //                 {
+                    //                     aux_elements_deletion_positions.push(pos);
+                    //                 }
+                    //                 if element.node_2_number == removed_node.number
+                    //                 {
+                    //                     aux_elements_deletion_positions.push(pos);
+                    //                 }
+                    //             },
                             // ElementType::OtherType =>
                             //     {
                             //         if element.node_1_number == removed_node.number
@@ -460,61 +416,61 @@ impl Component for Model
                             //             aux_elements_deletion_positions.push(pos);
                             //         }
                             //     },
-                        }
-                    }
-                    if !aux_elements_deletion_positions.is_empty()
-                    {
-                        aux_elements_deletion_positions.sort();
-                        for position in aux_elements_deletion_positions.iter().rev()
-                        {
-                            self.state.aux_elements.remove(*position);
-                        }
-                    }
-                    self.remove_uncoupled_displacements();
-                    self.remove_uncoupled_forces();
-                },
-            Msg::AddAuxElement(element) => self.state.aux_elements.push(element),
-            Msg::UpdateAuxElement(data) => self.state.aux_elements[data.0] = data.1,
-            Msg::RemoveAuxElement(position) =>
-                {
-                    self.state.aux_elements.remove(position);
-                    self.remove_uncoupled_displacements();
-                    self.remove_uncoupled_forces();
-                },
-            Msg::AddAuxDisplacement(displacement) => self.state.aux_displacements.push(displacement),
-            Msg::UpdateAuxDisplacement(data) => self.state.aux_displacements[data.0] = data.1,
-            Msg::RemoveAuxDisplacement(position) =>
-                {
-                    self.state.aux_displacements.remove(position);
-                },
-            Msg::AddAuxForce(force) => self.state.aux_forces.push(force),
-            Msg::UpdateAuxForce(data) => self.state.aux_forces[data.0] = data.1,
-            Msg::RemoveAuxForce(position) =>
-                {
-                    self.state.aux_forces.remove(position);
-                },
-            Msg::Submit =>
-                {
-                    match self.submit()
-                    {
-                        Ok(analysis_result) =>
-                            {
-                                self.state.analysis_result = Some(analysis_result);
-                                self.state.is_preprocessor_active = false;
-                            },
-                        Err(msg) =>
-                            {
-                                self.state.analysis_error_message = Some(msg);
-                                self.state.analysis_result = None;
-                                self.state.result_view = None;
-                            },
-                    }
-                },
+                    //     }
+                    // }
+                    // if !aux_elements_deletion_positions.is_empty()
+                    // {
+                    //     aux_elements_deletion_positions.sort();
+                    //     for position in aux_elements_deletion_positions.iter().rev()
+                    //     {
+                    //         self.state.aux_elements.remove(*position);
+                    //     }
+                    // }
+                    // self.remove_uncoupled_displacements();
+                    // self.remove_uncoupled_forces();
+
+            // Msg::AddAuxElement(element) => self.state.aux_elements.push(element),
+            // Msg::UpdateAuxElement(data) => self.state.aux_elements[data.0] = data.1,
+            // Msg::RemoveAuxElement(position) =>
+            //     {
+            //         self.state.aux_elements.remove(position);
+            //         self.remove_uncoupled_displacements();
+            //         self.remove_uncoupled_forces();
+            //     },
+            // Msg::AddAuxDisplacement(displacement) => self.state.aux_displacements.push(displacement),
+            // Msg::UpdateAuxDisplacement(data) => self.state.aux_displacements[data.0] = data.1,
+            // Msg::RemoveAuxDisplacement(position) =>
+            //     {
+            //         self.state.aux_displacements.remove(position);
+            //     },
+            // Msg::AddAuxForce(force) => self.state.aux_forces.push(force),
+            // Msg::UpdateAuxForce(data) => self.state.aux_forces[data.0] = data.1,
+            // Msg::RemoveAuxForce(position) =>
+            //     {
+            //         self.state.aux_forces.remove(position);
+            //     },
+            // Msg::Submit =>
+            //     {
+            //         match self.submit()
+            //         {
+            //             Ok(analysis_result) =>
+            //                 {
+            //                     self.state.analysis_result = Some(analysis_result);
+            //                     self.state.is_preprocessor_active = false;
+            //                 },
+            //             Err(msg) =>
+            //                 {
+            //                     self.state.analysis_error_message = Some(msg);
+            //                     self.state.analysis_result = None;
+            //                     self.state.result_view = None;
+            //                 },
+            //         }
+            //     },
             Msg::ResetAnalysisErrorMessage => self.state.analysis_error_message = None,
             Msg::EditStructure =>
                 {
                     self.state.is_preprocessor_active = true;
-                    self.state.analysis_result = None;
+                    // self.state.analysis_result = None;
                     self.state.result_view = None;
                 },
             Msg::ChangeResultView(result_view) => self.state.result_view = Some(result_view),
@@ -531,27 +487,38 @@ impl Component for Model
 
     fn view(&self) -> Html
     {
-        let handle_add_analysis_type = self.link.callback(|analysis_type: AnalysisType| Msg::AddAnalysisType(analysis_type));
+        let handle_add_analysis_type =
+            self.link.callback(|analysis_type: AnalysisType| Msg::AddAnalysisType(analysis_type));
         let handle_change_view = self.link.callback(|view: View| Msg::ChangeView(view));
-        let handle_add_node = self.link.callback(|node: FeNode<u16, f64>| Msg::AddNode(node));
-        let handle_update_node = self.link.callback(|data: (usize, FeNode<u16, f64>)| Msg::UpdateNode(data));
-        let handle_remove_node = self.link.callback(|position: usize| Msg::RemoveNode(position));
-        let handle_add_aux_element =
-            self.link.callback(|element: AuxElement| Msg::AddAuxElement(element));
-        let handle_update_aux_element =
-            self.link.callback(|data: (usize, AuxElement)| Msg::UpdateAuxElement(data));
-        let handle_remove_aux_element =
-            self.link.callback(|position: usize| Msg::RemoveAuxElement(position));
-        let handle_add_aux_displacement =
-            self.link.callback(|displacement: AuxDisplacement| Msg::AddAuxDisplacement(displacement));
-        let handle_update_aux_displacement =
-            self.link.callback(|data: (usize, AuxDisplacement)| Msg::UpdateAuxDisplacement(data));
-        let handle_remove_aux_displacement =
-            self.link.callback(|position: usize| Msg::RemoveAuxDisplacement(position));
-        let handle_add_aux_force = self.link.callback(|force: AuxForce| Msg::AddAuxForce(force));
-        let handle_update_aux_force = self.link.callback(|data: (usize, AuxForce)| Msg::UpdateAuxForce(data));
-        let handle_remove_aux_force = self.link.callback(|position: usize| Msg::RemoveAuxForce(position));
-        let handle_change_result_view = self.link.callback(|result_view: ResultView| Msg::ChangeResultView(result_view));
+        let handle_add_node =
+            self.link
+                .callback(|data: FENodeData<ElementsNumbers, ElementsValues>| Msg::AddNode(data));
+        let handle_update_node =
+            self.link
+                .callback(|data: FENodeData<ElementsNumbers, ElementsValues>| Msg::UpdateNode(data));
+        let handle_delete_node =
+            self.link.callback(|number: ElementsNumbers| Msg::DeleteNode(number));
+        // let handle_add_aux_element =
+        //     self.link.callback(|element: AuxElement| Msg::AddAuxElement(element));
+        // let handle_update_aux_element =
+        //     self.link.callback(|data: (usize, AuxElement)| Msg::UpdateAuxElement(data));
+        // let handle_remove_aux_element =
+        //     self.link.callback(|position: usize| Msg::RemoveAuxElement(position));
+        // let handle_add_aux_displacement =
+        //     self.link.callback(|displacement: AuxDisplacement|
+        //         Msg::AddAuxDisplacement(displacement));
+        // let handle_update_aux_displacement =
+        //     self.link.callback(|data: (usize, AuxDisplacement)| Msg::UpdateAuxDisplacement(data));
+        // let handle_remove_aux_displacement =
+        //     self.link.callback(|position: usize| Msg::RemoveAuxDisplacement(position));
+        // let handle_add_aux_force =
+        //     self.link.callback(|force: AuxForce| Msg::AddAuxForce(force));
+        // let handle_update_aux_force =
+        //     self.link.callback(|data: (usize, AuxForce)| Msg::UpdateAuxForce(data));
+        // let handle_remove_aux_force =
+        //     self.link.callback(|position: usize| Msg::RemoveAuxForce(position));
+        let handle_change_result_view =
+            self.link.callback(|result_view: ResultView| Msg::ChangeResultView(result_view));
         html!
         {
             <main class={ MAIN_CLASS }>
@@ -569,64 +536,64 @@ impl Component for Model
                             <NodeMenu
                                 analysis_type=self.state.analysis_type.to_owned(),
                                 is_preprocessor_active=self.state.is_preprocessor_active,
-                                nodes=self.state.nodes.to_owned(), add_node=handle_add_node,
-                                update_node=handle_update_node, remove_node=handle_remove_node,
+                                nodes=self.state.fem.extract_nodes_data(), add_node=handle_add_node,
+                                update_node=handle_update_node, delete_node=handle_delete_node,
                             />
-                            <ElementMenu
-                                analysis_type=self.state.analysis_type.to_owned(),
-                                is_preprocessor_active=self.state.is_preprocessor_active,
-                                nodes=self.state.nodes.to_owned(),
-                                aux_elements=self.state.aux_elements.to_owned(),
-                                add_aux_element=handle_add_aux_element,
-                                update_aux_element=handle_update_aux_element,
-                                remove_aux_element=handle_remove_aux_element,
-                            />
-                            <DisplacementMenu
-                                analysis_type=self.state.analysis_type.to_owned(),
-                                is_preprocessor_active=self.state.is_preprocessor_active,
-                                aux_elements=self.state.aux_elements.to_owned(),
-                                aux_displacements=self.state.aux_displacements.to_owned(),
-                                add_aux_displacement=handle_add_aux_displacement,
-                                update_aux_displacement=handle_update_aux_displacement,
-                                remove_aux_displacement=handle_remove_aux_displacement,
-                            />
-                            <ForceMenu
-                                analysis_type=self.state.analysis_type.to_owned(),
-                                is_preprocessor_active=self.state.is_preprocessor_active,
-                                aux_elements=self.state.aux_elements.to_owned(),
-                                aux_forces=self.state.aux_forces.to_owned(),
-                                add_aux_force=handle_add_aux_force,
-                                update_aux_force=handle_update_aux_force,
-                                remove_aux_force=handle_remove_aux_force,
-                            />
-                            <button class={ PREPROCESSOR_BUTTON_CLASS }
-                                onclick=self.link.callback(|_| Msg::Submit),
-                                disabled=
-                                    {
-                                        if self.check_preprocessor_data() && self.state.is_preprocessor_active
-                                        {
-                                            false
-                                        }
-                                        else
-                                        {
-                                            true
-                                        }
-                                    },
-                            >
-                                { "Submit" }
-                            </button>
+                            // <ElementMenu
+                            //     analysis_type=self.state.analysis_type.to_owned(),
+                            //     is_preprocessor_active=self.state.is_preprocessor_active,
+                            //     nodes=self.state.nodes.to_owned(),
+                            //     aux_elements=self.state.aux_elements.to_owned(),
+                            //     add_aux_element=handle_add_aux_element,
+                            //     update_aux_element=handle_update_aux_element,
+                            //     remove_aux_element=handle_remove_aux_element,
+                            // />
+                            // <DisplacementMenu
+                            //     analysis_type=self.state.analysis_type.to_owned(),
+                            //     is_preprocessor_active=self.state.is_preprocessor_active,
+                            //     aux_elements=self.state.aux_elements.to_owned(),
+                            //     aux_displacements=self.state.aux_displacements.to_owned(),
+                            //     add_aux_displacement=handle_add_aux_displacement,
+                            //     update_aux_displacement=handle_update_aux_displacement,
+                            //     remove_aux_displacement=handle_remove_aux_displacement,
+                            // />
+                            // <ForceMenu
+                            //     analysis_type=self.state.analysis_type.to_owned(),
+                            //     is_preprocessor_active=self.state.is_preprocessor_active,
+                            //     aux_elements=self.state.aux_elements.to_owned(),
+                            //     aux_forces=self.state.aux_forces.to_owned(),
+                            //     add_aux_force=handle_add_aux_force,
+                            //     update_aux_force=handle_update_aux_force,
+                            //     remove_aux_force=handle_remove_aux_force,
+                            // />
+                            // <button class={ PREPROCESSOR_BUTTON_CLASS }
+                            //     // onclick=self.link.callback(|_| Msg::Submit),
+                            //     disabled=
+                            //         {
+                            //             if self.check_preprocessor_data() && self.state.is_preprocessor_active
+                            //             {
+                            //                 false
+                            //             }
+                            //             else
+                            //             {
+                            //                 true
+                            //             }
+                            //         },
+                            // >
+                            //     { "Submit" }
+                            // </button>
                         </div>
-                        <div class={ PREPROCESSOR_CANVAS_CLASS }>
-                            <PreprocessorCanvas
-                                view=self.state.view.to_owned(),
-                                canvas_width=self.state.canvas_width,
-                                canvas_height=self.state.canvas_height,
-                                nodes=self.state.nodes.to_owned(),
-                                aux_elements=self.state.aux_elements.to_owned(),
-                                aux_displacements=self.state.aux_displacements.to_owned(),
-                                aux_forces=self.state.aux_forces.to_owned(),
-                            />
-                        </div>
+                        // <div class={ PREPROCESSOR_CANVAS_CLASS }>
+                        //     <PreprocessorCanvas
+                        //         view=self.state.view.to_owned(),
+                        //         canvas_width=self.state.canvas_width,
+                        //         canvas_height=self.state.canvas_height,
+                        //         nodes=self.state.fem.clone_nodes(),
+                        //         aux_elements=self.state.aux_elements.to_owned(),
+                        //         aux_displacements=self.state.aux_displacements.to_owned(),
+                        //         aux_forces=self.state.aux_forces.to_owned(),
+                        //     />
+                        // </div>
                     </div>
                     {
                         if let Some(error_message) = &self.state.analysis_error_message
@@ -649,74 +616,74 @@ impl Component for Model
                             html! {}
                         }
                     }
-                    {
-                        if let Some(analysis_result) = &self.state.analysis_result
-                        {
-                            html!
-                            {
-                                <div class={ POSTPROCESSOR_CLASS }>
-                                    <div class={ POSTPROCESSOR_MENU_CLASS }>
-                                        <button
-                                            class={ POSTPROCESSOR_BUTTON_CLASS },
-                                            onclick=self.link.callback(|_| Msg::EditStructure),
-                                        >
-                                            { "Edit model" }
-                                        </button>
-                                        <ResultViewMenu
-                                            result_view=self.state.result_view.to_owned(),
-                                            change_result_view=handle_change_result_view,
-                                        />
-                                    </div>
-                                    {
-                                        if let Some(result_view) = &self.state.result_view
-                                        {
-                                            match result_view
-                                            {
-                                                ResultView::PrintAllResults =>
-                                                    {
-                                                        html!
-                                                        {
-                                                            <AllResultsTable
-                                                                nodes=self.state.nodes.to_owned(),
-                                                                aux_elements=self.state.aux_elements.to_owned(),
-                                                                aux_displacements=self.state.aux_displacements.to_owned(),
-                                                                analysis_result=analysis_result.to_owned(),
-                                                                canvas_width=self.state.canvas_width,
-                                                            />
-                                                        }
-                                                    },
-                                                _ =>
-                                                    {
-                                                        html!
-                                                        {
-                                                            <div class={ POSTPROCESSOR_CANVAS_CLASS }>
-                                                                <PostprocessorCanvas
-                                                                    view=self.state.view.to_owned(),
-                                                                    canvas_width=self.state.canvas_width,
-                                                                    canvas_height=self.state.canvas_height,
-                                                                    nodes=self.state.nodes.to_owned(),
-                                                                    aux_elements=self.state.aux_elements.to_owned(),
-                                                                    analysis_result=analysis_result,
-                                                                    result_view=result_view,
-                                                                />
-                                                            </div>
-                                                        }
-                                                    }
-                                            }
-                                        }
-                                        else
-                                        {
-                                            html! {  }
-                                        }
-                                    }
-                                </div>
-                            }
-                        }
-                        else
-                        {
-                            html! {}
-                        }
-                    }
+                    // {
+                    //     if let Some(analysis_result) = &self.state.analysis_result
+                    //     {
+                    //         html!
+                    //         {
+                    //             <div class={ POSTPROCESSOR_CLASS }>
+                    //                 <div class={ POSTPROCESSOR_MENU_CLASS }>
+                    //                     <button
+                    //                         class={ POSTPROCESSOR_BUTTON_CLASS },
+                    //                         onclick=self.link.callback(|_| Msg::EditStructure),
+                    //                     >
+                    //                         { "Edit model" }
+                    //                     </button>
+                    //                     <ResultViewMenu
+                    //                         result_view=self.state.result_view.to_owned(),
+                    //                         change_result_view=handle_change_result_view,
+                    //                     />
+                    //                 </div>
+                    //                 {
+                    //                     if let Some(result_view) = &self.state.result_view
+                    //                     {
+                    //                         match result_view
+                    //                         {
+                    //                             ResultView::PrintAllResults =>
+                    //                                 {
+                    //                                     html!
+                    //                                     {
+                    //                                         <AllResultsTable
+                    //                                             nodes=self.state.nodes.to_owned(),
+                    //                                             aux_elements=self.state.aux_elements.to_owned(),
+                    //                                             aux_displacements=self.state.aux_displacements.to_owned(),
+                    //                                             analysis_result=analysis_result.to_owned(),
+                    //                                             canvas_width=self.state.canvas_width,
+                    //                                         />
+                    //                                     }
+                    //                                 },
+                    //                             _ =>
+                    //                                 {
+                    //                                     html!
+                    //                                     {
+                    //                                         <div class={ POSTPROCESSOR_CANVAS_CLASS }>
+                    //                                             <PostprocessorCanvas
+                    //                                                 view=self.state.view.to_owned(),
+                    //                                                 canvas_width=self.state.canvas_width,
+                    //                                                 canvas_height=self.state.canvas_height,
+                    //                                                 nodes=self.state.nodes.to_owned(),
+                    //                                                 aux_elements=self.state.aux_elements.to_owned(),
+                    //                                                 analysis_result=analysis_result,
+                    //                                                 result_view=result_view,
+                    //                                             />
+                    //                                         </div>
+                    //                                     }
+                    //                                 }
+                    //                         }
+                    //                     }
+                    //                     else
+                    //                     {
+                    //                         html! {  }
+                    //                     }
+                    //                 }
+                    //             </div>
+                    //         }
+                    //     }
+                    //     else
+                    //     {
+                    //         html! {}
+                    //     }
+                    // }
                 </div>
             </main>
         }

@@ -94,17 +94,17 @@ fn main() -> Result<(), String>
 
     let element_1 = Truss2n2ip::create
         (
-            1, node_2.to_owned(), node_1.to_owned(),
+            1, node_1.to_owned(), node_2.to_owned(),
             128000000.0, 0.0625, None
         );
     let element_2 = Truss2n2ip::create
         (
-            2, node_2.to_owned(), node_3.to_owned(),
+            2, node_3.to_owned(), node_2.to_owned(),
             128000000.0, 0.0625, None
         );
     let element_3 = Truss2n2ip::create
         (
-            3, node_2.to_owned(), node_4.to_owned(),
+            3, node_4.to_owned(), node_2.to_owned(),
             128000000.0, 0.0625, None
         );
 

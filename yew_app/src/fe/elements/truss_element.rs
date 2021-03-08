@@ -176,7 +176,7 @@ impl<T, V, W> Truss2n2ip<T, V, W>
         let mut axis_z = 0f64;
         if x != 0f64 && y == 0f64 && z == 0f64
         {
-            axis_x = x;
+            axis_z = x;
         }
         else
         {
@@ -206,6 +206,15 @@ impl<T, V, W> Truss2n2ip<T, V, W>
         let a_31 = if (t * x_n * z_n - y_n * s).abs() < abs_tolerance { 0.0 } else { t * x_n * z_n - y_n * s };
         let a_32 = if (t * y_n * z_n + x_n * s).abs() < abs_tolerance { 0.0 } else { t * y_n * z_n + x_n * s };
         let a_33 = if (t * z_n * z_n + c).abs() < abs_tolerance { 0.0 } else { t * z_n * z_n + c };
+        // let a_11 = t * x_n * x_n + c;
+        // let a_12 = t * x_n * y_n - z_n * s;
+        // let a_13 = t * x_n * z_n + y_n * s;
+        // let a_21 = t * x_n * y_n + z_n * s;
+        // let a_22 = t * y_n * y_n + c;
+        // let a_23 = t * y_n * z_n - x_n * s;
+        // let a_31 = t * x_n * z_n - y_n * s;
+        // let a_32 = t * y_n * z_n + x_n * s;
+        // let a_33 = t * z_n * z_n + c;
         let elements = vec!
             [
                 vec![V::from(a_11), V::from(a_12), V::from(a_13)],
@@ -220,14 +229,14 @@ impl<T, V, W> Truss2n2ip<T, V, W>
         //     (self.node_2.coordinates.y - self.node_1.coordinates.y) +
         //     (self.node_2.coordinates.z - self.node_1.coordinates.z) *
         //     (self.node_2.coordinates.z - self.node_1.coordinates.z)).sqrt();
-        // let c_x = (self.node_2.coordinates.x - self.node_1.coordinates.x) / element_length;
-        // let c_y = (self.node_2.coordinates.y - self.node_1.coordinates.y) / element_length;
-        // let c_z = (self.node_2.coordinates.z - self.node_1.coordinates.z) / element_length;
-        // println!("a_11: {:?}, c_x: {:?}, alpha: {:?}", a_11, c_x, alpha.to_degrees());
-        // println!("a_12: {:?}, c_y: {:?}, alpha: {:?}", a_12, c_y, alpha.to_degrees());
-        // println!("a_13: {:?}, c_z: {:?}, alpha: {:?}", a_13, c_z, alpha.to_degrees());
-        // println!("a_21: {:?}, a_22: {:?}, a_23: {:?}", a_21, a_22, a_23);
-        // println!("a_31: {:?}, a_32: {:?}, a_33: {:?}\n", a_31, a_32, a_33);
+        let c_x = (self.node_2.coordinates.x - self.node_1.coordinates.x) / V::from(element_length);
+        let c_y = (self.node_2.coordinates.y - self.node_1.coordinates.y) / V::from(element_length);
+        let c_z = (self.node_2.coordinates.z - self.node_1.coordinates.z) / V::from(element_length);
+        println!("a_11: {:?}, c_x: {:?}, alpha: {:?}", a_11, c_x, alpha.to_degrees());
+        println!("a_12: {:?}, c_y: {:?}, alpha: {:?}", a_12, c_y, alpha.to_degrees());
+        println!("a_13: {:?}, c_z: {:?}, alpha: {:?}", a_13, c_z, alpha.to_degrees());
+        println!("a_21: {:?}, a_22: {:?}, a_23: {:?}", a_21, a_22, a_23);
+        println!("a_31: {:?}, a_32: {:?}, a_33: {:?}\n", a_31, a_32, a_33);
         // let elements = vec!
         //     [
         //         vec![c_x, c_y, c_z],
@@ -335,6 +344,7 @@ impl<T, V, W> Truss2n2ip<T, V, W>
             }
             rotation_matrix_elements.push(current_row);
         }
+        println!("Rotation matrix elements:\n{:?}", rotation_matrix_elements);
         let rotation_matrix = Matrix { elements: rotation_matrix_elements };
         self.state.rotation_matrix = Some(rotation_matrix);
     }

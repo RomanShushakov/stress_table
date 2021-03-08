@@ -16,6 +16,9 @@ use web_sys::
     };
 use yew::services::resize::{WindowDimensions, ResizeTask, ResizeService};
 
+mod fem;
+mod extended_matrix;
+
 mod math;
 use math::math_aux_structs::Coordinates;
 mod fe;

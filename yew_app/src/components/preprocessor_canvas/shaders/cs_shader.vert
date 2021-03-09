@@ -8,4 +8,5 @@ varying lowp vec4 vColor;
 void main(void) {
   gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
   vColor = aVertexColor;
+  gl_PointSize = 10.0;
 }

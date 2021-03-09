@@ -3,8 +3,14 @@ use crate::components::preprocessor_canvas::preprocessor_canvas::
         GLElementsNumbers, GLElementsValues
     };
 
-use std::f32::consts::PI;
+use crate::{ElementsValues, ElementsNumbers};
+use crate::fem::FENode;
+use crate::auxiliary::NormalizedNode;
+
 use web_sys::{WebGlBuffer, WebGlUniformLocation, WebGlProgram, WebGlRenderingContext as GL};
+use std::f32::consts::PI;
+use std::cell::RefCell;
+use std::rc::Rc;
 
 
 const CS_ORIGIN: [GLElementsValues; 3] = [0.0, 0.0, 0.0];
@@ -16,14 +22,27 @@ const CS_AXIS_X_COLOR: [GLElementsValues; 4] = [1.0, 0.0, 0.0, 1.0]; // red
 const CS_AXIS_Y_COLOR: [GLElementsValues; 4] = [0.0, 1.0, 0.0, 1.0]; // green
 const CS_AXIS_Z_COLOR: [GLElementsValues; 4] = [0.0, 0.0, 1.0, 1.0]; // blue
 
-pub const CS_AXES_SCALE: GLElementsValues = 0.15;
-pub const CS_AXES_CAPS_HEIGHT: GLElementsValues = 0.1; // arrow length
-pub const CS_AXES_CAPS_WIDTH: GLElementsValues = 0.05; // half of arrow width
-pub const CS_AXES_CAPS_BASE_POINTS_NUMBER: u16 = 36; // the number of points in cone circular base
+pub const CS_AXES_SCALE: GLElementsValues = 0.1;
+pub const CS_AXES_CAPS_HEIGHT: GLElementsValues = 0.07; // arrow length
+pub const CS_AXES_CAPS_WIDTH: GLElementsValues = 0.035; // half of arrow width
+pub const CS_AXES_CAPS_BASE_POINTS_NUMBER: u16 = 12; // the number of points in cone circular base
 
-pub const CS_AXES_X_SHIFT: GLElementsValues = 0.8; // shift of the cs in the x-direction
-pub const CS_AXES_Y_SHIFT: GLElementsValues = 0.8; // shift of the cs in the y-direction
+pub const CS_AXES_X_SHIFT: GLElementsValues = 0.85; // shift of the cs in the x-direction
+pub const CS_AXES_Y_SHIFT: GLElementsValues = 0.85; // shift of the cs in the y-direction
 pub const CS_AXES_Z_SHIFT: GLElementsValues = -1.5; // shift of the cs in the z-direction
+
+pub const AXIS_X_DENOTATION_SHIFT_X: GLElementsValues = 0.1;
+pub const AXIS_X_DENOTATION_SHIFT_Y: GLElementsValues = -0.05;
+pub const AXIS_Y_DENOTATION_SHIFT_X: GLElementsValues = -0.05;
+pub const AXIS_Y_DENOTATION_SHIFT_Y: GLElementsValues = 0.1;
+pub const AXIS_Z_DENOTATION_SHIFT_X: GLElementsValues = -0.05;
+pub const AXIS_Z_DENOTATION_SHIFT_Y: GLElementsValues = -0.05;
+pub const AXIS_Z_DENOTATION_SHIFT_Z: GLElementsValues = 0.1;
+
+pub const DRAWN_OBJECT_TO_CANVAS_WIDTH_SCALE: GLElementsValues = 0.8;
+pub const DRAWN_OBJECT_TO_CANVAS_HEIGHT_SCALE: GLElementsValues = 0.9;
+
+pub const DRAWN_NODES_COLOR: [GLElementsValues; 4] = [1.0, 1.0, 0.0, 1.0]; // yellow
 
 
 pub enum CSAxis
@@ -46,9 +65,9 @@ pub struct DrawnObject
     vertices_coordinates: Vec<GLElementsValues>,
     colors_values: Vec<GLElementsValues>,
     indexes_numbers: Vec<GLElementsNumbers>,
-    pub modes: Vec<GLPrimitiveType>,
-    pub elements_numbers: Vec<i32>,
-    pub offsets: Vec<i32>,
+    modes: Vec<GLPrimitiveType>,
+    elements_numbers: Vec<i32>,
+    offsets: Vec<i32>,
 }
 
 
@@ -180,6 +199,23 @@ impl DrawnObject
         let offset = self.define_offset();
         self.modes.push(GLPrimitiveType::Triangles);
         self.elements_numbers.push(base_points_number as i32 * 3);
+        self.offsets.push(offset);
+    }
+
+
+    pub fn add_nodes(&mut self, normalized_nodes: Vec<NormalizedNode>)
+    {
+        let start_index =
+            if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
+        for (i, node) in normalized_nodes.iter().enumerate()
+        {
+            self.vertices_coordinates.extend(&[node.x, node.y, node.z]);
+            self.colors_values.extend(&DRAWN_NODES_COLOR);
+            self.indexes_numbers.push(start_index + i as GLElementsNumbers);
+        }
+        self.modes.push(GLPrimitiveType::Points);
+        self.elements_numbers.push(normalized_nodes.len() as i32);
+        let offset = self.define_offset();
         self.offsets.push(offset);
     }
 

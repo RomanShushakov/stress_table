@@ -3,6 +3,7 @@ use self::ElementType::*;
 // use crate::fe::fe_aux_structs::{Displacement, Force, StrainStress, StrainStressComponent};
 
 use std::collections::HashMap;
+use crate::components::preprocessor_canvas::preprocessor_canvas::{GLElementsNumbers, GLElementsValues};
 
 
 #[derive(Clone, PartialEq)]
@@ -52,12 +53,12 @@ impl View
 
 
 
-#[derive(Clone)]
-pub struct DrawnNode
+pub struct NormalizedNode
 {
-    pub number: u16,
-    pub x: f64,
-    pub y: f64,
+    pub number: GLElementsNumbers,
+    pub x: GLElementsValues,
+    pub y: GLElementsValues,
+    pub z: GLElementsValues,
 }
 
 

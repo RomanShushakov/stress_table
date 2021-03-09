@@ -17,13 +17,15 @@ use yew::services::RenderService;
 
 use crate::components::preprocessor_canvas::gl::gl_aux_functions::
     {
-        add_denotation, initialize_shaders,
+        add_denotation, initialize_shaders, normalize_nodes,
     };
 use crate::components::preprocessor_canvas::gl::gl_aux_structs::
     {
         Buffers, ShadersVariables, DrawnObject, CSAxis, CS_AXES_Y_SHIFT, CS_AXES_X_SHIFT,
         CS_AXES_Z_SHIFT, CS_AXES_SCALE, CS_AXES_CAPS_BASE_POINTS_NUMBER, CS_AXES_CAPS_WIDTH,
-        CS_AXES_CAPS_HEIGHT
+        CS_AXES_CAPS_HEIGHT, AXIS_X_DENOTATION_SHIFT_X, AXIS_X_DENOTATION_SHIFT_Y,
+        AXIS_Y_DENOTATION_SHIFT_X, AXIS_Y_DENOTATION_SHIFT_Y, AXIS_Z_DENOTATION_SHIFT_X,
+        AXIS_Z_DENOTATION_SHIFT_Y, AXIS_Z_DENOTATION_SHIFT_Z,
     };
 use std::rc::Rc;
 use std::cell::RefCell;
@@ -229,9 +231,21 @@ impl Component for PreprocessorCanvas
                 },
             Msg::MouseWheel(wheel_event) =>
                 {
-                    self.state.d_scale += wheel_event.delta_y() as GLElementsValues
-                        / self.props.canvas_height as GLElementsValues;
-                    yew::services::ConsoleService::log(&format!("{}", self.state.d_scale));
+                    let current_d_scale =
+                        self.state.d_scale + wheel_event.delta_y() as GLElementsValues /
+                        self.props.canvas_height as GLElementsValues;
+                    if 1.0 + current_d_scale > 50.0
+                    {
+                        self.state.d_scale = 48.95;
+                    }
+                    else if 1.0 + current_d_scale < 0.0
+                    {
+                        self.state.d_scale = -0.95;
+                    }
+                    else
+                    {
+                        self.state.d_scale = current_d_scale;
+                    }
                     false
                 },
         }
@@ -333,7 +347,7 @@ impl PreprocessorCanvas
         let aspect: GLElementsValues = self.props.canvas_width as GLElementsValues /
             self.props.canvas_height as GLElementsValues;
         let z_near = 1.0 as GLElementsValues;
-        let z_far = 5.0 as GLElementsValues;
+        let z_far = 101.0 as GLElementsValues;
 
         let cs_buffers = Buffers::initialize(&gl);
         let mut cs_drawn_object = DrawnObject::create();
@@ -366,7 +380,7 @@ impl PreprocessorCanvas
             &[CS_AXES_X_SHIFT, y_shift, CS_AXES_Z_SHIFT]);
         let mat_to_scale = model_view_matrix;
         mat4::scale(&mut model_view_matrix, &mat_to_scale,
-            &[CS_AXES_SCALE, CS_AXES_SCALE * aspect, CS_AXES_SCALE]);
+            &[CS_AXES_SCALE, CS_AXES_SCALE * aspect, CS_AXES_SCALE * aspect]);
         let mat_to_rotate = model_view_matrix;
         mat4::rotate_x(&mut model_view_matrix,&mat_to_rotate,&self.state.phi);
         let mat_to_rotate = model_view_matrix;
@@ -379,15 +393,59 @@ impl PreprocessorCanvas
         cs_drawn_object.draw(&gl);
 
         ctx.set_fill_style(&CANVAS_TEXT_COLOR.into());
-        add_denotation(&ctx, &[1.1, -0.05, 0.0, 1.0], &model_view_matrix,
+        add_denotation(&ctx,
+            &[1.0 + AXIS_X_DENOTATION_SHIFT_X, 0.0 + AXIS_X_DENOTATION_SHIFT_Y, 0.0, 1.0],
+            &model_view_matrix,
             self.props.canvas_width as f32,
             self.props.canvas_height as f32, "X");
-        add_denotation(&ctx, &[-0.05, 1.1, 0.0, 1.0], &model_view_matrix,
+        add_denotation(&ctx,
+            &[0.0 + AXIS_Y_DENOTATION_SHIFT_X, 1.0 + AXIS_Y_DENOTATION_SHIFT_Y, 0.0, 1.0],
+            &model_view_matrix,
             self.props.canvas_width as f32,
             self.props.canvas_height as f32, "Y");
-        add_denotation(&ctx, &[-0.05, -0.05, 1.1, 1.0], &model_view_matrix,
+        add_denotation(&ctx,
+            &[0.0 + AXIS_Z_DENOTATION_SHIFT_X, 0.0 + AXIS_Z_DENOTATION_SHIFT_Y,
+                1.0 + AXIS_Z_DENOTATION_SHIFT_Z, 1.0],
+            &model_view_matrix,
             self.props.canvas_width as f32,
             self.props.canvas_height as f32, "Z");
+
+        if !self.props.nodes.is_empty()
+        {
+            let normalized_nodes = normalize_nodes(
+                Rc::clone(&self.props.nodes),
+                self.props.canvas_width as GLElementsValues,
+                self.props.canvas_height as GLElementsValues,
+                aspect as GLElementsValues);
+
+            let nodes_buffers = Buffers::initialize(&gl);
+            let mut nodes_drawn_object = DrawnObject::create();
+            nodes_drawn_object.add_nodes(normalized_nodes);
+            nodes_buffers.render(&gl, &nodes_drawn_object, &shaders_variables);
+
+            let mut projection_matrix = mat4::new_zero();
+            mat4::orthographic(&mut projection_matrix,
+                &(1.0 as GLElementsValues), &(1.0 as GLElementsValues),
+                &(-1.0 as GLElementsValues), &(-1.0 as GLElementsValues),
+                &z_near, &z_far);
+            let mut model_view_matrix = mat4::new_identity();
+            let mat_to_translate = model_view_matrix;
+            mat4::translate(&mut model_view_matrix, &mat_to_translate,
+                &[self.state.dx, self.state.dy, -51.0]);
+            let mat_to_scale = model_view_matrix;
+            mat4::scale(&mut model_view_matrix, &mat_to_scale,
+                &[1.0 + self.state.d_scale, 1.0 + self.state.d_scale, 1.0 + self.state.d_scale]);
+            let mat_to_rotate = model_view_matrix;
+            mat4::rotate_x(&mut model_view_matrix,&mat_to_rotate,&self.state.phi);
+            let mat_to_rotate = model_view_matrix;
+            mat4::rotate_y(&mut model_view_matrix, &mat_to_rotate, &self.state.theta);
+            gl.uniform_matrix4fv_with_f32_array(
+                Some(&shaders_variables.projection_matrix.clone()), false, &projection_matrix);
+            gl.uniform_matrix4fv_with_f32_array(
+                Some(&shaders_variables.model_view_matrix.clone()), false, &model_view_matrix);
+
+            nodes_drawn_object.draw(&gl);
+        }
 
         let render_frame = self.link.callback(Msg::Render);
         let handle = RenderService::request_animation_frame(render_frame);

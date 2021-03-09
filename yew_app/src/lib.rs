@@ -40,7 +40,7 @@ use crate::fem::FEModel;
 
 
 pub type ElementsNumbers = u32;
-pub type ElementsValues = f32;
+pub type ElementsValues = f64;
 
 pub const TOLERANCE: ElementsValues = 1e-6;
 

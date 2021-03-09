@@ -24,10 +24,12 @@ use fem::FENodeData;
 mod components;
 use components::
     {
-        AnalysisTypeMenu, NodeMenu, // PreprocessorCanvas, ElementMenu,
+        AnalysisTypeMenu, NodeMenu, PreprocessorCanvas, // ElementMenu,
         ViewMenu, // DisplacementMenu, ForceMenu, ResultViewMenu, PostprocessorCanvas,
         // AllResultsTable,
     };
+
+
 mod auxiliary;
 use auxiliary::
     {
@@ -83,7 +85,6 @@ struct Model
     link: ComponentLink<Self>,
     state: State,
     resize_task: Option<ResizeTask>,
-    resize_service: ResizeService,
 }
 
 
@@ -115,9 +116,10 @@ impl Model
 {
     fn follow_window_dimensions(&mut self)
     {
+        let mut resize_service = ResizeService::new();
         let callback: Callback<WindowDimensions> = self.link
             .callback(|dimensions| Msg::ExtractWindowDimensions(dimensions));
-        let task = ResizeService::register(&mut self.resize_service, callback);
+        let task = ResizeService::register(&mut resize_service, callback);
         self.resize_task = Some(task);
     }
 
@@ -356,7 +358,7 @@ impl Component for Model
                     // analysis_result: None,
                     result_view: None,
                 },
-            resize_task: None, resize_service: ResizeService::new(),
+            resize_task: None,
         }
     }
 
@@ -586,17 +588,17 @@ impl Component for Model
                             //     { "Submit" }
                             // </button>
                         </div>
-                        // <div class={ PREPROCESSOR_CANVAS_CLASS }>
-                        //     <PreprocessorCanvas
-                        //         view=self.state.view.to_owned(),
-                        //         canvas_width=self.state.canvas_width,
-                        //         canvas_height=self.state.canvas_height,
-                        //         nodes=self.state.fem.clone_nodes(),
-                        //         aux_elements=self.state.aux_elements.to_owned(),
-                        //         aux_displacements=self.state.aux_displacements.to_owned(),
-                        //         aux_forces=self.state.aux_forces.to_owned(),
-                        //     />
-                        // </div>
+                        <div class={ PREPROCESSOR_CANVAS_CLASS }>
+                            <PreprocessorCanvas
+                                view=self.state.view.to_owned(),
+                                canvas_width=self.state.canvas_width,
+                                canvas_height=self.state.canvas_height,
+                                nodes=Rc::clone(&nodes),
+                                // aux_elements=self.state.aux_elements.to_owned(),
+                                // aux_displacements=self.state.aux_displacements.to_owned(),
+                                // aux_forces=self.state.aux_forces.to_owned(),
+                            />
+                        </div>
                     </div>
                     {
                         if let Some(error_message) = &self.state.analysis_error_message

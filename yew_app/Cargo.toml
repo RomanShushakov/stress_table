@@ -14,6 +14,8 @@ crate-type = ["cdylib", "rlib"]
 yew = "0.17.4"
 wasm-bindgen = "0.2.71"
 js-sys = "0.3.48"
+mat4 = "0.2.1"
+vec4 = "0.2.1"
 
 
 [dependencies.web-sys]
@@ -29,5 +31,10 @@ features = [
   'HtmlOptionElement',
   'DomTokenList',
   'HtmlInputElement',
-  'CanvasGradient'
+  'CanvasGradient',
+  'WebGlBuffer',
+  'WebGlRenderingContext',
+  'WebGlUniformLocation',
+  'WebGlProgram',
+  'WebGlShader',
 ]

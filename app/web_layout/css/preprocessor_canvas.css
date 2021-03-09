@@ -4,3 +4,20 @@
     border: 1px solid #000000;
     margin-top: 0.5rem;
 }
+
+.preprocessor_canvas_container {
+    position: relative;
+}
+
+.preprocessor_canvas_text {
+    background-color: transparent;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    z-index: 10;
+}
+
+
+.preprocessor_canvas_gl {
+    vertical-align: top;
+}

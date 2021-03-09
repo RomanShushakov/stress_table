@@ -8,7 +8,7 @@ use wasm_bindgen::JsCast;
 use std::rc::Rc;
 use std::cell::RefCell;
 
-use crate::fem::FENodeData;
+use crate::fem::{FENodeData, FENode};
 use crate::{ElementsNumbers, ElementsValues};
 use crate::{AnalysisType, PREPROCESSOR_BUTTON_CLASS};
 
@@ -27,12 +27,12 @@ const NODE_Y_COORD: &str = "node_y_coord";
 const NODE_Z_COORD: &str = "node_z_coord";
 
 
-#[derive(Properties, PartialEq, Clone)]
+#[derive(Properties, Clone)]
 pub struct Props
 {
     pub analysis_type: Option<AnalysisType>,
     pub is_preprocessor_active: bool,
-    pub nodes: Vec<FENodeData<ElementsNumbers, ElementsValues>>,
+    pub nodes: Rc<Vec<Rc<RefCell<FENode<ElementsNumbers, ElementsValues>>>>>,
     pub add_node: Callback<FENodeData<ElementsNumbers, ElementsValues>>,
     pub update_node: Callback<FENodeData<ElementsNumbers, ElementsValues>>,
     pub delete_node: Callback<ElementsNumbers>,
@@ -98,13 +98,13 @@ impl NodeMenu
                 {
                     if let Ok(option) = HtmlOptionElement::new()
                     {
-                        option.set_value(&node.number.to_string());
-                        option.set_text(&node.number.to_string());
+                        option.set_value(&node.borrow().number.to_string());
+                        option.set_text(&node.borrow().number.to_string());
                         options.set(i as u32, Some(&option)).unwrap();
                     }
-                    if node.number > n
+                    if node.borrow().number > n
                     {
-                        n = node.number;
+                        n = node.borrow().number;
                     }
                 }
                 n + 1
@@ -168,12 +168,12 @@ impl Component for NodeMenu
                                 if let Some(position) = self.props.nodes
                                     .iter()
                                     .position(|node|
-                                        node.number.to_string() == select_node.value())
+                                        node.borrow().number.to_string() == select_node.value())
                                 {
-                                    let number = self.props.nodes[position].number;
-                                    let x = self.props.nodes[position].x;
-                                    let y = self.props.nodes[position].y;
-                                    let z = self.props.nodes[position].z;
+                                    let number = self.props.nodes[position].borrow().number;
+                                    let x = self.props.nodes[position].borrow().coordinates.x;
+                                    let y = self.props.nodes[position].borrow().coordinates.y;
+                                    let z = self.props.nodes[position].borrow().coordinates.z;
                                     self.state.selected_node = FENodeData { number, x, y, z };
                                 }
                                 else
@@ -207,8 +207,8 @@ impl Component for NodeMenu
                     let x = self.state.selected_node.x;
                     let y = self.state.selected_node.y;
                     let z = self.state.selected_node.z;
-                    if self.props.nodes.iter().position(|data|
-                        data.number == number).is_none()
+                    if self.props.nodes.iter().position(|node|
+                        node.borrow().number == number).is_none()
                     {
                         self.props.add_node.emit(FENodeData { number, x, y, z });
                     }
@@ -220,7 +220,7 @@ impl Component for NodeMenu
             Msg::DeleteNode =>
                 {
                     if self.props.nodes.iter().position(|node|
-                        node.number == self.state.selected_node.number).is_some()
+                        node.borrow().number == self.state.selected_node.number).is_some()
                     {
                         self.props.delete_node.emit(self.state.selected_node.number);
                     }
@@ -232,7 +232,9 @@ impl Component for NodeMenu
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender
     {
-        if self.props != props
+        if (&self.props.is_preprocessor_active, &self.props.analysis_type) !=
+            (&props.is_preprocessor_active, &props.analysis_type) ||
+            !Rc::ptr_eq(&self.props.nodes, &props.nodes)
         {
             self.props = props;
             self.update_node_menu();

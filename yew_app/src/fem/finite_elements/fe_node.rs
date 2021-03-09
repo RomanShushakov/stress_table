@@ -44,7 +44,6 @@ impl<T, V> FENode<T, V>
 }
 
 
-#[derive(Clone, PartialEq)]
 pub struct FENodeData<T, V>
 {
     pub number: T,

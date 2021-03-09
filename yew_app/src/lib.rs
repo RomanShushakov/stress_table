@@ -1,4 +1,4 @@
-#![recursion_limit="32838"]
+#![recursion_limit="1024"]
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::cell::RefCell;
@@ -37,8 +37,8 @@ use auxiliary::
 use crate::fem::FEModel;
 
 
-pub type ElementsNumbers = u16;
-pub type ElementsValues = f64;
+pub type ElementsNumbers = u32;
+pub type ElementsValues = f32;
 
 pub const TOLERANCE: ElementsValues = 1e-6;
 
@@ -367,7 +367,8 @@ impl Component for Model
         {
             Msg::ExtractWindowDimensions(window_dimensions) =>
                 self.extract_window_dimensions(window_dimensions),
-            Msg::AddAnalysisType(analysis_type) => self.state.analysis_type = Some(analysis_type),
+            Msg::AddAnalysisType(analysis_type) =>
+                self.state.analysis_type = Some(analysis_type),
             Msg::ChangeView(view) => self.state.view = view,
             Msg::AddNode(data) =>
                 {
@@ -473,7 +474,8 @@ impl Component for Model
                     // self.state.analysis_result = None;
                     self.state.result_view = None;
                 },
-            Msg::ChangeResultView(result_view) => self.state.result_view = Some(result_view),
+            Msg::ChangeResultView(result_view) =>
+                self.state.result_view = Some(result_view),
         }
         true
     }
@@ -490,6 +492,7 @@ impl Component for Model
         let handle_add_analysis_type =
             self.link.callback(|analysis_type: AnalysisType| Msg::AddAnalysisType(analysis_type));
         let handle_change_view = self.link.callback(|view: View| Msg::ChangeView(view));
+        let nodes = self.state.fem.nodes_rc_clone();
         let handle_add_node =
             self.link
                 .callback(|data: FENodeData<ElementsNumbers, ElementsValues>| Msg::AddNode(data));
@@ -536,7 +539,7 @@ impl Component for Model
                             <NodeMenu
                                 analysis_type=self.state.analysis_type.to_owned(),
                                 is_preprocessor_active=self.state.is_preprocessor_active,
-                                nodes=self.state.fem.extract_nodes_data(), add_node=handle_add_node,
+                                nodes=Rc::clone(&nodes), add_node=handle_add_node,
                                 update_node=handle_update_node, delete_node=handle_delete_node,
                             />
                             // <ElementMenu

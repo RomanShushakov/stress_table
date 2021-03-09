@@ -663,18 +663,13 @@ impl<T, V> FEModel<T, V>
     }
 
 
-    pub fn extract_nodes_data(&self) -> Vec<FENodeData<T, V>>
+    pub fn nodes_rc_clone(&self) -> Rc<Vec<Rc<RefCell<FENode<T, V>>>>>
     {
-        let mut data = Vec::new();
+        let mut nodes = Vec::new();
         for node in self.nodes.iter()
         {
-            let number = node.as_ref().borrow().number;
-            let x = node.as_ref().borrow().coordinates.x;
-            let y = node.as_ref().borrow().coordinates.y;
-            let z = node.as_ref().borrow().coordinates.z;
-            let fe_node_data = FENodeData { number, x, y, z };
-            data.push(fe_node_data);
+            nodes.push(Rc::clone(node));
         }
-        data
+        Rc::new(nodes)
     }
 }

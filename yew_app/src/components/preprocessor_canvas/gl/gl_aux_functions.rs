@@ -45,11 +45,11 @@ pub fn add_denotation(ctx: &CTX, position: &[f32; 4], matrix: &[f32; 16],
 }
 
 
-pub fn normalize_nodes(nodes: Rc<Vec<Rc<RefCell<FENode<ElementsNumbers, ElementsValues>>>>>,
-    canvas_width: GLElementsValues, canvas_height: GLElementsValues, aspect: GLElementsValues)
-    -> Vec<NormalizedNode>
+fn find_object_min_max_coordinates(nodes: Rc<Vec<Rc<RefCell<FENode<ElementsNumbers,
+    ElementsValues>>>>>)
+    -> (GLElementsValues, GLElementsValues, GLElementsValues,
+        GLElementsValues, GLElementsValues, GLElementsValues)
 {
-    let mut normalized_nodes =Vec::new();
     let mut x_min = nodes[0].borrow().coordinates.x as GLElementsValues;
     let mut x_max = nodes[0].borrow().coordinates.x as GLElementsValues;
     let mut y_min = nodes[0].borrow().coordinates.y as GLElementsValues;
@@ -68,6 +68,17 @@ pub fn normalize_nodes(nodes: Rc<Vec<Rc<RefCell<FENode<ElementsNumbers, Elements
         if z < z_min { z_min = z; }
         if z > z_max { z_max = z; }
     }
+    (x_min, x_max, y_min, y_max, z_min, z_max)
+}
+
+
+pub fn normalize_nodes(nodes: Rc<Vec<Rc<RefCell<FENode<ElementsNumbers, ElementsValues>>>>>,
+    canvas_width: GLElementsValues, canvas_height: GLElementsValues, aspect: GLElementsValues)
+    -> Vec<NormalizedNode>
+{
+    let mut normalized_nodes = Vec::new();
+    let (x_min, x_max, y_min, y_max, z_min, z_max)
+        = find_object_min_max_coordinates(Rc::clone(&nodes));
     let min_canvas_side =
         if canvas_width * DRAWN_OBJECT_TO_CANVAS_WIDTH_SCALE <
             canvas_height * DRAWN_OBJECT_TO_CANVAS_HEIGHT_SCALE
@@ -107,15 +118,15 @@ pub fn normalize_nodes(nodes: Rc<Vec<Rc<RefCell<FENode<ElementsNumbers, Elements
             x = 0.0;
         }
         let mut y = (node.borrow().coordinates.y as GLElementsValues * multiplier -
-            (y_max + y_min) * multiplier / 2.0) / (min_canvas_side  / 2.0) *
-            min_drawn_object_to_canvas_scale * aspect;
+            (y_max + y_min) * multiplier / 2.0) / (min_canvas_side / 2.0) *
+            min_drawn_object_to_canvas_scale;
         if y.is_nan()
         {
             y = 0.0;
         }
         let mut z = (node.borrow().coordinates.z as GLElementsValues * multiplier -
-            (z_max + z_min) * multiplier / 2.0) / (min_canvas_side  / 2.0) *
-            min_drawn_object_to_canvas_scale * aspect;
+            (z_max + z_min) * multiplier / 2.0) / (min_canvas_side / 2.0) *
+            min_drawn_object_to_canvas_scale;
         if z.is_nan()
         {
             z = 0.0;

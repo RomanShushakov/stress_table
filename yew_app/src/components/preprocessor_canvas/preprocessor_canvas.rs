@@ -423,15 +423,20 @@ impl PreprocessorCanvas
             nodes_drawn_object.add_nodes(normalized_nodes);
             nodes_buffers.render(&gl, &nodes_drawn_object, &shaders_variables);
 
+            // let field_of_view = 45.0 * PI / 180.0;
             let mut projection_matrix = mat4::new_zero();
+
+            // mat4::perspective(&mut projection_matrix, &field_of_view, &aspect, &z_near, &z_far);
+
             mat4::orthographic(&mut projection_matrix,
-                &(1.0 as GLElementsValues), &(1.0 as GLElementsValues),
-                &(-1.0 as GLElementsValues), &(-1.0 as GLElementsValues),
+                &(1.0 as GLElementsValues / aspect), &(1.0 as GLElementsValues),
+                &(-1.0 as GLElementsValues / aspect), &(-1.0 as GLElementsValues),
                 &z_near, &z_far);
+
             let mut model_view_matrix = mat4::new_identity();
             let mat_to_translate = model_view_matrix;
             mat4::translate(&mut model_view_matrix, &mat_to_translate,
-                &[self.state.dx, self.state.dy, -51.0]);
+                &[self.state.dx, self.state.dy, -2.0]);
             let mat_to_scale = model_view_matrix;
             mat4::scale(&mut model_view_matrix, &mat_to_scale,
                 &[1.0 + self.state.d_scale, 1.0 + self.state.d_scale, 1.0 + self.state.d_scale]);

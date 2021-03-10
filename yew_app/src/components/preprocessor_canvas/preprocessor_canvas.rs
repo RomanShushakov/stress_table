@@ -262,6 +262,29 @@ impl Component for PreprocessorCanvas
             !Rc::ptr_eq(&self.props.nodes, &props.nodes)
         {
             self.props = props;
+            match self.props.view
+            {
+                View::PlaneXY =>
+                    {
+                        self.state.theta = 0.0;
+                        self.state.phi = 0.0;
+                    },
+                View::PlaneXZ =>
+                    {
+                        self.state.theta = 0.0;
+                        self.state.phi = -90.0 * PI / 180.0;
+                    },
+                View::PlaneZY =>
+                    {
+                        self.state.theta = 90.0 * PI / 180.0;
+                        self.state.phi = 0.0;
+                    },
+                View::Isometric =>
+                    {
+                        self.state.theta = -45.0 * PI / 180.0;
+                        self.state.phi = 35.264 * PI / 180.0;
+                    },
+            }
             true
         }
         else

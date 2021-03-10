@@ -70,6 +70,7 @@ pub struct NormalizedNode
 }
 
 
+#[derive(Clone)]
 pub struct FEDrawnElementData
 {
     pub fe_type: FEType,

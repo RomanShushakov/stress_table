@@ -22,7 +22,7 @@ mod extended_matrix;
 mod components;
 use components::
     {
-        AnalysisTypeMenu, NodeMenu, PreprocessorCanvas, // ElementMenu,
+        AnalysisTypeMenu, NodeMenu, PreprocessorCanvas, ElementMenu,
         ViewMenu, // DisplacementMenu, ForceMenu, ResultViewMenu, PostprocessorCanvas,
         // AllResultsTable,
     };
@@ -34,7 +34,8 @@ use auxiliary::
         AnalysisType, View, FEDrawnNodeData, AuxDisplacement,
         AuxForce, ResultView, MinMaxValues, // AnalysisResult,
     };
-use crate::fem::FEModel;
+use crate::fem::{FEModel, FEData};
+use crate::auxiliary::FEDrawnElementData;
 
 
 pub type ElementsNumbers = u32;
@@ -68,7 +69,6 @@ struct State
     canvas_height: u32,
     is_preprocessor_active: bool,
     fem: FEModel<ElementsNumbers, ElementsValues>,
-    // nodes: Vec<FeNode<u16, f64>>,
     // aux_elements: Vec<AuxElement>,
     // aux_displacements: Vec<AuxDisplacement>,
     // aux_forces: Vec<AuxForce>,
@@ -94,9 +94,9 @@ enum Msg
     AddNode(FEDrawnNodeData),
     UpdateNode(FEDrawnNodeData),
     DeleteNode(ElementsNumbers),
-    // AddAuxElement(AuxElement),
-    // UpdateAuxElement((usize, AuxElement)),
-    // RemoveAuxElement(usize),
+    AddElement(FEDrawnElementData),
+    UpdateElement(FEDrawnElementData),
+    DeleteElement(ElementsNumbers),
     // AddAuxDisplacement(AuxDisplacement),
     // UpdateAuxDisplacement((usize, AuxDisplacement)),
     // RemoveAuxDisplacement(usize),
@@ -430,14 +430,38 @@ impl Component for Model
                     // self.remove_uncoupled_displacements();
                     // self.remove_uncoupled_forces();
 
-            // Msg::AddAuxElement(element) => self.state.aux_elements.push(element),
-            // Msg::UpdateAuxElement(data) => self.state.aux_elements[data.0] = data.1,
-            // Msg::RemoveAuxElement(position) =>
-            //     {
-            //         self.state.aux_elements.remove(position);
-            //         self.remove_uncoupled_displacements();
-            //         self.remove_uncoupled_forces();
-            //     },
+            Msg::AddElement(data) =>
+                {
+                    let fe_type = data.fe_type;
+                    let nodes_numbers = data.nodes_numbers;
+                    let number = data.number;
+                    let properties = data.properties;
+                    match self.state.fem
+                        .add_element(fe_type, nodes_numbers,
+                                     FEData { number, nodes: Vec::new(), properties })
+                    {
+                        Err(e) => self.state.analysis_error_message = Some(e),
+                        _ => ()
+                    }
+                },
+            Msg::UpdateElement(data) =>
+                {
+                    let nodes_numbers = data.nodes_numbers;
+                    let number = data.number;
+                    let properties = data.properties;
+                    match self.state.fem
+                        .update_element(nodes_numbers,
+                                     FEData { number, nodes: Vec::new(), properties })
+                    {
+                        Err(e) => self.state.analysis_error_message = Some(e),
+                        _ => ()
+                    }
+                },
+            Msg::DeleteElement(number) => match self.state.fem.delete_element(number)
+                {
+                    Err(e) => self.state.analysis_error_message = Some(e),
+                    _ => (),
+                },
             // Msg::AddAuxDisplacement(displacement) => self.state.aux_displacements.push(displacement),
             // Msg::UpdateAuxDisplacement(data) => self.state.aux_displacements[data.0] = data.1,
             // Msg::RemoveAuxDisplacement(position) =>
@@ -502,12 +526,12 @@ impl Component for Model
         let handle_delete_node =
             self.link.callback(|number: ElementsNumbers| Msg::DeleteNode(number));
         let drawn_elements = self.state.fem.drawn_elements_rc();
-        // let handle_add_aux_element =
-        //     self.link.callback(|element: AuxElement| Msg::AddAuxElement(element));
-        // let handle_update_aux_element =
-        //     self.link.callback(|data: (usize, AuxElement)| Msg::UpdateAuxElement(data));
-        // let handle_remove_aux_element =
-        //     self.link.callback(|position: usize| Msg::RemoveAuxElement(position));
+        let handle_add_element =
+            self.link.callback(|data: FEDrawnElementData| Msg::AddElement(data));
+        let handle_update_element =
+            self.link.callback(|data: FEDrawnElementData| Msg::UpdateElement(data));
+        let handle_delete_element =
+            self.link.callback(|number: ElementsNumbers| Msg::DeleteElement(number));
         // let handle_add_aux_displacement =
         //     self.link.callback(|displacement: AuxDisplacement|
         //         Msg::AddAuxDisplacement(displacement));
@@ -543,15 +567,14 @@ impl Component for Model
                                 nodes=Rc::clone(&nodes), add_node=handle_add_node,
                                 update_node=handle_update_node, delete_node=handle_delete_node,
                             />
-                            // <ElementMenu
-                            //     analysis_type=self.state.analysis_type.to_owned(),
-                            //     is_preprocessor_active=self.state.is_preprocessor_active,
-                            //     nodes=self.state.nodes.to_owned(),
-                            //     aux_elements=self.state.aux_elements.to_owned(),
-                            //     add_aux_element=handle_add_aux_element,
-                            //     update_aux_element=handle_update_aux_element,
-                            //     remove_aux_element=handle_remove_aux_element,
-                            // />
+                            <ElementMenu
+                                analysis_type=self.state.analysis_type.to_owned(),
+                                is_preprocessor_active=self.state.is_preprocessor_active,
+                                drawn_elements=Rc::clone(&drawn_elements),
+                                add_element=handle_add_element,
+                                update_element=handle_update_element,
+                                delete_element=handle_delete_element,
+                            />
                             // <DisplacementMenu
                             //     analysis_type=self.state.analysis_type.to_owned(),
                             //     is_preprocessor_active=self.state.is_preprocessor_active,

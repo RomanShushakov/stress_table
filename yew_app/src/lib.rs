@@ -19,8 +19,6 @@ use yew::services::resize::{WindowDimensions, ResizeTask, ResizeService};
 mod fem;
 mod extended_matrix;
 
-use fem::FENodeData;
-
 mod components;
 use components::
     {
@@ -33,7 +31,7 @@ use components::
 mod auxiliary;
 use auxiliary::
     {
-        AuxElement, AnalysisType, View, ElementType, AuxDisplacement,
+        AnalysisType, View, FEDrawnNodeData, AuxDisplacement,
         AuxForce, ResultView, MinMaxValues, // AnalysisResult,
     };
 use crate::fem::FEModel;
@@ -93,8 +91,8 @@ enum Msg
     ExtractWindowDimensions(WindowDimensions),
     AddAnalysisType(AnalysisType),
     ChangeView(View),
-    AddNode(FENodeData<ElementsNumbers, ElementsValues>),
-    UpdateNode(FENodeData<ElementsNumbers, ElementsValues>),
+    AddNode(FEDrawnNodeData),
+    UpdateNode(FEDrawnNodeData),
     DeleteNode(ElementsNumbers),
     // AddAuxElement(AuxElement),
     // UpdateAuxElement((usize, AuxElement)),
@@ -497,12 +495,13 @@ impl Component for Model
         let nodes = self.state.fem.nodes_rc_clone();
         let handle_add_node =
             self.link
-                .callback(|data: FENodeData<ElementsNumbers, ElementsValues>| Msg::AddNode(data));
+                .callback(|data: FEDrawnNodeData| Msg::AddNode(data));
         let handle_update_node =
             self.link
-                .callback(|data: FENodeData<ElementsNumbers, ElementsValues>| Msg::UpdateNode(data));
+                .callback(|data: FEDrawnNodeData| Msg::UpdateNode(data));
         let handle_delete_node =
             self.link.callback(|number: ElementsNumbers| Msg::DeleteNode(number));
+        let drawn_elements = self.state.fem.drawn_elements_rc();
         // let handle_add_aux_element =
         //     self.link.callback(|element: AuxElement| Msg::AddAuxElement(element));
         // let handle_update_aux_element =
@@ -594,7 +593,7 @@ impl Component for Model
                                 canvas_width=self.state.canvas_width,
                                 canvas_height=self.state.canvas_height,
                                 nodes=Rc::clone(&nodes),
-                                // aux_elements=self.state.aux_elements.to_owned(),
+                                drawn_elements=Rc::clone(&drawn_elements),
                                 // aux_displacements=self.state.aux_displacements.to_owned(),
                                 // aux_forces=self.state.aux_forces.to_owned(),
                             />

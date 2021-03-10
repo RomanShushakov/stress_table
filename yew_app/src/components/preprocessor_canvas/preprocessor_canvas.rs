@@ -37,7 +37,7 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use crate::fem::FENode;
 use crate::{ElementsNumbers, ElementsValues};
-use crate::auxiliary::View;
+use crate::auxiliary::{View, FEDrawnElementData};
 
 
 pub type GLElementsNumbers = u16;
@@ -68,6 +68,7 @@ pub struct Props
     pub canvas_width: u32,
     pub canvas_height: u32,
     pub nodes: Rc<Vec<Rc<RefCell<FENode<ElementsNumbers, ElementsValues>>>>>,
+    pub drawn_elements: Rc<Vec<FEDrawnElementData>>,
 }
 
 
@@ -259,7 +260,8 @@ impl Component for PreprocessorCanvas
     {
         if (&self.props.view, &self.props.canvas_height, &self.props.canvas_width) !=
             (&props.view, &props.canvas_height, &props.canvas_width) ||
-            !Rc::ptr_eq(&self.props.nodes, &props.nodes)
+            !Rc::ptr_eq(&self.props.nodes, &props.nodes) ||
+            !Rc::ptr_eq(&self.props.drawn_elements, &props.drawn_elements)
         {
             self.props = props;
             match self.props.view

@@ -2,6 +2,7 @@ mod auxiliary_structs;
 
 pub use auxiliary_structs::
     {
-        AuxElement, AnalysisType, View, ElementType, AuxDisplacement, NormalizedNode,
+        AnalysisType, View, AuxDisplacement, NormalizedNode,
+        FEDrawnNodeData, FEDrawnElementData,
         AuxDisplacementInputOption, AuxForce, ResultView, MinMaxValues, // AnalysisResult, DrawnNode
     };

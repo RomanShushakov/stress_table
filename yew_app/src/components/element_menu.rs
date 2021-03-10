@@ -8,7 +8,7 @@
 //
 // use self::ElementType::*;
 //
-// use crate::{AnalysisType, AuxElement, ElementType};
+// use crate::auxiliary::{AnalysisType, FEDrawnElementData};
 // use crate::fe::fe_node::FeNode;
 // use crate::PREPROCESSOR_BUTTON_CLASS;
 //

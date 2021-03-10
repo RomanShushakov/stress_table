@@ -1,3 +1,5 @@
+use crate::ElementsNumbers;
+
 #[derive(Debug, PartialEq)]
 pub struct GlobalCoordinates<T>
 {
@@ -16,7 +18,7 @@ pub struct FENode<T, V>
 
 
 impl<T, V> FENode<T, V>
-    where T: PartialEq,
+    where T: PartialEq + Copy + Into<ElementsNumbers>,
           V: PartialEq,
 {
     pub fn create(number: T, x: V, y: V, z: V) -> Self
@@ -41,13 +43,10 @@ impl<T, V> FENode<T, V>
     {
         GlobalCoordinates { x, y, z } == self.coordinates
     }
-}
 
 
-pub struct FENodeData<T, V>
-{
-    pub number: T,
-    pub x: V,
-    pub y: V,
-    pub z: V,
+    pub fn extract_number(&self) -> ElementsNumbers
+    {
+        self.number.into()
+    }
 }

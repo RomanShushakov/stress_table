@@ -646,4 +646,34 @@ impl<T, V> FiniteElementTrait<T, V> for Truss2n2ip<T, V>
             Ok(element_analysis_data)
         }
     }
+
+
+    fn extract_fe_number(&self) -> ElementsNumbers
+    {
+        self.number.into()
+    }
+
+
+    fn extract_nodes_numbers(&self) -> Vec<ElementsNumbers>
+    {
+        let mut numbers = Vec::new();
+        let node_1_number = self.node_1.borrow().extract_number();
+        let node_2_number = self.node_2.borrow().extract_number();
+        numbers.push(node_1_number);
+        numbers.push(node_2_number);
+        numbers
+    }
+
+
+    fn extract_fe_properties(&self) -> Vec<ElementsValues>
+    {
+        let mut properties = Vec::new();
+        properties.push(self.young_modulus.into());
+        properties.push(self.area.into());
+        if let Some(area) = self.area_2
+        {
+            properties.push(area.into());
+        }
+        properties
+    }
 }

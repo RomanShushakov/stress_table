@@ -1,7 +1,7 @@
 use crate::fem::
     {
         FENode, FEData, FiniteElement, StiffnessGroup, DOFParameterData, BoundaryCondition,
-        GlobalAnalysisResult, Displacements, FENodeData
+        GlobalAnalysisResult, Displacements
     };
 use crate::fem::{FEType, GlobalDOFParameter, BCType};
 use crate::fem::compose_stiffness_sub_groups;
@@ -21,6 +21,7 @@ use std::cell::RefCell;
 use std::collections::HashSet;
 use std::iter::FromIterator;
 use crate::fem::element_analysis::fe_element_analysis_result::ElementsAnalysisResult;
+use crate::auxiliary::FEDrawnElementData;
 
 
 pub struct SeparatedMatrix<T, V>
@@ -671,5 +672,22 @@ impl<T, V> FEModel<T, V>
             nodes.push(Rc::clone(node));
         }
         Rc::new(nodes)
+    }
+
+
+    pub fn drawn_elements_rc(&self) -> Rc<Vec<FEDrawnElementData>>
+    {
+        let mut drawn_elements = Vec::new();
+        for element in self.elements.iter()
+        {
+            let fe_type = element.extract_fe_type();
+            let number = element.extract_fe_number();
+            let nodes_numbers = element.extract_nodes_numbers();
+            let properties = element.extract_fe_properties();
+            let drawn_element_data =
+                FEDrawnElementData { fe_type, number, nodes_numbers, properties };
+            drawn_elements.push(drawn_element_data);
+        }
+        Rc::new(drawn_elements)
     }
 }

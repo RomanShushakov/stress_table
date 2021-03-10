@@ -21,11 +21,17 @@ use crate::components::preprocessor_canvas::gl::gl_aux_functions::
     };
 use crate::components::preprocessor_canvas::gl::gl_aux_structs::
     {
-        Buffers, ShadersVariables, DrawnObject, CSAxis, CS_AXES_Y_SHIFT, CS_AXES_X_SHIFT,
-        CS_AXES_Z_SHIFT, CS_AXES_SCALE, CS_AXES_CAPS_BASE_POINTS_NUMBER, CS_AXES_CAPS_WIDTH,
-        CS_AXES_CAPS_HEIGHT, AXIS_X_DENOTATION_SHIFT_X, AXIS_X_DENOTATION_SHIFT_Y,
-        AXIS_Y_DENOTATION_SHIFT_X, AXIS_Y_DENOTATION_SHIFT_Y, AXIS_Z_DENOTATION_SHIFT_X,
-        AXIS_Z_DENOTATION_SHIFT_Y, AXIS_Z_DENOTATION_SHIFT_Z,
+        Buffers, ShadersVariables, DrawnObject, CSAxis,
+        CS_AXES_Y_SHIFT, CS_AXES_X_SHIFT, CS_AXES_Z_SHIFT,
+        CS_AXES_SCALE,
+        CS_AXES_CAPS_BASE_POINTS_NUMBER,
+        CS_AXES_CAPS_WIDTH, CS_AXES_CAPS_HEIGHT,
+        AXIS_X_DENOTATION_SHIFT_X, AXIS_X_DENOTATION_SHIFT_Y,
+        AXIS_Y_DENOTATION_SHIFT_X, AXIS_Y_DENOTATION_SHIFT_Y,
+        AXIS_Z_DENOTATION_SHIFT_X, AXIS_Z_DENOTATION_SHIFT_Y, AXIS_Z_DENOTATION_SHIFT_Z,
+        CANVAS_AXES_DENOTATION_COLOR,
+        CANVAS_DRAWN_NODES_DENOTATION_COLOR,
+        DRAWN_NODES_DENOTATION_SHIFT
     };
 use std::rc::Rc;
 use std::cell::RefCell;
@@ -41,9 +47,6 @@ pub type GLElementsValues = f32;
 const PREPROCESSOR_CANVAS_CONTAINER_CLASS: &str = "preprocessor_canvas_container";
 const PREPROCESSOR_CANVAS_TEXT_CLASS: &str = "preprocessor_canvas_text";
 const PREPROCESSOR_CANVAS_GL_CLASS: &str = "preprocessor_canvas_gl";
-
-
-const CANVAS_TEXT_COLOR: &str = "white";
 
 
 fn window() -> Window
@@ -386,13 +389,13 @@ impl PreprocessorCanvas
         let mat_to_rotate = model_view_matrix;
         mat4::rotate_y(&mut model_view_matrix, &mat_to_rotate, &self.state.theta);
         gl.uniform_matrix4fv_with_f32_array(
-            Some(&shaders_variables.projection_matrix.clone()), false, &projection_matrix);
+            Some(&shaders_variables.projection_matrix), false, &projection_matrix);
         gl.uniform_matrix4fv_with_f32_array(
-            Some(&shaders_variables.model_view_matrix.clone()), false, &model_view_matrix);
+            Some(&shaders_variables.model_view_matrix), false, &model_view_matrix);
 
         cs_drawn_object.draw(&gl);
 
-        ctx.set_fill_style(&CANVAS_TEXT_COLOR.into());
+        ctx.set_fill_style(&CANVAS_AXES_DENOTATION_COLOR.into());
         add_denotation(&ctx,
             &[1.0 + AXIS_X_DENOTATION_SHIFT_X, 0.0 + AXIS_X_DENOTATION_SHIFT_Y, 0.0, 1.0],
             &model_view_matrix,
@@ -409,6 +412,7 @@ impl PreprocessorCanvas
             &model_view_matrix,
             self.props.canvas_width as f32,
             self.props.canvas_height as f32, "Z");
+        ctx.stroke();
 
         if !self.props.nodes.is_empty()
         {
@@ -420,7 +424,7 @@ impl PreprocessorCanvas
 
             let nodes_buffers = Buffers::initialize(&gl);
             let mut nodes_drawn_object = DrawnObject::create();
-            nodes_drawn_object.add_nodes(normalized_nodes);
+            nodes_drawn_object.add_nodes(&normalized_nodes);
             nodes_buffers.render(&gl, &nodes_drawn_object, &shaders_variables);
 
             // let field_of_view = 45.0 * PI / 180.0;
@@ -432,7 +436,6 @@ impl PreprocessorCanvas
                 &(1.0 as GLElementsValues / aspect), &(1.0 as GLElementsValues),
                 &(-1.0 as GLElementsValues / aspect), &(-1.0 as GLElementsValues),
                 &z_near, &z_far);
-
             let mut model_view_matrix = mat4::new_identity();
             let mat_to_translate = model_view_matrix;
             mat4::translate(&mut model_view_matrix, &mat_to_translate,
@@ -445,11 +448,28 @@ impl PreprocessorCanvas
             let mat_to_rotate = model_view_matrix;
             mat4::rotate_y(&mut model_view_matrix, &mat_to_rotate, &self.state.theta);
             gl.uniform_matrix4fv_with_f32_array(
-                Some(&shaders_variables.projection_matrix.clone()), false, &projection_matrix);
+                Some(&shaders_variables.projection_matrix), false, &projection_matrix);
             gl.uniform_matrix4fv_with_f32_array(
-                Some(&shaders_variables.model_view_matrix.clone()), false, &model_view_matrix);
+                Some(&shaders_variables.model_view_matrix), false, &model_view_matrix);
 
             nodes_drawn_object.draw(&gl);
+
+            let mut matrix = mat4::new_identity();
+            mat4::mul(&mut matrix, &projection_matrix, &model_view_matrix);
+
+            ctx.set_fill_style(&CANVAS_DRAWN_NODES_DENOTATION_COLOR.into());
+            for node in normalized_nodes.iter()
+            {
+                add_denotation(&ctx,
+                &[node.x - DRAWN_NODES_DENOTATION_SHIFT / (1.0 + self.state.d_scale),
+                    node.y - DRAWN_NODES_DENOTATION_SHIFT / (1.0 + self.state.d_scale),
+                    node.z,
+                    1.0],
+                &matrix,
+                self.props.canvas_width as f32,
+                self.props.canvas_height as f32, &node.number.to_string());
+            }
+            ctx.stroke();
         }
 
         let render_frame = self.link.callback(Msg::Render);

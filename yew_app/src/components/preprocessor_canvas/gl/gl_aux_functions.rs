@@ -61,14 +61,88 @@ fn find_object_min_max_coordinates(nodes: Rc<Vec<Rc<RefCell<FENode<ElementsNumbe
         let x = nodes[i].borrow().coordinates.x as GLElementsValues;
         let y = nodes[i].borrow().coordinates.y as GLElementsValues;
         let z = nodes[i].borrow().coordinates.z as GLElementsValues;
-        if x < x_min { x_min = x; }
-        if x > x_max { x_max = x; }
-        if y < y_min { y_min = y; }
-        if y > y_max { y_max = y; }
-        if z < z_min { z_min = z; }
-        if z > z_max { z_max = z; }
+        if x < x_min
+        {
+            x_min = x;
+        }
+        if x > x_max
+        {
+            x_max = x;
+        }
+        if y < y_min
+        {
+            y_min = y;
+        }
+        if y > y_max
+        {
+            y_max = y;
+        }
+        if z < z_min
+        {
+            z_min = z;
+        }
+        if z > z_max
+        {
+            z_max = z;
+        }
     }
     (x_min, x_max, y_min, y_max, z_min, z_max)
+}
+
+
+fn find_min_canvas_side(canvas_width: GLElementsValues, canvas_height: GLElementsValues)
+    -> GLElementsValues
+{
+    if canvas_width * DRAWN_OBJECT_TO_CANVAS_WIDTH_SCALE <
+        canvas_height * DRAWN_OBJECT_TO_CANVAS_HEIGHT_SCALE
+    {
+        canvas_width * DRAWN_OBJECT_TO_CANVAS_WIDTH_SCALE
+    }
+    else
+    {
+        canvas_height * DRAWN_OBJECT_TO_CANVAS_HEIGHT_SCALE
+    }
+}
+
+
+fn find_min_drawn_object_to_canvas_scale(aspect: GLElementsValues) -> GLElementsValues
+{
+    let mut min_drawn_object_to_canvas_scale =
+    {
+        if DRAWN_OBJECT_TO_CANVAS_WIDTH_SCALE < DRAWN_OBJECT_TO_CANVAS_HEIGHT_SCALE
+        {
+            DRAWN_OBJECT_TO_CANVAS_WIDTH_SCALE
+        }
+        else
+        {
+            DRAWN_OBJECT_TO_CANVAS_HEIGHT_SCALE
+        }
+    };
+    if aspect < 1.0
+    {
+        min_drawn_object_to_canvas_scale *= aspect;
+    }
+    else
+    {
+        min_drawn_object_to_canvas_scale /= aspect;
+    }
+    min_drawn_object_to_canvas_scale
+}
+
+
+fn find_max_object_side(x_min: GLElementsValues, x_max: GLElementsValues, y_min: GLElementsValues,
+    y_max: GLElementsValues, z_min: GLElementsValues, z_max: GLElementsValues) -> GLElementsValues
+{
+    let mut max_object_side = (x_max - x_min).abs();
+    if (y_max - y_min).abs() > max_object_side
+    {
+        max_object_side = (y_max - y_min).abs();
+    }
+    if (z_max - z_min).abs() > max_object_side
+    {
+        max_object_side = (z_max - z_min).abs();
+    }
+    max_object_side
 }
 
 
@@ -79,33 +153,9 @@ pub fn normalize_nodes(nodes: Rc<Vec<Rc<RefCell<FENode<ElementsNumbers, Elements
     let mut normalized_nodes = Vec::new();
     let (x_min, x_max, y_min, y_max, z_min, z_max)
         = find_object_min_max_coordinates(Rc::clone(&nodes));
-    let min_canvas_side =
-        if canvas_width * DRAWN_OBJECT_TO_CANVAS_WIDTH_SCALE <
-            canvas_height * DRAWN_OBJECT_TO_CANVAS_HEIGHT_SCALE
-        { canvas_width * DRAWN_OBJECT_TO_CANVAS_WIDTH_SCALE }
-        else { canvas_height * DRAWN_OBJECT_TO_CANVAS_HEIGHT_SCALE };
-    let mut min_drawn_object_to_canvas_scale =
-        {
-            if DRAWN_OBJECT_TO_CANVAS_WIDTH_SCALE < DRAWN_OBJECT_TO_CANVAS_HEIGHT_SCALE
-            {
-                DRAWN_OBJECT_TO_CANVAS_WIDTH_SCALE
-            }
-            else
-            {
-                DRAWN_OBJECT_TO_CANVAS_HEIGHT_SCALE
-            }
-        };
-    if aspect < 1.0
-    {
-        min_drawn_object_to_canvas_scale *= aspect as GLElementsValues;
-    }
-    else
-    {
-        min_drawn_object_to_canvas_scale /= aspect as GLElementsValues;
-    }
-    let mut max_object_side = (x_max - x_min).abs();
-    if (y_max - y_min).abs() > max_object_side { max_object_side = (y_max - y_min).abs(); }
-    if (z_max - z_min).abs() > max_object_side { max_object_side = (z_max - z_min).abs(); }
+    let min_canvas_side = find_min_canvas_side(canvas_width, canvas_height);
+    let min_drawn_object_to_canvas_scale = find_min_drawn_object_to_canvas_scale(aspect);
+    let max_object_side = find_max_object_side(x_min, x_max, y_min, y_max, z_min, z_max);
     let multiplier =   min_canvas_side / max_object_side;
     for node in nodes.iter()
     {

@@ -39,10 +39,15 @@ pub const AXIS_Z_DENOTATION_SHIFT_X: GLElementsValues = -0.05;
 pub const AXIS_Z_DENOTATION_SHIFT_Y: GLElementsValues = -0.05;
 pub const AXIS_Z_DENOTATION_SHIFT_Z: GLElementsValues = 0.1;
 
+pub const CANVAS_AXES_DENOTATION_COLOR: &str = "white";
+
 pub const DRAWN_OBJECT_TO_CANVAS_WIDTH_SCALE: GLElementsValues = 0.8;
 pub const DRAWN_OBJECT_TO_CANVAS_HEIGHT_SCALE: GLElementsValues = 0.9;
 
 pub const DRAWN_NODES_COLOR: [GLElementsValues; 4] = [1.0, 1.0, 0.0, 1.0]; // yellow
+pub const CANVAS_DRAWN_NODES_DENOTATION_COLOR: &str = "yellow";
+
+pub const DRAWN_NODES_DENOTATION_SHIFT: GLElementsValues = 0.02;
 
 
 pub enum CSAxis
@@ -203,7 +208,7 @@ impl DrawnObject
     }
 
 
-    pub fn add_nodes(&mut self, normalized_nodes: Vec<NormalizedNode>)
+    pub fn add_nodes(&mut self, normalized_nodes: &Vec<NormalizedNode>)
     {
         let start_index =
             if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };

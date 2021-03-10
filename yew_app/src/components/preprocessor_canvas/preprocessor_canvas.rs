@@ -64,7 +64,8 @@ fn document() -> Document
 #[derive(Properties, Clone)]
 pub struct Props
 {
-    pub view: View,
+    pub view: Option<View>,
+    pub discard_view: Callback<()>,
     pub canvas_width: u32,
     pub canvas_height: u32,
     pub nodes: Rc<Vec<Rc<RefCell<FENode<ElementsNumbers, ElementsValues>>>>>,
@@ -264,30 +265,41 @@ impl Component for PreprocessorCanvas
             !Rc::ptr_eq(&self.props.drawn_elements, &props.drawn_elements)
         {
             self.props = props;
-            match self.props.view
+            if let Some(view) = &self.props.view
             {
-                View::PlaneXY =>
-                    {
-                        self.state.theta = 0.0;
-                        self.state.phi = 0.0;
-                    },
-                View::PlaneXZ =>
-                    {
-                        self.state.theta = 0.0;
-                        self.state.phi = -90.0 * PI / 180.0;
-                    },
-                View::PlaneZY =>
-                    {
-                        self.state.theta = 90.0 * PI / 180.0;
-                        self.state.phi = 0.0;
-                    },
-                View::Isometric =>
-                    {
-                        self.state.theta = -45.0 * PI / 180.0;
-                        self.state.phi = 35.264 * PI / 180.0;
-                    },
+                match view
+                {
+                    View::PlaneXY =>
+                        {
+                            self.state.theta = 0.0;
+                            self.state.phi = 0.0;
+                            self.props.discard_view.emit(());
+                        },
+                    View::PlaneXZ =>
+                        {
+                            self.state.theta = 0.0;
+                            self.state.phi = -90.0 * PI / 180.0;
+                            self.props.discard_view.emit(());
+                        },
+                    View::PlaneZY =>
+                        {
+                            self.state.theta = 90.0 * PI / 180.0;
+                            self.state.phi = 0.0;
+                            self.props.discard_view.emit(());
+                        },
+                    View::Isometric =>
+                        {
+                            self.state.theta = -45.0 * PI / 180.0;
+                            self.state.phi = 35.264 * PI / 180.0;
+                            self.props.discard_view.emit(());
+                        },
+                }
+                true
             }
-            true
+            else
+            {
+                false
+            }
         }
         else
         {

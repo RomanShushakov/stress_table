@@ -22,7 +22,7 @@ const VIEW_MENU_INPUT_FIELD_CLASS: &str = "view_menu_input_field";
 #[derive(Properties, PartialEq, Clone)]
 pub struct Props
 {
-    pub view: View,
+    pub view: Option<View>,
     pub change_view: Callback<View>,
 }
 
@@ -157,7 +157,24 @@ impl Component for ViewMenu
                                 type="radio", id={ PLANE_XY_VIEW_ID },
                                 name={ VIEW_INPUT_NAME },
                                 value={ View::PlaneXY.as_str() },
-                                checked={ self.props.view == View::PlaneXY },
+                                checked=
+                                {
+                                    if let Some(view) = &self.props.view
+                                    {
+                                        if *view == View::PlaneXY
+                                        {
+                                            true
+                                        }
+                                        else
+                                        {
+                                            false
+                                        }
+                                    }
+                                    else
+                                    {
+                                        false
+                                    }
+                                },
                             />
                             <label for={ PLANE_XY_VIEW_ID }>
                                 { View::PlaneXY.as_str() }
@@ -170,7 +187,24 @@ impl Component for ViewMenu
                                 type="radio", id={ PLANE_ZY_VIEW_ID },
                                 name={ VIEW_INPUT_NAME },
                                 value={ View::PlaneZY.as_str() },
-                                checked={ self.props.view == View::PlaneZY },
+                                checked=
+                                {
+                                    if let Some(view) = &self.props.view
+                                    {
+                                        if *view == View::PlaneZY
+                                        {
+                                            true
+                                        }
+                                        else
+                                        {
+                                            false
+                                        }
+                                    }
+                                    else
+                                    {
+                                        false
+                                    }
+                                },
                             />
                             <label for={ PLANE_ZY_VIEW_ID }>
                                 { View::PlaneZY.as_str() }
@@ -183,7 +217,24 @@ impl Component for ViewMenu
                                 type="radio", id={ PLANE_XZ_VIEW_ID },
                                 name={ VIEW_INPUT_NAME },
                                 value={ View::PlaneXZ.as_str() },
-                                checked={ self.props.view == View::PlaneXZ },
+                                checked=
+                                {
+                                    if let Some(view) = &self.props.view
+                                    {
+                                        if *view == View::PlaneXZ
+                                        {
+                                            true
+                                        }
+                                        else
+                                        {
+                                            false
+                                        }
+                                    }
+                                    else
+                                    {
+                                        false
+                                    }
+                                },
                             />
                             <label for={ PLANE_XZ_VIEW_ID }>
                                 { View::PlaneXZ.as_str() }
@@ -196,7 +247,24 @@ impl Component for ViewMenu
                                 type="radio", id={ ISOMETRIC_VIEW_ID },
                                 name={ VIEW_INPUT_NAME },
                                 value={ View::Isometric.as_str() },
-                                checked={ self.props.view == View::Isometric },
+                                checked=
+                                {
+                                    if let Some(view) = &self.props.view
+                                    {
+                                        if *view == View::Isometric
+                                        {
+                                            true
+                                        }
+                                        else
+                                        {
+                                            false
+                                        }
+                                    }
+                                    else
+                                    {
+                                        false
+                                    }
+                                },
                             />
                             <label for={ ISOMETRIC_VIEW_ID }>
                                 { View::Isometric.as_str() }

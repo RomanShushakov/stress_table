@@ -64,12 +64,11 @@ const POSTPROCESSOR_CANVAS_CLASS: &str = "postprocessor_canvas";
 struct State
 {
     analysis_type: Option<AnalysisType>,
-    view: View,
+    view: Option<View>,
     canvas_width: u32,
     canvas_height: u32,
     is_preprocessor_active: bool,
     fem: FEModel<ElementsNumbers, ElementsValues>,
-    // aux_elements: Vec<AuxElement>,
     // aux_displacements: Vec<AuxDisplacement>,
     // aux_forces: Vec<AuxForce>,
     analysis_error_message: Option<String>,
@@ -91,6 +90,7 @@ enum Msg
     ExtractWindowDimensions(WindowDimensions),
     AddAnalysisType(AnalysisType),
     ChangeView(View),
+    DiscardView,
     AddNode(FEDrawnNodeData),
     UpdateNode(FEDrawnNodeData),
     DeleteNode(ElementsNumbers),
@@ -343,7 +343,7 @@ impl Component for Model
             state: State
                 {
                     analysis_type: None,
-                    view: View::PlaneXY,
+                    view: None,
                     canvas_width: width,
                     canvas_height: height,
                     is_preprocessor_active: true,
@@ -369,7 +369,8 @@ impl Component for Model
                 self.extract_window_dimensions(window_dimensions),
             Msg::AddAnalysisType(analysis_type) =>
                 self.state.analysis_type = Some(analysis_type),
-            Msg::ChangeView(view) => self.state.view = view,
+            Msg::ChangeView(view) => self.state.view = Some(view),
+            Msg::DiscardView => self.state.view = None,
             Msg::AddNode(data) =>
                 {
                     match self.state.fem.add_node(data.number, data.x, data.y, data.z)
@@ -516,6 +517,7 @@ impl Component for Model
         let handle_add_analysis_type =
             self.link.callback(|analysis_type: AnalysisType| Msg::AddAnalysisType(analysis_type));
         let handle_change_view = self.link.callback(|view: View| Msg::ChangeView(view));
+        let handle_discard_view = self.link.callback(|_| Msg::DiscardView);
         let nodes = self.state.fem.nodes_rc_clone();
         let handle_add_node =
             self.link
@@ -613,6 +615,7 @@ impl Component for Model
                         <div class={ PREPROCESSOR_CANVAS_CLASS }>
                             <PreprocessorCanvas
                                 view=self.state.view.to_owned(),
+                                discard_view=handle_discard_view,
                                 canvas_width=self.state.canvas_width,
                                 canvas_height=self.state.canvas_height,
                                 nodes=Rc::clone(&nodes),

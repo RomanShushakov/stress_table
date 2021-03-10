@@ -9,7 +9,7 @@ use crate::components::preprocessor_canvas::preprocessor_canvas::
     {
         GLElementsValues, GLElementsNumbers
     };
-use crate::auxiliary::NormalizedNode;
+use crate::auxiliary::{NormalizedNode, FEDrawnElementData};
 use crate::components::preprocessor_canvas::gl::gl_aux_structs::
     {
         DRAWN_OBJECT_TO_CANVAS_WIDTH_SCALE, DRAWN_OBJECT_TO_CANVAS_HEIGHT_SCALE
@@ -185,4 +185,27 @@ pub fn normalize_nodes(nodes: Rc<Vec<Rc<RefCell<FENode<ElementsNumbers, Elements
         normalized_nodes.push(normalized_node);
     }
     normalized_nodes
+}
+
+
+pub fn find_node_coordinates(node_number: ElementsNumbers, normalized_nodes: &Vec<NormalizedNode>)
+    -> Result<[GLElementsValues; 3], String>
+{
+    let node_coordinates =
+    {
+        if let Some(position) =
+            normalized_nodes
+                .iter()
+                .position(|node|
+                    node.number == node_number)
+        {
+            [normalized_nodes[position].x, normalized_nodes[position].y,
+             normalized_nodes[position].z]
+        }
+        else
+        {
+            return Err(format!("DrawnObject: Node {} does not exist!", node_number));
+        }
+    };
+    Ok(node_coordinates)
 }

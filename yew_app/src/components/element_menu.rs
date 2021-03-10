@@ -321,13 +321,13 @@ impl Component for ElementMenu
                                     self.state.selected_element.properties.push(
                                         selected_element_area_2)
                                 }
-                                if let Some(position) = self.props.drawn_elements
+                                if self.props.drawn_elements
                                     .iter()
                                     .position(|element|
                                         {
                                             element.number ==
                                             self.state.selected_element.number
-                                        })
+                                        }).is_some()
                                 {
                                     self.props.update_element.emit(
                                         self.state.selected_element.to_owned());
@@ -458,7 +458,7 @@ impl Component for ElementMenu
     {
         if (&self.props.is_preprocessor_active, &self.props.analysis_type) !=
             (&props.is_preprocessor_active, &props.analysis_type) ||
-            Rc::ptr_eq(&self.props.drawn_elements, &props.drawn_elements)
+            !Rc::ptr_eq(&self.props.drawn_elements, &props.drawn_elements)
         {
             self.props = props;
             self.update_numbers_in_element_menu();

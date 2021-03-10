@@ -316,6 +316,7 @@ impl Component for PreprocessorCanvas
         }
     }
 
+
     fn rendered(&mut self, first_render: bool)
     {
         let canvas_text = self.canvas_text_node_ref.cast::<HtmlCanvasElement>().unwrap();
@@ -447,10 +448,16 @@ impl PreprocessorCanvas
                 self.props.canvas_height as GLElementsValues,
                 aspect as GLElementsValues);
 
-            let nodes_buffers = Buffers::initialize(&gl);
-            let mut nodes_drawn_object = DrawnObject::create();
-            nodes_drawn_object.add_nodes(&normalized_nodes);
-            nodes_buffers.render(&gl, &nodes_drawn_object, &shaders_variables);
+            let drawn_objects_buffers = Buffers::initialize(&gl);
+            let mut drawn_object = DrawnObject::create();
+            drawn_object.add_nodes(&normalized_nodes);
+
+            if !self.props.drawn_elements.is_empty()
+            {
+                drawn_object.add_elements(&normalized_nodes, &self.props.drawn_elements);
+            }
+
+            drawn_objects_buffers.render(&gl, &drawn_object, &shaders_variables);
 
             // let field_of_view = 45.0 * PI / 180.0;
             let mut projection_matrix = mat4::new_zero();
@@ -477,7 +484,7 @@ impl PreprocessorCanvas
             gl.uniform_matrix4fv_with_f32_array(
                 Some(&shaders_variables.model_view_matrix), false, &model_view_matrix);
 
-            nodes_drawn_object.draw(&gl);
+            drawn_object.draw(&gl);
 
             let mut matrix = mat4::new_identity();
             mat4::mul(&mut matrix, &projection_matrix, &model_view_matrix);

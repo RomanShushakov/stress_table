@@ -104,6 +104,7 @@ enum Msg
     // UpdateAuxForce((usize, AuxForce)),
     // RemoveAuxForce(usize),
     // Submit,
+    AddAnalysisErrorMessage(String),
     ResetAnalysisErrorMessage,
     EditStructure,
     ChangeResultView(ResultView),
@@ -492,6 +493,7 @@ impl Component for Model
             //                 },
             //         }
             //     },
+            Msg::AddAnalysisErrorMessage(msg) => self.state.analysis_error_message = Some(msg),
             Msg::ResetAnalysisErrorMessage => self.state.analysis_error_message = None,
             Msg::EditStructure =>
                 {
@@ -534,6 +536,8 @@ impl Component for Model
             self.link.callback(|data: FEDrawnElementData| Msg::UpdateElement(data));
         let handle_delete_element =
             self.link.callback(|number: ElementsNumbers| Msg::DeleteElement(number));
+        let handle_add_analysis_error_message =
+            self.link.callback(|msg: String| Msg::AddAnalysisErrorMessage(msg));
         // let handle_add_aux_displacement =
         //     self.link.callback(|displacement: AuxDisplacement|
         //         Msg::AddAuxDisplacement(displacement));
@@ -620,6 +624,7 @@ impl Component for Model
                                 canvas_height=self.state.canvas_height,
                                 nodes=Rc::clone(&nodes),
                                 drawn_elements=Rc::clone(&drawn_elements),
+                                add_analysis_error_message=handle_add_analysis_error_message,
                                 // aux_displacements=self.state.aux_displacements.to_owned(),
                                 // aux_forces=self.state.aux_forces.to_owned(),
                             />

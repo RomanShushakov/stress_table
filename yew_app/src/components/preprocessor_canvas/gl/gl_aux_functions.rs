@@ -5,10 +5,7 @@ use std::cell::RefCell;
 use crate::fem::FENode;
 
 use crate::{ElementsNumbers, ElementsValues};
-use crate::components::preprocessor_canvas::preprocessor_canvas::
-    {
-        GLElementsValues, GLElementsNumbers
-    };
+use crate::{GLElementsValues, GLElementsNumbers};
 use crate::auxiliary::{NormalizedNode, FEDrawnElementData};
 use crate::components::preprocessor_canvas::gl::gl_aux_structs::
     {
@@ -188,7 +185,7 @@ pub fn normalize_nodes(nodes: Rc<Vec<Rc<RefCell<FENode<ElementsNumbers, Elements
 }
 
 
-pub fn find_node_coordinates(node_number: ElementsNumbers, normalized_nodes: &Vec<NormalizedNode>)
+pub fn find_node_coordinates(node_number: GLElementsNumbers, normalized_nodes: &Vec<NormalizedNode>)
     -> Result<[GLElementsValues; 3], String>
 {
     let node_coordinates =

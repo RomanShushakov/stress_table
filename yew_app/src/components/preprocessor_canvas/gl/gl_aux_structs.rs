@@ -1,7 +1,4 @@
-use crate::components::preprocessor_canvas::preprocessor_canvas::
-    {
-        GLElementsNumbers, GLElementsValues
-    };
+use crate::{GLElementsNumbers, GLElementsValues};
 use crate::components::preprocessor_canvas::gl::gl_aux_functions::find_node_coordinates;
 
 use crate::{ElementsValues, ElementsNumbers};
@@ -259,7 +256,7 @@ impl DrawnObject
         {
             for point_element in &point_elements
             {
-                let node_number = point_element.nodes_numbers[0];
+                let node_number = point_element.nodes_numbers[0] as GLElementsNumbers;
                 let node_coordinates =
                     match find_node_coordinates(node_number, normalized_nodes)
                     {
@@ -283,7 +280,7 @@ impl DrawnObject
         {
             for line_element in &line_elements
             {
-                let node_1_number = line_element.nodes_numbers[0];
+                let node_1_number = line_element.nodes_numbers[0] as GLElementsNumbers;
                 let node_1_coordinates =
                     match find_node_coordinates(node_1_number, normalized_nodes)
                     {
@@ -297,7 +294,7 @@ impl DrawnObject
                 self.colors_values.extend(&DRAWN_ELEMENTS_COLOR);
                 self.indexes_numbers.push(start_index + count as GLElementsNumbers);
                 count += 1;
-                let node_2_number = line_element.nodes_numbers[1];
+                let node_2_number = line_element.nodes_numbers[1] as GLElementsNumbers;
                 let node_2_coordinates =
                     match find_node_coordinates(node_2_number, normalized_nodes)
                     {
@@ -323,7 +320,7 @@ impl DrawnObject
             {
                 for i in 1..complex_element.nodes_numbers.len()
                 {
-                    let node_1_number = complex_element.nodes_numbers[i - 1];
+                    let node_1_number = complex_element.nodes_numbers[i - 1] as GLElementsNumbers;
                     let node_1_coordinates =
                     match find_node_coordinates(node_1_number, normalized_nodes)
                     {
@@ -337,7 +334,7 @@ impl DrawnObject
                     self.colors_values.extend(&DRAWN_ELEMENTS_COLOR);
                     self.indexes_numbers.push(start_index + count as GLElementsNumbers);
                     count += 1;
-                    let node_2_number = complex_element.nodes_numbers[i];
+                    let node_2_number = complex_element.nodes_numbers[i] as GLElementsNumbers;
                     let node_2_coordinates =
                         match find_node_coordinates(node_2_number, normalized_nodes)
                         {
@@ -352,7 +349,7 @@ impl DrawnObject
                     self.indexes_numbers.push(start_index + count as GLElementsNumbers);
                     count += 1;
                 }
-                let node_1_number = complex_element.nodes_numbers[0];
+                let node_1_number = complex_element.nodes_numbers[0] as GLElementsNumbers;
                 let node_1_coordinates =
                 match find_node_coordinates(node_1_number, normalized_nodes)
                 {
@@ -367,7 +364,7 @@ impl DrawnObject
                 self.indexes_numbers.push(start_index + count as GLElementsNumbers);
                 count += 1;
                 let node_2_number =
-                    complex_element.nodes_numbers[complex_element.nodes_numbers.len() - 1];
+                    complex_element.nodes_numbers[complex_element.nodes_numbers.len() - 1] as GLElementsNumbers;
                 let node_2_coordinates =
                     match find_node_coordinates(node_2_number, normalized_nodes)
                     {

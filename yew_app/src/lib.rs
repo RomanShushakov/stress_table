@@ -39,10 +39,11 @@ use crate::auxiliary::FEDrawnElementData;
 
 
 pub type ElementsNumbers = u16;
-pub type ElementsValues = f32;
+pub type ElementsValues = f64;
+pub type GLElementsNumbers = u16;
+pub type GLElementsValues = f32;
 
 pub const TOLERANCE: ElementsValues = 1e-6;
-
 
 pub const NUMBER_OF_DOF: i32 = 6;
 

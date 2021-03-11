@@ -37,12 +37,8 @@ use crate::components::preprocessor_canvas::gl::gl_aux_structs::
 use std::rc::Rc;
 use std::cell::RefCell;
 use crate::fem::{FENode, FEType};
-use crate::{ElementsNumbers, ElementsValues};
+use crate::{ElementsNumbers, ElementsValues, GLElementsNumbers, GLElementsValues};
 use crate::auxiliary::{View, FEDrawnElementData};
-
-
-pub type GLElementsNumbers = u16;
-pub type GLElementsValues = f32;
 
 
 const PREPROCESSOR_CANVAS_CONTAINER_CLASS: &str = "preprocessor_canvas_container";

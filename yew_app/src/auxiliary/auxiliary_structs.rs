@@ -80,6 +80,58 @@ pub struct FEDrawnElementData
 }
 
 
+impl FEDrawnElementData
+{
+    pub fn find_denotation_coordinates(&self, normalized_nodes: &Vec<NormalizedNode>)
+        -> Result<[ElementsValues; 4], String>
+    {
+        let mut denotation_coordinates = [1.0 as ElementsValues; 4];
+        match self.fe_type
+        {
+
+            FEType::Truss2n2ip =>
+                {
+                    let start_node_number = self.nodes_numbers[0];
+                    let start_node_coordinates = if let Some(position) =
+                        normalized_nodes.iter().position(|node|
+                            node.number == start_node_number)
+                        {
+                            [normalized_nodes[position].x, normalized_nodes[position].y,
+                             normalized_nodes[position].z]
+                        }
+                    else
+                    {
+                        return Err(format!("FEDrawnElementData: Node {} does not \
+                            exist!", start_node_number));
+                    };
+                    let end_node_number = self.nodes_numbers[1];
+                    let end_node_coordinates = if let Some(position) =
+                        normalized_nodes.iter().position(|node|
+                            node.number == end_node_number)
+                        {
+                            [normalized_nodes[position].x, normalized_nodes[position].y,
+                             normalized_nodes[position].z]
+                        }
+                    else
+                    {
+                        return Err(format!("FEDrawnElementData: Node {} does not \
+                            exist!", end_node_number));
+                    };
+
+                    for (i, (start_coordinate, end_coordinate)) in
+                        start_node_coordinates.iter().zip(end_node_coordinates.iter())
+                            .enumerate()
+                    {
+                        denotation_coordinates[i] = (start_coordinate + end_coordinate) /
+                            2.0 as ElementsValues
+                    }
+                },
+        }
+        Ok(denotation_coordinates)
+    }
+}
+
+
 #[derive(Clone, PartialEq, Debug)]
 pub struct AuxDisplacement
 {

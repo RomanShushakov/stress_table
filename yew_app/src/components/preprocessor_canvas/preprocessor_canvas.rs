@@ -31,11 +31,12 @@ use crate::components::preprocessor_canvas::gl::gl_aux_structs::
         AXIS_Z_DENOTATION_SHIFT_X, AXIS_Z_DENOTATION_SHIFT_Y, AXIS_Z_DENOTATION_SHIFT_Z,
         CANVAS_AXES_DENOTATION_COLOR,
         CANVAS_DRAWN_NODES_DENOTATION_COLOR,
-        DRAWN_NODES_DENOTATION_SHIFT
+        DRAWN_NODES_DENOTATION_SHIFT,
+        CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR,
     };
 use std::rc::Rc;
 use std::cell::RefCell;
-use crate::fem::FENode;
+use crate::fem::{FENode, FEType};
 use crate::{ElementsNumbers, ElementsValues};
 use crate::auxiliary::{View, FEDrawnElementData};
 
@@ -70,6 +71,7 @@ pub struct Props
     pub canvas_height: u32,
     pub nodes: Rc<Vec<Rc<RefCell<FENode<ElementsNumbers, ElementsValues>>>>>,
     pub drawn_elements: Rc<Vec<FEDrawnElementData>>,
+    pub add_analysis_error_message: Callback<String>,
 }
 
 
@@ -294,12 +296,8 @@ impl Component for PreprocessorCanvas
                             self.props.discard_view.emit(());
                         },
                 }
-                true
             }
-            else
-            {
-                false
-            }
+            true
         }
         else
         {
@@ -466,7 +464,11 @@ impl PreprocessorCanvas
 
             if !self.props.drawn_elements.is_empty()
             {
-                drawn_object.add_elements(&normalized_nodes, &self.props.drawn_elements);
+                match drawn_object.add_elements(&normalized_nodes, &self.props.drawn_elements)
+                {
+                    Err(e) => self.props.add_analysis_error_message.emit(e),
+                    Ok(()) => (),
+                }
             }
 
             drawn_objects_buffers.render(&gl, &drawn_object, &shaders_variables);
@@ -514,6 +516,28 @@ impl PreprocessorCanvas
                 self.props.canvas_height as f32, &node.number.to_string());
             }
             ctx.stroke();
+
+            if !self.props.drawn_elements.is_empty()
+            {
+                for element in self.props.drawn_elements.as_ref()
+                {
+                    match element.find_denotation_coordinates(&normalized_nodes)
+                    {
+                        Ok(coordinates) =>
+                            {
+                                ctx.set_fill_style(&CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR.into());
+                                add_denotation(&ctx,
+                                &coordinates,
+                                &matrix,
+                                self.props.canvas_width as f32,
+                                self.props.canvas_height as f32,
+                                &element.number.to_string());
+                                ctx.stroke();
+                            },
+                        Err(e) => self.props.add_analysis_error_message.emit(e),
+                    }
+                }
+            }
         }
 
         let render_frame = self.link.callback(Msg::Render);

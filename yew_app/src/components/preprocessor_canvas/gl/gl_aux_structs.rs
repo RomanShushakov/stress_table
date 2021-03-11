@@ -230,7 +230,7 @@ impl DrawnObject
 
 
     pub fn add_elements(&mut self, normalized_nodes: &Vec<NormalizedNode>,
-                        drawn_elements: &Vec<FEDrawnElementData>)
+                        drawn_elements: &Vec<FEDrawnElementData>) -> Result<(), String>
     {
         let start_index =
             if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
@@ -264,8 +264,7 @@ impl DrawnObject
                         Ok(coordinates) => coordinates,
                         Err(e) =>
                             {
-                                yew::services::DialogService::alert(&e);
-                                return;
+                                return Err(e);
                             }
                     };
                 self.vertices_coordinates.extend(&node_coordinates);
@@ -289,8 +288,7 @@ impl DrawnObject
                         Ok(coordinates) => coordinates,
                         Err(e) =>
                             {
-                                yew::services::DialogService::alert(&e);
-                                return;
+                                return Err(e);
                             }
                     };
                 self.vertices_coordinates.extend(&node_1_coordinates);
@@ -304,8 +302,7 @@ impl DrawnObject
                         Ok(coordinates) => coordinates,
                         Err(e) =>
                             {
-                                yew::services::DialogService::alert(&e);
-                                return;
+                                return Err(e);
                             }
                     };
                 self.vertices_coordinates.extend(&node_2_coordinates);
@@ -331,8 +328,7 @@ impl DrawnObject
                         Ok(coordinates) => coordinates,
                         Err(e) =>
                             {
-                                yew::services::DialogService::alert(&e);
-                                return;
+                                return Err(e);
                             }
                     };
                     self.vertices_coordinates.extend(&node_1_coordinates);
@@ -346,8 +342,7 @@ impl DrawnObject
                             Ok(coordinates) => coordinates,
                             Err(e) =>
                                 {
-                                    yew::services::DialogService::alert(&e);
-                                    return;
+                                    return Err(e);
                                 }
                         };
                     self.vertices_coordinates.extend(&node_2_coordinates);
@@ -362,8 +357,7 @@ impl DrawnObject
                     Ok(coordinates) => coordinates,
                     Err(e) =>
                         {
-                            yew::services::DialogService::alert(&e);
-                            return;
+                            return Err(e);
                         }
                 };
                 self.vertices_coordinates.extend(&node_1_coordinates);
@@ -378,8 +372,7 @@ impl DrawnObject
                         Ok(coordinates) => coordinates,
                         Err(e) =>
                             {
-                                yew::services::DialogService::alert(&e);
-                                return;
+                                return Err(e);
                             }
                     };
                 self.vertices_coordinates.extend(&node_2_coordinates);
@@ -392,6 +385,7 @@ impl DrawnObject
             let offset = self.define_offset();
             self.offsets.push(offset);
         }
+        Ok(())
     }
 
 

@@ -45,7 +45,7 @@ pub type GLElementsValues = f32;
 
 pub const TOLERANCE: ElementsValues = 1e-6;
 
-pub const NUMBER_OF_DOF: i32 = 6;
+// pub const NUMBER_OF_DOF: i32 = 6;
 
 const MAIN_CLASS: &str = "main";
 const MAIN_CONTAINER_CLASS: &str = "main_container";
@@ -519,8 +519,13 @@ impl Component for Model
     {
         let handle_add_analysis_type =
             self.link.callback(|analysis_type: AnalysisType| Msg::AddAnalysisType(analysis_type));
+
+        let handle_add_analysis_error_message =
+            self.link.callback(|msg: String| Msg::AddAnalysisErrorMessage(msg));
+
         let handle_change_view = self.link.callback(|view: View| Msg::ChangeView(view));
         let handle_discard_view = self.link.callback(|_| Msg::DiscardView);
+
         let nodes = self.state.fem.nodes_rc_clone();
         let handle_add_node =
             self.link
@@ -530,6 +535,7 @@ impl Component for Model
                 .callback(|data: FEDrawnNodeData| Msg::UpdateNode(data));
         let handle_delete_node =
             self.link.callback(|number: ElementsNumbers| Msg::DeleteNode(number));
+
         let drawn_elements = self.state.fem.drawn_elements_rc();
         let handle_add_element =
             self.link.callback(|data: FEDrawnElementData| Msg::AddElement(data));
@@ -537,8 +543,6 @@ impl Component for Model
             self.link.callback(|data: FEDrawnElementData| Msg::UpdateElement(data));
         let handle_delete_element =
             self.link.callback(|number: ElementsNumbers| Msg::DeleteElement(number));
-        let handle_add_analysis_error_message =
-            self.link.callback(|msg: String| Msg::AddAnalysisErrorMessage(msg));
         // let handle_add_aux_displacement =
         //     self.link.callback(|displacement: AuxDisplacement|
         //         Msg::AddAuxDisplacement(displacement));

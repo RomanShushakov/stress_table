@@ -1,9 +1,9 @@
-use crate::{GLElementsNumbers, GLElementsValues};
+use crate::{GLElementsNumbers, GLElementsValues, TOLERANCE};
 use crate::components::preprocessor_canvas::gl::gl_aux_functions::find_node_coordinates;
 
 use crate::{ElementsValues, ElementsNumbers};
 use crate::fem::{FENode, FEType};
-use crate::auxiliary::{NormalizedNode, FEDrawnElementData};
+use crate::auxiliary::{NormalizedNode, FEDrawnElementData, DrawnDisplacementData};
 
 use web_sys::{WebGlBuffer, WebGlUniformLocation, WebGlProgram, WebGlRenderingContext as GL};
 use std::f32::consts::PI;
@@ -50,7 +50,17 @@ pub const DRAWN_NODES_DENOTATION_SHIFT: GLElementsValues = 0.02;
 pub const DRAWN_ELEMENTS_COLOR: [GLElementsValues; 4] = [0.0, 1.0, 1.0, 1.0]; // cyan
 pub const CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR: &str = "cyan";
 
-pub const DRAWN_ELEMENTS_DENOTATION_SHIFT: GLElementsValues = 0.02;
+// pub const DRAWN_ELEMENTS_DENOTATION_SHIFT: GLElementsValues = 0.02;
+//
+// pub const CANVAS_BACKGROUND_COLOR: &str = "black";
+
+
+pub const DRAWN_DISPLACEMENTS_COLOR: [GLElementsValues; 4] = [1.0, 0.5, 0.0, 1.0]; // orange
+pub const CANVAS_DRAWN_DISPLACEMENTS_DENOTATION_COLOR: &str = "orange";
+
+pub const DRAWN_DISPLACEMENTS_CAPS_HEIGHT: GLElementsValues = 0.015; // arrow length
+pub const DRAWN_DISPLACEMENTS_CAPS_WIDTH: GLElementsValues = 0.007; // half of arrow width
+pub const DRAWN_DISPLACEMENTS_CAPS_BASE_POINTS_NUMBER: u16 = 12; // the number of points in cone circular base
 
 
 pub enum CSAxis
@@ -150,7 +160,7 @@ impl DrawnObject
     {
         let start_index =
             if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
-        let tolerance = 1e-6;
+        let tolerance = TOLERANCE as GLElementsValues;
         match cs_axis
         {
             CSAxis::X => self.vertices_coordinates.extend(&CS_AXIS_X),
@@ -385,6 +395,69 @@ impl DrawnObject
             self.offsets.push(offset);
         }
         Ok(())
+    }
+
+
+    pub fn add_displacements(&mut self, normalized_nodes: &Vec<NormalizedNode>,
+        drawn_displacements: &Vec<DrawnDisplacementData>, base_points_number: GLElementsNumbers,
+        height: GLElementsValues, base_radius: GLElementsValues)
+    {
+        let mut start_index =
+            if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
+        let tolerance = TOLERANCE as GLElementsValues;
+        for (i, displacement) in drawn_displacements.iter().enumerate()
+        {
+            if let Some(position) = normalized_nodes
+                .iter()
+                .position(|node| node.number == displacement.node_number)
+            {
+                let x = normalized_nodes[position].x;
+                let y = normalized_nodes[position].y;
+                let z = normalized_nodes[position].z;
+                self.vertices_coordinates.extend(&[x, y, z]);
+
+                let angle = 2.0 * PI / base_points_number as GLElementsValues;
+                for point_number in 0..base_points_number
+                {
+                    let angle = angle * point_number as GLElementsValues;
+                    let local_x = {
+                        let value = base_radius * angle.cos();
+                        if value.abs() < tolerance { 0.0 } else { value }
+                    };
+                    let local_y =
+                        {
+                            let value = base_radius * angle.sin();
+                            if value.abs() < tolerance { 0.0 } else { value }
+                        };
+                    let coordinates =
+                        [x + local_y, y - height, z + local_x];
+                    self.vertices_coordinates.extend(&coordinates);
+                }
+
+                for point_number in 1..base_points_number
+                {
+                    if point_number == 1
+                    {
+                        self.colors_values.extend(&DRAWN_DISPLACEMENTS_COLOR);
+                        self.colors_values.extend(&DRAWN_DISPLACEMENTS_COLOR);
+                        self.colors_values.extend(&DRAWN_DISPLACEMENTS_COLOR);
+                    }
+                    else
+                    {
+                        self.colors_values.extend(&DRAWN_DISPLACEMENTS_COLOR);
+                    }
+                    self.indexes_numbers.extend(&[start_index, start_index + point_number,
+                        start_index + point_number + 1]);
+                }
+                self.indexes_numbers.extend(&[start_index, start_index + 1,
+                    start_index + base_points_number]);
+                let offset = self.define_offset();
+                self.modes.push(GLPrimitiveType::Triangles);
+                self.elements_numbers.push(base_points_number as i32 * 3);
+                self.offsets.push(offset);
+                start_index += base_points_number + 1;
+            }
+        }
     }
 
 

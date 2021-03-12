@@ -527,7 +527,7 @@ impl Component for ElementMenu
                             class={ ELEMENT_MENU_BUTTON_CLASS },
                             onclick=self.link.callback(|_| Msg::DeleteElement),
                         >
-                            { "Remove" }
+                            { "Delete" }
                         </button>
                     </div>
                 </div>

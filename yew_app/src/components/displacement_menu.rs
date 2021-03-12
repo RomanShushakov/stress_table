@@ -1374,7 +1374,7 @@ impl Component for DisplacementMenu
                             class={ DISPLACEMENT_MENU_BUTTON_CLASS },
                             onclick=self.link.callback(|_| Msg::DeleteDisplacement),
                         >
-                            { "Remove" }
+                            { "Delete" }
                         </button>
                     </div>
                 </div>

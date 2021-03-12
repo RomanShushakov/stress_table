@@ -2,14 +2,15 @@ use web_sys::{WebGlProgram, WebGlRenderingContext as GL, CanvasRenderingContext2
 use vec4;
 use std::rc::Rc;
 use std::cell::RefCell;
-use crate::fem::FENode;
 
+use crate::fem::FENode;
 use crate::{ElementsNumbers, ElementsValues};
 use crate::{GLElementsValues, GLElementsNumbers};
 use crate::auxiliary::{NormalizedNode, FEDrawnElementData};
 use crate::components::preprocessor_canvas::gl::gl_aux_structs::
     {
-        DRAWN_OBJECT_TO_CANVAS_WIDTH_SCALE, DRAWN_OBJECT_TO_CANVAS_HEIGHT_SCALE
+        DRAWN_OBJECT_TO_CANVAS_WIDTH_SCALE, DRAWN_OBJECT_TO_CANVAS_HEIGHT_SCALE,
+        CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR
     };
 
 

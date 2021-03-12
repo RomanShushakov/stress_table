@@ -1,7 +1,7 @@
 use crate::{GLElementsNumbers, GLElementsValues};
 use crate::{ElementsNumbers, ElementsValues};
 use crate::fem::FEType;
-use crate::components::preprocessor_canvas::gl::gl_aux_structs::DRAWN_ELEMENTS_DENOTATION_SHIFT;
+// use crate::components::preprocessor_canvas::gl::gl_aux_structs::DRAWN_ELEMENTS_DENOTATION_SHIFT;
 
 
 #[derive(Clone, PartialEq)]
@@ -120,16 +120,8 @@ impl FEDrawnElementData
                         start_node_coordinates.iter().zip(end_node_coordinates.iter())
                             .enumerate()
                     {
-                        if i == 0
-                        {
-                            denotation_coordinates[i] = (start_coordinate + end_coordinate) /
-                                2.0 as GLElementsValues + DRAWN_ELEMENTS_DENOTATION_SHIFT;
-                        }
-                        else
-                        {
-                            denotation_coordinates[i] = (start_coordinate + end_coordinate) /
+                        denotation_coordinates[i] = (start_coordinate + end_coordinate) /
                             2.0 as GLElementsValues;
-                        }
                     }
                 },
         }

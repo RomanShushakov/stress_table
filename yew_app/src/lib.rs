@@ -719,7 +719,7 @@ impl Component for Model
                                 nodes=Rc::clone(&nodes),
                                 drawn_elements=Rc::clone(&drawn_elements),
                                 add_analysis_error_message=handle_add_analysis_error_message,
-                                // aux_displacements=self.state.aux_displacements.to_owned(),
+                                drawn_displacements=Rc::clone(&drawn_displacements),
                                 // aux_forces=self.state.aux_forces.to_owned(),
                             />
                         </div>

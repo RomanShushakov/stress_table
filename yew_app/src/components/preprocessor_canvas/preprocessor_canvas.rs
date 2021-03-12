@@ -19,26 +19,12 @@ use crate::components::preprocessor_canvas::gl::gl_aux_functions::
     {
         add_denotation, initialize_shaders, normalize_nodes,
     };
-use crate::components::preprocessor_canvas::gl::gl_aux_structs::
-    {
-        Buffers, ShadersVariables, DrawnObject, CSAxis,
-        CS_AXES_Y_SHIFT, CS_AXES_X_SHIFT, CS_AXES_Z_SHIFT,
-        CS_AXES_SCALE,
-        CS_AXES_CAPS_BASE_POINTS_NUMBER,
-        CS_AXES_CAPS_WIDTH, CS_AXES_CAPS_HEIGHT,
-        AXIS_X_DENOTATION_SHIFT_X, AXIS_X_DENOTATION_SHIFT_Y,
-        AXIS_Y_DENOTATION_SHIFT_X, AXIS_Y_DENOTATION_SHIFT_Y,
-        AXIS_Z_DENOTATION_SHIFT_X, AXIS_Z_DENOTATION_SHIFT_Y, AXIS_Z_DENOTATION_SHIFT_Z,
-        CANVAS_AXES_DENOTATION_COLOR,
-        CANVAS_DRAWN_NODES_DENOTATION_COLOR,
-        DRAWN_NODES_DENOTATION_SHIFT,
-        CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR,
-    };
+use crate::components::preprocessor_canvas::gl::gl_aux_structs::{Buffers, ShadersVariables, DrawnObject, CSAxis, CS_AXES_Y_SHIFT, CS_AXES_X_SHIFT, CS_AXES_Z_SHIFT, CS_AXES_SCALE, CS_AXES_CAPS_BASE_POINTS_NUMBER, CS_AXES_CAPS_WIDTH, CS_AXES_CAPS_HEIGHT, AXIS_X_DENOTATION_SHIFT_X, AXIS_X_DENOTATION_SHIFT_Y, AXIS_Y_DENOTATION_SHIFT_X, AXIS_Y_DENOTATION_SHIFT_Y, AXIS_Z_DENOTATION_SHIFT_X, AXIS_Z_DENOTATION_SHIFT_Y, AXIS_Z_DENOTATION_SHIFT_Z, CANVAS_AXES_DENOTATION_COLOR, CANVAS_DRAWN_NODES_DENOTATION_COLOR, DRAWN_NODES_DENOTATION_SHIFT, CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR, DRAWN_DISPLACEMENTS_CAPS_BASE_POINTS_NUMBER, DRAWN_DISPLACEMENTS_CAPS_HEIGHT, DRAWN_DISPLACEMENTS_CAPS_WIDTH};
 use std::rc::Rc;
 use std::cell::RefCell;
 use crate::fem::{FENode, FEType};
 use crate::{ElementsNumbers, ElementsValues, GLElementsNumbers, GLElementsValues};
-use crate::auxiliary::{View, FEDrawnElementData};
+use crate::auxiliary::{View, FEDrawnElementData, DrawnDisplacementData};
 
 
 const PREPROCESSOR_CANVAS_CONTAINER_CLASS: &str = "preprocessor_canvas_container";
@@ -68,6 +54,7 @@ pub struct Props
     pub nodes: Rc<Vec<Rc<RefCell<FENode<ElementsNumbers, ElementsValues>>>>>,
     pub drawn_elements: Rc<Vec<FEDrawnElementData>>,
     pub add_analysis_error_message: Callback<String>,
+    pub drawn_displacements: Rc<Vec<DrawnDisplacementData>>,
 }
 
 
@@ -260,7 +247,8 @@ impl Component for PreprocessorCanvas
         if (&self.props.view, &self.props.canvas_height, &self.props.canvas_width) !=
             (&props.view, &props.canvas_height, &props.canvas_width) ||
             !Rc::ptr_eq(&self.props.nodes, &props.nodes) ||
-            !Rc::ptr_eq(&self.props.drawn_elements, &props.drawn_elements)
+            !Rc::ptr_eq(&self.props.drawn_elements, &props.drawn_elements) ||
+            !Rc::ptr_eq(&self.props.drawn_displacements, &props.drawn_displacements)
         {
             self.props = props;
             if let Some(view) = &self.props.view
@@ -465,6 +453,16 @@ impl PreprocessorCanvas
                     Err(e) => self.props.add_analysis_error_message.emit(e),
                     Ok(()) => (),
                 }
+            }
+
+
+            if !self.props.drawn_displacements.is_empty()
+            {
+                drawn_object.add_displacements(
+                    &normalized_nodes, &self.props.drawn_displacements,
+                    DRAWN_DISPLACEMENTS_CAPS_BASE_POINTS_NUMBER,
+                    DRAWN_DISPLACEMENTS_CAPS_HEIGHT / (1.0 + self.state.d_scale),
+                    DRAWN_DISPLACEMENTS_CAPS_WIDTH / (1.0 + self.state.d_scale));
             }
 
             drawn_objects_buffers.render(&gl, &drawn_object, &shaders_variables);

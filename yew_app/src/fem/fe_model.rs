@@ -733,7 +733,6 @@ impl<T, V> FEModel<T, V>
                     break;
                 }
             }
-
             if let Some(position) = drawn_displacements
                 .iter().position(|data: &DrawnDisplacementData| data.number == number)
             {
@@ -778,7 +777,6 @@ impl<T, V> FEModel<T, V>
                 drawn_displacements.push(drawn_displacement);
             }
         }
-        yew::services::ConsoleService::log(&format!("{:?}", drawn_displacements));
         Rc::new(drawn_displacements)
     }
 }

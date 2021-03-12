@@ -139,21 +139,21 @@ impl FEDrawnElementData
 
 
 #[derive(Clone, PartialEq, Debug)]
-pub struct AuxDisplacement
+pub struct DrawnDisplacementData
 {
-    pub number: u16,
-    pub node_number: u16,
+    pub number: ElementsNumbers,
+    pub node_number: ElementsNumbers,
     pub is_rotation_stiffness_enabled: bool,
-    pub x_direction_value: Option<f32>,
-    pub y_direction_value: Option<f32>,
-    pub z_direction_value: Option<f32>,
-    pub xy_plane_value: Option<f32>,
-    pub yz_plane_value: Option<f32>,
-    pub zx_plane_value: Option<f32>,
+    pub x_direction_value: Option<ElementsValues>,
+    pub y_direction_value: Option<ElementsValues>,
+    pub z_direction_value: Option<ElementsValues>,
+    pub xy_plane_value: Option<ElementsValues>,
+    pub yz_plane_value: Option<ElementsValues>,
+    pub zx_plane_value: Option<ElementsValues>,
 }
 
 
-pub enum AuxDisplacementInputOption
+pub enum DrawnDisplacementInputOption
 {
     Free,
     Restrained,
@@ -161,15 +161,15 @@ pub enum AuxDisplacementInputOption
 }
 
 
-impl AuxDisplacementInputOption
+impl DrawnDisplacementInputOption
 {
     pub fn as_str(&self) -> String
     {
         match self
         {
-            AuxDisplacementInputOption::Free => String::from("Free"),
-            AuxDisplacementInputOption::Restrained => String::from("Restrained"),
-            AuxDisplacementInputOption::Value => String::from("Value"),
+            DrawnDisplacementInputOption::Free => String::from("Free"),
+            DrawnDisplacementInputOption::Restrained => String::from("Restrained"),
+            DrawnDisplacementInputOption::Value => String::from("Value"),
         }
     }
 }

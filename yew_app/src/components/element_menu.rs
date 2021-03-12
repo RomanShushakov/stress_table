@@ -69,7 +69,7 @@ pub enum Msg
     SelectElementType(ChangeData),
     SelectElementByNumber(ChangeData),
     ApplyElementDataChange,
-    RemoveElement,
+    DeleteElement,
 }
 
 
@@ -336,7 +336,7 @@ impl Component for ElementMenu
                             },
                     }
                 },
-            Msg::RemoveElement =>
+            Msg::DeleteElement =>
                 {
                     if let Some(position) = self.props.drawn_elements
                         .iter()
@@ -525,7 +525,7 @@ impl Component for ElementMenu
                         </button>
                         <button
                             class={ ELEMENT_MENU_BUTTON_CLASS },
-                            onclick=self.link.callback(|_| Msg::RemoveElement),
+                            onclick=self.link.callback(|_| Msg::DeleteElement),
                         >
                             { "Remove" }
                         </button>

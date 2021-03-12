@@ -778,7 +778,6 @@ impl<T, V> FEModel<T, V>
                 drawn_displacements.push(drawn_displacement);
             }
         }
-        yew::services::ConsoleService::log(&format!("{:?}", drawn_displacements));
         Rc::new(drawn_displacements)
     }
 }

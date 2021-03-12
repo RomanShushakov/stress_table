@@ -472,7 +472,7 @@ impl Component for Model
                     let bc_type = BCType::Displacement;
                     let node_number = data.node_number;
                     let displacements = vec![
-                        data.x_direction_value, data.z_direction_value,
+                        data.x_direction_value, data.y_direction_value,
                         data.z_direction_value, data.yz_plane_value,
                         data.zx_plane_value, data.xy_plane_value];
                     for i in 0..displacements.len()
@@ -496,16 +496,16 @@ impl Component for Model
                     let bc_type = BCType::Displacement;
                     let node_number = data.node_number;
                     let displacements = vec![
-                        data.x_direction_value, data.z_direction_value,
+                        data.x_direction_value, data.y_direction_value,
                         data.z_direction_value, data.yz_plane_value,
                         data.zx_plane_value, data.xy_plane_value];
                     for i in 0..displacements.len()
                     {
+                        let number = data.number * GLOBAL_DOF + i as ElementsNumbers;
+                        let dof_parameter =
+                            GlobalDOFParameter::iterator().nth(i).unwrap();
                         if let Some(value) = displacements[i]
                         {
-                            let number = data.number * GLOBAL_DOF + i as ElementsNumbers;
-                            let dof_parameter =
-                                GlobalDOFParameter::iterator().nth(i).unwrap();
                             match self.state.fem.update_bc(
                                 bc_type, number, node_number, *dof_parameter, value)
                             {
@@ -522,13 +522,21 @@ impl Component for Model
                                 _ => ()
                             }
                         }
+                        else
+                        {
+                            match self.state.fem.delete_bc(bc_type, number)
+                            {
+                                Err(e) => self.state.analysis_error_message = Some(e),
+                                _ => ()
+                            }
+                        }
                     }
                 }
             Msg::DeleteDisplacement(data) =>
                 {
                     let bc_type = BCType::Displacement;
                     let displacements = vec![
-                        data.x_direction_value, data.z_direction_value,
+                        data.x_direction_value, data.y_direction_value,
                         data.z_direction_value, data.yz_plane_value,
                         data.zx_plane_value, data.xy_plane_value];
                     for i in 0..displacements.len()

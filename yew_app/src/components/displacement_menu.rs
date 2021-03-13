@@ -115,8 +115,10 @@ impl DisplacementMenu
             .map_err(|_| ())
             .unwrap();
         let options: HtmlOptionsCollection = select.options();
-        options.set_length(self.props.drawn_bcs.iter().filter(|bc|
-            bc.bc_type == BCType::Displacement).collect::<Vec<&DrawnBCData>>().len() as u32 + 1);
+        options.set_length(self.props.drawn_bcs
+            .iter()
+            .filter(|bc| bc.bc_type == BCType::Displacement)
+            .collect::<Vec<&DrawnBCData>>().len() as u32 + 1);
         let number =
             {
                 let mut n = 0;
@@ -165,8 +167,10 @@ impl DisplacementMenu
                 bc.bc_type == BCType::Displacement).collect::<Vec<&DrawnBCData>>().len() as u32,
                 Some(&option)).unwrap();
         }
-        options.set_selected_index(self.props.drawn_bcs.iter().filter(|bc|
-            bc.bc_type == BCType::Displacement).collect::<Vec<&DrawnBCData>>().len() as i32)
+        options.set_selected_index(self.props.drawn_bcs
+            .iter()
+            .filter(|bc| bc.bc_type == BCType::Displacement)
+            .collect::<Vec<&DrawnBCData>>().len() as i32)
             .unwrap();
     }
 
@@ -415,8 +419,8 @@ impl Component for DisplacementMenu
                     {
                         if node_number <= 0 as ElementsNumbers
                         {
-                            yew::services::DialogService::alert(
-                            "Node number cannot be less than 1.");
+                            self.props.add_analysis_error_message.emit("Displacement menu: \
+                                Node number cannot be less than 1.".to_string());
                             return false;
                         }
                         if self.check_rotation_stiffness(node_number)
@@ -431,8 +435,8 @@ impl Component for DisplacementMenu
                     }
                     else
                     {
-                        yew::services::DialogService::alert(
-                            "You use incorrect node number input format.");
+                        self.props.add_analysis_error_message.emit("Displacement menu: \
+                            You use incorrect node number input format.".to_string());
                         return false;
                     }
                 },
@@ -593,60 +597,76 @@ impl Component for DisplacementMenu
                 },
             Msg::ApplyDisplacementDataChange =>
                 {
-                    if self.state.displacement_x_is_active
-                    {
-                        self.state.selected_displacement.x_direction_value =
-                            self.read_inputted_displacement(
-                                DISPLACEMENT_IN_X_DIRECTION_VALUE);
-                    }
-                    if self.state.displacement_y_is_active
-                    {
-                        self.state.selected_displacement.y_direction_value =
-                            self.read_inputted_displacement(
-                                DISPLACEMENT_IN_Y_DIRECTION_VALUE);
-                    }
-                    if self.state.displacement_z_is_active
-                    {
-                        self.state.selected_displacement.z_direction_value =
-                            self.read_inputted_displacement(
-                                DISPLACEMENT_IN_Z_DIRECTION_VALUE);
-                    }
-                    if self.state.rotation_xy_is_active
-                    {
-                        self.state.selected_displacement.xy_plane_value =
-                            self.read_inputted_displacement(ROTATION_IN_XY_PLANE_VALUE);
-                    }
-                    if self.state.rotation_yz_is_active
-                    {
-                        self.state.selected_displacement.yz_plane_value =
-                            self.read_inputted_displacement(ROTATION_IN_YZ_PLANE_VALUE);
-                    }
-                   if self.state.rotation_zx_is_active
-                    {
-                        self.state.selected_displacement.zx_plane_value =
-                            self.read_inputted_displacement(ROTATION_IN_ZX_PLANE_VALUE);
-                    }
-
-                    if !self.check_inputted_data()
-                    {
-                        yew::services::DialogService::alert(
-                            "The some displacement value must be specified.");
-                        return false;
-                    }
-                    if self.props.drawn_bcs
+                    if let None = self.props.drawn_bcs
                         .iter()
                         .position(|bc|
-                            bc.number == self.state.selected_displacement.number &&
-                            bc.bc_type == BCType::Displacement)
-                        .is_some()
+                            {
+                                (bc.node_number == self.state.selected_displacement.node_number) &&
+                                (bc.number != self.state.selected_displacement.number) &&
+                                (bc.bc_type == self.state.selected_displacement.bc_type)
+                            })
                     {
-                        self.props.update_bc.emit(
-                            self.state.selected_displacement.to_owned());
+                        if self.state.displacement_x_is_active
+                        {
+                            self.state.selected_displacement.x_direction_value =
+                                self.read_inputted_displacement(
+                                    DISPLACEMENT_IN_X_DIRECTION_VALUE);
+                        }
+                        if self.state.displacement_y_is_active
+                        {
+                            self.state.selected_displacement.y_direction_value =
+                                self.read_inputted_displacement(
+                                    DISPLACEMENT_IN_Y_DIRECTION_VALUE);
+                        }
+                        if self.state.displacement_z_is_active
+                        {
+                            self.state.selected_displacement.z_direction_value =
+                                self.read_inputted_displacement(
+                                    DISPLACEMENT_IN_Z_DIRECTION_VALUE);
+                        }
+                        if self.state.rotation_xy_is_active
+                        {
+                            self.state.selected_displacement.xy_plane_value =
+                                self.read_inputted_displacement(ROTATION_IN_XY_PLANE_VALUE);
+                        }
+                        if self.state.rotation_yz_is_active
+                        {
+                            self.state.selected_displacement.yz_plane_value =
+                                self.read_inputted_displacement(ROTATION_IN_YZ_PLANE_VALUE);
+                        }
+                       if self.state.rotation_zx_is_active
+                        {
+                            self.state.selected_displacement.zx_plane_value =
+                                self.read_inputted_displacement(ROTATION_IN_ZX_PLANE_VALUE);
+                        }
+
+                        if !self.check_inputted_data()
+                        {
+                            self.props.add_analysis_error_message.emit("Displacement menu: \
+                                The some displacement value must be specified!".to_string());
+                            return false;
+                        }
+                        if self.props.drawn_bcs
+                            .iter()
+                            .position(|bc|
+                                bc.number == self.state.selected_displacement.number &&
+                                bc.bc_type == BCType::Displacement)
+                            .is_some()
+                        {
+                            self.props.update_bc.emit(
+                                self.state.selected_displacement.to_owned());
+                        }
+                        else
+                        {
+                            self.props.add_bc.emit(
+                                self.state.selected_displacement.to_owned());
+                        }
                     }
                     else
                     {
-                        self.props.add_bc.emit(
-                            self.state.selected_displacement.to_owned());
+                        self.props.add_analysis_error_message.emit("Displacement menu: \
+                            The displacement is already applied to the selected node!".to_string());
+                        return false;
                     }
                 },
             Msg::DeleteDisplacement =>

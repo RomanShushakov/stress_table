@@ -154,7 +154,7 @@ impl DrawnBCData
         let mut denotation_coordinates = [1.0 as GLElementsValues; 4];
         if let Some(position) = normalized_nodes
             .iter()
-            .position(|node| node.number == self.node_number)
+            .position(|node| node.number == self.node_number as GLElementsNumbers)
         {
             denotation_coordinates[0] = normalized_nodes[position].x;
             denotation_coordinates[1] = normalized_nodes[position].y;

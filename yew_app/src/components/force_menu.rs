@@ -31,7 +31,7 @@ const MOMENT_IN_YZ_PLANE_VALUE: &str = "moment_in_yz_plane_value";
 const MOMENT_IN_ZX_PLANE_VALUE: &str = "moment_in_zx_plane_value";
 
 
-#[derive(Properties, PartialEq, Clone)]
+#[derive(Properties, Clone)]
 pub struct Props
 {
     pub analysis_type: Option<AnalysisType>,
@@ -41,6 +41,7 @@ pub struct Props
     pub add_bc: Callback<DrawnBCData>,
     pub update_bc: Callback<DrawnBCData>,
     pub delete_bc: Callback<DrawnBCData>,
+    pub add_analysis_error_message: Callback<String>,
 }
 
 
@@ -64,7 +65,7 @@ pub enum Msg
     SelectForce(ChangeData),
     UpdateEditNodeNumber(String),
     ApplyForceDataChange,
-    RemoveForce,
+    DeleteForce,
 }
 
 
@@ -100,7 +101,6 @@ impl ForceMenu
             .iter()
             .filter(|bc| bc.bc_type == BCType::Force)
             .collect::<Vec<&DrawnBCData>>().len() as u32 + 1);
-        let bc_type = BCType::Force;
         let number =
             {
                 let mut n = 0;
@@ -124,9 +124,9 @@ impl ForceMenu
             };
         self.state.selected_force = DrawnBCData
             {
-                bc_type,
-                number,
-                node_number: 1,
+                bc_type: BCType::Force,
+                number: number as ElementsNumbers,
+                node_number: 1 as ElementsNumbers,
                 is_rotation_stiffness_enabled: false,
                 x_direction_value: None,
                 y_direction_value: None,
@@ -147,11 +147,12 @@ impl ForceMenu
         options.set_selected_index(self.props.drawn_bcs
             .iter()
             .filter(|bc| bc.bc_type == BCType::Force)
-            .collect::<Vec<&DrawnBCData>>().len() as i32).unwrap();
+            .collect::<Vec<&DrawnBCData>>().len() as i32)
+            .unwrap();
     }
 
 
-    fn read_inputted_force(&self, input_field: &str) -> Option<f32>
+    fn read_inputted_force(&self, input_field: &str) -> Option<ElementsValues>
     {
         let window = web_sys::window().unwrap();
         let document = window.document().unwrap();
@@ -159,7 +160,7 @@ impl ForceMenu
         let input_element = element.dyn_into::<HtmlInputElement>()
             .map_err(|_| ())
             .unwrap();
-        if let Ok(force) = input_element.value().parse::<f32>()
+        if let Ok(force) = input_element.value().parse::<ElementsValues>()
         {
             Some(force)
         }
@@ -324,8 +325,8 @@ impl Component for ForceMenu
                     {
                         if node_number <= 0 as ElementsNumbers
                         {
-                            yew::services::DialogService::alert(
-                            "Node number cannot be less than 1.");
+                            self.props.add_analysis_error_message.emit("Node menu: Node \
+                                number cannot be less than 1.".to_string());
                             return false;
                         }
                         if self.check_rotation_stiffness(node_number)
@@ -340,24 +341,25 @@ impl Component for ForceMenu
                     }
                     else
                     {
-                        yew::services::DialogService::alert(
-                            "You use incorrect node number input format.");
+                        self.props.add_analysis_error_message.emit("Node menu: You use \
+                            incorrect node number input format.".to_string());
                         return false;
                     }
                 },
             Msg::ApplyForceDataChange =>
                 {
-                    if let None = self.props.aux_forces
+                    if let None = self.props.drawn_bcs
                         .iter()
-                        .position(|force|
+                        .position(|bc|
                             {
-                                (force.node_number == self.state.selected_force.node_number) &&
-                                (force.number != self.state.selected_force.number)
+                                (bc.node_number == self.state.selected_force.node_number) &&
+                                (bc.number != self.state.selected_force.number) &&
+                                (bc.bc_type == self.state.selected_force.bc_type)
                             })
                     {
-                        self.state.selected_force.force_x_value =
+                        self.state.selected_force.x_direction_value =
                             self.read_inputted_force(FORCE_IN_X_DIRECTION_VALUE);
-                        self.state.selected_force.force_y_value =
+                        self.state.selected_force.y_direction_value =
                             self.read_inputted_force(FORCE_IN_Y_DIRECTION_VALUE);
                         if let Some(analysis_type) = &self.props.analysis_type
                         {
@@ -367,22 +369,27 @@ impl Component for ForceMenu
                                     {
                                         if self.state.selected_force.is_rotation_stiffness_enabled
                                         {
-                                            self.state.selected_force.moment_xy_value =
-                                                self.read_inputted_force(MOMENT_IN_XY_PLANE_VALUE);
+                                            self.state.selected_force.xy_plane_value =
+                                                self.read_inputted_force(
+                                                    MOMENT_IN_XY_PLANE_VALUE);
                                         }
                                     },
                                 AnalysisType::ThreeDimensional =>
                                     {
-                                        self.state.selected_force.force_z_value =
-                                            self.read_inputted_force(FORCE_IN_Z_DIRECTION_VALUE);
+                                        self.state.selected_force.z_direction_value =
+                                            self.read_inputted_force(
+                                                FORCE_IN_Z_DIRECTION_VALUE);
                                         if self.state.selected_force.is_rotation_stiffness_enabled
                                         {
-                                            self.state.selected_force.moment_xy_value =
-                                                self.read_inputted_force(MOMENT_IN_XY_PLANE_VALUE);
-                                            self.state.selected_force.moment_yz_value =
-                                                self.read_inputted_force(MOMENT_IN_YZ_PLANE_VALUE);
-                                            self.state.selected_force.moment_zx_value =
-                                                self.read_inputted_force(MOMENT_IN_ZX_PLANE_VALUE);
+                                            self.state.selected_force.xy_plane_value =
+                                                self.read_inputted_force(
+                                                    MOMENT_IN_XY_PLANE_VALUE);
+                                            self.state.selected_force.yz_plane_value =
+                                                self.read_inputted_force(
+                                                    MOMENT_IN_YZ_PLANE_VALUE);
+                                            self.state.selected_force.zx_plane_value =
+                                                self.read_inputted_force(
+                                                    MOMENT_IN_ZX_PLANE_VALUE);
                                         }
                                     }
                             }
@@ -390,60 +397,41 @@ impl Component for ForceMenu
 
                         if !self.check_inputted_data()
                         {
-                            yew::services::DialogService::alert(
-                                "The some force value must be specified.");
+                            self.props.add_analysis_error_message.emit("Node menu: The some \
+                                force value must be specified.".to_string());
                             return false;
                         }
-
-                        if let None = self.props.aux_elements
+                        if let Some(position) = self.props.drawn_bcs
                             .iter()
-                            .position(|element|
-                                {
-                                    match element.element_type
-                                    {
-                                        ElementType::Truss2n2ip =>
-                                            {
-                                                (element.node_1_number == self.state.selected_force.node_number) ||
-                                                (element.node_2_number == self.state.selected_force.node_number)
-                                            },
-                                        // ElementType::OtherType =>
-                                        //     {
-                                        //         (element.node_1_number == self.state.selected_force.node_number) ||
-                                        //         (element.node_2_number == self.state.selected_force.node_number)
-                                        //     },
-                                    }
-                                })
-                        {
-                            yew::services::DialogService::alert(
-                                "The selected node does not used in any element.");
-                            return false;
-                        }
-                        if let Some(position) = self.props.aux_forces
-                            .iter()
-                            .position(|force| force.number == self.state.selected_force.number)
+                            .position(|bc|
+                                bc.number == self.state.selected_force.number &&
+                                bc.bc_type == self.state.selected_force.bc_type)
                         {
 
-                            self.props.update_aux_force.emit((position, self.state.selected_force.to_owned()));
+                            self.props.update_bc.emit(self.state.selected_force.to_owned());
                         }
                         else
                         {
-                            self.props.add_aux_force.emit(self.state.selected_force.to_owned());
+                            self.props.add_bc.emit(self.state.selected_force.to_owned());
                         }
                     }
                     else
                     {
-                        yew::services::DialogService::alert(
-                            "The force is already applied to the selected node.");
+                        self.props.add_analysis_error_message.emit("Node menu: The force is \
+                            already applied to the selected node.".to_string());
+                        return false;
                     }
                 },
-            Msg::RemoveForce =>
+            Msg::DeleteForce =>
                 {
-                    if let Some(position) =
-                    self.props.aux_forces
+                    if self.props.drawn_bcs
                         .iter()
-                        .position(|force| force.number == self.state.selected_force.number)
+                        .position(|bc|
+                            bc.number == self.state.selected_force.number &&
+                            bc.bc_type == self.state.selected_force.bc_type)
+                        .is_some()
                     {
-                        self.props.remove_aux_force.emit(position);
+                        self.props.delete_bc.emit(self.state.selected_force.to_owned());
                     }
                 },
         }
@@ -453,7 +441,10 @@ impl Component for ForceMenu
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender
     {
-        if self.props != props
+        if (&self.props.analysis_type, &self.props.is_preprocessor_active) !=
+            (&props.analysis_type, &props.is_preprocessor_active) ||
+            !Rc::ptr_eq(&self.props.drawn_elements, &props.drawn_elements) ||
+            !Rc::ptr_eq(&self.props.drawn_bcs, &props.drawn_bcs)
         {
             self.props = props;
             self.update_numbers_in_force_menu();
@@ -480,10 +471,12 @@ impl Component for ForceMenu
         {
             <>
                 <button
-                    class={ PREPROCESSOR_BUTTON_CLASS }, onclick=self.link.callback(|_| Msg::ShowHideForceMenu),
+                    class={ PREPROCESSOR_BUTTON_CLASS },
+                        onclick=self.link.callback(|_| Msg::ShowHideForceMenu),
                     disabled=
                         {
-                            if self.props.analysis_type.is_some() && self.props.is_preprocessor_active
+                            if self.props.analysis_type.is_some() &&
+                                self.props.is_preprocessor_active
                             {
                                 false
                             }
@@ -504,10 +497,12 @@ impl Component for ForceMenu
                                     {
                                         <select
                                             id={ FORCE_SELECT_ID },
-                                            onchange=self.link.callback(|data: ChangeData| Msg::SelectForce(data)),
+                                            onchange=self.link.callback(|data: ChangeData|
+                                                Msg::SelectForce(data)),
                                         >
                                             <option value={ self.state.selected_force.number }>
-                                                { format!("{} New", self.state.selected_force.number) }
+                                                { format!("{} New",
+                                                    self.state.selected_force.number) }
                                             </option>
                                         </select>
                                     }
@@ -525,7 +520,8 @@ impl Component for ForceMenu
                                                 value={ self.state.selected_force.node_number },
                                                 type="number",
                                                 min = { 1 },
-                                                oninput=self.link.callback(|d: InputData| Msg::UpdateEditNodeNumber(d.value))
+                                                oninput=self.link.callback(|d: InputData|
+                                                    Msg::UpdateEditNodeNumber(d.value))
                                             />
                                         </li>
                                         <li>
@@ -536,7 +532,8 @@ impl Component for ForceMenu
                                                 id={ FORCE_IN_X_DIRECTION_VALUE },
                                                 value=
                                                     {
-                                                        if let Some(value) = self.state.selected_force.force_x_value
+                                                        if let Some(value) =
+                                                            self.state.selected_force.x_direction_value
                                                         {
                                                             value.to_string()
                                                         }
@@ -556,7 +553,7 @@ impl Component for ForceMenu
                                                 id={ FORCE_IN_Y_DIRECTION_VALUE },
                                                 value=
                                                     {
-                                                        if let Some(value) = self.state.selected_force.force_y_value
+                                                        if let Some(value) = self.state.selected_force.y_direction_value
                                                         {
                                                             value.to_string()
                                                         }
@@ -587,7 +584,7 @@ impl Component for ForceMenu
                                                                             id={ MOMENT_IN_XY_PLANE_VALUE },
                                                                             value=
                                                                                 {
-                                                                                    if let Some(value) = self.state.selected_force.moment_xy_value
+                                                                                    if let Some(value) = self.state.selected_force.xy_plane_value
                                                                                     {
                                                                                         value.to_string()
                                                                                     }
@@ -619,7 +616,7 @@ impl Component for ForceMenu
                                                                             id={ FORCE_IN_Z_DIRECTION_VALUE },
                                                                             value=
                                                                                 {
-                                                                                    if let Some(value) = self.state.selected_force.force_z_value
+                                                                                    if let Some(value) = self.state.selected_force.z_direction_value
                                                                                     {
                                                                                         value.to_string()
                                                                                     }
@@ -645,7 +642,7 @@ impl Component for ForceMenu
                                                                                             id={ MOMENT_IN_XY_PLANE_VALUE },
                                                                                             value=
                                                                                                 {
-                                                                                                    if let Some(value) = self.state.selected_force.moment_xy_value
+                                                                                                    if let Some(value) = self.state.selected_force.xy_plane_value
                                                                                                     {
                                                                                                         value.to_string()
                                                                                                     }
@@ -665,7 +662,7 @@ impl Component for ForceMenu
                                                                                             id={ MOMENT_IN_YZ_PLANE_VALUE },
                                                                                             value=
                                                                                                 {
-                                                                                                    if let Some(value) = self.state.selected_force.moment_yz_value
+                                                                                                    if let Some(value) = self.state.selected_force.yz_plane_value
                                                                                                     {
                                                                                                         value.to_string()
                                                                                                     }
@@ -685,7 +682,7 @@ impl Component for ForceMenu
                                                                                             id={ MOMENT_IN_ZX_PLANE_VALUE },
                                                                                             value=
                                                                                                 {
-                                                                                                    if let Some(value) = self.state.selected_force.moment_zx_value
+                                                                                                    if let Some(value) = self.state.selected_force.zx_plane_value
                                                                                                     {
                                                                                                         value.to_string()
                                                                                                     }
@@ -729,9 +726,9 @@ impl Component for ForceMenu
                         </button>
                         <button
                             class={ FORCE_MENU_BUTTON_CLASS },
-                            onclick=self.link.callback(|_| Msg::RemoveForce),
+                            onclick=self.link.callback(|_| Msg::DeleteForce),
                         >
-                            { "Remove" }
+                            { "Delete" }
                         </button>
                     </div>
                 </div>

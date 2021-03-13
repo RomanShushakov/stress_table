@@ -414,8 +414,10 @@ impl<T, V> FEModel<T, V>
                 does not exist!", bc_type.as_str()));
         }
         if self.boundary_conditions.iter().position(|bc|
-                bc.dof_parameter_data_same(
-                    dof_parameter, node_number) && !bc.number_same(number)).is_some()
+            (bc.dof_parameter_data_same(dof_parameter, node_number) &&
+            !bc.number_same(number)) ||
+            (bc.dof_parameter_data_same(dof_parameter, node_number) &&
+            bc.number_same(number) && !bc.type_same(bc_type))).is_some()
         {
             return Err(format!("FEModel: {} could not be updated because the the force or \
                 displacement with the same dof parameter data does already exist!",
@@ -734,7 +736,8 @@ impl<T, V> FEModel<T, V>
                 }
             }
             if let Some(position) = drawn_bcs
-                .iter().position(|data: &DrawnBCData| data.number == number)
+                .iter().position(|data: &DrawnBCData|
+                    data.number == number && data.bc_type == bc_type)
             {
                 if !drawn_bcs[position].is_rotation_stiffness_enabled
                 {

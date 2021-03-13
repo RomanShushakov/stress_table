@@ -412,7 +412,7 @@ impl DrawnObject
         {
             if let Some(position) = normalized_nodes
                 .iter()
-                .position(|node| node.number == displacement.node_number)
+                .position(|node| node.number == displacement.node_number as GLElementsNumbers)
             {
                 let x = normalized_nodes[position].x;
                 let y = normalized_nodes[position].y;

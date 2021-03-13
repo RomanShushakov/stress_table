@@ -409,7 +409,7 @@ impl Component for Model
                     let properties = data.properties;
                     match self.state.fem
                         .update_element(nodes_numbers,
-                                     FEData { number, nodes: Vec::new(), properties })
+                            FEData { number, nodes: Vec::new(), properties })
                     {
                         Err(e) => self.state.analysis_error_message = Some(e),
                         _ => ()
@@ -459,20 +459,28 @@ impl Component for Model
                             GlobalDOFParameter::iterator().nth(i).unwrap();
                         if let Some(value) = bcs[i]
                         {
-                            match self.state.fem.update_bc(
-                                bc_type, number, node_number, *dof_parameter, value)
+                            if self.state.fem.boundary_conditions
+                                .iter()
+                                .position(|model_bc|
+                                    model_bc.number_same(number) && model_bc.type_same(bc_type))
+                                .is_some()
                             {
-                                Err(_) =>
-                                    {
-                                        match self.state.fem.add_bc(
-                                            bc_type, number, node_number, *dof_parameter, value)
-                                        {
-                                            Err(e) =>
-                                                self.state.analysis_error_message = Some(e),
-                                            _ => (),
-                                        }
-                                    },
-                                _ => ()
+                                match self.state.fem.update_bc(bc_type, number, node_number,
+                                    *dof_parameter, value)
+                                {
+                                    Err(e) => self.state.analysis_error_message = Some(e),
+                                    _ => (),
+                                }
+                            }
+                            else
+                            {
+                                match self.state.fem.add_bc(
+                                    bc_type, number, node_number, *dof_parameter, value)
+                                {
+                                    Err(e) =>
+                                        self.state.analysis_error_message = Some(e),
+                                    _ => (),
+                                }
                             }
                         }
                         else
@@ -634,10 +642,10 @@ impl Component for Model
                                 is_preprocessor_active=self.state.is_preprocessor_active,
                                 drawn_elements=Rc::clone(&drawn_elements),
                                 drawn_bcs=Rc::clone(&drawn_bcs),
-                                add_bc=handle_add_bc,
-                                update_bc=handle_update_bc,
-                                delete_bc=handle_delete_bc,
-                                add_analysis_error_message=handle_add_analysis_error_message,
+                                add_bc=handle_add_bc.to_owned(),
+                                update_bc=handle_update_bc.to_owned(),
+                                delete_bc=handle_delete_bc.to_owned(),
+                                add_analysis_error_message=handle_add_analysis_error_message.to_owned(),
                             />
                             <ForceMenu
                                 analysis_type=self.state.analysis_type.to_owned(),
@@ -647,6 +655,7 @@ impl Component for Model
                                 add_bc=handle_add_bc,
                                 update_bc=handle_update_bc,
                                 delete_bc=handle_delete_bc,
+                                add_analysis_error_message=handle_add_analysis_error_message.to_owned(),
                             />
                             // <button class={ PREPROCESSOR_BUTTON_CLASS }
                             //     // onclick=self.link.callback(|_| Msg::Submit),

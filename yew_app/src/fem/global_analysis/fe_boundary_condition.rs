@@ -47,7 +47,7 @@ trait BCTrait<T, V>
     fn dof_parameter_data_same(&self, dof_parameter: GlobalDOFParameter, node_number: T) -> bool;
     fn extract_node_number(&self) -> T;
     fn extract_value(&self) -> V;
-    // fn extract_dof_parameter(&self) -> GlobalDOFParameter;
+    fn extract_dof_parameter(&self) -> GlobalDOFParameter;
     fn extract_number(&self) -> T;
 }
 
@@ -92,12 +92,12 @@ impl<T, V> BCTrait<T, V> for Force<T, V>
     {
         self.value
     }
-    //
-    //
-    // fn extract_dof_parameter(&self) -> GlobalDOFParameter
-    // {
-    //     self.dof_parameter_data.dof_parameter
-    // }
+
+
+    fn extract_dof_parameter(&self) -> GlobalDOFParameter
+    {
+        self.dof_parameter_data.dof_parameter
+    }
 
 
     fn extract_number(&self) -> T
@@ -147,12 +147,12 @@ impl<T, V> BCTrait<T, V> for Displacement<T, V>
     {
         self.value
     }
-    //
-    //
-    // fn extract_dof_parameter(&self) -> GlobalDOFParameter
-    // {
-    //     self.dof_parameter_data.dof_parameter
-    // }
+
+
+    fn extract_dof_parameter(&self) -> GlobalDOFParameter
+    {
+        self.dof_parameter_data.dof_parameter
+    }
 
 
     fn extract_number(&self) -> T
@@ -273,6 +273,12 @@ impl<T, V> BoundaryCondition<T, V>
     pub fn extract_node_number(&self) -> T
     {
         self.boundary_condition.extract_node_number()
+    }
+
+
+    pub fn extract_dof_parameter(&self) -> GlobalDOFParameter
+    {
+        self.boundary_condition.extract_dof_parameter()
     }
 
     // pub fn show(&self)

@@ -145,6 +145,30 @@ pub struct DrawnDisplacementData
 }
 
 
+impl DrawnDisplacementData
+{
+    pub fn find_denotation_coordinates(&self, normalized_nodes: &Vec<NormalizedNode>)
+    -> Result<[GLElementsValues; 4], String>
+    {
+        let mut denotation_coordinates = [1.0 as GLElementsValues; 4];
+        if let Some(position) = normalized_nodes
+            .iter()
+            .position(|node| node.number == self.node_number)
+        {
+            denotation_coordinates[0] = normalized_nodes[position].x;
+            denotation_coordinates[1] = normalized_nodes[position].y;
+            denotation_coordinates[2] = normalized_nodes[position].z;
+        }
+        else
+        {
+            return Err(format!("FEDrawnElementData: Node {} does not \
+                exist!", self.node_number));
+        }
+        Ok(denotation_coordinates)
+    }
+}
+
+
 pub enum DrawnDisplacementInputOption
 {
     Free,

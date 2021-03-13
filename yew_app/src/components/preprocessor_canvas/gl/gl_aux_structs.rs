@@ -62,6 +62,9 @@ pub const DRAWN_DISPLACEMENTS_CAPS_HEIGHT: GLElementsValues = 0.015; // arrow le
 pub const DRAWN_DISPLACEMENTS_CAPS_WIDTH: GLElementsValues = 0.007; // half of arrow width
 pub const DRAWN_DISPLACEMENTS_CAPS_BASE_POINTS_NUMBER: u16 = 12; // the number of points in cone circular base
 
+pub const DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_X: GLElementsValues = 0.01;
+pub const DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_Y: GLElementsValues = 0.015;
+
 
 pub enum CSAxis
 {

@@ -1,5 +1,6 @@
 use std::f32::consts::PI;
-
+use std::rc::Rc;
+use std::cell::RefCell;
 use mat4;
 use vec4;
 use wasm_bindgen::JsCast;
@@ -19,9 +20,20 @@ use crate::components::preprocessor_canvas::gl::gl_aux_functions::
     {
         add_denotation, initialize_shaders, normalize_nodes,
     };
-use crate::components::preprocessor_canvas::gl::gl_aux_structs::{Buffers, ShadersVariables, DrawnObject, CSAxis, CS_AXES_Y_SHIFT, CS_AXES_X_SHIFT, CS_AXES_Z_SHIFT, CS_AXES_SCALE, CS_AXES_CAPS_BASE_POINTS_NUMBER, CS_AXES_CAPS_WIDTH, CS_AXES_CAPS_HEIGHT, AXIS_X_DENOTATION_SHIFT_X, AXIS_X_DENOTATION_SHIFT_Y, AXIS_Y_DENOTATION_SHIFT_X, AXIS_Y_DENOTATION_SHIFT_Y, AXIS_Z_DENOTATION_SHIFT_X, AXIS_Z_DENOTATION_SHIFT_Y, AXIS_Z_DENOTATION_SHIFT_Z, CANVAS_AXES_DENOTATION_COLOR, CANVAS_DRAWN_NODES_DENOTATION_COLOR, DRAWN_NODES_DENOTATION_SHIFT, CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR, DRAWN_DISPLACEMENTS_CAPS_BASE_POINTS_NUMBER, DRAWN_DISPLACEMENTS_CAPS_HEIGHT, DRAWN_DISPLACEMENTS_CAPS_WIDTH};
-use std::rc::Rc;
-use std::cell::RefCell;
+use crate::components::preprocessor_canvas::gl::gl_aux_structs::
+    {
+        Buffers, ShadersVariables, DrawnObject, CSAxis, CS_AXES_Y_SHIFT, CS_AXES_X_SHIFT,
+        CS_AXES_Z_SHIFT, CS_AXES_SCALE, CS_AXES_CAPS_BASE_POINTS_NUMBER, CS_AXES_CAPS_WIDTH,
+        CS_AXES_CAPS_HEIGHT, AXIS_X_DENOTATION_SHIFT_X, AXIS_X_DENOTATION_SHIFT_Y,
+        AXIS_Y_DENOTATION_SHIFT_X, AXIS_Y_DENOTATION_SHIFT_Y, AXIS_Z_DENOTATION_SHIFT_X,
+        AXIS_Z_DENOTATION_SHIFT_Y, AXIS_Z_DENOTATION_SHIFT_Z, CANVAS_AXES_DENOTATION_COLOR,
+        CANVAS_DRAWN_NODES_DENOTATION_COLOR, DRAWN_NODES_DENOTATION_SHIFT,
+        CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR, DRAWN_DISPLACEMENTS_CAPS_BASE_POINTS_NUMBER,
+        DRAWN_DISPLACEMENTS_CAPS_HEIGHT, DRAWN_DISPLACEMENTS_CAPS_WIDTH,
+        CANVAS_DRAWN_DISPLACEMENTS_DENOTATION_COLOR, DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_X,
+        DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_Y
+    };
+
 use crate::fem::{FENode, FEType};
 use crate::{ElementsNumbers, ElementsValues, GLElementsNumbers, GLElementsValues};
 use crate::auxiliary::{View, FEDrawnElementData, DrawnDisplacementData};
@@ -455,7 +467,6 @@ impl PreprocessorCanvas
                 }
             }
 
-
             if !self.props.drawn_displacements.is_empty()
             {
                 drawn_object.add_displacements(
@@ -529,6 +540,32 @@ impl PreprocessorCanvas
                                 ctx.stroke();
                             },
                         Err(e) => self.props.add_analysis_error_message.emit(e),
+                    }
+                }
+            }
+
+            if !self.props.drawn_displacements.is_empty()
+            {
+                for displacement in self.props.drawn_displacements.as_ref()
+                {
+                    match displacement.find_denotation_coordinates(&normalized_nodes)
+                    {
+                        Ok(coordinates) =>
+                            {
+                                ctx.set_fill_style(&CANVAS_DRAWN_DISPLACEMENTS_DENOTATION_COLOR.into());
+                                add_denotation(&ctx,
+                                &[coordinates[0] + DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_X /
+                                    (1.0 + self.state.d_scale),
+                                    coordinates[1] - DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_Y /
+                                    (1.0 + self.state.d_scale),
+                                    coordinates[2], coordinates[3]],
+                                &matrix,
+                                self.props.canvas_width as f32,
+                                self.props.canvas_height as f32,
+                                &displacement.number.to_string());
+                                ctx.stroke();
+                            },
+                        Err(e) => self.props.add_analysis_error_message.emit(e)
                     }
                 }
             }

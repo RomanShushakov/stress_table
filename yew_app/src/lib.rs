@@ -32,7 +32,7 @@ mod auxiliary;
 use auxiliary::
     {
         AnalysisType, View, FEDrawnNodeData, DrawnBCData,
-        AuxForce, ResultView, MinMaxValues, // AnalysisResult,
+        ResultView, MinMaxValues, // AnalysisResult,
     };
 use crate::fem::{FEModel, FEData};
 use crate::fem::{GlobalDOFParameter, BCType};

@@ -4,5 +4,5 @@ pub use auxiliary_structs::
     {
         AnalysisType, View, DrawnBCData, NormalizedNode,
         FEDrawnNodeData, FEDrawnElementData,
-        DrawnDisplacementInputOption, AuxForce, ResultView, MinMaxValues, // AnalysisResult, DrawnNode
+        DrawnDisplacementInputOption, ResultView, MinMaxValues, // AnalysisResult, DrawnNode
     };

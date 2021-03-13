@@ -23,7 +23,7 @@ mod components;
 use components::
     {
         AnalysisTypeMenu, NodeMenu, PreprocessorCanvas, ElementMenu,
-        ViewMenu, DisplacementMenu, // ForceMenu, ResultViewMenu, PostprocessorCanvas,
+        ViewMenu, DisplacementMenu, ForceMenu, // ResultViewMenu, PostprocessorCanvas,
         // AllResultsTable,
     };
 
@@ -31,7 +31,7 @@ use components::
 mod auxiliary;
 use auxiliary::
     {
-        AnalysisType, View, FEDrawnNodeData, DrawnDisplacementData,
+        AnalysisType, View, FEDrawnNodeData, DrawnBCData,
         AuxForce, ResultView, MinMaxValues, // AnalysisResult,
     };
 use crate::fem::{FEModel, FEData};
@@ -70,7 +70,6 @@ struct State
     canvas_height: u32,
     is_preprocessor_active: bool,
     fem: FEModel<ElementsNumbers, ElementsValues>,
-    // aux_displacements: Vec<AuxDisplacement>,
     // aux_forces: Vec<AuxForce>,
     analysis_error_message: Option<String>,
     // analysis_result: Option<AnalysisResult>,
@@ -98,9 +97,9 @@ enum Msg
     AddElement(FEDrawnElementData),
     UpdateElement(FEDrawnElementData),
     DeleteElement(ElementsNumbers),
-    AddDisplacement(DrawnDisplacementData),
-    UpdateDisplacement(DrawnDisplacementData),
-    DeleteDisplacement(DrawnDisplacementData),
+    AddBC(DrawnBCData),
+    UpdateBC(DrawnBCData),
+    DeleteBC(DrawnBCData),
     // AddAuxForce(AuxForce),
     // UpdateAuxForce((usize, AuxForce)),
     // RemoveAuxForce(usize),
@@ -350,9 +349,6 @@ impl Component for Model
                     canvas_height: height,
                     is_preprocessor_active: true,
                     fem,
-                    // nodes: Vec::new(),
-                    // aux_elements: Vec::new(),
-                    // aux_displacements: Vec::new(),
                     // aux_forces: Vec::new(),
                     analysis_error_message: None,
                     // analysis_result: None,
@@ -392,47 +388,6 @@ impl Component for Model
                     Err(e) => self.state.analysis_error_message = Some(e),
                     _ => (),
                 },
-                    // let removed_node = self.state.nodes.remove(position);
-                    // let mut aux_elements_deletion_positions = Vec::new();
-                    // for (pos, element) in self.state.aux_elements.iter().enumerate()
-                    // {
-                    //     match element.element_type
-                    //     {
-                    //         ElementType::Truss2n2ip =>
-                    //             {
-                    //                 if element.node_1_number == removed_node.number
-                    //                 {
-                    //                     aux_elements_deletion_positions.push(pos);
-                    //                 }
-                    //                 if element.node_2_number == removed_node.number
-                    //                 {
-                    //                     aux_elements_deletion_positions.push(pos);
-                    //                 }
-                    //             },
-                            // ElementType::OtherType =>
-                            //     {
-                            //         if element.node_1_number == removed_node.number
-                            //         {
-                            //             aux_elements_deletion_positions.push(pos);
-                            //         }
-                            //         if element.node_2_number == removed_node.number
-                            //         {
-                            //             aux_elements_deletion_positions.push(pos);
-                            //         }
-                            //     },
-                    //     }
-                    // }
-                    // if !aux_elements_deletion_positions.is_empty()
-                    // {
-                    //     aux_elements_deletion_positions.sort();
-                    //     for position in aux_elements_deletion_positions.iter().rev()
-                    //     {
-                    //         self.state.aux_elements.remove(*position);
-                    //     }
-                    // }
-                    // self.remove_uncoupled_displacements();
-                    // self.remove_uncoupled_forces();
-
             Msg::AddElement(data) =>
                 {
                     let fe_type = data.fe_type;
@@ -465,18 +420,18 @@ impl Component for Model
                     Err(e) => self.state.analysis_error_message = Some(e),
                     _ => (),
                 },
-            Msg::AddDisplacement(data) =>
+            Msg::AddBC(data) =>
                 {
-                    let bc_type = BCType::Displacement;
                     let node_number = data.node_number;
-                    let displacements = vec![
+                    let bcs = vec![
                         data.x_direction_value, data.y_direction_value,
                         data.z_direction_value, data.yz_plane_value,
                         data.zx_plane_value, data.xy_plane_value];
-                    for i in 0..displacements.len()
+                    for i in 0..bcs.len()
                     {
-                        if let Some(value) = displacements[i]
+                        if let Some(value) = bcs[i]
                         {
+                            let bc_type = data.bc_type;
                             let number = data.number * GLOBAL_DOF + i as ElementsNumbers;
                             let dof_parameter =
                                 GlobalDOFParameter::iterator().nth(i).unwrap();
@@ -489,20 +444,20 @@ impl Component for Model
                         }
                     }
                 },
-            Msg::UpdateDisplacement(data) =>
+            Msg::UpdateBC(data) =>
                 {
-                    let bc_type = BCType::Displacement;
                     let node_number = data.node_number;
-                    let displacements = vec![
+                    let bcs = vec![
                         data.x_direction_value, data.y_direction_value,
                         data.z_direction_value, data.yz_plane_value,
                         data.zx_plane_value, data.xy_plane_value];
-                    for i in 0..displacements.len()
+                    for i in 0..bcs.len()
                     {
+                        let bc_type = data.bc_type;
                         let number = data.number * GLOBAL_DOF + i as ElementsNumbers;
                         let dof_parameter =
                             GlobalDOFParameter::iterator().nth(i).unwrap();
-                        if let Some(value) = displacements[i]
+                        if let Some(value) = bcs[i]
                         {
                             match self.state.fem.update_bc(
                                 bc_type, number, node_number, *dof_parameter, value)
@@ -526,7 +481,7 @@ impl Component for Model
                                 .iter()
                                 .position(|bc|
                                     bc.number_same(number) &&
-                                    bc.type_same(BCType::Displacement))
+                                    bc.type_same(bc_type))
                                 .is_some()
                             {
                                 match self.state.fem.delete_bc(bc_type, number)
@@ -538,17 +493,17 @@ impl Component for Model
                         }
                     }
                 },
-            Msg::DeleteDisplacement(data) =>
+            Msg::DeleteBC(data) =>
                 {
-                    let bc_type = BCType::Displacement;
-                    let displacements = vec![
+                    let bcs = vec![
                         data.x_direction_value, data.y_direction_value,
                         data.z_direction_value, data.yz_plane_value,
                         data.zx_plane_value, data.xy_plane_value];
-                    for i in 0..displacements.len()
+                    for i in 0..bcs.len()
                     {
-                        if displacements[i].is_some()
+                        if bcs[i].is_some()
                         {
+                            let bc_type = data.bc_type;
                             let number = data.number * GLOBAL_DOF + i as ElementsNumbers;
                             match self.state.fem.delete_bc(bc_type, number)
                             {
@@ -631,13 +586,12 @@ impl Component for Model
         let handle_delete_element =
             self.link.callback(|number: ElementsNumbers| Msg::DeleteElement(number));
 
-        let drawn_displacements = self.state.fem.drawn_displacement_rc();
-        let handle_add_displacement =
-            self.link.callback(|data: DrawnDisplacementData| Msg::AddDisplacement(data));
-        let handle_update_displacement =
-            self.link.callback(|data: DrawnDisplacementData| Msg::UpdateDisplacement(data));
-        let handle_delete_displacement =
-            self.link.callback(|data: DrawnDisplacementData| Msg::DeleteDisplacement(data));
+        let drawn_bcs = self.state.fem.drawn_bcs_rc();
+        let handle_add_bc = self.link.callback(|data: DrawnBCData| Msg::AddBC(data));
+        let handle_update_bc = self.link.callback(|data: DrawnBCData|
+            Msg::UpdateBC(data));
+        let handle_delete_bc = self.link.callback(|data: DrawnBCData|
+            Msg::DeleteBC(data));
 
         // let handle_add_aux_force =
         //     self.link.callback(|force: AuxForce| Msg::AddAuxForce(force));
@@ -679,20 +633,21 @@ impl Component for Model
                                 analysis_type=self.state.analysis_type.to_owned(),
                                 is_preprocessor_active=self.state.is_preprocessor_active,
                                 drawn_elements=Rc::clone(&drawn_elements),
-                                drawn_displacements=Rc::clone(&drawn_displacements),
-                                add_displacement=handle_add_displacement,
-                                update_displacement=handle_update_displacement,
-                                delete_displacement=handle_delete_displacement,
+                                drawn_bcs=Rc::clone(&drawn_bcs),
+                                add_bc=handle_add_bc,
+                                update_bc=handle_update_bc,
+                                delete_bc=handle_delete_bc,
+                                add_analysis_error_message=handle_add_analysis_error_message,
                             />
-                            // <ForceMenu
-                            //     analysis_type=self.state.analysis_type.to_owned(),
-                            //     is_preprocessor_active=self.state.is_preprocessor_active,
-                            //     aux_elements=self.state.aux_elements.to_owned(),
-                            //     aux_forces=self.state.aux_forces.to_owned(),
-                            //     add_aux_force=handle_add_aux_force,
-                            //     update_aux_force=handle_update_aux_force,
-                            //     remove_aux_force=handle_remove_aux_force,
-                            // />
+                            <ForceMenu
+                                analysis_type=self.state.analysis_type.to_owned(),
+                                is_preprocessor_active=self.state.is_preprocessor_active,
+                                drawn_elements=Rc::clone(&drawn_elements),
+                                drawn_bcs=Rc::clone(&drawn_bcs),
+                                add_bc=handle_add_bc,
+                                update_bc=handle_update_bc,
+                                delete_bc=handle_delete_bc,
+                            />
                             // <button class={ PREPROCESSOR_BUTTON_CLASS }
                             //     // onclick=self.link.callback(|_| Msg::Submit),
                             //     disabled=
@@ -719,7 +674,7 @@ impl Component for Model
                                 nodes=Rc::clone(&nodes),
                                 drawn_elements=Rc::clone(&drawn_elements),
                                 add_analysis_error_message=handle_add_analysis_error_message,
-                                drawn_displacements=Rc::clone(&drawn_displacements),
+                                drawn_bcs=Rc::clone(&drawn_bcs),
                                 // aux_forces=self.state.aux_forces.to_owned(),
                             />
                         </div>

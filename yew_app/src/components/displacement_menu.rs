@@ -5,11 +5,11 @@ use web_sys::
         DomTokenList, HtmlInputElement
     };
 use wasm_bindgen::JsCast;
-
-use crate::{AnalysisType, DrawnDisplacementData, PREPROCESSOR_BUTTON_CLASS, ElementsNumbers, ElementsValues};
-use crate::auxiliary::{DrawnDisplacementInputOption, FEDrawnElementData};
-use crate::fem::FEType;
 use std::rc::Rc;
+
+use crate::{AnalysisType, DrawnBCData, PREPROCESSOR_BUTTON_CLASS, ElementsNumbers, ElementsValues};
+use crate::auxiliary::{DrawnDisplacementInputOption, FEDrawnElementData};
+use crate::fem::{FEType, BCType};
 
 
 const DISPLACEMENT_MENU_ID: &str = "displacement_menu";
@@ -43,16 +43,17 @@ pub struct Props
     pub analysis_type: Option<AnalysisType>,
     pub is_preprocessor_active: bool,
     pub drawn_elements: Rc<Vec<FEDrawnElementData>>,
-    pub drawn_displacements: Rc<Vec<DrawnDisplacementData>>,
-    pub add_displacement: Callback<DrawnDisplacementData>,
-    pub update_displacement: Callback<DrawnDisplacementData>,
-    pub delete_displacement: Callback<DrawnDisplacementData>,
+    pub drawn_bcs: Rc<Vec<DrawnBCData>>,
+    pub add_bc: Callback<DrawnBCData>,
+    pub update_bc: Callback<DrawnBCData>,
+    pub delete_bc: Callback<DrawnBCData>,
+    pub add_analysis_error_message: Callback<String>,
 }
 
 
 struct State
 {
-    selected_displacement: DrawnDisplacementData,
+    selected_displacement: DrawnBCData,
     displacement_x_is_active: bool,
     displacement_y_is_active: bool,
     displacement_z_is_active: bool,
@@ -114,27 +115,32 @@ impl DisplacementMenu
             .map_err(|_| ())
             .unwrap();
         let options: HtmlOptionsCollection = select.options();
-        options.set_length(self.props.drawn_displacements.len() as u32 + 1);
+        options.set_length(self.props.drawn_bcs.iter().filter(|bc|
+            bc.bc_type == BCType::Displacement).collect::<Vec<&DrawnBCData>>().len() as u32 + 1);
         let number =
             {
                 let mut n = 0;
-                for (i, displacement) in self.props.drawn_displacements.iter().enumerate()
+                for (i, bc) in self.props.drawn_bcs
+                    .iter()
+                    .filter(|bc| bc.bc_type == BCType::Displacement)
+                    .enumerate()
                 {
                     if let Ok(option) = HtmlOptionElement::new()
                     {
-                        option.set_value(&displacement.number.to_string());
-                        option.set_text(&displacement.number.to_string());
+                        option.set_value(&bc.number.to_string());
+                        option.set_text(&bc.number.to_string());
                         options.set(i as u32, Some(&option)).unwrap();
                     }
-                    if displacement.number > n
+                    if bc.number > n
                     {
-                        n = displacement.number;
+                        n = bc.number;
                     }
                 }
                 n + 1
             };
-        self.state.selected_displacement = DrawnDisplacementData
+        self.state.selected_displacement = DrawnBCData
             {
+                bc_type: BCType::Displacement,
                 number: number as ElementsNumbers,
                 node_number: 1 as ElementsNumbers,
                 is_rotation_stiffness_enabled: false,
@@ -155,9 +161,13 @@ impl DisplacementMenu
         {
             option.set_value(&number.to_string());
             option.set_text(&format!("{} New", number));
-            options.set(self.props.drawn_displacements.len() as u32, Some(&option)).unwrap();
+            options.set(self.props.drawn_bcs.iter().filter(|bc|
+                bc.bc_type == BCType::Displacement).collect::<Vec<&DrawnBCData>>().len() as u32,
+                Some(&option)).unwrap();
         }
-        options.set_selected_index(self.props.drawn_displacements.len() as i32).unwrap();
+        options.set_selected_index(self.props.drawn_bcs.iter().filter(|bc|
+            bc.bc_type == BCType::Displacement).collect::<Vec<&DrawnBCData>>().len() as i32)
+            .unwrap();
     }
 
 
@@ -222,8 +232,9 @@ impl Component for DisplacementMenu
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self
     {
         let selected_displacement =
-            DrawnDisplacementData
+            DrawnBCData
             {
+                bc_type: BCType::Displacement,
                 number: 1 as ElementsNumbers,
                 node_number: 1 as ElementsNumbers,
                 is_rotation_stiffness_enabled: false,
@@ -262,17 +273,16 @@ impl Component for DisplacementMenu
                     {
                         ChangeData::Select(select_displacement) =>
                             {
-                                if let Some(position) = self.props.drawn_displacements
-                                        .iter()
-                                        .position(|displacement|
-                                            displacement.number.to_string() ==
-                                                select_displacement.value())
+                                if let Some(position) = self.props.drawn_bcs
+                                    .iter()
+                                    .position(|bc|
+                                        bc.number.to_string() == select_displacement.value() &&
+                                        bc.bc_type == BCType::Displacement)
                                 {
                                     self.state.selected_displacement =
-                                        self.props.drawn_displacements[position].to_owned();
+                                        self.props.drawn_bcs[position].to_owned();
                                     if let Some(displacement_x) =
-                                        self.props.drawn_displacements[position]
-                                            .to_owned().x_direction_value
+                                        self.props.drawn_bcs[position].to_owned().x_direction_value
                                     {
                                         if displacement_x != 0.0 as ElementsValues
                                         {
@@ -288,8 +298,7 @@ impl Component for DisplacementMenu
                                         self.state.displacement_x_is_active = false;
                                     }
                                     if let Some(displacement_y) =
-                                        self.props.drawn_displacements[position]
-                                            .to_owned().y_direction_value
+                                        self.props.drawn_bcs[position].to_owned().y_direction_value
                                     {
                                         if displacement_y != 0.0 as ElementsValues
                                         {
@@ -305,8 +314,7 @@ impl Component for DisplacementMenu
                                         self.state.displacement_y_is_active = false;
                                     }
                                     if let Some(displacement_z) =
-                                        self.props.drawn_displacements[position]
-                                            .to_owned().z_direction_value
+                                        self.props.drawn_bcs[position].to_owned().z_direction_value
                                     {
                                         if displacement_z != 0.0 as ElementsValues
                                         {
@@ -322,8 +330,7 @@ impl Component for DisplacementMenu
                                         self.state.displacement_z_is_active = false;
                                     }
                                     if let Some(rotation_xy) =
-                                        self.props.drawn_displacements[position]
-                                            .to_owned().xy_plane_value
+                                        self.props.drawn_bcs[position].to_owned().xy_plane_value
                                     {
                                         if rotation_xy != 0.0 as ElementsValues
                                         {
@@ -339,8 +346,7 @@ impl Component for DisplacementMenu
                                         self.state.rotation_xy_is_active = false;
                                     }
                                     if let Some(rotation_yz) =
-                                        self.props.drawn_displacements[position]
-                                            .to_owned().yz_plane_value
+                                        self.props.drawn_bcs[position].to_owned().yz_plane_value
                                     {
                                         if rotation_yz != 0.0 as ElementsValues
                                         {
@@ -356,8 +362,7 @@ impl Component for DisplacementMenu
                                         self.state.rotation_yz_is_active = false;
                                     }
                                     if let Some(rotation_zx) =
-                                        self.props.drawn_displacements[position]
-                                            .to_owned().zx_plane_value
+                                        self.props.drawn_bcs[position].to_owned().zx_plane_value
                                     {
                                         if rotation_zx != 0.0 as ElementsValues
                                         {
@@ -375,11 +380,13 @@ impl Component for DisplacementMenu
                                 }
                                 else
                                 {
+                                    let bc_type = BCType::Displacement;
                                     let number = select_displacement.value()
                                         .parse::<ElementsNumbers>().unwrap();
                                     let node_number = 1 as ElementsNumbers;
-                                    self.state.selected_displacement = DrawnDisplacementData
+                                    self.state.selected_displacement = DrawnBCData
                                         {
+                                            bc_type,
                                             number,
                                             node_number,
                                             is_rotation_stiffness_enabled:
@@ -412,7 +419,6 @@ impl Component for DisplacementMenu
                             "Node number cannot be less than 1.");
                             return false;
                         }
-
                         if self.check_rotation_stiffness(node_number)
                         {
                             self.state.selected_displacement.is_rotation_stiffness_enabled = true;
@@ -466,7 +472,8 @@ impl Component for DisplacementMenu
                                     self.state.displacement_y_is_active = false;
                                     self.state.selected_displacement.y_direction_value = None;
                                 }
-                                if y_input_option == DrawnDisplacementInputOption::Restrained.as_str()
+                                if y_input_option ==
+                                    DrawnDisplacementInputOption::Restrained.as_str()
                                 {
                                     self.state.displacement_y_is_active = false;
                                     self.state.selected_displacement.y_direction_value =
@@ -491,7 +498,8 @@ impl Component for DisplacementMenu
                                     self.state.displacement_z_is_active = false;
                                     self.state.selected_displacement.z_direction_value = None;
                                 }
-                                if z_input_option == DrawnDisplacementInputOption::Restrained.as_str()
+                                if z_input_option ==
+                                    DrawnDisplacementInputOption::Restrained.as_str()
                                 {
                                     self.state.displacement_z_is_active = false;
                                     self.state.selected_displacement.z_direction_value =
@@ -516,7 +524,8 @@ impl Component for DisplacementMenu
                                     self.state.rotation_xy_is_active = false;
                                     self.state.selected_displacement.xy_plane_value = None;
                                 }
-                                if xy_input_option == DrawnDisplacementInputOption::Restrained.as_str()
+                                if xy_input_option ==
+                                    DrawnDisplacementInputOption::Restrained.as_str()
                                 {
                                     self.state.rotation_xy_is_active = false;
                                     self.state.selected_displacement.xy_plane_value =
@@ -541,7 +550,8 @@ impl Component for DisplacementMenu
                                     self.state.rotation_yz_is_active = false;
                                     self.state.selected_displacement.yz_plane_value = None;
                                 }
-                                if yz_input_option == DrawnDisplacementInputOption::Restrained.as_str()
+                                if yz_input_option ==
+                                    DrawnDisplacementInputOption::Restrained.as_str()
                                 {
                                     self.state.rotation_yz_is_active = false;
                                     self.state.selected_displacement.yz_plane_value =
@@ -566,7 +576,8 @@ impl Component for DisplacementMenu
                                     self.state.rotation_zx_is_active = false;
                                     self.state.selected_displacement.zx_plane_value = None;
                                 }
-                                if zx_input_option == DrawnDisplacementInputOption::Restrained.as_str()
+                                if zx_input_option ==
+                                    DrawnDisplacementInputOption::Restrained.as_str()
                                 {
                                     self.state.rotation_zx_is_active = false;
                                     self.state.selected_displacement.zx_plane_value =
@@ -585,17 +596,20 @@ impl Component for DisplacementMenu
                     if self.state.displacement_x_is_active
                     {
                         self.state.selected_displacement.x_direction_value =
-                            self.read_inputted_displacement(DISPLACEMENT_IN_X_DIRECTION_VALUE);
+                            self.read_inputted_displacement(
+                                DISPLACEMENT_IN_X_DIRECTION_VALUE);
                     }
                     if self.state.displacement_y_is_active
                     {
                         self.state.selected_displacement.y_direction_value =
-                            self.read_inputted_displacement(DISPLACEMENT_IN_Y_DIRECTION_VALUE);
+                            self.read_inputted_displacement(
+                                DISPLACEMENT_IN_Y_DIRECTION_VALUE);
                     }
                     if self.state.displacement_z_is_active
                     {
                         self.state.selected_displacement.z_direction_value =
-                            self.read_inputted_displacement(DISPLACEMENT_IN_Z_DIRECTION_VALUE);
+                            self.read_inputted_displacement(
+                                DISPLACEMENT_IN_Z_DIRECTION_VALUE);
                     }
                     if self.state.rotation_xy_is_active
                     {
@@ -619,31 +633,32 @@ impl Component for DisplacementMenu
                             "The some displacement value must be specified.");
                         return false;
                     }
-
-                    if self.props.drawn_displacements
+                    if self.props.drawn_bcs
                         .iter()
-                        .position(|displacement|
-                            displacement.number == self.state.selected_displacement.number)
+                        .position(|bc|
+                            bc.number == self.state.selected_displacement.number &&
+                            bc.bc_type == BCType::Displacement)
                         .is_some()
                     {
-                        self.props.update_displacement.emit(
+                        self.props.update_bc.emit(
                             self.state.selected_displacement.to_owned());
                     }
                     else
                     {
-                        self.props.add_displacement.emit(
+                        self.props.add_bc.emit(
                             self.state.selected_displacement.to_owned());
                     }
                 },
             Msg::DeleteDisplacement =>
                 {
-                    if self.props.drawn_displacements
+                    if self.props.drawn_bcs
                         .iter()
-                        .position(|displacement| displacement.number ==
-                            self.state.selected_displacement.number)
+                        .position(|bc| bc.number ==
+                            self.state.selected_displacement.number &&
+                            bc.bc_type == BCType::Displacement)
                         .is_some()
                         {
-                            self.props.delete_displacement.emit(
+                            self.props.delete_bc.emit(
                                 self.state.selected_displacement.to_owned());
                         }
                 },
@@ -657,7 +672,7 @@ impl Component for DisplacementMenu
         if (&self.props.analysis_type, &self.props.is_preprocessor_active) !=
             (&props.analysis_type, &props.is_preprocessor_active) ||
             !Rc::ptr_eq(&self.props.drawn_elements, &props.drawn_elements) ||
-            !Rc::ptr_eq(&self.props.drawn_displacements, &props.drawn_displacements)
+            !Rc::ptr_eq(&self.props.drawn_bcs, &props.drawn_bcs)
         {
             self.props = props;
             self.update_numbers_in_displacement_menu();
@@ -688,7 +703,8 @@ impl Component for DisplacementMenu
                     onclick=self.link.callback(|_| Msg::ShowHideDisplacementMenu),
                     disabled=
                         {
-                            if self.props.analysis_type.is_some() && self.props.is_preprocessor_active
+                            if self.props.analysis_type.is_some() &&
+                                self.props.is_preprocessor_active
                             {
                                 false
                             }

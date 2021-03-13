@@ -162,7 +162,7 @@ impl<T, V> BCTrait<T, V> for Displacement<T, V>
 }
 
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum BCType
 {
     Force,

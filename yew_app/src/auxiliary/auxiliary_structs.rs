@@ -1,6 +1,6 @@
 use crate::{GLElementsNumbers, GLElementsValues};
 use crate::{ElementsNumbers, ElementsValues};
-use crate::fem::FEType;
+use crate::fem::{FEType, BCType};
 // use crate::components::preprocessor_canvas::gl::gl_aux_structs::DRAWN_ELEMENTS_DENOTATION_SHIFT;
 
 
@@ -131,8 +131,9 @@ impl FEDrawnElementData
 
 
 #[derive(Clone, PartialEq, Debug)]
-pub struct DrawnDisplacementData
+pub struct DrawnBCData
 {
+    pub bc_type: BCType,
     pub number: ElementsNumbers,
     pub node_number: ElementsNumbers,
     pub is_rotation_stiffness_enabled: bool,
@@ -145,7 +146,7 @@ pub struct DrawnDisplacementData
 }
 
 
-impl DrawnDisplacementData
+impl DrawnBCData
 {
     pub fn find_denotation_coordinates(&self, normalized_nodes: &Vec<NormalizedNode>)
     -> Result<[GLElementsValues; 4], String>

@@ -3,7 +3,7 @@ use crate::components::preprocessor_canvas::gl::gl_aux_functions::find_node_coor
 
 use crate::{ElementsValues, ElementsNumbers};
 use crate::fem::{FENode, FEType};
-use crate::auxiliary::{NormalizedNode, FEDrawnElementData, DrawnDisplacementData};
+use crate::auxiliary::{NormalizedNode, FEDrawnElementData, DrawnBCData};
 
 use web_sys::{WebGlBuffer, WebGlUniformLocation, WebGlProgram, WebGlRenderingContext as GL};
 use std::f32::consts::PI;
@@ -402,8 +402,8 @@ impl DrawnObject
 
 
     pub fn add_displacements(&mut self, normalized_nodes: &Vec<NormalizedNode>,
-        drawn_displacements: &Vec<DrawnDisplacementData>, base_points_number: GLElementsNumbers,
-        height: GLElementsValues, base_radius: GLElementsValues)
+         drawn_displacements: &Vec<&DrawnBCData>, base_points_number: GLElementsNumbers,
+         height: GLElementsValues, base_radius: GLElementsValues)
     {
         let mut start_index =
             if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };

@@ -34,9 +34,9 @@ use crate::components::preprocessor_canvas::gl::gl_aux_structs::
         DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_Y
     };
 
-use crate::fem::{FENode, FEType};
+use crate::fem::{FENode, FEType, BCType};
 use crate::{ElementsNumbers, ElementsValues, GLElementsNumbers, GLElementsValues};
-use crate::auxiliary::{View, FEDrawnElementData, DrawnDisplacementData};
+use crate::auxiliary::{View, FEDrawnElementData, DrawnBCData};
 
 
 const PREPROCESSOR_CANVAS_CONTAINER_CLASS: &str = "preprocessor_canvas_container";
@@ -66,7 +66,7 @@ pub struct Props
     pub nodes: Rc<Vec<Rc<RefCell<FENode<ElementsNumbers, ElementsValues>>>>>,
     pub drawn_elements: Rc<Vec<FEDrawnElementData>>,
     pub add_analysis_error_message: Callback<String>,
-    pub drawn_displacements: Rc<Vec<DrawnDisplacementData>>,
+    pub drawn_bcs: Rc<Vec<DrawnBCData>>,
 }
 
 
@@ -260,7 +260,7 @@ impl Component for PreprocessorCanvas
             (&props.view, &props.canvas_height, &props.canvas_width) ||
             !Rc::ptr_eq(&self.props.nodes, &props.nodes) ||
             !Rc::ptr_eq(&self.props.drawn_elements, &props.drawn_elements) ||
-            !Rc::ptr_eq(&self.props.drawn_displacements, &props.drawn_displacements)
+            !Rc::ptr_eq(&self.props.drawn_bcs, &props.drawn_bcs)
         {
             self.props = props;
             if let Some(view) = &self.props.view
@@ -467,10 +467,16 @@ impl PreprocessorCanvas
                 }
             }
 
-            if !self.props.drawn_displacements.is_empty()
+            let drawn_displacements: Vec<&DrawnBCData> =
+                self.props.drawn_bcs
+                    .iter()
+                    .filter(|bc|
+                        bc.bc_type == BCType::Displacement)
+                    .collect();
+            if !drawn_displacements.is_empty()
             {
                 drawn_object.add_displacements(
-                    &normalized_nodes, &self.props.drawn_displacements,
+                    &normalized_nodes, &drawn_displacements,
                     DRAWN_DISPLACEMENTS_CAPS_BASE_POINTS_NUMBER,
                     DRAWN_DISPLACEMENTS_CAPS_HEIGHT / (1.0 + self.state.d_scale),
                     DRAWN_DISPLACEMENTS_CAPS_WIDTH / (1.0 + self.state.d_scale));
@@ -544,9 +550,9 @@ impl PreprocessorCanvas
                 }
             }
 
-            if !self.props.drawn_displacements.is_empty()
+            if !drawn_displacements.is_empty()
             {
-                for displacement in self.props.drawn_displacements.as_ref()
+                for displacement in drawn_displacements
                 {
                     match displacement.find_denotation_coordinates(&normalized_nodes)
                     {

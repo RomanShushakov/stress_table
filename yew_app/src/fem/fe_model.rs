@@ -14,7 +14,7 @@ use crate::extended_matrix::extract_element_value;
 use crate::{ElementsNumbers, ElementsValues};
 
 use crate::fem::element_analysis::fe_element_analysis_result::ElementsAnalysisResult;
-use crate::auxiliary::{FEDrawnElementData, DrawnDisplacementData};
+use crate::auxiliary::{FEDrawnElementData, DrawnBCData};
 
 use std::ops::{Sub, Div, Rem, SubAssign, Mul, Add, AddAssign, MulAssign};
 use std::hash::Hash;
@@ -695,16 +695,16 @@ impl<T, V> FEModel<T, V>
     }
 
 
-    pub fn drawn_displacement_rc(&self) -> Rc<Vec<DrawnDisplacementData>>
+    pub fn drawn_bcs_rc(&self) -> Rc<Vec<DrawnBCData>>
     {
-        let mut drawn_displacements = Vec::new();
-        for displacement in self.boundary_conditions
-            .iter().filter(|bc| bc.type_same(BCType::Displacement))
+        let mut drawn_bcs = Vec::new();
+        for bc in &self.boundary_conditions
         {
-            let number = displacement.extract_number().into() / GLOBAL_DOF;
-            let node_number = displacement.extract_node_number().into();
-            let value = displacement.extract_value().into();
-            let mut drawn_displacement = DrawnDisplacementData { number, node_number,
+            let bc_type = bc.extract_bc_type();
+            let number = bc.extract_number().into() / GLOBAL_DOF;
+            let node_number = bc.extract_node_number().into();
+            let value = bc.extract_value().into();
+            let mut drawn_bc = DrawnBCData { bc_type, number, node_number,
                     is_rotation_stiffness_enabled: false, x_direction_value: None,
                     y_direction_value: None, z_direction_value: None, xy_plane_value: None,
                     yz_plane_value: None, zx_plane_value: None
@@ -714,69 +714,69 @@ impl<T, V> FEModel<T, V>
             {
                 let dof_parameter =
                     GlobalDOFParameter::iterator().nth(i as usize).unwrap();
-                if displacement.dof_parameter_data_same(*dof_parameter,
-                    T::from(node_number))
+                if bc.dof_parameter_data_same(*dof_parameter,
+                                              T::from(node_number))
                 {
                     match dof_parameter
                     {
-                        GlobalDOFParameter::X => drawn_displacement.x_direction_value = Some(value),
-                        GlobalDOFParameter::Y => drawn_displacement.y_direction_value = Some(value),
-                        GlobalDOFParameter::Z => drawn_displacement.z_direction_value = Some(value),
-                        GlobalDOFParameter::ThX => drawn_displacement.yz_plane_value = Some(value),
-                        GlobalDOFParameter::ThY => drawn_displacement.zx_plane_value = Some(value),
-                        GlobalDOFParameter::ThZ => drawn_displacement.xy_plane_value = Some(value),
+                        GlobalDOFParameter::X => drawn_bc.x_direction_value = Some(value),
+                        GlobalDOFParameter::Y => drawn_bc.y_direction_value = Some(value),
+                        GlobalDOFParameter::Z => drawn_bc.z_direction_value = Some(value),
+                        GlobalDOFParameter::ThX => drawn_bc.yz_plane_value = Some(value),
+                        GlobalDOFParameter::ThY => drawn_bc.zx_plane_value = Some(value),
+                        GlobalDOFParameter::ThZ => drawn_bc.xy_plane_value = Some(value),
                     }
                     if i > 2 as ElementsNumbers
                     {
-                        drawn_displacement.is_rotation_stiffness_enabled = true;
+                        drawn_bc.is_rotation_stiffness_enabled = true;
                     }
                     break;
                 }
             }
-            if let Some(position) = drawn_displacements
-                .iter().position(|data: &DrawnDisplacementData| data.number == number)
+            if let Some(position) = drawn_bcs
+                .iter().position(|data: &DrawnBCData| data.number == number)
             {
-                if !drawn_displacements[position].is_rotation_stiffness_enabled
+                if !drawn_bcs[position].is_rotation_stiffness_enabled
                 {
-                    drawn_displacements[position].is_rotation_stiffness_enabled =
-                        drawn_displacement.is_rotation_stiffness_enabled;
+                    drawn_bcs[position].is_rotation_stiffness_enabled =
+                        drawn_bc.is_rotation_stiffness_enabled;
                 }
-                if drawn_displacements[position].x_direction_value.is_none()
+                if drawn_bcs[position].x_direction_value.is_none()
                 {
-                    drawn_displacements[position].x_direction_value =
-                        drawn_displacement.x_direction_value;
+                    drawn_bcs[position].x_direction_value =
+                        drawn_bc.x_direction_value;
                 }
-                if drawn_displacements[position].y_direction_value.is_none()
+                if drawn_bcs[position].y_direction_value.is_none()
                 {
-                    drawn_displacements[position].y_direction_value =
-                        drawn_displacement.y_direction_value;
+                    drawn_bcs[position].y_direction_value =
+                        drawn_bc.y_direction_value;
                 }
-                if drawn_displacements[position].z_direction_value.is_none()
+                if drawn_bcs[position].z_direction_value.is_none()
                 {
-                    drawn_displacements[position].z_direction_value =
-                        drawn_displacement.z_direction_value;
+                    drawn_bcs[position].z_direction_value =
+                        drawn_bc.z_direction_value;
                 }
-                if drawn_displacements[position].xy_plane_value.is_none()
+                if drawn_bcs[position].xy_plane_value.is_none()
                 {
-                    drawn_displacements[position].xy_plane_value =
-                        drawn_displacement.xy_plane_value;
+                    drawn_bcs[position].xy_plane_value =
+                        drawn_bc.xy_plane_value;
                 }
-                if drawn_displacements[position].yz_plane_value.is_none()
+                if drawn_bcs[position].yz_plane_value.is_none()
                 {
-                    drawn_displacements[position].yz_plane_value =
-                        drawn_displacement.yz_plane_value;
+                    drawn_bcs[position].yz_plane_value =
+                        drawn_bc.yz_plane_value;
                 }
-                if drawn_displacements[position].zx_plane_value.is_none()
+                if drawn_bcs[position].zx_plane_value.is_none()
                 {
-                    drawn_displacements[position].zx_plane_value =
-                        drawn_displacement.zx_plane_value;
+                    drawn_bcs[position].zx_plane_value =
+                        drawn_bc.zx_plane_value;
                 }
             }
             else
             {
-                drawn_displacements.push(drawn_displacement);
+                drawn_bcs.push(drawn_bc);
             }
         }
-        Rc::new(drawn_displacements)
+        Rc::new(drawn_bcs)
     }
 }

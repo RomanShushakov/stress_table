@@ -479,7 +479,7 @@ impl DrawnObject
     }
 
 
-    fn add_forces_lines(&mut self, dof_parameter: GlobalDOFParameter, value: ElementsValues,
+    fn add_force_line(&mut self, dof_parameter: GlobalDOFParameter, value: ElementsValues,
         x_start: GLElementsValues, y_start: GLElementsValues, z_start: GLElementsValues,
         line_length: GLElementsValues, start_index: GLElementsNumbers)
         -> (GLElementsValues, GLElementsValues, GLElementsValues)
@@ -592,6 +592,7 @@ impl DrawnObject
                         },
                 }
             };
+        self.vertices_coordinates.extend(&[x_start, y_start, z_start]);
         self.vertices_coordinates.extend(&[x_end, y_end, z_end]);
         self.colors_values.extend(&DRAWN_FORCES_COLOR);
         self.colors_values.extend(&DRAWN_FORCES_COLOR);
@@ -604,11 +605,12 @@ impl DrawnObject
     }
 
 
-    fn add_forces_caps(&mut self, dof_parameter: GlobalDOFParameter, value: ElementsValues,
-        base_points_number: GLElementsNumbers, height: GLElementsValues,
-        base_radius: GLElementsValues, x_end: GLElementsValues, y_end: GLElementsValues,
-        z_end: GLElementsValues, start_index: GLElementsNumbers)
+    fn add_force_cap(&mut self, dof_parameter: GlobalDOFParameter, value: ElementsValues,
+         base_points_number: GLElementsNumbers, height: GLElementsValues,
+         base_radius: GLElementsValues, x_end: GLElementsValues, y_end: GLElementsValues,
+         z_end: GLElementsValues, start_index: GLElementsNumbers)
     {
+        self.vertices_coordinates.extend(&[x_end, y_end, z_end]);
         let tolerance = TOLERANCE as GLElementsValues;
         let angle = 2.0 * PI / base_points_number as GLElementsValues;
         for point_number in 0..base_points_number
@@ -744,35 +746,34 @@ impl DrawnObject
                 let x_start = normalized_nodes[position].x;
                 let y_start = normalized_nodes[position].y;
                 let z_start = normalized_nodes[position].z;
-                self.vertices_coordinates.extend(&[x_start, y_start, z_start]);
                 if let Some(x_value) = force.x_direction_value
                 {
                     let (x_end, y_end, z_end) =
-                        self.add_forces_lines(GlobalDOFParameter::X, x_value, x_start,
+                        self.add_force_line(GlobalDOFParameter::X, x_value, x_start,
                             y_start, z_start, line_length, start_index);
-                    start_index += 1;
-                    self.add_forces_caps(GlobalDOFParameter::X, x_value,
-                        base_points_number, height, base_radius, x_end,  y_end, z_end, start_index);
+                    start_index += 2;
+                    self.add_force_cap(GlobalDOFParameter::X, x_value,
+                        base_points_number, height, base_radius, x_end, y_end, z_end, start_index);
                     start_index += base_points_number + 1;
                 }
                 if let Some(y_value) = force.y_direction_value
                 {
                     let (x_end, y_end, z_end) =
-                        self.add_forces_lines(GlobalDOFParameter::Y, y_value, x_start,
+                        self.add_force_line(GlobalDOFParameter::Y, y_value, x_start,
                             y_start, z_start, line_length, start_index);
-                    start_index += 1;
-                    self.add_forces_caps(GlobalDOFParameter::Y, y_value,
-                        base_points_number, height, base_radius, x_end,  y_end, z_end, start_index);
+                    start_index += 2;
+                    self.add_force_cap(GlobalDOFParameter::Y, y_value,
+                        base_points_number, height, base_radius, x_end, y_end, z_end, start_index);
                     start_index += base_points_number + 1;
                 }
                 if let Some(z_value) = force.z_direction_value
                 {
                     let (x_end, y_end, z_end) =
-                        self.add_forces_lines(GlobalDOFParameter::Z, z_value, x_start,
+                        self.add_force_line(GlobalDOFParameter::Z, z_value, x_start,
                             y_start, z_start, line_length, start_index);
-                    start_index += 1;
-                    self.add_forces_caps(GlobalDOFParameter::Z, z_value,
-                        base_points_number, height, base_radius, x_end,  y_end, z_end, start_index);
+                    start_index += 2;
+                    self.add_force_cap(GlobalDOFParameter::Z, z_value,
+                        base_points_number, height, base_radius, x_end, y_end, z_end, start_index);
                     start_index += base_points_number + 1;
                 }
             }

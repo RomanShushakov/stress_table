@@ -143,18 +143,18 @@ impl Component for AnalysisTypeMenu
             <>
                 <button
                     class={ PREPROCESSOR_BUTTON_CLASS },
-                    disabled=
-                        {
-                            if self.props.analysis_type.is_some()
-                            {
-                                self.hide_analysis_type_menu();
-                                true
-                            }
-                            else
-                            {
-                                false
-                            }
-                         },
+                    // disabled=
+                    //     {
+                    //         if self.props.analysis_type.is_some()
+                    //         {
+                    //             self.hide_analysis_type_menu();
+                    //             true
+                    //         }
+                    //         else
+                    //         {
+                    //             false
+                    //         }
+                    //      },
                     onclick=self.link.callback(|_| Msg::ShowHideAnalysisTypeMenu),
                 >
                     { "Analysis type" }

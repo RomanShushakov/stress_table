@@ -172,7 +172,7 @@ impl Component for AnalysisTypeMenu
                                 id={ TWO_DIMENSIONAL_ANALYSIS_TYPE_ID },
                                 name={ ANALYSIS_TYPE_INPUT_NAME },
                                 value={ AnalysisType::TwoDimensional.as_str() },
-                                checked=true
+                                // checked=true
                             />
                             <label for={ TWO_DIMENSIONAL_ANALYSIS_TYPE_ID }>
                                 { AnalysisType::TwoDimensional.as_str() }

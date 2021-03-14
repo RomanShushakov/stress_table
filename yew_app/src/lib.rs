@@ -72,7 +72,7 @@ struct State
     canvas_width: u32,
     canvas_height: u32,
     is_preprocessor_active: bool,
-    // fem: FEModel<ElementsNumbers, ElementsValues>,
+    fem: FEModel<ElementsNumbers, ElementsValues>,
     analysis_error_message: Option<String>,
     // analysis_result: Option<AnalysisResult>,
     result_view: Option<ResultView>,
@@ -93,15 +93,15 @@ enum Msg
     AddAnalysisType(AnalysisType),
     ChangeView(View),
     DiscardView,
-    // AddNode(FEDrawnNodeData),
-    // UpdateNode(FEDrawnNodeData),
-    // DeleteNode(ElementsNumbers),
-    // AddElement(FEDrawnElementData),
-    // UpdateElement(FEDrawnElementData),
-    // DeleteElement(ElementsNumbers),
-    // AddBC(DrawnBCData),
-    // UpdateBC(DrawnBCData),
-    // DeleteBC(DrawnBCData),
+    AddNode(FEDrawnNodeData),
+    UpdateNode(FEDrawnNodeData),
+    DeleteNode(ElementsNumbers),
+    AddElement(FEDrawnElementData),
+    UpdateElement(FEDrawnElementData),
+    DeleteElement(ElementsNumbers),
+    AddBC(DrawnBCData),
+    UpdateBC(DrawnBCData),
+    DeleteBC(DrawnBCData),
     // Submit,
     AddAnalysisErrorMessage(String),
     ResetAnalysisErrorMessage,
@@ -327,7 +327,7 @@ impl Component for Model
                 }
                 (width, height)
             };
-        // let fem = FEModel::create();
+        let fem = FEModel::create();
         Self
         {
             link,
@@ -338,7 +338,7 @@ impl Component for Model
                     canvas_width: width,
                     canvas_height: height,
                     is_preprocessor_active: true,
-                    // fem,
+                    fem,
                     analysis_error_message: None,
                     // analysis_result: None,
                     result_view: None,
@@ -358,158 +358,158 @@ impl Component for Model
                 self.state.analysis_type = Some(analysis_type),
             Msg::ChangeView(view) => self.state.view = Some(view),
             Msg::DiscardView => self.state.view = None,
-            // Msg::AddNode(data) =>
-            //     {
-            //         match self.state.fem.add_node(data.number, data.x, data.y, data.z)
-            //         {
-            //             Err(e) => self.state.analysis_error_message = Some(e),
-            //             _ => (),
-            //         }
-            //     },
-            // Msg::UpdateNode(data) => match self.state.fem
-            //         .update_node(data.number, data.x, data.y, data.z)
-            //     {
-            //         Err(e) => self.state.analysis_error_message = Some(e),
-            //         _ => (),
-            //     },
-            // Msg::DeleteNode(number) => match self.state.fem.delete_node(number)
-            //     {
-            //         Err(e) => self.state.analysis_error_message = Some(e),
-            //         _ => (),
-            //     },
-            // Msg::AddElement(data) =>
-            //     {
-            //         let fe_type = data.fe_type;
-            //         let nodes_numbers = data.nodes_numbers;
-            //         let number = data.number;
-            //         let properties = data.properties;
-            //         match self.state.fem
-            //             .add_element(fe_type, nodes_numbers,
-            //                          FEData { number, nodes: Vec::new(), properties })
-            //         {
-            //             Err(e) => self.state.analysis_error_message = Some(e),
-            //             _ => ()
-            //         }
-            //     },
-            // Msg::UpdateElement(data) =>
-            //     {
-            //         let nodes_numbers = data.nodes_numbers;
-            //         let number = data.number;
-            //         let properties = data.properties;
-            //         match self.state.fem
-            //             .update_element(nodes_numbers,
-            //                 FEData { number, nodes: Vec::new(), properties })
-            //         {
-            //             Err(e) => self.state.analysis_error_message = Some(e),
-            //             _ => ()
-            //         }
-            //     },
-            // Msg::DeleteElement(number) => match self.state.fem.delete_element(number)
-            //     {
-            //         Err(e) => self.state.analysis_error_message = Some(e),
-            //         _ => (),
-            //     },
-            // Msg::AddBC(data) =>
-            //     {
-            //         let node_number = data.node_number;
-            //         let bcs = vec![
-            //             data.x_direction_value, data.y_direction_value,
-            //             data.z_direction_value, data.yz_plane_value,
-            //             data.zx_plane_value, data.xy_plane_value];
-            //         for i in 0..bcs.len()
-            //         {
-            //             if let Some(value) = bcs[i]
-            //             {
-            //                 let bc_type = data.bc_type;
-            //                 let number = data.number * GLOBAL_DOF + i as ElementsNumbers;
-            //                 let dof_parameter =
-            //                     GlobalDOFParameter::iterator().nth(i).unwrap();
-            //                 match self.state.fem.add_bc(
-            //                     bc_type, number, node_number, *dof_parameter, value)
-            //                 {
-            //                     Err(e) => self.state.analysis_error_message = Some(e),
-            //                     _ => ()
-            //                 }
-            //             }
-            //         }
-            //     },
-            // Msg::UpdateBC(data) =>
-            //     {
-            //         let node_number = data.node_number;
-            //         let bcs = vec![
-            //             data.x_direction_value, data.y_direction_value,
-            //             data.z_direction_value, data.yz_plane_value,
-            //             data.zx_plane_value, data.xy_plane_value];
-            //         for i in 0..bcs.len()
-            //         {
-            //             let bc_type = data.bc_type;
-            //             let number = data.number * GLOBAL_DOF + i as ElementsNumbers;
-            //             let dof_parameter =
-            //                 GlobalDOFParameter::iterator().nth(i).unwrap();
-            //             if let Some(value) = bcs[i]
-            //             {
-            //                 if self.state.fem.boundary_conditions
-            //                     .iter()
-            //                     .position(|model_bc|
-            //                         model_bc.number_same(number) && model_bc.type_same(bc_type))
-            //                     .is_some()
-            //                 {
-            //                     match self.state.fem.update_bc(bc_type, number, node_number,
-            //                         *dof_parameter, value)
-            //                     {
-            //                         Err(e) => self.state.analysis_error_message = Some(e),
-            //                         _ => (),
-            //                     }
-            //                 }
-            //                 else
-            //                 {
-            //                     match self.state.fem.add_bc(
-            //                         bc_type, number, node_number, *dof_parameter, value)
-            //                     {
-            //                         Err(e) =>
-            //                             self.state.analysis_error_message = Some(e),
-            //                         _ => (),
-            //                     }
-            //                 }
-            //             }
-            //             else
-            //             {
-            //                 if self.state.fem.boundary_conditions
-            //                     .iter()
-            //                     .position(|bc|
-            //                         bc.number_same(number) &&
-            //                         bc.type_same(bc_type))
-            //                     .is_some()
-            //                 {
-            //                     match self.state.fem.delete_bc(bc_type, number)
-            //                     {
-            //                         Err(e) => self.state.analysis_error_message = Some(e),
-            //                         _ => ()
-            //                     }
-            //                 }
-            //             }
-            //         }
-            //     },
-            // Msg::DeleteBC(data) =>
-            //     {
-            //         let bcs = vec![
-            //             data.x_direction_value, data.y_direction_value,
-            //             data.z_direction_value, data.yz_plane_value,
-            //             data.zx_plane_value, data.xy_plane_value];
-            //         for i in 0..bcs.len()
-            //         {
-            //             if bcs[i].is_some()
-            //             {
-            //                 let bc_type = data.bc_type;
-            //                 let number = data.number * GLOBAL_DOF + i as ElementsNumbers;
-            //                 match self.state.fem.delete_bc(bc_type, number)
-            //                 {
-            //                     Err(e) => self.state.analysis_error_message = Some(e),
-            //                     _ => ()
-            //                 }
-            //             }
-            //         }
-            //     },
+            Msg::AddNode(data) =>
+                {
+                    match self.state.fem.add_node(data.number, data.x, data.y, data.z)
+                    {
+                        Err(e) => self.state.analysis_error_message = Some(e),
+                        _ => (),
+                    }
+                },
+            Msg::UpdateNode(data) => match self.state.fem
+                    .update_node(data.number, data.x, data.y, data.z)
+                {
+                    Err(e) => self.state.analysis_error_message = Some(e),
+                    _ => (),
+                },
+            Msg::DeleteNode(number) => match self.state.fem.delete_node(number)
+                {
+                    Err(e) => self.state.analysis_error_message = Some(e),
+                    _ => (),
+                },
+            Msg::AddElement(data) =>
+                {
+                    let fe_type = data.fe_type;
+                    let nodes_numbers = data.nodes_numbers;
+                    let number = data.number;
+                    let properties = data.properties;
+                    match self.state.fem
+                        .add_element(fe_type, nodes_numbers,
+                                     FEData { number, nodes: Vec::new(), properties })
+                    {
+                        Err(e) => self.state.analysis_error_message = Some(e),
+                        _ => ()
+                    }
+                },
+            Msg::UpdateElement(data) =>
+                {
+                    let nodes_numbers = data.nodes_numbers;
+                    let number = data.number;
+                    let properties = data.properties;
+                    match self.state.fem
+                        .update_element(nodes_numbers,
+                            FEData { number, nodes: Vec::new(), properties })
+                    {
+                        Err(e) => self.state.analysis_error_message = Some(e),
+                        _ => ()
+                    }
+                },
+            Msg::DeleteElement(number) => match self.state.fem.delete_element(number)
+                {
+                    Err(e) => self.state.analysis_error_message = Some(e),
+                    _ => (),
+                },
+            Msg::AddBC(data) =>
+                {
+                    let node_number = data.node_number;
+                    let bcs = vec![
+                        data.x_direction_value, data.y_direction_value,
+                        data.z_direction_value, data.yz_plane_value,
+                        data.zx_plane_value, data.xy_plane_value];
+                    for i in 0..bcs.len()
+                    {
+                        if let Some(value) = bcs[i]
+                        {
+                            let bc_type = data.bc_type;
+                            let number = data.number * GLOBAL_DOF + i as ElementsNumbers;
+                            let dof_parameter =
+                                GlobalDOFParameter::iterator().nth(i).unwrap();
+                            match self.state.fem.add_bc(
+                                bc_type, number, node_number, *dof_parameter, value)
+                            {
+                                Err(e) => self.state.analysis_error_message = Some(e),
+                                _ => ()
+                            }
+                        }
+                    }
+                },
+            Msg::UpdateBC(data) =>
+                {
+                    let node_number = data.node_number;
+                    let bcs = vec![
+                        data.x_direction_value, data.y_direction_value,
+                        data.z_direction_value, data.yz_plane_value,
+                        data.zx_plane_value, data.xy_plane_value];
+                    for i in 0..bcs.len()
+                    {
+                        let bc_type = data.bc_type;
+                        let number = data.number * GLOBAL_DOF + i as ElementsNumbers;
+                        let dof_parameter =
+                            GlobalDOFParameter::iterator().nth(i).unwrap();
+                        if let Some(value) = bcs[i]
+                        {
+                            if self.state.fem.boundary_conditions
+                                .iter()
+                                .position(|model_bc|
+                                    model_bc.number_same(number) && model_bc.type_same(bc_type))
+                                .is_some()
+                            {
+                                match self.state.fem.update_bc(bc_type, number, node_number,
+                                    *dof_parameter, value)
+                                {
+                                    Err(e) => self.state.analysis_error_message = Some(e),
+                                    _ => (),
+                                }
+                            }
+                            else
+                            {
+                                match self.state.fem.add_bc(
+                                    bc_type, number, node_number, *dof_parameter, value)
+                                {
+                                    Err(e) =>
+                                        self.state.analysis_error_message = Some(e),
+                                    _ => (),
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if self.state.fem.boundary_conditions
+                                .iter()
+                                .position(|bc|
+                                    bc.number_same(number) &&
+                                    bc.type_same(bc_type))
+                                .is_some()
+                            {
+                                match self.state.fem.delete_bc(bc_type, number)
+                                {
+                                    Err(e) => self.state.analysis_error_message = Some(e),
+                                    _ => ()
+                                }
+                            }
+                        }
+                    }
+                },
+            Msg::DeleteBC(data) =>
+                {
+                    let bcs = vec![
+                        data.x_direction_value, data.y_direction_value,
+                        data.z_direction_value, data.yz_plane_value,
+                        data.zx_plane_value, data.xy_plane_value];
+                    for i in 0..bcs.len()
+                    {
+                        if bcs[i].is_some()
+                        {
+                            let bc_type = data.bc_type;
+                            let number = data.number * GLOBAL_DOF + i as ElementsNumbers;
+                            match self.state.fem.delete_bc(bc_type, number)
+                            {
+                                Err(e) => self.state.analysis_error_message = Some(e),
+                                _ => ()
+                            }
+                        }
+                    }
+                },
             Msg::AddAnalysisErrorMessage(msg) => self.state.analysis_error_message = Some(msg),
             Msg::ResetAnalysisErrorMessage => self.state.analysis_error_message = None,
             Msg::EditStructure =>
@@ -537,51 +537,51 @@ impl Component for Model
         let handle_add_analysis_type =
             self.link.callback(|analysis_type: AnalysisType| Msg::AddAnalysisType(analysis_type));
 
-        // let handle_add_analysis_error_message =
-        //     self.link.callback(|msg: String| Msg::AddAnalysisErrorMessage(msg));
-        //
-        // let handle_change_view = self.link.callback(|view: View| Msg::ChangeView(view));
-        // let handle_discard_view = self.link.callback(|_| Msg::DiscardView);
-        //
-        // let nodes = self.state.fem.nodes_rc_clone();
-        // let handle_add_node =
-        //     self.link
-        //         .callback(|data: FEDrawnNodeData| Msg::AddNode(data));
-        // let handle_update_node =
-        //     self.link
-        //         .callback(|data: FEDrawnNodeData| Msg::UpdateNode(data));
-        // let handle_delete_node =
-        //     self.link.callback(|number: ElementsNumbers| Msg::DeleteNode(number));
-        //
-        // let drawn_elements = self.state.fem.drawn_elements_rc();
-        // let handle_add_element =
-        //     self.link.callback(|data: FEDrawnElementData| Msg::AddElement(data));
-        // let handle_update_element =
-        //     self.link.callback(|data: FEDrawnElementData| Msg::UpdateElement(data));
-        // let handle_delete_element =
-        //     self.link.callback(|number: ElementsNumbers| Msg::DeleteElement(number));
-        //
-        // let drawn_bcs = self.state.fem.drawn_bcs_rc();
-        // let handle_add_bc = self.link.callback(|data: DrawnBCData| Msg::AddBC(data));
-        // let handle_update_bc = self.link.callback(|data: DrawnBCData|
-        //     Msg::UpdateBC(data));
-        // let handle_delete_bc = self.link.callback(|data: DrawnBCData|
-        //     Msg::DeleteBC(data));
-        //
-        // let handle_change_result_view =
-        //     self.link.callback(|result_view: ResultView| Msg::ChangeResultView(result_view));
-        //
-        // let handle_reset_analysis_error_message =
-        //     self.link.callback(|_| Msg::ResetAnalysisErrorMessage);
+        let handle_add_analysis_error_message =
+            self.link.callback(|msg: String| Msg::AddAnalysisErrorMessage(msg));
+
+        let handle_change_view = self.link.callback(|view: View| Msg::ChangeView(view));
+        let handle_discard_view = self.link.callback(|_| Msg::DiscardView);
+
+        let nodes = self.state.fem.nodes_rc_clone();
+        let handle_add_node =
+            self.link
+                .callback(|data: FEDrawnNodeData| Msg::AddNode(data));
+        let handle_update_node =
+            self.link
+                .callback(|data: FEDrawnNodeData| Msg::UpdateNode(data));
+        let handle_delete_node =
+            self.link.callback(|number: ElementsNumbers| Msg::DeleteNode(number));
+
+        let drawn_elements = self.state.fem.drawn_elements_rc();
+        let handle_add_element =
+            self.link.callback(|data: FEDrawnElementData| Msg::AddElement(data));
+        let handle_update_element =
+            self.link.callback(|data: FEDrawnElementData| Msg::UpdateElement(data));
+        let handle_delete_element =
+            self.link.callback(|number: ElementsNumbers| Msg::DeleteElement(number));
+
+        let drawn_bcs = self.state.fem.drawn_bcs_rc();
+        let handle_add_bc = self.link.callback(|data: DrawnBCData| Msg::AddBC(data));
+        let handle_update_bc = self.link.callback(|data: DrawnBCData|
+            Msg::UpdateBC(data));
+        let handle_delete_bc = self.link.callback(|data: DrawnBCData|
+            Msg::DeleteBC(data));
+
+        let handle_change_result_view =
+            self.link.callback(|result_view: ResultView| Msg::ChangeResultView(result_view));
+
+        let handle_reset_analysis_error_message =
+            self.link.callback(|_| Msg::ResetAnalysisErrorMessage);
 
         let analysis_type = self.state.analysis_type.to_owned();
 
-        // let view = self.state.view.to_owned();
-        // let preprocessor_is_active = self.state.is_preprocessor_active.to_owned();
-        //
-        // let canvas_width = self.state.canvas_width.to_owned();
-        // let canvas_height = self.state.canvas_height.to_owned();
-        // let analysis_error_message = self.state.analysis_error_message.to_owned();
+        let view = self.state.view.to_owned();
+        let preprocessor_is_active = self.state.is_preprocessor_active.to_owned();
+
+        let canvas_width = self.state.canvas_width.to_owned();
+        let canvas_height = self.state.canvas_height.to_owned();
+        let analysis_error_message = self.state.analysis_error_message.to_owned();
 
         let handle_reset_model = self.link.callback(|_| Msg::ResetModel);
 
@@ -626,32 +626,32 @@ impl Component for Model
                 {
                     <Preprocessor analysis_type=analysis_type.to_owned(),
                         add_analysis_type=&handle_add_analysis_type.to_owned(),
-                        // view=view.to_owned(),
-                        // change_view=handle_change_view.to_owned(),
-                        // discard_view=handle_discard_view.to_owned(),
-                        // is_preprocessor_active=preprocessor_is_active.to_owned(),
-                        //
-                        // nodes=Rc::clone(&nodes),
-                        // add_node=handle_add_node.to_owned(),
-                        // update_node=handle_update_node.to_owned(),
-                        // delete_node=handle_delete_node.to_owned(),
-                        //
-                        // drawn_elements=Rc::clone(&drawn_elements),
-                        // add_element=handle_add_element.to_owned(),
-                        // update_element=handle_update_element.to_owned(),
-                        // delete_element=handle_delete_element.to_owned(),
-                        //
-                        // drawn_bcs=Rc::clone(&drawn_bcs),
-                        // add_bc=handle_add_bc.to_owned(),
-                        // update_bc=handle_update_bc.to_owned(),
-                        // delete_bc=handle_delete_bc.to_owned(),
-                        // add_analysis_error_message=handle_add_analysis_error_message.to_owned(),
-                        //
-                        // canvas_width=canvas_width.to_owned(),
-                        // canvas_height=canvas_height.to_owned(),
-                        // analysis_error_message=analysis_error_message.to_owned(),
-                        //
-                        // reset_analysis_error_message=handle_reset_analysis_error_message.to_owned(),
+                        view=view.to_owned(),
+                        change_view=handle_change_view.to_owned(),
+                        discard_view=handle_discard_view.to_owned(),
+                        is_preprocessor_active=preprocessor_is_active.to_owned(),
+
+                        nodes=Rc::clone(&nodes),
+                        add_node=handle_add_node.to_owned(),
+                        update_node=handle_update_node.to_owned(),
+                        delete_node=handle_delete_node.to_owned(),
+
+                        drawn_elements=Rc::clone(&drawn_elements),
+                        add_element=handle_add_element.to_owned(),
+                        update_element=handle_update_element.to_owned(),
+                        delete_element=handle_delete_element.to_owned(),
+
+                        drawn_bcs=Rc::clone(&drawn_bcs),
+                        add_bc=handle_add_bc.to_owned(),
+                        update_bc=handle_update_bc.to_owned(),
+                        delete_bc=handle_delete_bc.to_owned(),
+                        add_analysis_error_message=handle_add_analysis_error_message.to_owned(),
+
+                        canvas_width=canvas_width.to_owned(),
+                        canvas_height=canvas_height.to_owned(),
+                        analysis_error_message=analysis_error_message.to_owned(),
+
+                        reset_analysis_error_message=handle_reset_analysis_error_message.to_owned(),
                     />
                 },
         });

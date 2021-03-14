@@ -66,8 +66,8 @@ pub const DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_X: GLElementsValues = 0.01;
 pub const DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_Y: GLElementsValues = 0.015;
 
 
-pub const DRAWN_FORCES_COLOR: [GLElementsValues; 4] = [1.0, 0.0, 1.0, 1.0]; // purple
-pub const CANVAS_DRAWN_FORCES_DENOTATION_COLOR: &str = "purple";
+pub const DRAWN_FORCES_COLOR: [GLElementsValues; 4] = [1.0, 0.0, 1.0, 1.0]; // magenta
+pub const CANVAS_DRAWN_FORCES_DENOTATION_COLOR: &str = "magenta";
 
 pub const DRAWN_FORCES_LINE_LENGTH: GLElementsValues = 0.07; // line length
 pub const DRAWN_FORCES_CAPS_HEIGHT: GLElementsValues = 0.015; // arrow length
@@ -76,8 +76,8 @@ pub const DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER: u16 = 12; // the number of point
 pub const DRAWN_FORCES_LINE_LENGTH_COEFFICIENT: GLElementsValues = 1.5; // line length coefficient for moments values
 pub const DRAWN_FORCES_CAPS_LENGTH_COEFFICIENT: GLElementsValues = 1.5; // line length coefficient for moments values
 
-// pub const DRAWN_FORCES_DENOTATION_SHIFT_X: GLElementsValues = 0.01;
-// pub const DRAWN_FORCES_DENOTATION_SHIFT_Y: GLElementsValues = 0.015;
+pub const DRAWN_FORCES_DENOTATION_SHIFT_X: GLElementsValues = 0.01;
+pub const DRAWN_FORCES_DENOTATION_SHIFT_Y: GLElementsValues = 0.01;
 
 
 pub enum CSAxis

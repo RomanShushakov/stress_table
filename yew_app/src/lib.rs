@@ -40,8 +40,8 @@ use crate::fem::GLOBAL_DOF;
 use crate::auxiliary::FEDrawnElementData;
 
 
-pub type ElementsNumbers = u16;
-pub type ElementsValues = f64;
+pub type ElementsNumbers = u32;
+pub type ElementsValues = f32;
 pub type GLElementsNumbers = u16;
 pub type GLElementsValues = f32;
 

@@ -18,7 +18,7 @@ use yew::services::RenderService;
 
 use crate::components::preprocessor_canvas::gl::gl_aux_functions::
     {
-        add_denotation, initialize_shaders, normalize_nodes,
+        add_denotation, initialize_shaders, normalize_nodes, add_hints,
     };
 use crate::components::preprocessor_canvas::gl::gl_aux_structs::
     {
@@ -34,7 +34,7 @@ use crate::components::preprocessor_canvas::gl::gl_aux_structs::
         DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_Y, DRAWN_FORCES_LINE_LENGTH, DRAWN_FORCES_CAPS_HEIGHT,
         DRAWN_FORCES_CAPS_WIDTH, DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER,
         CANVAS_DRAWN_FORCES_DENOTATION_COLOR, DRAWN_FORCES_DENOTATION_SHIFT_X,
-        DRAWN_FORCES_DENOTATION_SHIFT_Y
+        DRAWN_FORCES_DENOTATION_SHIFT_Y, HINTS_COLOR,
     };
 
 use crate::fem::{FENode, FEType, BCType};
@@ -620,6 +620,11 @@ impl PreprocessorCanvas
                 }
             }
         }
+
+        ctx.set_fill_style(&HINTS_COLOR.into());
+        add_hints(&ctx, self.props.canvas_width as f32,
+            self.props.canvas_height as f32);
+        ctx.stroke();
 
         let render_frame = self.link.callback(Msg::Render);
         let handle = RenderService::request_animation_frame(render_frame);

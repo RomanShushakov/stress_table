@@ -10,7 +10,8 @@ use crate::auxiliary::{NormalizedNode, FEDrawnElementData};
 use crate::components::preprocessor_canvas::gl::gl_aux_structs::
     {
         DRAWN_OBJECT_TO_CANVAS_WIDTH_SCALE, DRAWN_OBJECT_TO_CANVAS_HEIGHT_SCALE,
-        CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR
+        CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR, HINT_SHIFT_X, ROTATION_HINT_SHIFT_Y,
+        ZOOM_HINT_SHIFT_Y, PAN_HINT_SHIFT_Y,
     };
 
 
@@ -206,4 +207,21 @@ pub fn find_node_coordinates(node_number: GLElementsNumbers, normalized_nodes: &
         }
     };
     Ok(node_coordinates)
+}
+
+
+pub fn add_hints(ctx: &CTX, canvas_width: f32, canvas_height: f32)
+{
+    let rotate_hint_x = canvas_width * HINT_SHIFT_X;
+    let rotate_hint_y = canvas_height * ROTATION_HINT_SHIFT_Y;
+    let rotate_hint = "Rotate - Left Mouse Button";
+    ctx.fill_text(rotate_hint, rotate_hint_x as f64, rotate_hint_y as f64).unwrap();
+    let zoom_hint_x = canvas_width * HINT_SHIFT_X;
+    let zoom_hint_y = canvas_height * ZOOM_HINT_SHIFT_Y;
+    let zoom_hint = "Zoom - Mouse Wheel";
+    ctx.fill_text(zoom_hint, zoom_hint_x as f64, zoom_hint_y as f64).unwrap();
+    let pan_hint_x = canvas_width * HINT_SHIFT_X;
+    let pan_hint_y = canvas_height * PAN_HINT_SHIFT_Y;
+    let pan_hint = "Pan - Shift + Left Mouse Button";
+    ctx.fill_text(pan_hint, pan_hint_x as f64, pan_hint_y as f64).unwrap();
 }

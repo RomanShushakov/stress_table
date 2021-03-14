@@ -79,6 +79,12 @@ pub const DRAWN_FORCES_CAPS_LENGTH_COEFFICIENT: GLElementsValues = 1.5; // line 
 pub const DRAWN_FORCES_DENOTATION_SHIFT_X: GLElementsValues = 0.01;
 pub const DRAWN_FORCES_DENOTATION_SHIFT_Y: GLElementsValues = 0.01;
 
+pub const HINTS_COLOR: &str = "white";
+pub const HINT_SHIFT_X: GLElementsValues = 0.05;
+pub const ROTATION_HINT_SHIFT_Y: GLElementsValues = 0.85;
+pub const ZOOM_HINT_SHIFT_Y: GLElementsValues = 0.9;
+pub const PAN_HINT_SHIFT_Y: GLElementsValues = 0.95;
+
 
 pub enum CSAxis
 {

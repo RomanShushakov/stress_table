@@ -15,6 +15,8 @@ use web_sys::
         HtmlCanvasElement, HtmlOptionsCollection, DomTokenList,
     };
 use yew::services::resize::{WindowDimensions, ResizeTask, ResizeService};
+use yew_router::prelude::*;
+use yew_router::agent::RouteRequest;
 
 mod fem;
 mod extended_matrix;
@@ -39,6 +41,13 @@ use crate::fem::{GlobalDOFParameter, BCType};
 use crate::fem::GLOBAL_DOF;
 use crate::auxiliary::FEDrawnElementData;
 
+mod route;
+use route::AppRoute;
+
+mod pages;
+use pages::{Preprocessor, Postprocessor};
+use yew_router::router::Render;
+
 
 pub type ElementsNumbers = u32;
 pub type ElementsValues = f32;
@@ -49,13 +58,7 @@ pub const TOLERANCE: ElementsValues = 1e-6;
 
 const MAIN_CLASS: &str = "main";
 const MAIN_CONTAINER_CLASS: &str = "main_container";
-const PREPROCESSOR_CLASS: &str = "preprocessor";
-const PREPROCESSOR_MENU_CLASS: &str = "preprocessor_menu";
-pub const PREPROCESSOR_BUTTON_CLASS: &str = "preprocessor_button";
-const PREPROCESSOR_CANVAS_CLASS: &str = "preprocessor_canvas";
-const ANALYSIS_ERROR_CLASS: &str = "analysis_error";
-const ANALYSIS_ERROR_MESSAGE_CLASS: &str = "analysis_error_message";
-const ANALYSIS_ERROR_BUTTON_CLASS: &str = "analysis_error_button";
+
 const POSTPROCESSOR_CLASS: &str = "postprocessor";
 const POSTPROCESSOR_MENU_CLASS: &str = "postprocessor_menu";
 pub const POSTPROCESSOR_BUTTON_CLASS: &str = "postprocessor_button";
@@ -123,24 +126,6 @@ impl Model
     {
         self.state.canvas_width = (dimensions.width as f32 * 0.8) as u32;
         self.state.canvas_height = (dimensions.height as f32 * 0.8) as u32;
-    }
-
-
-    fn check_preprocessor_data(&self) -> bool
-    {
-        if self.state.fem.nodes.is_empty()
-        {
-            return false;
-        }
-        if self.state.fem.elements.is_empty()
-        {
-            return false;
-        }
-        if self.state.fem.boundary_conditions.is_empty()
-        {
-            return false;
-        }
-        true
     }
 
 
@@ -516,29 +501,6 @@ impl Component for Model
                         }
                     }
                 },
-            // Msg::AddAuxForce(force) => self.state.aux_forces.push(force),
-            // Msg::UpdateAuxForce(data) => self.state.aux_forces[data.0] = data.1,
-            // Msg::RemoveAuxForce(position) =>
-            //     {
-            //         self.state.aux_forces.remove(position);
-            //     },
-            // Msg::Submit =>
-            //     {
-            //         match self.submit()
-            //         {
-            //             Ok(analysis_result) =>
-            //                 {
-            //                     self.state.analysis_result = Some(analysis_result);
-            //                     self.state.is_preprocessor_active = false;
-            //                 },
-            //             Err(msg) =>
-            //                 {
-            //                     self.state.analysis_error_message = Some(msg);
-            //                     self.state.analysis_result = None;
-            //                     self.state.result_view = None;
-            //                 },
-            //         }
-            //     },
             Msg::AddAnalysisErrorMessage(msg) => self.state.analysis_error_message = Some(msg),
             Msg::ResetAnalysisErrorMessage => self.state.analysis_error_message = None,
             Msg::EditStructure =>
@@ -598,105 +560,94 @@ impl Component for Model
 
         let handle_change_result_view =
             self.link.callback(|result_view: ResultView| Msg::ChangeResultView(result_view));
+
+        let handle_reset_analysis_error_message =
+            self.link.callback(|_| Msg::ResetAnalysisErrorMessage);
+
+        let analysis_type = self.state.analysis_type.to_owned();
+        let view = self.state.view.to_owned();
+        let preprocessor_is_active = self.state.is_preprocessor_active.to_owned();
+
+        let canvas_width = self.state.canvas_width.to_owned();
+        let canvas_height = self.state.canvas_height.to_owned();
+        let analysis_error_message = self.state.analysis_error_message.to_owned();
+
+        let render = Router::render(move |switch: AppRoute| match switch
+        {
+            AppRoute::Preprocessor =>
+                html!
+                {
+                    <Preprocessor analysis_type=analysis_type.to_owned(),
+                        add_analysis_type=handle_add_analysis_type.to_owned(),
+                        view=view.to_owned(),
+                        change_view=handle_change_view.to_owned(),
+                        discard_view=handle_discard_view.to_owned(),
+                        is_preprocessor_active=preprocessor_is_active.to_owned(),
+
+                        nodes=Rc::clone(&nodes),
+                        add_node=handle_add_node.to_owned(),
+                        update_node=handle_update_node.to_owned(),
+                        delete_node=handle_delete_node.to_owned(),
+
+                        drawn_elements=Rc::clone(&drawn_elements),
+                        add_element=handle_add_element.to_owned(),
+                        update_element=handle_update_element.to_owned(),
+                        delete_element=handle_delete_element.to_owned(),
+
+                        drawn_bcs=Rc::clone(&drawn_bcs),
+                        add_bc=handle_add_bc.to_owned(),
+                        update_bc=handle_update_bc.to_owned(),
+                        delete_bc=handle_delete_bc.to_owned(),
+                        add_analysis_error_message=handle_add_analysis_error_message.to_owned(),
+
+                        canvas_width=canvas_width.to_owned(),
+                        canvas_height=canvas_height.to_owned(),
+                        analysis_error_message=analysis_error_message.to_owned(),
+
+                        reset_analysis_error_message=handle_reset_analysis_error_message.to_owned(),
+                    />
+                },
+            AppRoute::Postprocessor => html! { <Postprocessor /> },
+            AppRoute::HomePage =>
+                html!
+                {
+                    <Preprocessor analysis_type=analysis_type.to_owned(),
+                        add_analysis_type=handle_add_analysis_type.to_owned(),
+                        view=view.to_owned(),
+                        change_view=handle_change_view.to_owned(),
+                        discard_view=handle_discard_view.to_owned(),
+                        is_preprocessor_active=preprocessor_is_active.to_owned(),
+
+                        nodes=Rc::clone(&nodes),
+                        add_node=handle_add_node.to_owned(),
+                        update_node=handle_update_node.to_owned(),
+                        delete_node=handle_delete_node.to_owned(),
+
+                        drawn_elements=Rc::clone(&drawn_elements),
+                        add_element=handle_add_element.to_owned(),
+                        update_element=handle_update_element.to_owned(),
+                        delete_element=handle_delete_element.to_owned(),
+
+                        drawn_bcs=Rc::clone(&drawn_bcs),
+                        add_bc=handle_add_bc.to_owned(),
+                        update_bc=handle_update_bc.to_owned(),
+                        delete_bc=handle_delete_bc.to_owned(),
+                        add_analysis_error_message=handle_add_analysis_error_message.to_owned(),
+
+                        canvas_width=canvas_width.to_owned(),
+                        canvas_height=canvas_height.to_owned(),
+                        analysis_error_message=analysis_error_message.to_owned(),
+
+                        reset_analysis_error_message=handle_reset_analysis_error_message.to_owned(),
+                    />
+                },
+        });
+
         html!
         {
             <main class={ MAIN_CLASS }>
                 <div class={ MAIN_CONTAINER_CLASS }>
-                    <div class={ PREPROCESSOR_CLASS }>
-                        <div class={ PREPROCESSOR_MENU_CLASS }>
-                            <AnalysisTypeMenu
-                                analysis_type=self.state.analysis_type.to_owned(),
-                                add_analysis_type=handle_add_analysis_type,
-                            />
-                            <ViewMenu
-                                view=self.state.view.to_owned(),
-                                change_view=handle_change_view,
-                            />
-                            <NodeMenu
-                                analysis_type=self.state.analysis_type.to_owned(),
-                                is_preprocessor_active=self.state.is_preprocessor_active,
-                                nodes=Rc::clone(&nodes), add_node=handle_add_node,
-                                update_node=handle_update_node, delete_node=handle_delete_node,
-                            />
-                            <ElementMenu
-                                analysis_type=self.state.analysis_type.to_owned(),
-                                is_preprocessor_active=self.state.is_preprocessor_active,
-                                drawn_elements=Rc::clone(&drawn_elements),
-                                add_element=handle_add_element,
-                                update_element=handle_update_element,
-                                delete_element=handle_delete_element,
-                            />
-                            <DisplacementMenu
-                                analysis_type=self.state.analysis_type.to_owned(),
-                                is_preprocessor_active=self.state.is_preprocessor_active,
-                                drawn_elements=Rc::clone(&drawn_elements),
-                                drawn_bcs=Rc::clone(&drawn_bcs),
-                                add_bc=handle_add_bc.to_owned(),
-                                update_bc=handle_update_bc.to_owned(),
-                                delete_bc=handle_delete_bc.to_owned(),
-                                add_analysis_error_message=handle_add_analysis_error_message.to_owned(),
-                            />
-                            <ForceMenu
-                                analysis_type=self.state.analysis_type.to_owned(),
-                                is_preprocessor_active=self.state.is_preprocessor_active,
-                                drawn_elements=Rc::clone(&drawn_elements),
-                                drawn_bcs=Rc::clone(&drawn_bcs),
-                                add_bc=handle_add_bc,
-                                update_bc=handle_update_bc,
-                                delete_bc=handle_delete_bc,
-                                add_analysis_error_message=handle_add_analysis_error_message.to_owned(),
-                            />
-                            // <button class={ PREPROCESSOR_BUTTON_CLASS }
-                            //     // onclick=self.link.callback(|_| Msg::Submit),
-                            //     disabled=
-                            //         {
-                            //             if self.check_preprocessor_data() && self.state.is_preprocessor_active
-                            //             {
-                            //                 false
-                            //             }
-                            //             else
-                            //             {
-                            //                 true
-                            //             }
-                            //         },
-                            // >
-                            //     { "Submit" }
-                            // </button>
-                        </div>
-                        <div class={ PREPROCESSOR_CANVAS_CLASS }>
-                            <PreprocessorCanvas
-                                view=self.state.view.to_owned(),
-                                discard_view=handle_discard_view,
-                                canvas_width=self.state.canvas_width,
-                                canvas_height=self.state.canvas_height,
-                                nodes=Rc::clone(&nodes),
-                                drawn_elements=Rc::clone(&drawn_elements),
-                                add_analysis_error_message=handle_add_analysis_error_message,
-                                drawn_bcs=Rc::clone(&drawn_bcs),
-                            />
-                        </div>
-                    </div>
-                    {
-                        if let Some(error_message) = &self.state.analysis_error_message
-                        {
-                            html!
-                            {
-                                <div class={ ANALYSIS_ERROR_CLASS }>
-                                    <p class={ ANALYSIS_ERROR_MESSAGE_CLASS }>{ error_message }</p>
-                                    <button
-                                        class={ ANALYSIS_ERROR_BUTTON_CLASS },
-                                        onclick=self.link.callback(|_| Msg::ResetAnalysisErrorMessage)
-                                    >
-                                        { "Hide message" }
-                                    </button>
-                                </div>
-                            }
-                        }
-                        else
-                        {
-                            html! {}
-                        }
-                    }
+                    <Router<AppRoute, ()> render=render />
                     // {
                     //     if let Some(analysis_result) = &self.state.analysis_result
                     //     {

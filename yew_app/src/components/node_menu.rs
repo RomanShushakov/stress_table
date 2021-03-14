@@ -11,7 +11,8 @@ use std::cell::RefCell;
 use crate::fem::{FENode};
 use crate::auxiliary::FEDrawnNodeData;
 use crate::{ElementsNumbers, ElementsValues};
-use crate::{AnalysisType, PREPROCESSOR_BUTTON_CLASS};
+use crate::{AnalysisType};
+use crate::pages::PREPROCESSOR_BUTTON_CLASS;
 
 
 const NODE_MENU_ID: &str = "node_menu";

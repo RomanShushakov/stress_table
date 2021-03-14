@@ -16,6 +16,7 @@ wasm-bindgen = "0.2.71"
 js-sys = "0.3.48"
 mat4 = "0.2.1"
 vec4 = "0.2.1"
+yew-router = "0.14.0"
 
 
 [dependencies.web-sys]

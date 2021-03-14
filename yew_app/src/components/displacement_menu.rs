@@ -7,7 +7,8 @@ use web_sys::
 use wasm_bindgen::JsCast;
 use std::rc::Rc;
 
-use crate::{AnalysisType, DrawnBCData, PREPROCESSOR_BUTTON_CLASS, ElementsNumbers, ElementsValues};
+use crate::{AnalysisType, DrawnBCData, ElementsNumbers, ElementsValues};
+use crate::pages::PREPROCESSOR_BUTTON_CLASS;
 use crate::auxiliary::{DrawnDisplacementInputOption, FEDrawnElementData};
 use crate::fem::{FEType, BCType};
 

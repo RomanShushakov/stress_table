@@ -5,12 +5,12 @@ use web_sys::
         DomTokenList, HtmlInputElement
     };
 use wasm_bindgen::JsCast;
-
-
-use crate::auxiliary::{AnalysisType, FEDrawnElementData};
-use crate::{PREPROCESSOR_BUTTON_CLASS, ElementsNumbers, ElementsValues};
 use std::rc::Rc;
 use crate::fem::FEType;
+
+use crate::auxiliary::{AnalysisType, FEDrawnElementData};
+use crate::{ElementsNumbers, ElementsValues};
+use crate::pages::PREPROCESSOR_BUTTON_CLASS;
 
 
 const ELEMENT_TYPE_SELECT_ID: &str = "element_type_select";
@@ -43,7 +43,6 @@ pub struct Props
     pub add_element: Callback<FEDrawnElementData>,
     pub update_element: Callback<FEDrawnElementData>,
     pub delete_element: Callback<ElementsNumbers>,
-
 }
 
 

@@ -1,7 +1,8 @@
 use yew::prelude::*;
 use web_sys::DomTokenList;
 
-use crate::{View, PREPROCESSOR_BUTTON_CLASS};
+use crate::{View};
+use crate::pages::PREPROCESSOR_BUTTON_CLASS;
 
 
 const VIEW_MENU_ID: &str = "view_menu";

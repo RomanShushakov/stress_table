@@ -1,6 +1,8 @@
 use yew::prelude::*;
 use web_sys::DomTokenList;
-use crate::{AnalysisType, PREPROCESSOR_BUTTON_CLASS};
+
+use crate::pages::PREPROCESSOR_BUTTON_CLASS;
+use crate::{AnalysisType};
 
 
 const ANALYSIS_TYPE_MENU_ID: &str = "analysis_type_menu";

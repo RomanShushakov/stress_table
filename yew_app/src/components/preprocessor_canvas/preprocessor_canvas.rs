@@ -32,7 +32,9 @@ use crate::components::preprocessor_canvas::gl::gl_aux_structs::
         DRAWN_DISPLACEMENTS_CAPS_HEIGHT, DRAWN_DISPLACEMENTS_CAPS_WIDTH,
         CANVAS_DRAWN_DISPLACEMENTS_DENOTATION_COLOR, DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_X,
         DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_Y, DRAWN_FORCES_LINE_LENGTH, DRAWN_FORCES_CAPS_HEIGHT,
-        DRAWN_FORCES_CAPS_WIDTH, DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER
+        DRAWN_FORCES_CAPS_WIDTH, DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER,
+        CANVAS_DRAWN_FORCES_DENOTATION_COLOR, DRAWN_FORCES_DENOTATION_SHIFT_X,
+        DRAWN_FORCES_DENOTATION_SHIFT_Y
     };
 
 use crate::fem::{FENode, FEType, BCType};
@@ -584,6 +586,33 @@ impl PreprocessorCanvas
                                 self.props.canvas_width as f32,
                                 self.props.canvas_height as f32,
                                 &displacement.number.to_string());
+                                ctx.stroke();
+                            },
+                        Err(e) => self.props.add_analysis_error_message.emit(e)
+                    }
+                }
+            }
+
+
+            if !drawn_forces.is_empty()
+            {
+                for force in drawn_forces
+                {
+                    match force.find_denotation_coordinates(&normalized_nodes)
+                    {
+                        Ok(coordinates) =>
+                            {
+                                ctx.set_fill_style(&CANVAS_DRAWN_FORCES_DENOTATION_COLOR.into());
+                                add_denotation(&ctx,
+                                &[coordinates[0] + DRAWN_FORCES_DENOTATION_SHIFT_X /
+                                    (1.0 + self.state.d_scale),
+                                    coordinates[1] + DRAWN_FORCES_DENOTATION_SHIFT_Y /
+                                    (1.0 + self.state.d_scale),
+                                    coordinates[2], coordinates[3]],
+                                &matrix,
+                                self.props.canvas_width as f32,
+                                self.props.canvas_height as f32,
+                                &format!("#{}", force.number));
                                 ctx.stroke();
                             },
                         Err(e) => self.props.add_analysis_error_message.emit(e)

@@ -70,7 +70,6 @@ struct State
     canvas_height: u32,
     is_preprocessor_active: bool,
     fem: FEModel<ElementsNumbers, ElementsValues>,
-    // aux_forces: Vec<AuxForce>,
     analysis_error_message: Option<String>,
     // analysis_result: Option<AnalysisResult>,
     result_view: Option<ResultView>,
@@ -100,9 +99,6 @@ enum Msg
     AddBC(DrawnBCData),
     UpdateBC(DrawnBCData),
     DeleteBC(DrawnBCData),
-    // AddAuxForce(AuxForce),
-    // UpdateAuxForce((usize, AuxForce)),
-    // RemoveAuxForce(usize),
     // Submit,
     AddAnalysisErrorMessage(String),
     ResetAnalysisErrorMessage,
@@ -349,7 +345,6 @@ impl Component for Model
                     canvas_height: height,
                     is_preprocessor_active: true,
                     fem,
-                    // aux_forces: Vec::new(),
                     analysis_error_message: None,
                     // analysis_result: None,
                     result_view: None,
@@ -601,12 +596,6 @@ impl Component for Model
         let handle_delete_bc = self.link.callback(|data: DrawnBCData|
             Msg::DeleteBC(data));
 
-        // let handle_add_aux_force =
-        //     self.link.callback(|force: AuxForce| Msg::AddAuxForce(force));
-        // let handle_update_aux_force =
-        //     self.link.callback(|data: (usize, AuxForce)| Msg::UpdateAuxForce(data));
-        // let handle_remove_aux_force =
-        //     self.link.callback(|position: usize| Msg::RemoveAuxForce(position));
         let handle_change_result_view =
             self.link.callback(|result_view: ResultView| Msg::ChangeResultView(result_view));
         html!
@@ -684,7 +673,6 @@ impl Component for Model
                                 drawn_elements=Rc::clone(&drawn_elements),
                                 add_analysis_error_message=handle_add_analysis_error_message,
                                 drawn_bcs=Rc::clone(&drawn_bcs),
-                                // aux_forces=self.state.aux_forces.to_owned(),
                             />
                         </div>
                     </div>

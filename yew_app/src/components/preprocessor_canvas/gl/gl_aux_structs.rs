@@ -2,7 +2,7 @@ use crate::{GLElementsNumbers, GLElementsValues, TOLERANCE};
 use crate::components::preprocessor_canvas::gl::gl_aux_functions::find_node_coordinates;
 
 use crate::{ElementsValues, ElementsNumbers};
-use crate::fem::{FENode, FEType};
+use crate::fem::{FENode, FEType, GlobalDOFParameter};
 use crate::auxiliary::{NormalizedNode, FEDrawnElementData, DrawnBCData};
 
 use web_sys::{WebGlBuffer, WebGlUniformLocation, WebGlProgram, WebGlRenderingContext as GL};
@@ -64,6 +64,20 @@ pub const DRAWN_DISPLACEMENTS_CAPS_BASE_POINTS_NUMBER: u16 = 12; // the number o
 
 pub const DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_X: GLElementsValues = 0.01;
 pub const DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_Y: GLElementsValues = 0.015;
+
+
+pub const DRAWN_FORCES_COLOR: [GLElementsValues; 4] = [1.0, 0.0, 1.0, 1.0]; // purple
+pub const CANVAS_DRAWN_FORCES_DENOTATION_COLOR: &str = "purple";
+
+pub const DRAWN_FORCES_LINE_LENGTH: GLElementsValues = 0.07; // line length
+pub const DRAWN_FORCES_CAPS_HEIGHT: GLElementsValues = 0.015; // arrow length
+pub const DRAWN_FORCES_CAPS_WIDTH: GLElementsValues = 0.007; // half of arrow width
+pub const DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER: u16 = 12; // the number of points in cone circular base
+pub const DRAWN_FORCES_LINE_LENGTH_COEFFICIENT: GLElementsValues = 1.5; // line length coefficient for moments values
+pub const DRAWN_FORCES_CAPS_LENGTH_COEFFICIENT: GLElementsValues = 1.5; // line length coefficient for moments values
+
+// pub const DRAWN_FORCES_DENOTATION_SHIFT_X: GLElementsValues = 0.01;
+// pub const DRAWN_FORCES_DENOTATION_SHIFT_Y: GLElementsValues = 0.015;
 
 
 pub enum CSAxis
@@ -408,11 +422,12 @@ impl DrawnObject
         let mut start_index =
             if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
         let tolerance = TOLERANCE as GLElementsValues;
-        for (i, displacement) in drawn_displacements.iter().enumerate()
+        for displacement in drawn_displacements.iter()
         {
             if let Some(position) = normalized_nodes
                 .iter()
-                .position(|node| node.number == displacement.node_number as GLElementsNumbers)
+                .position(|node| node.number ==
+                    displacement.node_number as GLElementsNumbers)
             {
                 let x = normalized_nodes[position].x;
                 let y = normalized_nodes[position].y;
@@ -459,6 +474,307 @@ impl DrawnObject
                 self.elements_numbers.push(base_points_number as i32 * 3);
                 self.offsets.push(offset);
                 start_index += base_points_number + 1;
+            }
+        }
+    }
+
+
+    fn add_forces_lines(&mut self, dof_parameter: GlobalDOFParameter, value: ElementsValues,
+        x_start: GLElementsValues, y_start: GLElementsValues, z_start: GLElementsValues,
+        line_length: GLElementsValues, start_index: GLElementsNumbers)
+        -> (GLElementsValues, GLElementsValues, GLElementsValues)
+    {
+        let (x_end, y_end, z_end) =
+            {
+                match dof_parameter
+                {
+                    GlobalDOFParameter::X =>
+                        {
+                            let x_end =
+                            {
+                                if value >= 0.0 as ElementsValues
+                                {
+                                    x_start + line_length
+                                }
+                                else
+                                {
+                                    x_start - line_length
+                                }
+                            };
+                            let y_end = y_start;
+                            let z_end = z_start;
+                            (x_end, y_end, z_end)
+                        },
+                    GlobalDOFParameter::Y =>
+                        {
+                            let x_end = x_start;
+                            let y_end =
+                            {
+                                if value >= 0.0 as ElementsValues
+                                {
+                                    y_start + line_length
+                                }
+                                else
+                                {
+                                    y_start - line_length
+                                }
+                            };
+                            let z_end = z_start;
+                            (x_end, y_end, z_end)
+                        },
+                    GlobalDOFParameter::Z =>
+                        {
+                            let x_end = x_start;
+                            let y_end = y_start;
+                            let z_end =
+                            {
+                                if value >= 0.0 as ElementsValues
+                                {
+                                    z_start + line_length
+                                }
+                                else
+                                {
+                                    z_start - line_length
+                                }
+                            };
+                            (x_end, y_end, z_end)
+                        },
+                    GlobalDOFParameter::ThX =>
+                        {
+                            let x_end =
+                            {
+                                if value >= 0.0 as ElementsValues
+                                {
+                                    x_start + line_length * DRAWN_FORCES_LINE_LENGTH_COEFFICIENT
+                                }
+                                else
+                                {
+                                    x_start - line_length * DRAWN_FORCES_LINE_LENGTH_COEFFICIENT
+                                }
+                            };
+                            let y_end = y_start;
+                            let z_end = z_start;
+                            (x_end, y_end, z_end)
+                        },
+                    GlobalDOFParameter::ThY =>
+                        {
+                            let x_end = x_start;
+                            let y_end =
+                            {
+                                if value >= 0.0 as ElementsValues
+                                {
+                                    y_start + line_length * DRAWN_FORCES_LINE_LENGTH_COEFFICIENT
+                                }
+                                else
+                                {
+                                    y_start - line_length * DRAWN_FORCES_LINE_LENGTH_COEFFICIENT
+                                }
+                            };
+                            let z_end = z_start;
+                            (x_end, y_end, z_end)
+                        },
+                    GlobalDOFParameter::ThZ =>
+                        {
+                            let x_end = x_start;
+                            let y_end = y_start;
+                            let z_end =
+                            {
+                                if value >= 0.0 as ElementsValues
+                                {
+                                    z_start + line_length * DRAWN_FORCES_LINE_LENGTH_COEFFICIENT
+                                }
+                                else
+                                {
+                                    z_start - line_length * DRAWN_FORCES_LINE_LENGTH_COEFFICIENT
+                                }
+                            };
+                            (x_end, y_end, z_end)
+                        },
+                }
+            };
+        self.vertices_coordinates.extend(&[x_end, y_end, z_end]);
+        self.colors_values.extend(&DRAWN_FORCES_COLOR);
+        self.colors_values.extend(&DRAWN_FORCES_COLOR);
+        self.indexes_numbers.extend(&[start_index, start_index + 1]);
+        self.modes.push(GLPrimitiveType::Lines);
+        self.elements_numbers.push(2);
+        let offset = self.define_offset();
+        self.offsets.push(offset);
+        (x_end, y_end, z_end)
+    }
+
+
+    fn add_forces_caps(&mut self, dof_parameter: GlobalDOFParameter, value: ElementsValues,
+        base_points_number: GLElementsNumbers, height: GLElementsValues,
+        base_radius: GLElementsValues, x_end: GLElementsValues, y_end: GLElementsValues,
+        z_end: GLElementsValues, start_index: GLElementsNumbers)
+    {
+        let tolerance = TOLERANCE as GLElementsValues;
+        let angle = 2.0 * PI / base_points_number as GLElementsValues;
+        for point_number in 0..base_points_number
+        {
+            let angle = angle * point_number as GLElementsValues;
+            let local_x = {
+                let value = base_radius * angle.cos();
+                if value.abs() < tolerance { 0.0 } else { value }
+            };
+            let local_y =
+                {
+                    let value = base_radius * angle.sin();
+                    if value.abs() < tolerance { 0.0 } else { value }
+                };
+            let coordinates =
+                {
+                    match dof_parameter
+                    {
+                        GlobalDOFParameter::X =>
+                            {
+                                if value >= 0.0 as ElementsValues
+                                {
+                                    [x_end - height, y_end + local_y, z_end + local_x]
+                                }
+                                else
+                                {
+                                    [x_end + height, y_end + local_y, z_end + local_x]
+                                }
+                            },
+                        GlobalDOFParameter::Y =>
+                            {
+                                if value >= 0.0 as ElementsValues
+                                {
+                                    [x_end + local_y, y_end - height, z_end + local_x]
+                                }
+                                else
+                                {
+                                    [x_end + local_y, y_end + height, z_end + local_x]
+                                }
+                            },
+                        GlobalDOFParameter::Z =>
+                            {
+                                if value >= 0.0 as ElementsValues
+                                {
+                                    [x_end + local_x, y_end + local_y, z_end - height]
+                                }
+                                else
+                                {
+                                    [x_end + local_x, y_end + local_y, z_end + height]
+                                }
+                            },
+                        GlobalDOFParameter::ThX =>
+                            {
+                                if value >= 0.0 as ElementsValues
+                                {
+                                    [x_end - height * DRAWN_FORCES_CAPS_LENGTH_COEFFICIENT,
+                                    y_end + local_y, z_end + local_x]
+                                }
+                                else
+                                {
+                                    [x_end + height * DRAWN_FORCES_CAPS_LENGTH_COEFFICIENT,
+                                    y_end + local_y, z_end + local_x]
+                                }
+                            },
+                        GlobalDOFParameter::ThY =>
+                            {
+                                if value >= 0.0 as ElementsValues
+                                {
+                                    [x_end + local_y,
+                                    y_end - height * DRAWN_FORCES_CAPS_LENGTH_COEFFICIENT,
+                                    z_end + local_x]
+                                }
+                                else
+                                {
+                                    [x_end + local_y,
+                                    y_end + height * DRAWN_FORCES_CAPS_LENGTH_COEFFICIENT,
+                                    z_end + local_x]
+                                }
+                            },
+                        GlobalDOFParameter::ThZ =>
+                            {
+                                if value >= 0.0 as ElementsValues
+                                {
+                                    [x_end + local_x, y_end + local_y,
+                                    z_end - height * DRAWN_FORCES_CAPS_LENGTH_COEFFICIENT]
+                                }
+                                else
+                                {
+                                    [x_end + local_x, y_end + local_y,
+                                    z_end + height * DRAWN_FORCES_CAPS_LENGTH_COEFFICIENT]
+                                }
+                            },
+                    }
+                };
+            self.vertices_coordinates.extend(&coordinates);
+        }
+        for point_number in 1..base_points_number
+        {
+            if point_number == 1
+            {
+                self.colors_values.extend(&DRAWN_FORCES_COLOR);
+                self.colors_values.extend(&DRAWN_FORCES_COLOR);
+                self.colors_values.extend(&DRAWN_FORCES_COLOR);
+            } else {
+                self.colors_values.extend(&DRAWN_FORCES_COLOR);
+            }
+            self.indexes_numbers.extend(&[start_index, start_index + point_number,
+                start_index + point_number + 1]);
+        }
+        self.indexes_numbers.extend(&[start_index, start_index + 1,
+            start_index + base_points_number]);
+        let offset = self.define_offset();
+        self.modes.push(GLPrimitiveType::Triangles);
+        self.elements_numbers.push(base_points_number as i32 * 3);
+        self.offsets.push(offset);
+    }
+
+
+    pub fn add_forces(&mut self, normalized_nodes: &Vec<NormalizedNode>,
+        drawn_forces: &Vec<&DrawnBCData>, line_length: GLElementsValues,
+        base_points_number: GLElementsNumbers, height: GLElementsValues,
+        base_radius: GLElementsValues)
+    {
+        let mut start_index =
+            if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
+        for force in drawn_forces.iter()
+        {
+            if let Some(position) = normalized_nodes
+                .iter()
+                .position(|node|
+                    node.number == force.node_number as GLElementsNumbers)
+            {
+                let x_start = normalized_nodes[position].x;
+                let y_start = normalized_nodes[position].y;
+                let z_start = normalized_nodes[position].z;
+                self.vertices_coordinates.extend(&[x_start, y_start, z_start]);
+                if let Some(x_value) = force.x_direction_value
+                {
+                    let (x_end, y_end, z_end) =
+                        self.add_forces_lines(GlobalDOFParameter::X, x_value, x_start,
+                            y_start, z_start, line_length, start_index);
+                    start_index += 1;
+                    self.add_forces_caps(GlobalDOFParameter::X, x_value,
+                        base_points_number, height, base_radius, x_end,  y_end, z_end, start_index);
+                    start_index += base_points_number + 1;
+                }
+                if let Some(y_value) = force.y_direction_value
+                {
+                    let (x_end, y_end, z_end) =
+                        self.add_forces_lines(GlobalDOFParameter::Y, y_value, x_start,
+                            y_start, z_start, line_length, start_index);
+                    start_index += 1;
+                    self.add_forces_caps(GlobalDOFParameter::Y, y_value,
+                        base_points_number, height, base_radius, x_end,  y_end, z_end, start_index);
+                    start_index += base_points_number + 1;
+                }
+                if let Some(z_value) = force.z_direction_value
+                {
+                    let (x_end, y_end, z_end) =
+                        self.add_forces_lines(GlobalDOFParameter::Z, z_value, x_start,
+                            y_start, z_start, line_length, start_index);
+                    start_index += 1;
+                    self.add_forces_caps(GlobalDOFParameter::Z, z_value,
+                        base_points_number, height, base_radius, x_end,  y_end, z_end, start_index);
+                    start_index += base_points_number + 1;
+                }
             }
         }
     }

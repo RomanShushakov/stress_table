@@ -31,7 +31,8 @@ use crate::components::preprocessor_canvas::gl::gl_aux_structs::
         CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR, DRAWN_DISPLACEMENTS_CAPS_BASE_POINTS_NUMBER,
         DRAWN_DISPLACEMENTS_CAPS_HEIGHT, DRAWN_DISPLACEMENTS_CAPS_WIDTH,
         CANVAS_DRAWN_DISPLACEMENTS_DENOTATION_COLOR, DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_X,
-        DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_Y
+        DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_Y, DRAWN_FORCES_LINE_LENGTH, DRAWN_FORCES_CAPS_HEIGHT,
+        DRAWN_FORCES_CAPS_WIDTH, DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER
     };
 
 use crate::fem::{FENode, FEType, BCType};
@@ -467,8 +468,7 @@ impl PreprocessorCanvas
                 }
             }
 
-            let drawn_displacements: Vec<&DrawnBCData> =
-                self.props.drawn_bcs
+            let drawn_displacements: Vec<&DrawnBCData> = self.props.drawn_bcs
                     .iter()
                     .filter(|bc|
                         bc.bc_type == BCType::Displacement)
@@ -480,6 +480,21 @@ impl PreprocessorCanvas
                     DRAWN_DISPLACEMENTS_CAPS_BASE_POINTS_NUMBER,
                     DRAWN_DISPLACEMENTS_CAPS_HEIGHT / (1.0 + self.state.d_scale),
                     DRAWN_DISPLACEMENTS_CAPS_WIDTH / (1.0 + self.state.d_scale));
+            }
+
+            let drawn_forces: Vec<&DrawnBCData> = self.props.drawn_bcs
+                    .iter()
+                    .filter(|bc|
+                        bc.bc_type == BCType::Force)
+                    .collect();
+            if !drawn_forces.is_empty()
+            {
+                drawn_object.add_forces(
+                    &normalized_nodes, &drawn_forces,
+                    DRAWN_FORCES_LINE_LENGTH / (1.0 + self.state.d_scale),
+                    DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER,
+                    DRAWN_FORCES_CAPS_HEIGHT / (1.0 + self.state.d_scale),
+                    DRAWN_FORCES_CAPS_WIDTH / (1.0 + self.state.d_scale));
             }
 
             drawn_objects_buffers.render(&gl, &drawn_object, &shaders_variables);

@@ -133,6 +133,7 @@ impl Model
         let global_analysis_result = self.state.fem.global_analysis()?;
         let analysis_success_message = "The analysis was successfully completed!".to_string();
         self.state.analysis_message = Some(analysis_success_message);
+        self.state.is_preprocessor_active = false;
         Ok(global_analysis_result)
     }
 }
@@ -426,6 +427,7 @@ impl Component for Model
         let analysis_message = self.state.analysis_message.to_owned();
         let global_analysis_result =
             Rc::clone(&self.state.global_analysis_result);
+        let handle_edit_fem = self.link.callback(|_| Msg::EditFEM);
 
         let render = Router::render(move |switch: AppRoute| match switch
         {
@@ -462,6 +464,7 @@ impl Component for Model
 
                         submit=handle_submit.to_owned(),
                         global_analysis_result=Rc::clone(&global_analysis_result),
+                        edit_fem=handle_edit_fem.to_owned(),
                     />
                 },
             AppRoute::Postprocessor => html! { <Postprocessor /> },
@@ -498,6 +501,7 @@ impl Component for Model
 
                         submit=handle_submit.to_owned(),
                         global_analysis_result=Rc::clone(&global_analysis_result),
+                        edit_fem=handle_edit_fem.to_owned(),
                     />
                 },
         });

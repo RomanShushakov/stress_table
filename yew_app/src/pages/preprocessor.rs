@@ -58,6 +58,7 @@ pub struct Props
 
     pub submit: Callback<()>,
     pub global_analysis_result: Rc<Option<GlobalAnalysisResult<ElementsNumbers, ElementsValues>>>,
+    pub edit_fem: Callback<()>,
 }
 
 
@@ -93,6 +94,7 @@ pub enum Msg
 {
     ResetAnalysisMessage,
     Submit,
+    EditFEM,
 }
 
 
@@ -113,6 +115,7 @@ impl Component for Preprocessor
             Msg::ResetAnalysisMessage =>
                 self.props.reset_analysis_message.emit(()),
             Msg::Submit => self.props.submit.emit(()),
+            Msg::EditFEM => self.props.edit_fem.emit(()),
         }
         true
     }
@@ -200,6 +203,22 @@ impl Component for Preprocessor
                                 },
                         >
                             { "Submit" }
+                        </button>
+                        <button class={ PREPROCESSOR_BUTTON_CLASS }
+                            onclick=self.link.callback(|_| Msg::EditFEM),
+                            disabled=
+                                {
+                                    if self.props.global_analysis_result.as_ref().is_some()
+                                    {
+                                        false
+                                    }
+                                    else
+                                    {
+                                        true
+                                    }
+                                },
+                        >
+                            { "Edit FEM" }
                         </button>
                         <Button route=AppRoute::Postprocessor
                             classes={PREPROCESSOR_BUTTON_CLASS },

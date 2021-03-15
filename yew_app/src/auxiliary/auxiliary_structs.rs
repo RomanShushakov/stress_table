@@ -5,27 +5,6 @@ use crate::fem::{FEType, BCType};
 
 
 #[derive(Clone, PartialEq)]
-pub enum AnalysisType
-{
-    TwoDimensional,
-    ThreeDimensional,
-}
-
-
-impl AnalysisType
-{
-    pub fn as_str(&self) -> String
-    {
-        match self
-        {
-            AnalysisType::TwoDimensional => String::from("2D"),
-            AnalysisType::ThreeDimensional => String::from("3D"),
-        }
-    }
-}
-
-
-#[derive(Clone, PartialEq)]
 pub enum View
 {
     PlaneXY,
@@ -195,8 +174,8 @@ impl DrawnDisplacementInputOption
 #[derive(Clone, PartialEq, Debug)]
 pub struct MinMaxValues
 {
-    pub min_value: f64,
-    pub max_value: f64,
+    pub min_value: ElementsValues,
+    pub max_value: ElementsValues,
 }
 
 

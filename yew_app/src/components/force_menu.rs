@@ -42,7 +42,7 @@ pub struct Props
     pub add_bc: Callback<DrawnBCData>,
     pub update_bc: Callback<DrawnBCData>,
     pub delete_bc: Callback<DrawnBCData>,
-    pub add_analysis_error_message: Callback<String>,
+    pub add_analysis_message: Callback<String>,
 }
 
 
@@ -326,7 +326,7 @@ impl Component for ForceMenu
                     {
                         if node_number <= 0 as ElementsNumbers
                         {
-                            self.props.add_analysis_error_message.emit("Node menu: Node \
+                            self.props.add_analysis_message.emit("Node menu: Node \
                                 number cannot be less than 1.".to_string());
                             return false;
                         }
@@ -342,7 +342,7 @@ impl Component for ForceMenu
                     }
                     else
                     {
-                        self.props.add_analysis_error_message.emit("Node menu: You use \
+                        self.props.add_analysis_message.emit("Node menu: You use \
                             incorrect node number input format.".to_string());
                         return false;
                     }
@@ -385,7 +385,7 @@ impl Component for ForceMenu
                         }
                         if !self.check_inputted_data()
                         {
-                            self.props.add_analysis_error_message.emit("Node menu: The some \
+                            self.props.add_analysis_message.emit("Node menu: The some \
                                 force value must be specified.".to_string());
                             return false;
                         }
@@ -405,7 +405,7 @@ impl Component for ForceMenu
                     }
                     else
                     {
-                        self.props.add_analysis_error_message.emit("Node menu: The force is \
+                        self.props.add_analysis_message.emit("Node menu: The force is \
                             already applied to the selected node.".to_string());
                         return false;
                     }

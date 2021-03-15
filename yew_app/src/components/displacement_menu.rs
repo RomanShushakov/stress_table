@@ -47,7 +47,7 @@ pub struct Props
     pub add_bc: Callback<DrawnBCData>,
     pub update_bc: Callback<DrawnBCData>,
     pub delete_bc: Callback<DrawnBCData>,
-    pub add_analysis_error_message: Callback<String>,
+    pub add_analysis_message: Callback<String>,
 }
 
 
@@ -419,7 +419,7 @@ impl Component for DisplacementMenu
                     {
                         if node_number <= 0 as ElementsNumbers
                         {
-                            self.props.add_analysis_error_message.emit("Displacement menu: \
+                            self.props.add_analysis_message.emit("Displacement menu: \
                                 Node number cannot be less than 1.".to_string());
                             return false;
                         }
@@ -435,7 +435,7 @@ impl Component for DisplacementMenu
                     }
                     else
                     {
-                        self.props.add_analysis_error_message.emit("Displacement menu: \
+                        self.props.add_analysis_message.emit("Displacement menu: \
                             You use incorrect node number input format.".to_string());
                         return false;
                     }
@@ -642,7 +642,7 @@ impl Component for DisplacementMenu
 
                         if !self.check_inputted_data()
                         {
-                            self.props.add_analysis_error_message.emit("Displacement menu: \
+                            self.props.add_analysis_message.emit("Displacement menu: \
                                 The some displacement value must be specified!".to_string());
                             return false;
                         }
@@ -664,7 +664,7 @@ impl Component for DisplacementMenu
                     }
                     else
                     {
-                        self.props.add_analysis_error_message.emit("Displacement menu: \
+                        self.props.add_analysis_message.emit("Displacement menu: \
                             The displacement is already applied to the selected node!".to_string());
                         return false;
                     }

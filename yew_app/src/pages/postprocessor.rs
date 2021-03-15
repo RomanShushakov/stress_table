@@ -35,7 +35,7 @@ impl Component for Postprocessor
         {
             <>
                 <h2>{ "Postprocessor" }</h2>
-                <Anchor route=AppRoute::HomePage>
+                <Anchor route=AppRoute::Preprocessor>
                     <button class="button">{ "Preprocessor" }</button>
                 </Anchor>
             </>

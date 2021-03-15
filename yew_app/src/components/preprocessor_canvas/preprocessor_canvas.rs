@@ -68,7 +68,7 @@ pub struct Props
     pub canvas_height: u32,
     pub nodes: Rc<Vec<Rc<RefCell<FENode<ElementsNumbers, ElementsValues>>>>>,
     pub drawn_elements: Rc<Vec<FEDrawnElementData>>,
-    pub add_analysis_error_message: Callback<String>,
+    pub add_analysis_message: Callback<String>,
     pub drawn_bcs: Rc<Vec<DrawnBCData>>,
 }
 
@@ -465,7 +465,7 @@ impl PreprocessorCanvas
             {
                 match drawn_object.add_elements(&normalized_nodes, &self.props.drawn_elements)
                 {
-                    Err(e) => self.props.add_analysis_error_message.emit(e),
+                    Err(e) => self.props.add_analysis_message.emit(e),
                     Ok(()) => (),
                 }
             }
@@ -562,7 +562,7 @@ impl PreprocessorCanvas
                                 &element.number.to_string());
                                 ctx.stroke();
                             },
-                        Err(e) => self.props.add_analysis_error_message.emit(e),
+                        Err(e) => self.props.add_analysis_message.emit(e),
                     }
                 }
             }
@@ -588,7 +588,7 @@ impl PreprocessorCanvas
                                 &displacement.number.to_string());
                                 ctx.stroke();
                             },
-                        Err(e) => self.props.add_analysis_error_message.emit(e)
+                        Err(e) => self.props.add_analysis_message.emit(e)
                     }
                 }
             }
@@ -615,7 +615,7 @@ impl PreprocessorCanvas
                                 &format!("#{}", force.number));
                                 ctx.stroke();
                             },
-                        Err(e) => self.props.add_analysis_error_message.emit(e)
+                        Err(e) => self.props.add_analysis_message.emit(e)
                     }
                 }
             }

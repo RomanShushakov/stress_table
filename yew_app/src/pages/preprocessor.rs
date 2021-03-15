@@ -1,9 +1,11 @@
 use yew::prelude::*;
+use yew_router::prelude::{RouterButton};
 
-use crate::auxiliary::{View, FEDrawnNodeData, FEDrawnElementData, DrawnBCData};
 use std::rc::Rc;
 use std::cell::RefCell;
-use crate::fem::FENode;
+
+use crate::auxiliary::{View, FEDrawnNodeData, FEDrawnElementData, DrawnBCData};
+use crate::fem::{FENode, GlobalAnalysisResult};
 use crate::{ElementsNumbers, ElementsValues};
 
 use crate::components::
@@ -11,7 +13,7 @@ use crate::components::
         NodeMenu, PreprocessorCanvas, ElementMenu,
         ViewMenu, DisplacementMenu, ForceMenu
     };
-use yew_router::prelude::{RouterButton};
+
 use crate::route::AppRoute;
 
 
@@ -46,13 +48,16 @@ pub struct Props
     pub add_bc: Callback<DrawnBCData>,
     pub update_bc: Callback<DrawnBCData>,
     pub delete_bc: Callback<DrawnBCData>,
-    pub add_analysis_error_message: Callback<String>,
+    pub add_analysis_message: Callback<String>,
 
     pub canvas_width: u32,
     pub canvas_height: u32,
-    pub analysis_error_message: Option<String>,
+    pub analysis_message: Option<String>,
 
-    pub reset_analysis_error_message: Callback<()>,
+    pub reset_analysis_message: Callback<()>,
+
+    pub submit: Callback<()>,
+    pub global_analysis_result: Rc<Option<GlobalAnalysisResult<ElementsNumbers, ElementsValues>>>,
 }
 
 
@@ -86,7 +91,8 @@ impl Preprocessor
 
 pub enum Msg
 {
-    ResetAnalysisErrorMessage,
+    ResetAnalysisMessage,
+    Submit,
 }
 
 
@@ -104,8 +110,9 @@ impl Component for Preprocessor
     {
         match msg
         {
-            Msg::ResetAnalysisErrorMessage =>
-                self.props.reset_analysis_error_message.emit(()),
+            Msg::ResetAnalysisMessage =>
+                self.props.reset_analysis_message.emit(()),
+            Msg::Submit => self.props.submit.emit(()),
         }
         true
     }
@@ -114,12 +121,14 @@ impl Component for Preprocessor
     {
         if (&self.props.view, &self.props.is_preprocessor_active,
             &self.props.canvas_height, &self.props.canvas_width,
-            &self.props.analysis_error_message) !=
+            &self.props.analysis_message) !=
             (&props.view, &props.is_preprocessor_active,
-             &props.canvas_height, &props.canvas_width, &props.analysis_error_message) ||
+             &props.canvas_height, &props.canvas_width, &props.analysis_message) ||
             !Rc::ptr_eq(&self.props.nodes, &props.nodes) ||
             !Rc::ptr_eq(&self.props.drawn_elements, &props.drawn_elements) ||
-            !Rc::ptr_eq(&self.props.drawn_bcs, &props.drawn_bcs)
+            !Rc::ptr_eq(&self.props.drawn_bcs, &props.drawn_bcs) ||
+            !Rc::ptr_eq(&self.props.global_analysis_result,
+                &props.global_analysis_result)
         {
             self.props = props;
             true
@@ -164,7 +173,7 @@ impl Component for Preprocessor
                             add_bc=self.props.add_bc.to_owned(),
                             update_bc=self.props.update_bc.to_owned(),
                             delete_bc=self.props.delete_bc.to_owned(),
-                            add_analysis_error_message=self.props.add_analysis_error_message.to_owned(),
+                            add_analysis_message=self.props.add_analysis_message.to_owned(),
                         />
                         <ForceMenu
                             is_preprocessor_active=self.props.is_preprocessor_active.to_owned(),
@@ -173,29 +182,41 @@ impl Component for Preprocessor
                             add_bc=self.props.add_bc.to_owned(),
                             update_bc=self.props.update_bc.to_owned(),
                             delete_bc=self.props.delete_bc.to_owned(),
-                            add_analysis_error_message=self.props.add_analysis_error_message.to_owned(),
+                            add_analysis_message=self.props.add_analysis_message.to_owned(),
                         />
-                        <Button route=AppRoute::Postprocessor classes={PREPROCESSOR_BUTTON_CLASS }>
-                          { "Submit" }
+                        <button class={ PREPROCESSOR_BUTTON_CLASS }
+                            onclick=self.link.callback(|_| Msg::Submit),
+                            disabled=
+                                {
+                                    if self.props.is_preprocessor_active &&
+                                        self.check_preprocessor_data()
+                                    {
+                                        false
+                                    }
+                                    else
+                                    {
+                                        true
+                                    }
+                                },
+                        >
+                            { "Submit" }
+                        </button>
+                        <Button route=AppRoute::Postprocessor
+                            classes={PREPROCESSOR_BUTTON_CLASS },
+                            disabled=
+                                {
+                                    if self.props.global_analysis_result.as_ref().is_some()
+                                    {
+                                        false
+                                    }
+                                    else
+                                    {
+                                        true
+                                    }
+                                },
+                        >
+                          { "View result" }
                         </Button>
-
-
-                        // <button class={ PREPROCESSOR_BUTTON_CLASS }
-                        //     // onclick=self.link.callback(|_| Msg::Submit),
-                        //     disabled=
-                        //         {
-                        //             if self.props.is_preprocessor_active && self.check_preprocessor_data()
-                        //             {
-                        //                 false
-                        //             }
-                        //             else
-                        //             {
-                        //                 true
-                        //             }
-                        //         },
-                        // >
-                        //     { "Submit" }
-                        // </button>
                     </div>
                     <div class={ PREPROCESSOR_CANVAS_CLASS }>
                         <PreprocessorCanvas
@@ -205,13 +226,13 @@ impl Component for Preprocessor
                             canvas_height=self.props.canvas_height.to_owned(),
                             nodes=Rc::clone(&self.props.nodes),
                             drawn_elements=Rc::clone(&self.props.drawn_elements),
-                            add_analysis_error_message=self.props.add_analysis_error_message.to_owned(),
+                            add_analysis_message=self.props.add_analysis_message.to_owned(),
                             drawn_bcs=Rc::clone(&self.props.drawn_bcs),
                         />
                     </div>
                 </div>
                 {
-                    if let Some(error_message) = &self.props.analysis_error_message
+                    if let Some(error_message) = &self.props.analysis_message
                     {
                         html!
                         {
@@ -219,7 +240,7 @@ impl Component for Preprocessor
                                 <p class={ ANALYSIS_ERROR_MESSAGE_CLASS }>{ error_message }</p>
                                 <button
                                     class={ ANALYSIS_ERROR_BUTTON_CLASS },
-                                    onclick=self.link.callback(|_| Msg::ResetAnalysisErrorMessage)
+                                    onclick=self.link.callback(|_| Msg::ResetAnalysisMessage)
                                 >
                                     { "Hide message" }
                                 </button>

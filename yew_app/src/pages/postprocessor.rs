@@ -4,54 +4,27 @@ use yew_router::prelude::RouterAnchor;
 use crate::route::AppRoute;
 
 
-#[derive(Properties, PartialEq, Clone)]
-pub struct Props
-{
-    pub reset_model: Callback<()>,
-}
+pub struct Postprocessor;
 
-pub struct Postprocessor
-{
-    link: ComponentLink<Self>,
-    props: Props,
-}
-
-
-pub enum Msg
-{
-    ResetModel
-}
 
 impl Component for Postprocessor
 {
-    type Message = Msg;
-    type Properties = Props;
+    type Message = ();
+    type Properties = ();
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self
+    fn create(_: Self::Properties, _link: ComponentLink<Self>) -> Self
     {
-        Self { props, link }
+        Self {  }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender
+    fn update(&mut self, _msg: Self::Message) -> ShouldRender
     {
-        match msg
-        {
-            Msg::ResetModel => self.props.reset_model.emit(()),
-        }
         true
     }
 
-    fn change(&mut self, props: Self::Properties) -> ShouldRender
+    fn change(&mut self, _props: Self::Properties) -> ShouldRender
     {
-        if self.props != props
-        {
-            self.props = props;
-            true
-        }
-        else
-        {
-            false
-        }
+        false
     }
 
     fn view(&self) -> Html
@@ -62,8 +35,6 @@ impl Component for Postprocessor
         {
             <>
                 <h2>{ "Postprocessor" }</h2>
-                <button onclick=self.link.callback(|_| Msg::ResetModel)>{ "Reset Model" }</button>
-
                 <Anchor route=AppRoute::HomePage>
                     <button class="button">{ "Preprocessor" }</button>
                 </Anchor>

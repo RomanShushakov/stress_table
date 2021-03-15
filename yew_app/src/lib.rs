@@ -24,7 +24,7 @@ mod extended_matrix;
 mod components;
 use components::
     {
-        AnalysisTypeMenu, NodeMenu, PreprocessorCanvas, ElementMenu,
+        NodeMenu, PreprocessorCanvas, ElementMenu,
         ViewMenu, DisplacementMenu, ForceMenu, // ResultViewMenu, PostprocessorCanvas,
         // AllResultsTable,
     };
@@ -67,7 +67,6 @@ const POSTPROCESSOR_CANVAS_CLASS: &str = "postprocessor_canvas";
 
 struct State
 {
-    analysis_type: Option<AnalysisType>,
     view: Option<View>,
     canvas_width: u32,
     canvas_height: u32,
@@ -90,7 +89,6 @@ struct Model
 enum Msg
 {
     ExtractWindowDimensions(WindowDimensions),
-    AddAnalysisType(AnalysisType),
     ChangeView(View),
     DiscardView,
     AddNode(FEDrawnNodeData),
@@ -107,7 +105,6 @@ enum Msg
     ResetAnalysisErrorMessage,
     EditStructure,
     ChangeResultView(ResultView),
-    ResetModel,
 }
 
 
@@ -127,14 +124,6 @@ impl Model
     {
         self.state.canvas_width = (dimensions.width as f32 * 0.8) as u32;
         self.state.canvas_height = (dimensions.height as f32 * 0.8) as u32;
-    }
-
-
-    fn reset_model(&mut self)
-    {
-        // let fem = FEModel::create();
-        // self.state.fem = fem;
-        self.state.analysis_type = None;
     }
 
 
@@ -333,7 +322,6 @@ impl Component for Model
             link,
             state: State
                 {
-                    analysis_type: None,
                     view: None,
                     canvas_width: width,
                     canvas_height: height,
@@ -354,8 +342,6 @@ impl Component for Model
         {
             Msg::ExtractWindowDimensions(window_dimensions) =>
                 self.extract_window_dimensions(window_dimensions),
-            Msg::AddAnalysisType(analysis_type) =>
-                self.state.analysis_type = Some(analysis_type),
             Msg::ChangeView(view) => self.state.view = Some(view),
             Msg::DiscardView => self.state.view = None,
             Msg::AddNode(data) =>
@@ -520,7 +506,6 @@ impl Component for Model
                 },
             Msg::ChangeResultView(result_view) =>
                 self.state.result_view = Some(result_view),
-            Msg::ResetModel => self.reset_model(),
         }
         true
     }
@@ -534,9 +519,6 @@ impl Component for Model
 
     fn view(&self) -> Html
     {
-        let handle_add_analysis_type =
-            self.link.callback(|analysis_type: AnalysisType| Msg::AddAnalysisType(analysis_type));
-
         let handle_add_analysis_error_message =
             self.link.callback(|msg: String| Msg::AddAnalysisErrorMessage(msg));
 
@@ -574,16 +556,12 @@ impl Component for Model
         let handle_reset_analysis_error_message =
             self.link.callback(|_| Msg::ResetAnalysisErrorMessage);
 
-        let analysis_type = self.state.analysis_type.to_owned();
-
         let view = self.state.view.to_owned();
         let preprocessor_is_active = self.state.is_preprocessor_active.to_owned();
 
         let canvas_width = self.state.canvas_width.to_owned();
         let canvas_height = self.state.canvas_height.to_owned();
         let analysis_error_message = self.state.analysis_error_message.to_owned();
-
-        let handle_reset_model = self.link.callback(|_| Msg::ResetModel);
 
         let render = Router::render(move |switch: AppRoute| match switch
         {
@@ -620,12 +598,11 @@ impl Component for Model
             //             reset_analysis_error_message=handle_reset_analysis_error_message.to_owned(),
             //         />
             //     },
-            AppRoute::Postprocessor => html! { <Postprocessor reset_model=handle_reset_model.to_owned() /> },
+            AppRoute::Postprocessor => html! { <Postprocessor /> },
             AppRoute::HomePage =>
                 html!
                 {
-                    <Preprocessor analysis_type=analysis_type.to_owned(),
-                        add_analysis_type=&handle_add_analysis_type.to_owned(),
+                    <Preprocessor
                         view=view.to_owned(),
                         change_view=handle_change_view.to_owned(),
                         discard_view=handle_discard_view.to_owned(),

@@ -1,6 +1,6 @@
 use yew::prelude::*;
 
-use crate::auxiliary::{AnalysisType, View, FEDrawnNodeData, FEDrawnElementData, DrawnBCData};
+use crate::auxiliary::{View, FEDrawnNodeData, FEDrawnElementData, DrawnBCData};
 use std::rc::Rc;
 use std::cell::RefCell;
 use crate::fem::FENode;
@@ -8,7 +8,7 @@ use crate::{ElementsNumbers, ElementsValues};
 
 use crate::components::
     {
-        AnalysisTypeMenu, NodeMenu, PreprocessorCanvas, ElementMenu,
+        NodeMenu, PreprocessorCanvas, ElementMenu,
         ViewMenu, DisplacementMenu, ForceMenu
     };
 use yew_router::prelude::{RouterButton};
@@ -27,8 +27,6 @@ const ANALYSIS_ERROR_BUTTON_CLASS: &str = "analysis_error_button";
 #[derive(Properties, Clone)]
 pub struct Props
 {
-    pub analysis_type: Option<AnalysisType>,
-    pub add_analysis_type: Callback<AnalysisType>,
     pub view: Option<View>,
     pub change_view: Callback<View>,
     pub discard_view: Callback<()>,
@@ -114,10 +112,10 @@ impl Component for Preprocessor
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender
     {
-        if (&self.props.analysis_type, &self.props.view, &self.props.is_preprocessor_active,
+        if (&self.props.view, &self.props.is_preprocessor_active,
             &self.props.canvas_height, &self.props.canvas_width,
             &self.props.analysis_error_message) !=
-            (&props.analysis_type, &props.view, &props.is_preprocessor_active,
+            (&props.view, &props.is_preprocessor_active,
              &props.canvas_height, &props.canvas_width, &props.analysis_error_message) ||
             !Rc::ptr_eq(&self.props.nodes, &props.nodes) ||
             !Rc::ptr_eq(&self.props.drawn_elements, &props.drawn_elements) ||
@@ -141,16 +139,11 @@ impl Component for Preprocessor
             <>
                 <div class={ PREPROCESSOR_CLASS }>
                     <div class={ PREPROCESSOR_MENU_CLASS }>
-                        <AnalysisTypeMenu
-                            analysis_type=self.props.analysis_type.to_owned(),
-                            add_analysis_type=self.props.add_analysis_type.to_owned(),
-                        />
                         <ViewMenu
                             view=self.props.view.to_owned(),
                             change_view=self.props.change_view.to_owned(),
                         />
                         <NodeMenu
-                            analysis_type=self.props.analysis_type.to_owned(),
                             is_preprocessor_active=self.props.is_preprocessor_active.to_owned(),
                             nodes=Rc::clone(&self.props.nodes),
                             add_node=self.props.add_node.to_owned(),
@@ -158,7 +151,6 @@ impl Component for Preprocessor
                             delete_node=self.props.delete_node.to_owned(),
                         />
                         <ElementMenu
-                            analysis_type=self.props.analysis_type.to_owned(),
                             is_preprocessor_active=self.props.is_preprocessor_active.to_owned(),
                             drawn_elements=Rc::clone(&self.props.drawn_elements),
                             add_element=self.props.add_element.to_owned(),
@@ -166,7 +158,6 @@ impl Component for Preprocessor
                             delete_element=self.props.delete_element.to_owned(),
                         />
                         <DisplacementMenu
-                            analysis_type=self.props.analysis_type.to_owned(),
                             is_preprocessor_active=self.props.is_preprocessor_active.to_owned(),
                             drawn_elements=Rc::clone(&self.props.drawn_elements),
                             drawn_bcs=Rc::clone(&self.props.drawn_bcs),
@@ -176,7 +167,6 @@ impl Component for Preprocessor
                             add_analysis_error_message=self.props.add_analysis_error_message.to_owned(),
                         />
                         <ForceMenu
-                            analysis_type=self.props.analysis_type.to_owned(),
                             is_preprocessor_active=self.props.is_preprocessor_active.to_owned(),
                             drawn_elements=Rc::clone(&self.props.drawn_elements),
                             drawn_bcs=Rc::clone(&self.props.drawn_bcs),

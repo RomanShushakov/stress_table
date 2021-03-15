@@ -1,4 +1,3 @@
-mod analysis_type_menu;
 mod view_menu;
 mod node_menu;
 pub mod preprocessor_canvas;
@@ -11,7 +10,6 @@ mod force_menu;
 // mod all_results_table;
 
 
-pub use analysis_type_menu::AnalysisTypeMenu;
 pub use view_menu::ViewMenu;
 pub use node_menu::NodeMenu;
 pub use preprocessor_canvas::preprocessor_canvas::PreprocessorCanvas;

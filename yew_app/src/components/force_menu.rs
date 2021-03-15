@@ -9,7 +9,7 @@ use std::rc::Rc;
 
 use crate::
     {
-        AnalysisType,  FEDrawnElementData, DrawnBCData,
+        FEDrawnElementData, DrawnBCData,
         ElementsNumbers, ElementsValues,
     };
 use crate::pages::PREPROCESSOR_BUTTON_CLASS;
@@ -36,7 +36,6 @@ const MOMENT_IN_ZX_PLANE_VALUE: &str = "moment_in_zx_plane_value";
 #[derive(Properties, Clone)]
 pub struct Props
 {
-    pub analysis_type: Option<AnalysisType>,
     pub is_preprocessor_active: bool,
     pub drawn_elements: Rc<Vec<FEDrawnElementData>>,
     pub drawn_bcs: Rc<Vec<DrawnBCData>>,
@@ -363,40 +362,27 @@ impl Component for ForceMenu
                             self.read_inputted_force(FORCE_IN_X_DIRECTION_VALUE);
                         self.state.selected_force.y_direction_value =
                             self.read_inputted_force(FORCE_IN_Y_DIRECTION_VALUE);
-                        if let Some(analysis_type) = &self.props.analysis_type
+                        if self.state.selected_force.is_rotation_stiffness_enabled
                         {
-                            match analysis_type
-                            {
-                                AnalysisType::TwoDimensional =>
-                                    {
-                                        if self.state.selected_force.is_rotation_stiffness_enabled
-                                        {
-                                            self.state.selected_force.xy_plane_value =
-                                                self.read_inputted_force(
-                                                    MOMENT_IN_XY_PLANE_VALUE);
-                                        }
-                                    },
-                                AnalysisType::ThreeDimensional =>
-                                    {
-                                        self.state.selected_force.z_direction_value =
-                                            self.read_inputted_force(
-                                                FORCE_IN_Z_DIRECTION_VALUE);
-                                        if self.state.selected_force.is_rotation_stiffness_enabled
-                                        {
-                                            self.state.selected_force.xy_plane_value =
-                                                self.read_inputted_force(
-                                                    MOMENT_IN_XY_PLANE_VALUE);
-                                            self.state.selected_force.yz_plane_value =
-                                                self.read_inputted_force(
-                                                    MOMENT_IN_YZ_PLANE_VALUE);
-                                            self.state.selected_force.zx_plane_value =
-                                                self.read_inputted_force(
-                                                    MOMENT_IN_ZX_PLANE_VALUE);
-                                        }
-                                    }
-                            }
+                            self.state.selected_force.xy_plane_value =
+                                self.read_inputted_force(
+                                    MOMENT_IN_XY_PLANE_VALUE);
                         }
-
+                        self.state.selected_force.z_direction_value =
+                            self.read_inputted_force(
+                                FORCE_IN_Z_DIRECTION_VALUE);
+                        if self.state.selected_force.is_rotation_stiffness_enabled
+                        {
+                            self.state.selected_force.xy_plane_value =
+                                self.read_inputted_force(
+                                    MOMENT_IN_XY_PLANE_VALUE);
+                            self.state.selected_force.yz_plane_value =
+                                self.read_inputted_force(
+                                    MOMENT_IN_YZ_PLANE_VALUE);
+                            self.state.selected_force.zx_plane_value =
+                                self.read_inputted_force(
+                                    MOMENT_IN_ZX_PLANE_VALUE);
+                        }
                         if !self.check_inputted_data()
                         {
                             self.props.add_analysis_error_message.emit("Node menu: The some \
@@ -443,8 +429,7 @@ impl Component for ForceMenu
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender
     {
-        if (&self.props.analysis_type, &self.props.is_preprocessor_active) !=
-            (&props.analysis_type, &props.is_preprocessor_active) ||
+        if &self.props.is_preprocessor_active != &props.is_preprocessor_active ||
             !Rc::ptr_eq(&self.props.drawn_elements, &props.drawn_elements) ||
             !Rc::ptr_eq(&self.props.drawn_bcs, &props.drawn_bcs)
         {
@@ -477,8 +462,7 @@ impl Component for ForceMenu
                         onclick=self.link.callback(|_| Msg::ShowHideForceMenu),
                     disabled=
                         {
-                            if self.props.analysis_type.is_some() &&
-                                self.props.is_preprocessor_active
+                            if self.props.is_preprocessor_active
                             {
                                 false
                             }
@@ -567,146 +551,93 @@ impl Component for ForceMenu
                                                 type="number",
                                             />
                                         </li>
+                                        <li>
+                                            <p class={ FORCE_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
+                                                { "Force in the Z direction:" }
+                                            </p>
+                                            <input
+                                                id={ FORCE_IN_Z_DIRECTION_VALUE },
+                                                value=
+                                                    {
+                                                        if let Some(value) = self.state.selected_force.z_direction_value
+                                                        {
+                                                            value.to_string()
+                                                        }
+                                                        else
+                                                        {
+                                                            "".to_string()
+                                                        }
+                                                    },
+                                                type="number",
+                                            />
+                                        </li>
                                         {
-                                            if let Some(analysis_type) = &self.props.analysis_type
+                                            if self.state.selected_force.is_rotation_stiffness_enabled
                                             {
-                                                match analysis_type
+                                                html!
                                                 {
-                                                    AnalysisType::TwoDimensional =>
-                                                        {
-                                                            if self.state.selected_force.is_rotation_stiffness_enabled
-                                                            {
-                                                                html!
-                                                                {
-                                                                    <li>
-                                                                        <p class={ FORCE_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
-                                                                            { "Moment in the XY plane:" }
-                                                                        </p>
-                                                                        <input
-                                                                            id={ MOMENT_IN_XY_PLANE_VALUE },
-                                                                            value=
-                                                                                {
-                                                                                    if let Some(value) = self.state.selected_force.xy_plane_value
-                                                                                    {
-                                                                                        value.to_string()
-                                                                                    }
-                                                                                    else
-                                                                                    {
-                                                                                        "".to_string()
-                                                                                    }
-                                                                                },
-                                                                            type="number",
-                                                                        />
-                                                                    </li>
-                                                                }
-                                                            }
-                                                            else
-                                                            {
-                                                                html! {  }
-                                                            }
-                                                        },
-                                                    AnalysisType::ThreeDimensional =>
-                                                        {
-                                                            html!
-                                                            {
-                                                                <>
-                                                                    <li>
-                                                                        <p class={ FORCE_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
-                                                                            { "Force in the Z direction:" }
-                                                                        </p>
-                                                                        <input
-                                                                            id={ FORCE_IN_Z_DIRECTION_VALUE },
-                                                                            value=
-                                                                                {
-                                                                                    if let Some(value) = self.state.selected_force.z_direction_value
-                                                                                    {
-                                                                                        value.to_string()
-                                                                                    }
-                                                                                    else
-                                                                                    {
-                                                                                        "".to_string()
-                                                                                    }
-                                                                                },
-                                                                            type="number",
-                                                                        />
-                                                                    </li>
+                                                    <>
+                                                        <li>
+                                                            <p class={ FORCE_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
+                                                                { "Moment in the XY plane:" }
+                                                            </p>
+                                                            <input
+                                                                id={ MOMENT_IN_XY_PLANE_VALUE },
+                                                                value=
                                                                     {
-                                                                        if self.state.selected_force.is_rotation_stiffness_enabled
+                                                                        if let Some(value) = self.state.selected_force.xy_plane_value
                                                                         {
-                                                                            html!
-                                                                            {
-                                                                                <>
-                                                                                    <li>
-                                                                                        <p class={ FORCE_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
-                                                                                            { "Moment in the XY plane:" }
-                                                                                        </p>
-                                                                                        <input
-                                                                                            id={ MOMENT_IN_XY_PLANE_VALUE },
-                                                                                            value=
-                                                                                                {
-                                                                                                    if let Some(value) = self.state.selected_force.xy_plane_value
-                                                                                                    {
-                                                                                                        value.to_string()
-                                                                                                    }
-                                                                                                    else
-                                                                                                    {
-                                                                                                        "".to_string()
-                                                                                                    }
-                                                                                                },
-                                                                                            type="number",
-                                                                                        />
-                                                                                    </li>
-                                                                                    <li>
-                                                                                        <p class={ FORCE_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
-                                                                                            { "MOMENT in the YZ plane:" }
-                                                                                        </p>
-                                                                                        <input
-                                                                                            id={ MOMENT_IN_YZ_PLANE_VALUE },
-                                                                                            value=
-                                                                                                {
-                                                                                                    if let Some(value) = self.state.selected_force.yz_plane_value
-                                                                                                    {
-                                                                                                        value.to_string()
-                                                                                                    }
-                                                                                                    else
-                                                                                                    {
-                                                                                                        "".to_string()
-                                                                                                    }
-                                                                                                },
-                                                                                            type="number",
-                                                                                        />
-                                                                                    </li>
-                                                                                    <li>
-                                                                                        <p class={ FORCE_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
-                                                                                            { "Moment in the ZX plane:" }
-                                                                                        </p>
-                                                                                        <input
-                                                                                            id={ MOMENT_IN_ZX_PLANE_VALUE },
-                                                                                            value=
-                                                                                                {
-                                                                                                    if let Some(value) = self.state.selected_force.zx_plane_value
-                                                                                                    {
-                                                                                                        value.to_string()
-                                                                                                    }
-                                                                                                    else
-                                                                                                    {
-                                                                                                        "".to_string()
-                                                                                                    }
-                                                                                                },
-                                                                                            type="number",
-                                                                                        />
-                                                                                    </li>
-                                                                                </>
-                                                                            }
+                                                                            value.to_string()
                                                                         }
                                                                         else
                                                                         {
-                                                                            html! {  }
+                                                                            "".to_string()
                                                                         }
-                                                                    }
-                                                                </>
-                                                            }
-                                                        }
+                                                                    },
+                                                                type="number",
+                                                            />
+                                                        </li>
+                                                        <li>
+                                                            <p class={ FORCE_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
+                                                                { "MOMENT in the YZ plane:" }
+                                                            </p>
+                                                            <input
+                                                                id={ MOMENT_IN_YZ_PLANE_VALUE },
+                                                                value=
+                                                                    {
+                                                                        if let Some(value) = self.state.selected_force.yz_plane_value
+                                                                        {
+                                                                            value.to_string()
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            "".to_string()
+                                                                        }
+                                                                    },
+                                                                type="number",
+                                                            />
+                                                        </li>
+                                                        <li>
+                                                            <p class={ FORCE_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
+                                                                { "Moment in the ZX plane:" }
+                                                            </p>
+                                                            <input
+                                                                id={ MOMENT_IN_ZX_PLANE_VALUE },
+                                                                value=
+                                                                    {
+                                                                        if let Some(value) = self.state.selected_force.zx_plane_value
+                                                                        {
+                                                                            value.to_string()
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            "".to_string()
+                                                                        }
+                                                                    },
+                                                                type="number",
+                                                            />
+                                                        </li>
+                                                    </>
                                                 }
                                             }
                                             else

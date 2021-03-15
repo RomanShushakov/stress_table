@@ -11,7 +11,6 @@ use std::cell::RefCell;
 use crate::fem::{FENode};
 use crate::auxiliary::FEDrawnNodeData;
 use crate::{ElementsNumbers, ElementsValues};
-use crate::{AnalysisType};
 use crate::pages::PREPROCESSOR_BUTTON_CLASS;
 
 
@@ -32,7 +31,6 @@ const NODE_Z_COORD: &str = "node_z_coord";
 #[derive(Properties, Clone)]
 pub struct Props
 {
-    pub analysis_type: Option<AnalysisType>,
     pub is_preprocessor_active: bool,
     pub nodes: Rc<Vec<Rc<RefCell<FENode<ElementsNumbers, ElementsValues>>>>>,
     pub add_node: Callback<FEDrawnNodeData>,
@@ -195,16 +193,8 @@ impl Component for NodeMenu
                         self.read_inputted_coordinate(NODE_X_COORD);
                     self.state.selected_node.y =
                         self.read_inputted_coordinate(NODE_Y_COORD);
-                    if let Some(analysis_type) = &self.props.analysis_type
-                    {
-                        match analysis_type
-                        {
-                            AnalysisType::ThreeDimensional =>
-                                self.state.selected_node.z =
-                                self.read_inputted_coordinate(NODE_Z_COORD),
-                            _ => (),
-                        }
-                    }
+                    self.state.selected_node.z =
+                        self.read_inputted_coordinate(NODE_Z_COORD);
                     let number = self.state.selected_node.number;
                     let x = self.state.selected_node.x;
                     let y = self.state.selected_node.y;
@@ -234,8 +224,7 @@ impl Component for NodeMenu
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender
     {
-        if (&self.props.is_preprocessor_active, &self.props.analysis_type) !=
-            (&props.is_preprocessor_active, &props.analysis_type) ||
+        if &self.props.is_preprocessor_active != &props.is_preprocessor_active ||
             !Rc::ptr_eq(&self.props.nodes, &props.nodes)
         {
             self.props = props;
@@ -259,8 +248,7 @@ impl Component for NodeMenu
                         Msg::ShowHideNodeMenu),
                     disabled=
                         {
-                            if self.props.analysis_type.is_some() &&
-                                self.props.is_preprocessor_active
+                            if self.props.is_preprocessor_active
                             {
                                 false
                             }
@@ -316,35 +304,16 @@ impl Component for NodeMenu
                                                 type="number",
                                             />
                                         </li>
-                                        {
-                                            if let Some(analysis_type) = &self.props.analysis_type
-                                            {
-                                                match analysis_type
-                                                {
-                                                    AnalysisType::ThreeDimensional =>
-                                                        {
-                                                            html!
-                                                            {
-                                                                <li>
-                                                                    <p class={ NODE_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
-                                                                        { "Z coordinate:" }
-                                                                    </p>
-                                                                    <input
-                                                                        id={ NODE_Z_COORD },
-                                                                        value={ self.state.selected_node.z },
-                                                                        type="number",
-                                                                    />
-                                                                </li>
-                                                            }
-                                                        },
-                                                    AnalysisType::TwoDimensional => html! {},
-                                                }
-                                            }
-                                            else
-                                            {
-                                                html! {}
-                                            }
-                                        }
+                                        <li>
+                                            <p class={ NODE_MENU_INPUT_FIELDS_DESCRIPTIONS_CLASS }>
+                                                { "Z coordinate:" }
+                                            </p>
+                                            <input
+                                                id={ NODE_Z_COORD },
+                                                value={ self.state.selected_node.z },
+                                                type="number",
+                                            />
+                                        </li>
                                     </>
                                 }
                             }

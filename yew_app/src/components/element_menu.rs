@@ -8,7 +8,7 @@ use wasm_bindgen::JsCast;
 use std::rc::Rc;
 use crate::fem::FEType;
 
-use crate::auxiliary::{AnalysisType, FEDrawnElementData};
+use crate::auxiliary::{FEDrawnElementData};
 use crate::{ElementsNumbers, ElementsValues};
 use crate::pages::PREPROCESSOR_BUTTON_CLASS;
 
@@ -37,7 +37,6 @@ const TORSION_CONSTANT: &str = "torsion_constant";
 #[derive(Properties, Clone)]
 pub struct Props
 {
-    pub analysis_type: Option<AnalysisType>,
     pub is_preprocessor_active: bool,
     pub drawn_elements: Rc<Vec<FEDrawnElementData>>,
     pub add_element: Callback<FEDrawnElementData>,
@@ -356,8 +355,7 @@ impl Component for ElementMenu
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender
     {
-        if (&self.props.is_preprocessor_active, &self.props.analysis_type) !=
-            (&props.is_preprocessor_active, &props.analysis_type) ||
+        if &self.props.is_preprocessor_active != &props.is_preprocessor_active ||
             !Rc::ptr_eq(&self.props.drawn_elements, &props.drawn_elements)
         {
             self.props = props;
@@ -381,7 +379,7 @@ impl Component for ElementMenu
                     class={ PREPROCESSOR_BUTTON_CLASS }, onclick=self.link.callback(|_| Msg::ShowHideElementMenu),
                     disabled=
                         {
-                            if self.props.analysis_type.is_some() && self.props.is_preprocessor_active
+                            if self.props.is_preprocessor_active
                             {
                                 false
                             }

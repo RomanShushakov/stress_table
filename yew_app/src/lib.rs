@@ -59,9 +59,7 @@ pub const TOLERANCE: ElementsValues = 1e-6;
 const MAIN_CLASS: &str = "main";
 const MAIN_CONTAINER_CLASS: &str = "main_container";
 
-const POSTPROCESSOR_CLASS: &str = "postprocessor";
-const POSTPROCESSOR_MENU_CLASS: &str = "postprocessor_menu";
-pub const POSTPROCESSOR_BUTTON_CLASS: &str = "postprocessor_button";
+
 const POSTPROCESSOR_CANVAS_CLASS: &str = "postprocessor_canvas";
 
 
@@ -467,7 +465,15 @@ impl Component for Model
                         edit_fem=handle_edit_fem.to_owned(),
                     />
                 },
-            AppRoute::Postprocessor => html! { <Postprocessor /> },
+            AppRoute::Postprocessor =>
+                html!
+                {
+                    <Postprocessor
+                        global_analysis_result=Rc::clone(&global_analysis_result),
+                        view=view.to_owned(),
+                        change_view=handle_change_view.to_owned(),
+                    />
+                },
             AppRoute::HomePage =>
                 html!
                 {
@@ -511,74 +517,6 @@ impl Component for Model
             <main class={ MAIN_CLASS }>
                 <div class={ MAIN_CONTAINER_CLASS }>
                     <Router<AppRoute, ()> render=render />
-                    // {
-                    //     if let Some(analysis_result) = &self.state.analysis_result
-                    //     {
-                    //         html!
-                    //         {
-                    //             <div class={ POSTPROCESSOR_CLASS }>
-                    //                 <div class={ POSTPROCESSOR_MENU_CLASS }>
-                    //                     <button
-                    //                         class={ POSTPROCESSOR_BUTTON_CLASS },
-                    //                         onclick=self.link.callback(|_| Msg::EditStructure),
-                    //                     >
-                    //                         { "Edit model" }
-                    //                     </button>
-                    //                     <ResultViewMenu
-                    //                         result_view=self.state.result_view.to_owned(),
-                    //                         change_result_view=handle_change_result_view,
-                    //                     />
-                    //                 </div>
-                    //                 {
-                    //                     if let Some(result_view) = &self.state.result_view
-                    //                     {
-                    //                         match result_view
-                    //                         {
-                    //                             ResultView::PrintAllResults =>
-                    //                                 {
-                    //                                     html!
-                    //                                     {
-                    //                                         <AllResultsTable
-                    //                                             nodes=self.state.nodes.to_owned(),
-                    //                                             aux_elements=self.state.aux_elements.to_owned(),
-                    //                                             aux_displacements=self.state.aux_displacements.to_owned(),
-                    //                                             analysis_result=analysis_result.to_owned(),
-                    //                                             canvas_width=self.state.canvas_width,
-                    //                                         />
-                    //                                     }
-                    //                                 },
-                    //                             _ =>
-                    //                                 {
-                    //                                     html!
-                    //                                     {
-                    //                                         <div class={ POSTPROCESSOR_CANVAS_CLASS }>
-                    //                                             <PostprocessorCanvas
-                    //                                                 view=self.state.view.to_owned(),
-                    //                                                 canvas_width=self.state.canvas_width,
-                    //                                                 canvas_height=self.state.canvas_height,
-                    //                                                 nodes=self.state.nodes.to_owned(),
-                    //                                                 aux_elements=self.state.aux_elements.to_owned(),
-                    //                                                 analysis_result=analysis_result,
-                    //                                                 result_view=result_view,
-                    //                                             />
-                    //                                         </div>
-                    //                                     }
-                    //                                 }
-                    //                         }
-                    //                     }
-                    //                     else
-                    //                     {
-                    //                         html! {  }
-                    //                     }
-                    //                 }
-                    //             </div>
-                    //         }
-                    //     }
-                    //     else
-                    //     {
-                    //         html! {}
-                    //     }
-                    // }
                 </div>
             </main>
         }

@@ -234,7 +234,7 @@ impl Component for Preprocessor
                                     }
                                 },
                         >
-                          { "View result" }
+                          { "Result" }
                         </Button>
                     </div>
                     <div class={ PREPROCESSOR_CANVAS_CLASS }>

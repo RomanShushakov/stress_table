@@ -60,9 +60,6 @@ const MAIN_CLASS: &str = "main";
 const MAIN_CONTAINER_CLASS: &str = "main_container";
 
 
-const POSTPROCESSOR_CANVAS_CLASS: &str = "postprocessor_canvas";
-
-
 struct State
 {
     view: Option<View>,
@@ -472,6 +469,10 @@ impl Component for Model
                         global_analysis_result=Rc::clone(&global_analysis_result),
                         view=view.to_owned(),
                         change_view=handle_change_view.to_owned(),
+                        discard_view=handle_discard_view.to_owned(),
+                        canvas_width=canvas_width.to_owned(),
+                        canvas_height=canvas_height.to_owned(),
+                        nodes=Rc::clone(&nodes),
                     />
                 },
             AppRoute::HomePage =>

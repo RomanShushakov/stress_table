@@ -16,11 +16,11 @@ use yew::services::keyboard::{KeyboardService, KeyListenerHandle};
 use yew::services::render::RenderTask;
 use yew::services::RenderService;
 
-use crate::components::preprocessor_canvas::gl::gl_aux_functions::
+use crate::components::postprocessor_canvas::gl::gl_aux_functions::
     {
-        add_denotation, initialize_shaders, normalize_nodes, add_hints,
+        add_denotation, initialize_shaders, normalize_nodes, add_hints, add_deformed_shape_nodes,
     };
-use crate::components::preprocessor_canvas::gl::gl_aux_structs::
+use crate::components::postprocessor_canvas::gl::gl_aux_structs::
     {
         Buffers, ShadersVariables, DrawnObject, CSAxis, CS_AXES_Y_SHIFT, CS_AXES_X_SHIFT,
         CS_AXES_Z_SHIFT, CS_AXES_SCALE, CS_AXES_CAPS_BASE_POINTS_NUMBER, CS_AXES_CAPS_WIDTH,
@@ -37,14 +37,14 @@ use crate::components::preprocessor_canvas::gl::gl_aux_structs::
         DRAWN_FORCES_DENOTATION_SHIFT_Y, HINTS_COLOR,
     };
 
-use crate::fem::{FENode, FEType, BCType};
+use crate::fem::{FENode, FEType, BCType, GlobalAnalysisResult, GlobalDOFParameter};
 use crate::{ElementsNumbers, ElementsValues, GLElementsNumbers, GLElementsValues};
 use crate::auxiliary::{View, FEDrawnElementData, DrawnBCData};
 
 
-const PREPROCESSOR_CANVAS_CONTAINER_CLASS: &str = "preprocessor_canvas_container";
-const PREPROCESSOR_CANVAS_TEXT_CLASS: &str = "preprocessor_canvas_text";
-const PREPROCESSOR_CANVAS_GL_CLASS: &str = "preprocessor_canvas_gl";
+const POSTPROCESSOR_CANVAS_CONTAINER_CLASS: &str = "postprocessor_canvas_container";
+const POSTPROCESSOR_CANVAS_TEXT_CLASS: &str = "postprocessor_canvas_text";
+const POSTPROCESSOR_CANVAS_GL_CLASS: &str = "postprocessor_canvas_gl";
 
 
 fn window() -> Window
@@ -66,10 +66,12 @@ pub struct Props
     pub discard_view: Callback<()>,
     pub canvas_width: u32,
     pub canvas_height: u32,
+    pub magnitude: ElementsValues,
     pub nodes: Rc<Vec<Rc<RefCell<FENode<ElementsNumbers, ElementsValues>>>>>,
-    pub drawn_elements: Rc<Vec<FEDrawnElementData>>,
-    pub add_analysis_message: Callback<String>,
-    pub drawn_bcs: Rc<Vec<DrawnBCData>>,
+    pub global_analysis_result: Rc<Option<GlobalAnalysisResult<ElementsNumbers, ElementsValues>>>,
+    // pub drawn_elements: Rc<Vec<FEDrawnElementData>>,
+    // pub add_analysis_message: Callback<String>,
+    // pub drawn_bcs: Rc<Vec<DrawnBCData>>,
 }
 
 
@@ -99,7 +101,7 @@ struct State
 }
 
 
-pub struct PreprocessorCanvas
+pub struct PostprocessorCanvas
 {
     props: Props,
     canvas: Option<HtmlCanvasElement>,
@@ -116,7 +118,7 @@ pub struct PreprocessorCanvas
 }
 
 
-impl PreprocessorCanvas
+impl PostprocessorCanvas
 {
     fn key_press(&mut self, element: &Window)
     {
@@ -134,7 +136,7 @@ impl PreprocessorCanvas
 }
 
 
-impl Component for PreprocessorCanvas
+impl Component for PostprocessorCanvas
 {
     type Message = Msg;
     type Properties = Props;
@@ -262,8 +264,10 @@ impl Component for PreprocessorCanvas
         if (&self.props.view, &self.props.canvas_height, &self.props.canvas_width) !=
             (&props.view, &props.canvas_height, &props.canvas_width) ||
             !Rc::ptr_eq(&self.props.nodes, &props.nodes) ||
-            !Rc::ptr_eq(&self.props.drawn_elements, &props.drawn_elements) ||
-            !Rc::ptr_eq(&self.props.drawn_bcs, &props.drawn_bcs)
+            !Rc::ptr_eq(&self.props.global_analysis_result,
+                &props.global_analysis_result) // ||
+            // !Rc::ptr_eq(&self.props.drawn_elements, &props.drawn_elements) ||
+            // !Rc::ptr_eq(&self.props.drawn_bcs, &props.drawn_bcs)
         {
             self.props = props;
             if let Some(view) = &self.props.view
@@ -309,9 +313,9 @@ impl Component for PreprocessorCanvas
     {
         html!
         {
-            <div class={ PREPROCESSOR_CANVAS_CONTAINER_CLASS }>
+            <div class={ POSTPROCESSOR_CANVAS_CONTAINER_CLASS }>
                 <canvas ref=self.canvas_text_node_ref.clone(),
-                    class={ PREPROCESSOR_CANVAS_TEXT_CLASS },
+                    class={ POSTPROCESSOR_CANVAS_TEXT_CLASS },
                     onmousemove=self.link.callback(move |event: MouseEvent| Msg::MouseMove(event)),
                     onmouseleave=self.link.callback(|_| Msg::MouseLeave),
                     onmousedown=self.link.callback(|_| Msg::MouseDown),
@@ -319,7 +323,7 @@ impl Component for PreprocessorCanvas
                     onwheel=self.link.callback(move |event: WheelEvent| Msg::MouseWheel(event)),
                 />
                 <canvas ref=self.canvas_node_ref.clone()
-                    class={ PREPROCESSOR_CANVAS_GL_CLASS },
+                    class={ POSTPROCESSOR_CANVAS_GL_CLASS },
                 />
             </div>
         }
@@ -365,7 +369,7 @@ impl Component for PreprocessorCanvas
     }
 }
 
-impl PreprocessorCanvas
+impl PostprocessorCanvas
 {
     fn render_gl_and_ctx(&mut self, _timestamp: f64)
     {
@@ -375,8 +379,8 @@ impl PreprocessorCanvas
         ctx.clear_rect(0.0, 0.0, self.props.canvas_width as f64, self.props.canvas_height as f64);
         gl.enable(GL::DEPTH_TEST);
         gl.clear(GL::COLOR_BUFFER_BIT);
-        let vertex_shader_code = include_str!("shaders/prep_shader.vert");
-        let fragment_shader_code = include_str!("shaders/prep_shader.frag");
+        let vertex_shader_code = include_str!("shaders/post_shader.vert");
+        let fragment_shader_code = include_str!("shaders/post_shader.frag");
 
         let shader_program = initialize_shaders(&gl, vertex_shader_code, fragment_shader_code);
         let shaders_variables = ShadersVariables::initialize(&gl, &shader_program);
@@ -451,8 +455,16 @@ impl PreprocessorCanvas
 
         if !self.props.nodes.is_empty()
         {
+            let mut all_nodes = self.props.nodes.as_ref().clone();
+            if let Some(global_analysis_result) =
+                self.props.global_analysis_result.as_ref()
+            {
+                add_deformed_shape_nodes(&mut all_nodes, &self.props.nodes,
+                     &global_analysis_result, self.props.magnitude);
+            }
+
             let normalized_nodes = normalize_nodes(
-                Rc::clone(&self.props.nodes),
+                Rc::new(all_nodes),
                 self.props.canvas_width as GLElementsValues,
                 self.props.canvas_height as GLElementsValues,
                 aspect as GLElementsValues);
@@ -461,43 +473,43 @@ impl PreprocessorCanvas
             let mut drawn_object = DrawnObject::create();
             drawn_object.add_nodes(&normalized_nodes);
 
-            if !self.props.drawn_elements.is_empty()
-            {
-                match drawn_object.add_elements(&normalized_nodes, &self.props.drawn_elements)
-                {
-                    Err(e) => self.props.add_analysis_message.emit(e),
-                    Ok(()) => (),
-                }
-            }
+            // if !self.props.drawn_elements.is_empty()
+            // {
+            //     match drawn_object.add_elements(&normalized_nodes, &self.props.drawn_elements)
+            //     {
+            //         Err(e) => self.props.add_analysis_message.emit(e),
+            //         Ok(()) => (),
+            //     }
+            // }
 
-            let drawn_displacements: Vec<&DrawnBCData> = self.props.drawn_bcs
-                    .iter()
-                    .filter(|bc|
-                        bc.bc_type == BCType::Displacement)
-                    .collect();
-            if !drawn_displacements.is_empty()
-            {
-                drawn_object.add_displacements(
-                    &normalized_nodes, &drawn_displacements,
-                    DRAWN_DISPLACEMENTS_CAPS_BASE_POINTS_NUMBER,
-                    DRAWN_DISPLACEMENTS_CAPS_HEIGHT / (1.0 + self.state.d_scale),
-                    DRAWN_DISPLACEMENTS_CAPS_WIDTH / (1.0 + self.state.d_scale));
-            }
+            // let drawn_displacements: Vec<&DrawnBCData> = self.props.drawn_bcs
+            //         .iter()
+            //         .filter(|bc|
+            //             bc.bc_type == BCType::Displacement)
+            //         .collect();
+            // if !drawn_displacements.is_empty()
+            // {
+            //     drawn_object.add_displacements(
+            //         &normalized_nodes, &drawn_displacements,
+            //         DRAWN_DISPLACEMENTS_CAPS_BASE_POINTS_NUMBER,
+            //         DRAWN_DISPLACEMENTS_CAPS_HEIGHT / (1.0 + self.state.d_scale),
+            //         DRAWN_DISPLACEMENTS_CAPS_WIDTH / (1.0 + self.state.d_scale));
+            // }
 
-            let drawn_forces: Vec<&DrawnBCData> = self.props.drawn_bcs
-                    .iter()
-                    .filter(|bc|
-                        bc.bc_type == BCType::Force)
-                    .collect();
-            if !drawn_forces.is_empty()
-            {
-                drawn_object.add_forces(
-                    &normalized_nodes, &drawn_forces,
-                    DRAWN_FORCES_LINE_LENGTH / (1.0 + self.state.d_scale),
-                    DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER,
-                    DRAWN_FORCES_CAPS_HEIGHT / (1.0 + self.state.d_scale),
-                    DRAWN_FORCES_CAPS_WIDTH / (1.0 + self.state.d_scale));
-            }
+            // let drawn_forces: Vec<&DrawnBCData> = self.props.drawn_bcs
+            //         .iter()
+            //         .filter(|bc|
+            //             bc.bc_type == BCType::Force)
+            //         .collect();
+            // if !drawn_forces.is_empty()
+            // {
+            //     drawn_object.add_forces(
+            //         &normalized_nodes, &drawn_forces,
+            //         DRAWN_FORCES_LINE_LENGTH / (1.0 + self.state.d_scale),
+            //         DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER,
+            //         DRAWN_FORCES_CAPS_HEIGHT / (1.0 + self.state.d_scale),
+            //         DRAWN_FORCES_CAPS_WIDTH / (1.0 + self.state.d_scale));
+            // }
 
             drawn_objects_buffers.render(&gl, &drawn_object, &shaders_variables);
 
@@ -545,80 +557,80 @@ impl PreprocessorCanvas
             }
             ctx.stroke();
 
-            if !self.props.drawn_elements.is_empty()
-            {
-                for element in self.props.drawn_elements.as_ref()
-                {
-                    match element.find_denotation_coordinates(&normalized_nodes)
-                    {
-                        Ok(coordinates) =>
-                            {
-                                ctx.set_fill_style(&CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR.into());
-                                add_denotation(&ctx,
-                                &coordinates,
-                                &matrix,
-                                self.props.canvas_width as f32,
-                                self.props.canvas_height as f32,
-                                &element.number.to_string());
-                                ctx.stroke();
-                            },
-                        Err(e) => self.props.add_analysis_message.emit(e),
-                    }
-                }
-            }
+            // if !self.props.drawn_elements.is_empty()
+            // {
+            //     for element in self.props.drawn_elements.as_ref()
+            //     {
+            //         match element.find_denotation_coordinates(&normalized_nodes)
+            //         {
+            //             Ok(coordinates) =>
+            //                 {
+            //                     ctx.set_fill_style(&CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR.into());
+            //                     add_denotation(&ctx,
+            //                     &coordinates,
+            //                     &matrix,
+            //                     self.props.canvas_width as f32,
+            //                     self.props.canvas_height as f32,
+            //                     &element.number.to_string());
+            //                     ctx.stroke();
+            //                 },
+            //             Err(e) => self.props.add_analysis_message.emit(e),
+            //         }
+            //     }
+            // }
 
-            if !drawn_displacements.is_empty()
-            {
-                for displacement in drawn_displacements
-                {
-                    match displacement.find_denotation_coordinates(&normalized_nodes)
-                    {
-                        Ok(coordinates) =>
-                            {
-                                ctx.set_fill_style(&CANVAS_DRAWN_DISPLACEMENTS_DENOTATION_COLOR.into());
-                                add_denotation(&ctx,
-                                &[coordinates[0] + DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_X /
-                                    (1.0 + self.state.d_scale),
-                                    coordinates[1] - DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_Y /
-                                    (1.0 + self.state.d_scale),
-                                    coordinates[2], coordinates[3]],
-                                &matrix,
-                                self.props.canvas_width as f32,
-                                self.props.canvas_height as f32,
-                                &displacement.number.to_string());
-                                ctx.stroke();
-                            },
-                        Err(e) => self.props.add_analysis_message.emit(e)
-                    }
-                }
-            }
+            // if !drawn_displacements.is_empty()
+            // {
+            //     for displacement in drawn_displacements
+            //     {
+            //         match displacement.find_denotation_coordinates(&normalized_nodes)
+            //         {
+            //             Ok(coordinates) =>
+            //                 {
+            //                     ctx.set_fill_style(&CANVAS_DRAWN_DISPLACEMENTS_DENOTATION_COLOR.into());
+            //                     add_denotation(&ctx,
+            //                     &[coordinates[0] + DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_X /
+            //                         (1.0 + self.state.d_scale),
+            //                         coordinates[1] - DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_Y /
+            //                         (1.0 + self.state.d_scale),
+            //                         coordinates[2], coordinates[3]],
+            //                     &matrix,
+            //                     self.props.canvas_width as f32,
+            //                     self.props.canvas_height as f32,
+            //                     &displacement.number.to_string());
+            //                     ctx.stroke();
+            //                 },
+            //             Err(e) => self.props.add_analysis_message.emit(e)
+            //         }
+            //     }
+            // }
 
 
-            if !drawn_forces.is_empty()
-            {
-                for force in drawn_forces
-                {
-                    match force.find_denotation_coordinates(&normalized_nodes)
-                    {
-                        Ok(coordinates) =>
-                            {
-                                ctx.set_fill_style(&CANVAS_DRAWN_FORCES_DENOTATION_COLOR.into());
-                                add_denotation(&ctx,
-                                &[coordinates[0] + DRAWN_FORCES_DENOTATION_SHIFT_X /
-                                    (1.0 + self.state.d_scale),
-                                    coordinates[1] + DRAWN_FORCES_DENOTATION_SHIFT_Y /
-                                    (1.0 + self.state.d_scale),
-                                    coordinates[2], coordinates[3]],
-                                &matrix,
-                                self.props.canvas_width as f32,
-                                self.props.canvas_height as f32,
-                                &format!("#{}", force.number));
-                                ctx.stroke();
-                            },
-                        Err(e) => self.props.add_analysis_message.emit(e)
-                    }
-                }
-            }
+            // if !drawn_forces.is_empty()
+            // {
+            //     for force in drawn_forces
+            //     {
+            //         match force.find_denotation_coordinates(&normalized_nodes)
+            //         {
+            //             Ok(coordinates) =>
+            //                 {
+            //                     ctx.set_fill_style(&CANVAS_DRAWN_FORCES_DENOTATION_COLOR.into());
+            //                     add_denotation(&ctx,
+            //                     &[coordinates[0] + DRAWN_FORCES_DENOTATION_SHIFT_X /
+            //                         (1.0 + self.state.d_scale),
+            //                         coordinates[1] + DRAWN_FORCES_DENOTATION_SHIFT_Y /
+            //                         (1.0 + self.state.d_scale),
+            //                         coordinates[2], coordinates[3]],
+            //                     &matrix,
+            //                     self.props.canvas_width as f32,
+            //                     self.props.canvas_height as f32,
+            //                     &format!("#{}", force.number));
+            //                     ctx.stroke();
+            //                 },
+            //             Err(e) => self.props.add_analysis_message.emit(e)
+            //         }
+            //     }
+            // }
         }
 
         ctx.set_fill_style(&HINTS_COLOR.into());

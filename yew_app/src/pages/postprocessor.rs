@@ -1,18 +1,20 @@
 use yew::prelude::*;
 use yew_router::prelude::RouterButton;
 use std::rc::Rc;
+use std::cell::RefCell;
 
 use crate::route::AppRoute;
-use crate::fem::GlobalAnalysisResult;
+use crate::fem::{GlobalAnalysisResult, FENode};
 use crate::{ElementsNumbers, ElementsValues};
 
-use crate::components::ViewMenu;
+use crate::components::{ViewMenu, PostprocessorCanvas};
 use crate::auxiliary::View;
 
 
 const POSTPROCESSOR_CLASS: &str = "postprocessor";
 const POSTPROCESSOR_MENU_CLASS: &str = "postprocessor_menu";
 pub const POSTPROCESSOR_BUTTON_CLASS: &str = "postprocessor_button";
+const POSTPROCESSOR_CANVAS_CLASS: &str = "postprocessor_canvas";
 
 
 #[derive(Properties, Clone)]
@@ -21,13 +23,25 @@ pub struct Props
     pub global_analysis_result: Rc<Option<GlobalAnalysisResult<ElementsNumbers, ElementsValues>>>,
     pub view: Option<View>,
     pub change_view: Callback<View>,
+    pub discard_view: Callback<()>,
+    pub canvas_width: u32,
+    pub canvas_height: u32,
+    pub nodes: Rc<Vec<Rc<RefCell<FENode<ElementsNumbers, ElementsValues>>>>>,
 }
+
+
+pub struct State
+{
+    pub magnitude: ElementsValues,
+}
+
 
 
 pub struct Postprocessor
 {
     link: ComponentLink<Self>,
     props: Props,
+    state: State,
 }
 
 
@@ -38,7 +52,8 @@ impl Component for Postprocessor
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self
     {
-        Self { props, link }
+        let state = State { magnitude: 10.0 as ElementsValues };
+        Self { props, link, state }
     }
 
     fn update(&mut self, _msg: Self::Message) -> ShouldRender
@@ -91,6 +106,20 @@ impl Component for Postprocessor
                                     //     result_view=self.state.result_view.to_owned(),
                                     //     change_result_view=handle_change_result_view,
                                     // />
+                                </div>
+                                <div class={ POSTPROCESSOR_CANVAS_CLASS }>
+                                    <PostprocessorCanvas
+                                        view=self.props.view.to_owned(),
+                                        discard_view=self.props.discard_view.to_owned(),
+                                        canvas_width=self.props.canvas_width.to_owned(),
+                                        canvas_height=self.props.canvas_height.to_owned(),
+                                        magnitude=self.state.magnitude.to_owned(),
+                                        nodes=Rc::clone(&self.props.nodes),
+                                        global_analysis_result=Rc::clone(&self.props.global_analysis_result),
+                                        // drawn_elements=Rc::clone(&self.props.drawn_elements),
+                                        // add_analysis_message=self.props.add_analysis_message.to_owned(),
+                                        // drawn_bcs=Rc::clone(&self.props.drawn_bcs),
+                                    />
                                 </div>
                                 // {
                                 //     if let Some(result_view) = &self.state.result_view

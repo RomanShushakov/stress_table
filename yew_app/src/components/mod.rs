@@ -6,7 +6,7 @@ mod displacement_menu;
 mod force_menu;
 // mod preprocessor_canvas;
 // mod result_view_menu;
-// mod postprocessor_canvas;
+pub mod postprocessor_canvas;
 // mod all_results_table;
 
 
@@ -18,5 +18,5 @@ pub use displacement_menu::DisplacementMenu;
 pub use force_menu::ForceMenu;
 // pub use preprocessor_canvas::PreprocessorCanvas;
 // pub use result_view_menu::ResultViewMenu;
-// pub use postprocessor_canvas::PostprocessorCanvas;
+pub use postprocessor_canvas::postprocessor_canvas::PostprocessorCanvas;
 // pub use all_results_table::AllResultsTable;

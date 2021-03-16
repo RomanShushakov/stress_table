@@ -7,6 +7,7 @@ mod force_menu;
 // mod preprocessor_canvas;
 // mod result_view_menu;
 pub mod postprocessor_canvas;
+pub mod plot_displacements_menu;
 // mod all_results_table;
 
 
@@ -19,4 +20,5 @@ pub use force_menu::ForceMenu;
 // pub use preprocessor_canvas::PreprocessorCanvas;
 // pub use result_view_menu::ResultViewMenu;
 pub use postprocessor_canvas::postprocessor_canvas::PostprocessorCanvas;
+pub use plot_displacements_menu::PlotDisplacementsMenu;
 // pub use all_results_table::AllResultsTable;

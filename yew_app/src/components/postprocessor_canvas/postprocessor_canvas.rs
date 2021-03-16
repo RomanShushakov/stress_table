@@ -261,8 +261,9 @@ impl Component for PostprocessorCanvas
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender
     {
-        if (&self.props.view, &self.props.canvas_height, &self.props.canvas_width) !=
-            (&props.view, &props.canvas_height, &props.canvas_width) ||
+        if (&self.props.view, &self.props.canvas_height, &self.props.canvas_width,
+            &self.props.magnitude) !=
+            (&props.view, &props.canvas_height, &props.canvas_width, &props.magnitude) ||
             !Rc::ptr_eq(&self.props.nodes, &props.nodes) ||
             !Rc::ptr_eq(&self.props.global_analysis_result,
                 &props.global_analysis_result) // ||

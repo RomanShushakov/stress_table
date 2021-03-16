@@ -7,7 +7,7 @@ use crate::route::AppRoute;
 use crate::fem::{GlobalAnalysisResult, FENode};
 use crate::{ElementsNumbers, ElementsValues};
 
-use crate::components::{ViewMenu, PostprocessorCanvas};
+use crate::components::{ViewMenu, PostprocessorCanvas, PlotDisplacementsMenu};
 use crate::auxiliary::View;
 
 
@@ -45,19 +45,31 @@ pub struct Postprocessor
 }
 
 
+pub enum Msg
+{
+    ChangeMagnitude(ElementsValues)
+}
+
+
 impl Component for Postprocessor
 {
-    type Message = ();
+    type Message = Msg;
     type Properties = Props;
+
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self
     {
-        let state = State { magnitude: 10.0 as ElementsValues };
+        let state = State { magnitude: 1.0 as ElementsValues };
         Self { props, link, state }
     }
 
-    fn update(&mut self, _msg: Self::Message) -> ShouldRender
+
+    fn update(&mut self, msg: Self::Message) -> ShouldRender
     {
+        match msg
+        {
+            Msg::ChangeMagnitude(value) => self.state.magnitude = value,
+        }
         true
     }
 
@@ -81,6 +93,9 @@ impl Component for Postprocessor
     fn view(&self) -> Html
     {
         type Button = RouterButton<AppRoute>;
+
+        let handle_change_magnitude =
+            self.link.callback(|value: ElementsValues| Msg::ChangeMagnitude(value));
         html!
         {
             <>
@@ -100,6 +115,11 @@ impl Component for Postprocessor
                                     <ViewMenu
                                         view=self.props.view.to_owned(),
                                         change_view=self.props.change_view.to_owned(),
+                                    />
+
+                                    <PlotDisplacementsMenu
+                                        magnitude=self.state.magnitude.to_owned(),
+                                        change_magnitude=handle_change_magnitude,
                                     />
 
                                     // <ResultViewMenu

@@ -16,11 +16,12 @@ use yew::services::keyboard::{KeyboardService, KeyListenerHandle};
 use yew::services::render::RenderTask;
 use yew::services::RenderService;
 
-use crate::components::postprocessor_canvas::gl::gl_aux_functions::
+use crate::auxiliary::gl_aux_functions::
     {
         add_denotation, initialize_shaders, normalize_nodes, add_hints, add_deformed_shape_nodes,
+        update_displacement_value
     };
-use crate::components::postprocessor_canvas::gl::gl_aux_structs::
+use crate::auxiliary::gl_aux_structs::
     {
         Buffers, ShadersVariables, DrawnObject, CSAxis, CS_AXES_Y_SHIFT, CS_AXES_X_SHIFT,
         CS_AXES_Z_SHIFT, CS_AXES_SCALE, CS_AXES_CAPS_BASE_POINTS_NUMBER, CS_AXES_CAPS_WIDTH,
@@ -34,7 +35,9 @@ use crate::components::postprocessor_canvas::gl::gl_aux_structs::
         DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_Y, DRAWN_FORCES_LINE_LENGTH, DRAWN_FORCES_CAPS_HEIGHT,
         DRAWN_FORCES_CAPS_WIDTH, DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER,
         CANVAS_DRAWN_FORCES_DENOTATION_COLOR, DRAWN_FORCES_DENOTATION_SHIFT_X,
-        DRAWN_FORCES_DENOTATION_SHIFT_Y, HINTS_COLOR,
+        DRAWN_FORCES_DENOTATION_SHIFT_Y, HINTS_COLOR, DRAWN_DEFORMED_SHAPE_NODES_COLOR,
+        CANVAS_DRAWN_DEFORMED_SHAPE_NODES_DENOTATION_COLOR,
+        DRAWN_DEFORMED_SHAPE_NODES_DENOTATION_SHIFT,
     };
 
 use crate::fem::{FENode, FEType, BCType, GlobalAnalysisResult, GlobalDOFParameter};
@@ -69,6 +72,7 @@ pub struct Props
     pub magnitude: ElementsValues,
     pub nodes: Rc<Vec<Rc<RefCell<FENode<ElementsNumbers, ElementsValues>>>>>,
     pub global_analysis_result: Rc<Option<GlobalAnalysisResult<ElementsNumbers, ElementsValues>>>,
+    pub is_plot_displacements_selected: bool,
     // pub drawn_elements: Rc<Vec<FEDrawnElementData>>,
     // pub add_analysis_message: Callback<String>,
     // pub drawn_bcs: Rc<Vec<DrawnBCData>>,
@@ -262,8 +266,9 @@ impl Component for PostprocessorCanvas
     fn change(&mut self, props: Self::Properties) -> ShouldRender
     {
         if (&self.props.view, &self.props.canvas_height, &self.props.canvas_width,
-            &self.props.magnitude) !=
-            (&props.view, &props.canvas_height, &props.canvas_width, &props.magnitude) ||
+            &self.props.magnitude, &self.props.is_plot_displacements_selected) !=
+            (&props.view, &props.canvas_height, &props.canvas_width, &props.magnitude,
+            &props.is_plot_displacements_selected) ||
             !Rc::ptr_eq(&self.props.nodes, &props.nodes) ||
             !Rc::ptr_eq(&self.props.global_analysis_result,
                 &props.global_analysis_result) // ||
@@ -472,7 +477,14 @@ impl PostprocessorCanvas
 
             let drawn_objects_buffers = Buffers::initialize(&gl);
             let mut drawn_object = DrawnObject::create();
-            drawn_object.add_nodes(&normalized_nodes);
+            drawn_object.add_nodes(&normalized_nodes[..normalized_nodes.len() / 2]);
+
+            if self.props.is_plot_displacements_selected
+            {
+                drawn_object.add_deformed_shape_nodes(
+                    &normalized_nodes[normalized_nodes.len() / 2..]);
+            }
+
 
             // if !self.props.drawn_elements.is_empty()
             // {
@@ -545,7 +557,7 @@ impl PostprocessorCanvas
             mat4::mul(&mut matrix, &projection_matrix, &model_view_matrix);
 
             ctx.set_fill_style(&CANVAS_DRAWN_NODES_DENOTATION_COLOR.into());
-            for node in normalized_nodes.iter()
+            for node in normalized_nodes[..normalized_nodes.len() / 2].iter()
             {
                 add_denotation(&ctx,
                 &[node.x - DRAWN_NODES_DENOTATION_SHIFT / (1.0 + self.state.d_scale),
@@ -554,9 +566,49 @@ impl PostprocessorCanvas
                     1.0],
                 &matrix,
                 self.props.canvas_width as f32,
-                self.props.canvas_height as f32, &node.number.to_string());
+                self.props.canvas_height as f32,
+                &node.number.to_string());
             }
             ctx.stroke();
+
+            if self.props.is_plot_displacements_selected
+            {
+                ctx.set_fill_style(&CANVAS_DRAWN_DEFORMED_SHAPE_NODES_DENOTATION_COLOR.into());
+                for node in normalized_nodes[normalized_nodes.len() / 2..].iter()
+                {
+                    let denotation =
+                        {
+                            let (mut x, mut y, mut z) = (0.0, 0.0, 0.0);
+                            if let Some(global_analysis_result) =
+                                self.props.global_analysis_result.as_ref()
+                            {
+                                let global_displacements =
+                                    global_analysis_result.extract_displacements();
+                                let node_number = node.number as ElementsNumbers -
+                                    normalized_nodes.len() as ElementsNumbers / 2;
+                                x = update_displacement_value(x, node_number,
+                                    &global_displacements, GlobalDOFParameter::X);
+                                y = update_displacement_value(y, node_number,
+                                    &global_displacements, GlobalDOFParameter::Y);
+                                z = update_displacement_value(z, node_number,
+                                    &global_displacements, GlobalDOFParameter::Z);
+                            }
+                            format!("({:+.3e}, {:+.3e}, {:+.3e})", x, y, z)
+                        };
+                    add_denotation(&ctx,
+                    &[node.x - DRAWN_DEFORMED_SHAPE_NODES_DENOTATION_SHIFT /
+                        (1.0 + self.state.d_scale),
+                        node.y - DRAWN_DEFORMED_SHAPE_NODES_DENOTATION_SHIFT /
+                            (1.0 + self.state.d_scale),
+                        node.z,
+                        1.0],
+                    &matrix,
+                    self.props.canvas_width as f32,
+                    self.props.canvas_height as f32,
+                    &denotation);
+                }
+                ctx.stroke();
+            }
 
             // if !self.props.drawn_elements.is_empty()
             // {

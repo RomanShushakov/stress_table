@@ -33,8 +33,8 @@ pub struct Props
 pub struct State
 {
     pub magnitude: ElementsValues,
+    pub is_plot_displacements_selected: bool,
 }
-
 
 
 pub struct Postprocessor
@@ -47,7 +47,8 @@ pub struct Postprocessor
 
 pub enum Msg
 {
-    ChangeMagnitude(ElementsValues)
+    ChangeMagnitude(ElementsValues),
+    SelectPlotDisplacements,
 }
 
 
@@ -59,7 +60,11 @@ impl Component for Postprocessor
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self
     {
-        let state = State { magnitude: 1.0 as ElementsValues };
+        let state = State
+            {
+                magnitude: 1.0 as ElementsValues,
+                is_plot_displacements_selected: false,
+            };
         Self { props, link, state }
     }
 
@@ -69,6 +74,7 @@ impl Component for Postprocessor
         match msg
         {
             Msg::ChangeMagnitude(value) => self.state.magnitude = value,
+            Msg::SelectPlotDisplacements => self.state.is_plot_displacements_selected = true,
         }
         true
     }
@@ -96,6 +102,9 @@ impl Component for Postprocessor
 
         let handle_change_magnitude =
             self.link.callback(|value: ElementsValues| Msg::ChangeMagnitude(value));
+
+        let handle_select_plot_displacements =
+            self.link.callback(|_| Msg::SelectPlotDisplacements);
         html!
         {
             <>
@@ -116,10 +125,10 @@ impl Component for Postprocessor
                                         view=self.props.view.to_owned(),
                                         change_view=self.props.change_view.to_owned(),
                                     />
-
                                     <PlotDisplacementsMenu
                                         magnitude=self.state.magnitude.to_owned(),
                                         change_magnitude=handle_change_magnitude,
+                                        select_plot_displacements=handle_select_plot_displacements,
                                     />
 
                                     // <ResultViewMenu
@@ -136,6 +145,7 @@ impl Component for Postprocessor
                                         magnitude=self.state.magnitude.to_owned(),
                                         nodes=Rc::clone(&self.props.nodes),
                                         global_analysis_result=Rc::clone(&self.props.global_analysis_result),
+                                        is_plot_displacements_selected=self.state.is_plot_displacements_selected.to_owned(),
                                         // drawn_elements=Rc::clone(&self.props.drawn_elements),
                                         // add_analysis_message=self.props.add_analysis_message.to_owned(),
                                         // drawn_bcs=Rc::clone(&self.props.drawn_bcs),

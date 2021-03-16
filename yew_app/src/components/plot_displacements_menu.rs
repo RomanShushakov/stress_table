@@ -33,6 +33,7 @@ pub struct Props
 {
     pub magnitude: ElementsValues,
     pub change_magnitude: Callback<ElementsValues>,
+    pub select_plot_displacements: Callback<()>,
 }
 
 
@@ -116,6 +117,7 @@ impl Component for PlotDisplacementsMenu
             Msg::ChangeMagnitude =>
                 {
                     let magnitude = self.read_inputted_magnitude(MAGNITUDE);
+                    self.props.select_plot_displacements.emit(());
                     self.props.change_magnitude.emit(magnitude);
                 },
         }

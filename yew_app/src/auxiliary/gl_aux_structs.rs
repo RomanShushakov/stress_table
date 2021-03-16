@@ -1,5 +1,5 @@
 use crate::{GLElementsNumbers, GLElementsValues, TOLERANCE};
-use crate::components::preprocessor_canvas::gl::gl_aux_functions::find_node_coordinates;
+use crate::auxiliary::gl_aux_functions::find_node_coordinates;
 
 use crate::{ElementsValues, ElementsNumbers};
 use crate::fem::{FENode, FEType, GlobalDOFParameter};
@@ -84,6 +84,10 @@ pub const HINT_SHIFT_X: GLElementsValues = 0.05;
 pub const ROTATION_HINT_SHIFT_Y: GLElementsValues = 0.85;
 pub const ZOOM_HINT_SHIFT_Y: GLElementsValues = 0.9;
 pub const PAN_HINT_SHIFT_Y: GLElementsValues = 0.95;
+
+pub const DRAWN_DEFORMED_SHAPE_NODES_COLOR: [GLElementsValues; 4] = [1.0, 1.0, 1.0, 1.0]; // yellow
+pub const CANVAS_DRAWN_DEFORMED_SHAPE_NODES_DENOTATION_COLOR: &str = "white";
+pub const DRAWN_DEFORMED_SHAPE_NODES_DENOTATION_SHIFT: GLElementsValues = 0.02;
 
 
 pub enum CSAxis
@@ -244,7 +248,7 @@ impl DrawnObject
     }
 
 
-    pub fn add_nodes(&mut self, normalized_nodes: &Vec<NormalizedNode>)
+    pub fn add_nodes(&mut self, normalized_nodes: &[NormalizedNode])
     {
         let start_index =
             if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
@@ -252,6 +256,23 @@ impl DrawnObject
         {
             self.vertices_coordinates.extend(&[node.x, node.y, node.z]);
             self.colors_values.extend(&DRAWN_NODES_COLOR);
+            self.indexes_numbers.push(start_index + i as GLElementsNumbers);
+        }
+        self.modes.push(GLPrimitiveType::Points);
+        self.elements_numbers.push(normalized_nodes.len() as i32);
+        let offset = self.define_offset();
+        self.offsets.push(offset);
+    }
+
+
+    pub fn add_deformed_shape_nodes(&mut self, normalized_nodes: &[NormalizedNode])
+    {
+        let start_index =
+            if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
+        for (i, node) in normalized_nodes.iter().enumerate()
+        {
+            self.vertices_coordinates.extend(&[node.x, node.y, node.z]);
+            self.colors_values.extend(&DRAWN_DEFORMED_SHAPE_NODES_COLOR);
             self.indexes_numbers.push(start_index + i as GLElementsNumbers);
         }
         self.modes.push(GLPrimitiveType::Points);

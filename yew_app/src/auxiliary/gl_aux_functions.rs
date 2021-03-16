@@ -3,11 +3,11 @@ use vec4;
 use std::rc::Rc;
 use std::cell::RefCell;
 
-use crate::fem::FENode;
+use crate::fem::{FENode, GlobalAnalysisResult, GlobalDOFParameter, Displacements};
 use crate::{ElementsNumbers, ElementsValues};
 use crate::{GLElementsValues, GLElementsNumbers};
 use crate::auxiliary::{NormalizedNode, FEDrawnElementData};
-use crate::components::preprocessor_canvas::gl::gl_aux_structs::
+use crate::auxiliary::gl_aux_structs::
     {
         DRAWN_OBJECT_TO_CANVAS_WIDTH_SCALE, DRAWN_OBJECT_TO_CANVAS_HEIGHT_SCALE,
         CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR, HINT_SHIFT_X, ROTATION_HINT_SHIFT_Y,
@@ -224,4 +224,88 @@ pub fn add_hints(ctx: &CTX, canvas_width: f32, canvas_height: f32)
     let pan_hint_y = canvas_height * PAN_HINT_SHIFT_Y;
     let pan_hint = "Pan - Shift + Left Mouse Button";
     ctx.fill_text(pan_hint, pan_hint_x as f64, pan_hint_y as f64).unwrap();
+}
+
+
+pub fn add_deformed_shape_nodes(
+    nodes: &mut Vec<Rc<RefCell<FENode<ElementsNumbers, ElementsValues>>>>,
+    initial_nodes: &Rc<Vec<Rc<RefCell<FENode<ElementsNumbers, ElementsValues>>>>>,
+    global_analysis_result: &GlobalAnalysisResult<ElementsNumbers, ElementsValues>,
+    magnitude: ElementsValues)
+{
+    let displacements =
+        global_analysis_result.extract_displacements();
+    for node in initial_nodes.iter()
+    {
+        let initial_node_number = node.borrow().extract_number();
+        let deformed_shape_node_number = initial_node_number +
+            initial_nodes.len() as ElementsNumbers;
+        let initial_node_x = node.borrow().coordinates.x;
+        let deformed_shape_node_x =
+        {
+            if let Some(position) = displacements.dof_parameters_data
+                .iter()
+                .position(|displacement|
+                    displacement.same(GlobalDOFParameter::X,
+                        initial_node_number))
+            {
+                initial_node_x + displacements.displacements_values[position] * magnitude
+            }
+            else
+            {
+                initial_node_x
+            }
+        };
+        let initial_node_y = node.borrow().coordinates.y;
+        let deformed_shape_node_y =
+        {
+            if let Some(position) = displacements.dof_parameters_data
+                .iter()
+                .position(|displacement|
+                    displacement.same(GlobalDOFParameter::Y,
+                        initial_node_number))
+            {
+                initial_node_y + displacements.displacements_values[position] * magnitude
+            }
+            else
+            {
+                initial_node_y
+            }
+        };
+        let initial_node_z = node.borrow().coordinates.z;
+        let deformed_shape_node_z =
+        {
+            if let Some(position) = displacements.dof_parameters_data
+                .iter()
+                .position(|displacement|
+                    displacement.same(GlobalDOFParameter::Z,
+                        initial_node_number))
+            {
+                initial_node_z + displacements.displacements_values[position] * magnitude
+            }
+            else
+            {
+                initial_node_z
+            }
+        };
+        let deformed_shape_node =
+            FENode::create(deformed_shape_node_number, deformed_shape_node_x,
+                deformed_shape_node_y, deformed_shape_node_z);
+        nodes.push(Rc::new(RefCell::new(deformed_shape_node)));
+    }
+}
+
+
+pub fn update_displacement_value(mut value: ElementsValues, number: ElementsNumbers,
+    global_displacements: &Displacements<ElementsNumbers, ElementsValues>,
+    dof_parameter: GlobalDOFParameter) -> ElementsValues
+{
+    if let Some(position) = global_displacements.dof_parameters_data
+        .iter()
+        .position(|data|
+            data.same(dof_parameter,number))
+    {
+        value = global_displacements.displacements_values[position];
+    }
+    value
 }

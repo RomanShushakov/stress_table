@@ -16,11 +16,11 @@ use yew::services::keyboard::{KeyboardService, KeyListenerHandle};
 use yew::services::render::RenderTask;
 use yew::services::RenderService;
 
-use crate::components::preprocessor_canvas::gl::gl_aux_functions::
+use crate::auxiliary::gl_aux_functions::
     {
         add_denotation, initialize_shaders, normalize_nodes, add_hints,
     };
-use crate::components::preprocessor_canvas::gl::gl_aux_structs::
+use crate::auxiliary::gl_aux_structs::
     {
         Buffers, ShadersVariables, DrawnObject, CSAxis, CS_AXES_Y_SHIFT, CS_AXES_X_SHIFT,
         CS_AXES_Z_SHIFT, CS_AXES_SCALE, CS_AXES_CAPS_BASE_POINTS_NUMBER, CS_AXES_CAPS_WIDTH,

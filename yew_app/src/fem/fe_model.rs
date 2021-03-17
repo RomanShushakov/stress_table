@@ -11,10 +11,10 @@ use crate::extended_matrix::{ExtendedMatrix, MatrixElementPosition, ZerosRowColu
 use crate::extended_matrix::Operation;
 use crate::extended_matrix::extract_element_value;
 
-use crate::{ElementsNumbers, ElementsValues};
+use crate::{ElementsNumbers, ElementsValues, UIDNumbers};
 
 use crate::fem::element_analysis::fe_element_analysis_result::ElementsAnalysisResult;
-use crate::auxiliary::{FEDrawnElementData, DrawnBCData};
+use crate::auxiliary::{FEDrawnElementData, DrawnBCData, FEDrawnNodeData};
 
 use std::ops::{Sub, Div, Rem, SubAssign, Mul, Add, AddAssign, MulAssign};
 use std::hash::Hash;
@@ -669,18 +669,22 @@ impl<T, V> FEModel<T, V>
     }
 
 
-    pub fn nodes_rc_clone(&self) -> Rc<Vec<Rc<RefCell<FENode<T, V>>>>>
+    pub fn drawn_nodes_rc(&self, drawn_uid_number: &mut UIDNumbers) -> Rc<Vec<FEDrawnNodeData>>
     {
         let mut nodes = Vec::new();
         for node in self.nodes.iter()
         {
-            nodes.push(Rc::clone(node));
+            let number = node.borrow().extract_number();
+            let (x, y, z) = node.borrow().extract_coordinates();
+            let drawn_node_data = FEDrawnNodeData { number, x, y, z };
+            nodes.push(drawn_node_data);
+            *drawn_uid_number += 1;
         }
         Rc::new(nodes)
     }
 
 
-    pub fn drawn_elements_rc(&self) -> Rc<Vec<FEDrawnElementData>>
+    pub fn drawn_elements_rc(&self, drawn_uid_number: &mut UIDNumbers) -> Rc<Vec<FEDrawnElementData>>
     {
         let mut drawn_elements = Vec::new();
         for element in self.elements.iter()
@@ -692,12 +696,13 @@ impl<T, V> FEModel<T, V>
             let drawn_element_data =
                 FEDrawnElementData { fe_type, number, nodes_numbers, properties };
             drawn_elements.push(drawn_element_data);
+            *drawn_uid_number += 1;
         }
         Rc::new(drawn_elements)
     }
 
 
-    pub fn drawn_bcs_rc(&self) -> Rc<Vec<DrawnBCData>>
+    pub fn drawn_bcs_rc(&self, drawn_uid_number: &mut UIDNumbers) -> Rc<Vec<DrawnBCData>>
     {
         let mut drawn_bcs = Vec::new();
         for bc in &self.boundary_conditions
@@ -778,6 +783,7 @@ impl<T, V> FEModel<T, V>
             else
             {
                 drawn_bcs.push(drawn_bc);
+                *drawn_uid_number += 1;
             }
         }
         Rc::new(drawn_bcs)

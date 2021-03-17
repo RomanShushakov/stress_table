@@ -29,6 +29,7 @@ impl View
 }
 
 
+#[derive(Clone)]
 pub struct FEDrawnNodeData
 {
     pub number: ElementsNumbers,

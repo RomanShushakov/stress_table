@@ -32,7 +32,7 @@ const NODE_Z_COORD: &str = "node_z_coord";
 pub struct Props
 {
     pub is_preprocessor_active: bool,
-    pub nodes: Rc<Vec<Rc<RefCell<FENode<ElementsNumbers, ElementsValues>>>>>,
+    pub nodes: Rc<Vec<FEDrawnNodeData>>,
     pub add_node: Callback<FEDrawnNodeData>,
     pub update_node: Callback<FEDrawnNodeData>,
     pub delete_node: Callback<ElementsNumbers>,
@@ -98,13 +98,13 @@ impl NodeMenu
                 {
                     if let Ok(option) = HtmlOptionElement::new()
                     {
-                        option.set_value(&node.borrow().number.to_string());
-                        option.set_text(&node.borrow().number.to_string());
+                        option.set_value(&node.number.to_string());
+                        option.set_text(&node.number.to_string());
                         options.set(i as u32, Some(&option)).unwrap();
                     }
-                    if node.borrow().number > n
+                    if node.number > n
                     {
-                        n = node.borrow().number;
+                        n = node.number;
                     }
                 }
                 n + 1
@@ -168,12 +168,12 @@ impl Component for NodeMenu
                                 if let Some(position) = self.props.nodes
                                     .iter()
                                     .position(|node|
-                                        node.borrow().number.to_string() == select_node.value())
+                                        node.number.to_string() == select_node.value())
                                 {
-                                    let number = self.props.nodes[position].borrow().number;
-                                    let x = self.props.nodes[position].borrow().coordinates.x;
-                                    let y = self.props.nodes[position].borrow().coordinates.y;
-                                    let z = self.props.nodes[position].borrow().coordinates.z;
+                                    let number = self.props.nodes[position].number;
+                                    let x = self.props.nodes[position].x;
+                                    let y = self.props.nodes[position].y;
+                                    let z = self.props.nodes[position].z;
                                     self.state.selected_node = FEDrawnNodeData { number, x, y, z };
                                 }
                                 else
@@ -200,7 +200,7 @@ impl Component for NodeMenu
                     let y = self.state.selected_node.y;
                     let z = self.state.selected_node.z;
                     if self.props.nodes.iter().position(|node|
-                        node.borrow().number == number).is_none()
+                        node.number == number).is_none()
                     {
                         self.props.add_node.emit(FEDrawnNodeData { number, x, y, z });
                     }
@@ -212,7 +212,7 @@ impl Component for NodeMenu
             Msg::DeleteNode =>
                 {
                     if self.props.nodes.iter().position(|node|
-                        node.borrow().number == self.state.selected_node.number).is_some()
+                        node.number == self.state.selected_node.number).is_some()
                     {
                         self.props.delete_node.emit(self.state.selected_node.number);
                     }

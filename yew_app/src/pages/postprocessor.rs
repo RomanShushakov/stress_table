@@ -8,7 +8,7 @@ use crate::fem::{GlobalAnalysisResult, FENode};
 use crate::{ElementsNumbers, ElementsValues};
 
 use crate::components::{ViewMenu, PostprocessorCanvas, PlotDisplacementsMenu};
-use crate::auxiliary::View;
+use crate::auxiliary::{View, FEDrawnNodeData};
 
 
 const POSTPROCESSOR_CLASS: &str = "postprocessor";
@@ -26,7 +26,7 @@ pub struct Props
     pub discard_view: Callback<()>,
     pub canvas_width: u32,
     pub canvas_height: u32,
-    pub nodes: Rc<Vec<Rc<RefCell<FENode<ElementsNumbers, ElementsValues>>>>>,
+    pub nodes: Rc<Vec<FEDrawnNodeData>>,
 }
 
 

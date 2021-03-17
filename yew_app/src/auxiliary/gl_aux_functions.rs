@@ -6,7 +6,7 @@ use std::cell::RefCell;
 use crate::fem::{FENode, GlobalAnalysisResult, GlobalDOFParameter, Displacements};
 use crate::{ElementsNumbers, ElementsValues};
 use crate::{GLElementsValues, GLElementsNumbers};
-use crate::auxiliary::{NormalizedNode, FEDrawnElementData};
+use crate::auxiliary::{NormalizedNode, FEDrawnElementData, FEDrawnNodeData};
 use crate::auxiliary::gl_aux_structs::
     {
         DRAWN_OBJECT_TO_CANVAS_WIDTH_SCALE, DRAWN_OBJECT_TO_CANVAS_HEIGHT_SCALE,
@@ -44,22 +44,21 @@ pub fn add_denotation(ctx: &CTX, position: &[f32; 4], matrix: &[f32; 16],
 }
 
 
-fn find_object_min_max_coordinates(nodes: Rc<Vec<Rc<RefCell<FENode<ElementsNumbers,
-    ElementsValues>>>>>)
+fn find_object_min_max_coordinates(nodes: Rc<Vec<FEDrawnNodeData>>,)
     -> (GLElementsValues, GLElementsValues, GLElementsValues,
         GLElementsValues, GLElementsValues, GLElementsValues)
 {
-    let mut x_min = nodes[0].borrow().coordinates.x as GLElementsValues;
-    let mut x_max = nodes[0].borrow().coordinates.x as GLElementsValues;
-    let mut y_min = nodes[0].borrow().coordinates.y as GLElementsValues;
-    let mut y_max = nodes[0].borrow().coordinates.y as GLElementsValues;
-    let mut z_min = nodes[0].borrow().coordinates.z as GLElementsValues;
-    let mut z_max = nodes[0].borrow().coordinates.z as GLElementsValues;
+    let mut x_min = nodes[0].x as GLElementsValues;
+    let mut x_max = nodes[0].x as GLElementsValues;
+    let mut y_min = nodes[0].y as GLElementsValues;
+    let mut y_max = nodes[0].y as GLElementsValues;
+    let mut z_min = nodes[0].z as GLElementsValues;
+    let mut z_max = nodes[0].z as GLElementsValues;
     for i in 1..nodes.len()
     {
-        let x = nodes[i].borrow().coordinates.x as GLElementsValues;
-        let y = nodes[i].borrow().coordinates.y as GLElementsValues;
-        let z = nodes[i].borrow().coordinates.z as GLElementsValues;
+        let x = nodes[i].x as GLElementsValues;
+        let y = nodes[i].y as GLElementsValues;
+        let z = nodes[i].z as GLElementsValues;
         if x < x_min
         {
             x_min = x;
@@ -145,8 +144,8 @@ fn find_max_object_side(x_min: GLElementsValues, x_max: GLElementsValues, y_min:
 }
 
 
-pub fn normalize_nodes(nodes: Rc<Vec<Rc<RefCell<FENode<ElementsNumbers, ElementsValues>>>>>,
-    canvas_width: GLElementsValues, canvas_height: GLElementsValues, aspect: GLElementsValues)
+pub fn normalize_nodes(nodes: Rc<Vec<FEDrawnNodeData>>, canvas_width: GLElementsValues,
+    canvas_height: GLElementsValues, aspect: GLElementsValues)
     -> Vec<NormalizedNode>
 {
     let mut normalized_nodes = Vec::new();
@@ -158,22 +157,22 @@ pub fn normalize_nodes(nodes: Rc<Vec<Rc<RefCell<FENode<ElementsNumbers, Elements
     let multiplier =   min_canvas_side / max_object_side;
     for node in nodes.iter()
     {
-        let number = node.borrow().number as GLElementsNumbers;
-        let mut x = (node.borrow().coordinates.x as GLElementsValues * multiplier -
+        let number = node.number as GLElementsNumbers;
+        let mut x = (node.x as GLElementsValues * multiplier -
             (x_max + x_min) * multiplier / 2.0) / (min_canvas_side  / 2.0) *
             min_drawn_object_to_canvas_scale;
         if x.is_nan()
         {
             x = 0.0;
         }
-        let mut y = (node.borrow().coordinates.y as GLElementsValues * multiplier -
+        let mut y = (node.y as GLElementsValues * multiplier -
             (y_max + y_min) * multiplier / 2.0) / (min_canvas_side / 2.0) *
             min_drawn_object_to_canvas_scale;
         if y.is_nan()
         {
             y = 0.0;
         }
-        let mut z = (node.borrow().coordinates.z as GLElementsValues * multiplier -
+        let mut z = (node.z as GLElementsValues * multiplier -
             (z_max + z_min) * multiplier / 2.0) / (min_canvas_side / 2.0) *
             min_drawn_object_to_canvas_scale;
         if z.is_nan()
@@ -227,9 +226,8 @@ pub fn add_hints(ctx: &CTX, canvas_width: f32, canvas_height: f32)
 }
 
 
-pub fn add_deformed_shape_nodes(
-    nodes: &mut Vec<Rc<RefCell<FENode<ElementsNumbers, ElementsValues>>>>,
-    initial_nodes: &Rc<Vec<Rc<RefCell<FENode<ElementsNumbers, ElementsValues>>>>>,
+pub fn add_deformed_shape_nodes(nodes: &mut Vec<FEDrawnNodeData>,
+    initial_nodes: &Rc<Vec<FEDrawnNodeData>>,
     global_analysis_result: &GlobalAnalysisResult<ElementsNumbers, ElementsValues>,
     magnitude: ElementsValues)
 {
@@ -237,10 +235,10 @@ pub fn add_deformed_shape_nodes(
         global_analysis_result.extract_displacements();
     for node in initial_nodes.iter()
     {
-        let initial_node_number = node.borrow().extract_number();
+        let initial_node_number = node.number;
         let deformed_shape_node_number = initial_node_number +
             initial_nodes.len() as ElementsNumbers;
-        let initial_node_x = node.borrow().coordinates.x;
+        let initial_node_x = node.x;
         let deformed_shape_node_x =
         {
             if let Some(position) = displacements.dof_parameters_data
@@ -256,7 +254,7 @@ pub fn add_deformed_shape_nodes(
                 initial_node_x
             }
         };
-        let initial_node_y = node.borrow().coordinates.y;
+        let initial_node_y = node.y;
         let deformed_shape_node_y =
         {
             if let Some(position) = displacements.dof_parameters_data
@@ -272,7 +270,7 @@ pub fn add_deformed_shape_nodes(
                 initial_node_y
             }
         };
-        let initial_node_z = node.borrow().coordinates.z;
+        let initial_node_z = node.z;
         let deformed_shape_node_z =
         {
             if let Some(position) = displacements.dof_parameters_data
@@ -289,9 +287,9 @@ pub fn add_deformed_shape_nodes(
             }
         };
         let deformed_shape_node =
-            FENode::create(deformed_shape_node_number, deformed_shape_node_x,
-                deformed_shape_node_y, deformed_shape_node_z);
-        nodes.push(Rc::new(RefCell::new(deformed_shape_node)));
+            FEDrawnNodeData { number: deformed_shape_node_number, x: deformed_shape_node_x,
+                y: deformed_shape_node_y, z: deformed_shape_node_z };
+        nodes.push(deformed_shape_node);
     }
 }
 

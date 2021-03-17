@@ -42,7 +42,7 @@ use crate::auxiliary::gl_aux_structs::
 
 use crate::fem::{FENode, FEType, BCType, GlobalAnalysisResult, GlobalDOFParameter};
 use crate::{ElementsNumbers, ElementsValues, GLElementsNumbers, GLElementsValues};
-use crate::auxiliary::{View, FEDrawnElementData, DrawnBCData};
+use crate::auxiliary::{View, FEDrawnElementData, DrawnBCData, FEDrawnNodeData};
 
 
 const POSTPROCESSOR_CANVAS_CONTAINER_CLASS: &str = "postprocessor_canvas_container";
@@ -70,7 +70,7 @@ pub struct Props
     pub canvas_width: u32,
     pub canvas_height: u32,
     pub magnitude: ElementsValues,
-    pub nodes: Rc<Vec<Rc<RefCell<FENode<ElementsNumbers, ElementsValues>>>>>,
+    pub nodes: Rc<Vec<FEDrawnNodeData>>,
     pub global_analysis_result: Rc<Option<GlobalAnalysisResult<ElementsNumbers, ElementsValues>>>,
     pub is_plot_displacements_selected: bool,
     // pub drawn_elements: Rc<Vec<FEDrawnElementData>>,
@@ -461,7 +461,7 @@ impl PostprocessorCanvas
 
         if !self.props.nodes.is_empty()
         {
-            let mut all_nodes = self.props.nodes.as_ref().clone();
+            let mut all_nodes = (*self.props.nodes.as_ref()).clone();
             if let Some(global_analysis_result) =
                 self.props.global_analysis_result.as_ref()
             {

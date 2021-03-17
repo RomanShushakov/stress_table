@@ -53,6 +53,7 @@ pub type ElementsNumbers = u16;
 pub type ElementsValues = f64;
 pub type GLElementsNumbers = u16;
 pub type GLElementsValues = f32;
+pub type UIDNumbers = u32;
 
 pub const TOLERANCE: ElementsValues = 1e-6;
 
@@ -67,6 +68,7 @@ struct State
     canvas_height: u32,
     is_preprocessor_active: bool,
     fem: FEModel<ElementsNumbers, ElementsValues>,
+    selected_uid: Option<UIDNumbers>,
     analysis_message: Option<String>,
     global_analysis_result: Rc<Option<GlobalAnalysisResult<ElementsNumbers, ElementsValues>>>,
     // analysis_result: Option<AnalysisResult>,
@@ -101,6 +103,7 @@ enum Msg
     Submit,
     EditFEM,
     ChangeResultView(ResultView),
+    SelectUid(UIDNumbers),
 }
 
 
@@ -173,6 +176,7 @@ impl Component for Model
                     canvas_height: height,
                     is_preprocessor_active: true,
                     fem,
+                    selected_uid: None,
                     analysis_message: None,
                     global_analysis_result: Rc::new(None),
                     result_view: None,
@@ -362,6 +366,7 @@ impl Component for Model
                 },
             Msg::ChangeResultView(result_view) =>
                 self.state.result_view = Some(result_view),
+            Msg::SelectUid(uid) => self.state.selected_uid = Some(uid),
         }
         true
     }
@@ -381,17 +386,18 @@ impl Component for Model
         let handle_change_view = self.link.callback(|view: View| Msg::ChangeView(view));
         let handle_discard_view = self.link.callback(|_| Msg::DiscardView);
 
-        let nodes = self.state.fem.nodes_rc_clone();
+        let mut drawn_uid_number = 0 as UIDNumbers;
+
+        let nodes = self.state.fem.drawn_nodes_rc(&mut drawn_uid_number);
         let handle_add_node =
-            self.link
-                .callback(|data: FEDrawnNodeData| Msg::AddNode(data));
+            self.link.callback(|data: FEDrawnNodeData| Msg::AddNode(data));
         let handle_update_node =
-            self.link
-                .callback(|data: FEDrawnNodeData| Msg::UpdateNode(data));
+            self.link.callback(|data: FEDrawnNodeData| Msg::UpdateNode(data));
         let handle_delete_node =
             self.link.callback(|number: ElementsNumbers| Msg::DeleteNode(number));
 
-        let drawn_elements = self.state.fem.drawn_elements_rc();
+        let drawn_elements =
+            self.state.fem.drawn_elements_rc(&mut drawn_uid_number);
         let handle_add_element =
             self.link.callback(|data: FEDrawnElementData| Msg::AddElement(data));
         let handle_update_element =
@@ -399,12 +405,13 @@ impl Component for Model
         let handle_delete_element =
             self.link.callback(|number: ElementsNumbers| Msg::DeleteElement(number));
 
-        let drawn_bcs = self.state.fem.drawn_bcs_rc();
+        let drawn_bcs =
+            self.state.fem.drawn_bcs_rc(&mut drawn_uid_number);
         let handle_add_bc = self.link.callback(|data: DrawnBCData| Msg::AddBC(data));
-        let handle_update_bc = self.link.callback(|data: DrawnBCData|
-            Msg::UpdateBC(data));
-        let handle_delete_bc = self.link.callback(|data: DrawnBCData|
-            Msg::DeleteBC(data));
+        let handle_update_bc =
+            self.link.callback(|data: DrawnBCData| Msg::UpdateBC(data));
+        let handle_delete_bc =
+            self.link.callback(|data: DrawnBCData| Msg::DeleteBC(data));
 
         let handle_change_result_view =
             self.link.callback(|result_view: ResultView| Msg::ChangeResultView(result_view));
@@ -423,6 +430,8 @@ impl Component for Model
         let global_analysis_result =
             Rc::clone(&self.state.global_analysis_result);
         let handle_edit_fem = self.link.callback(|_| Msg::EditFEM);
+
+        let handle_select_uid = self.link.callback(|uid: UIDNumbers| Msg::SelectUid(uid));
 
         let render = Router::render(move |switch: AppRoute| match switch
         {
@@ -460,6 +469,8 @@ impl Component for Model
                         submit=handle_submit.to_owned(),
                         global_analysis_result=Rc::clone(&global_analysis_result),
                         edit_fem=handle_edit_fem.to_owned(),
+
+                        select_uid=handle_select_uid.to_owned(),
                     />
                 },
             AppRoute::Postprocessor =>
@@ -509,6 +520,8 @@ impl Component for Model
                         submit=handle_submit.to_owned(),
                         global_analysis_result=Rc::clone(&global_analysis_result),
                         edit_fem=handle_edit_fem.to_owned(),
+
+                        select_uid=handle_select_uid.to_owned(),
                     />
                 },
         });

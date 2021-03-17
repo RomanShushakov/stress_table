@@ -6,7 +6,7 @@ use std::cell::RefCell;
 
 use crate::auxiliary::{View, FEDrawnNodeData, FEDrawnElementData, DrawnBCData};
 use crate::fem::{FENode, GlobalAnalysisResult};
-use crate::{ElementsNumbers, ElementsValues};
+use crate::{ElementsNumbers, ElementsValues, UIDNumbers};
 
 use crate::components::
     {
@@ -34,7 +34,7 @@ pub struct Props
     pub discard_view: Callback<()>,
     pub is_preprocessor_active: bool,
 
-    pub nodes: Rc<Vec<Rc<RefCell<FENode<ElementsNumbers, ElementsValues>>>>>,
+    pub nodes: Rc<Vec<FEDrawnNodeData>>,
     pub add_node: Callback<FEDrawnNodeData>,
     pub update_node: Callback<FEDrawnNodeData>,
     pub delete_node: Callback<ElementsNumbers>,
@@ -59,6 +59,8 @@ pub struct Props
     pub submit: Callback<()>,
     pub global_analysis_result: Rc<Option<GlobalAnalysisResult<ElementsNumbers, ElementsValues>>>,
     pub edit_fem: Callback<()>,
+
+    pub select_uid: Callback<UIDNumbers>,
 }
 
 
@@ -126,7 +128,8 @@ impl Component for Preprocessor
             &self.props.canvas_height, &self.props.canvas_width,
             &self.props.analysis_message) !=
             (&props.view, &props.is_preprocessor_active,
-             &props.canvas_height, &props.canvas_width, &props.analysis_message) ||
+             &props.canvas_height, &props.canvas_width,
+             &props.analysis_message) ||
             !Rc::ptr_eq(&self.props.nodes, &props.nodes) ||
             !Rc::ptr_eq(&self.props.drawn_elements, &props.drawn_elements) ||
             !Rc::ptr_eq(&self.props.drawn_bcs, &props.drawn_bcs) ||

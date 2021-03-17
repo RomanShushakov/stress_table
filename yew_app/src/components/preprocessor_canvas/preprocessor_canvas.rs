@@ -39,13 +39,13 @@ use crate::auxiliary::gl_aux_structs::
 
 use crate::fem::{FENode, FEType, BCType};
 use crate::{ElementsNumbers, ElementsValues, GLElementsNumbers, GLElementsValues};
-use crate::auxiliary::{View, FEDrawnElementData, DrawnBCData};
+use crate::auxiliary::{View, FEDrawnElementData, DrawnBCData, FEDrawnNodeData};
 
 
 const PREPROCESSOR_CANVAS_CONTAINER_CLASS: &str = "preprocessor_canvas_container";
 const PREPROCESSOR_CANVAS_TEXT_CLASS: &str = "preprocessor_canvas_text";
 const PREPROCESSOR_CANVAS_GL_CLASS: &str = "preprocessor_canvas_gl";
-const PREPROCESSOR_CANVAS_GL_ID: &str = "preprocessor_canvas_gl_id";
+// const PREPROCESSOR_CANVAS_GL_ID: &str = "preprocessor_canvas_gl_id";
 
 
 fn window() -> Window
@@ -67,7 +67,7 @@ pub struct Props
     pub discard_view: Callback<()>,
     pub canvas_width: u32,
     pub canvas_height: u32,
-    pub nodes: Rc<Vec<Rc<RefCell<FENode<ElementsNumbers, ElementsValues>>>>>,
+    pub nodes: Rc<Vec<FEDrawnNodeData>>,
     pub drawn_elements: Rc<Vec<FEDrawnElementData>>,
     pub add_analysis_message: Callback<String>,
     pub drawn_bcs: Rc<Vec<DrawnBCData>>,
@@ -331,7 +331,7 @@ impl Component for PreprocessorCanvas
                     onwheel=self.link.callback(move |event: WheelEvent| Msg::MouseWheel(event)),
                 />
                 <canvas ref=self.canvas_node_ref.clone()
-                    id= { PREPROCESSOR_CANVAS_GL_ID },
+                    // id= { PREPROCESSOR_CANVAS_GL_ID },
                     class={ PREPROCESSOR_CANVAS_GL_CLASS },
                 />
             </div>

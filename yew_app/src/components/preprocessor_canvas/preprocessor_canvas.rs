@@ -45,6 +45,7 @@ use crate::auxiliary::{View, FEDrawnElementData, DrawnBCData};
 const PREPROCESSOR_CANVAS_CONTAINER_CLASS: &str = "preprocessor_canvas_container";
 const PREPROCESSOR_CANVAS_TEXT_CLASS: &str = "preprocessor_canvas_text";
 const PREPROCESSOR_CANVAS_GL_CLASS: &str = "preprocessor_canvas_gl";
+const PREPROCESSOR_CANVAS_GL_ID: &str = "preprocessor_canvas_gl_id";
 
 
 fn window() -> Window
@@ -88,6 +89,8 @@ pub enum Msg
 
 struct State
 {
+    // x: i32,
+    // y: i32,
     dx: GLElementsValues,
     dy: GLElementsValues,
     d_scale: GLElementsValues,
@@ -148,7 +151,7 @@ impl Component for PreprocessorCanvas
         let pan = false;
         let rotate = false;
         let shift_key_pressed = false;
-        let state = State {
+        let state = State { // x: -1, y: -1,
             dx, dy, d_scale, theta, phi, pan, rotate, shift_key_pressed };
         Self
         {
@@ -178,6 +181,15 @@ impl Component for PreprocessorCanvas
                 },
             Msg::MouseMove(mouse_event) =>
                 {
+                    // let mut mouse_x = mouse_event.client_x();
+                    // let mut mouse_y = mouse_event.client_y();
+                    // let rect = document().get_element_by_id(PREPROCESSOR_CANVAS_GL_ID).unwrap()
+                    //     .get_bounding_client_rect();
+                    // let x = mouse_x - rect.left() as i32;
+                    // let y = rect.bottom() as i32 - mouse_y;
+                    // self.state.x = x;
+                    // self.state.y = y;
+
                     if self.state.rotate
                     {
                         self.state.theta +=
@@ -319,6 +331,7 @@ impl Component for PreprocessorCanvas
                     onwheel=self.link.callback(move |event: WheelEvent| Msg::MouseWheel(event)),
                 />
                 <canvas ref=self.canvas_node_ref.clone()
+                    id= { PREPROCESSOR_CANVAS_GL_ID },
                     class={ PREPROCESSOR_CANVAS_GL_CLASS },
                 />
             </div>
@@ -343,8 +356,12 @@ impl Component for PreprocessorCanvas
         canvas.set_width(self.props.canvas_width);
         canvas.set_height(self.props.canvas_height);
 
+        // let mut gl_context_attributes = web_sys::WebGlContextAttributes::new();
+        // gl_context_attributes.preserve_drawing_buffer(true);
+
         let gl: GL = canvas
             .get_context("webgl")
+            // .get_context_with_context_options("webgl", &gl_context_attributes)
             .unwrap()
             .unwrap()
             .dyn_into()
@@ -527,6 +544,14 @@ impl PreprocessorCanvas
                 Some(&shaders_variables.model_view_matrix), false, &model_view_matrix);
 
             drawn_object.draw(&gl);
+
+            // let mut pixels = [0u8; 4];
+            // match gl.read_pixels_with_opt_u8_array(
+            //     self.state.x, self.state.y, 1, 1, GL::RGBA, GL::UNSIGNED_BYTE, Some(&mut pixels))
+            // {
+            //     Ok(_) => yew::services::ConsoleService::log(&format!("{:?}", pixels)),
+            //     Err(e) => yew::services::ConsoleService::log(&format!("{:?}", e)),
+            // }
 
             let mut matrix = mat4::new_identity();
             mat4::mul(&mut matrix, &projection_matrix, &model_view_matrix);

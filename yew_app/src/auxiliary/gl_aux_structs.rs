@@ -10,6 +10,7 @@ use crate::{ElementsValues, ElementsNumbers};
 use crate::fem::{FENode, FEType, GlobalDOFParameter};
 use crate::auxiliary::{NormalizedNode, FEDrawnElementData, DrawnBCData};
 use crate::auxiliary::aux_functions::transform_u32_to_array_of_u8;
+use yew::Callback;
 
 
 const CS_ORIGIN: [GLElementsValues; 3] = [0.0, 0.0, 0.0];
@@ -22,8 +23,8 @@ const CS_AXIS_Y_COLOR: [GLElementsValues; 4] = [0.0, 1.0, 0.0, 1.0]; // green
 const CS_AXIS_Z_COLOR: [GLElementsValues; 4] = [0.0, 0.0, 1.0, 1.0]; // blue
 
 pub const CS_AXES_SCALE: GLElementsValues = 0.1;
-pub const CS_AXES_CAPS_HEIGHT: GLElementsValues = 0.1; // arrow length
-pub const CS_AXES_CAPS_WIDTH: GLElementsValues = 0.05; // half of arrow width
+pub const CS_AXES_CAPS_HEIGHT: GLElementsValues = 0.15; // arrow length
+pub const CS_AXES_CAPS_WIDTH: GLElementsValues = 0.075; // half of arrow width
 pub const CS_AXES_CAPS_BASE_POINTS_NUMBER: u16 = 12; // the number of points in cone circular base
 
 pub const CS_AXES_X_SHIFT: GLElementsValues = 0.85; // shift of the cs in the x-direction
@@ -88,8 +89,8 @@ pub const DRAWN_DEFORMED_SHAPE_NODES_COLOR: [GLElementsValues; 4] = [1.0, 1.0, 1
 pub const CANVAS_DRAWN_DEFORMED_SHAPE_NODES_DENOTATION_COLOR: &str = "white";
 pub const DRAWN_DEFORMED_SHAPE_NODES_DENOTATION_SHIFT: GLElementsValues = 0.02;
 
-pub const DRAWN_OBJECT_SELECTED_COLOR: [GLElementsValues; 4] = [1.0, 1.0, 1.0, 1.0]; // white
-pub const CANVAS_DRAWN_OBJECT_SELECTED_DENOTATION_COLOR: &str = "white";
+pub const DRAWN_OBJECT_SELECTED_COLOR: [GLElementsValues; 4] = [1.0, 0.0, 0.0, 1.0]; // red
+pub const CANVAS_DRAWN_OBJECT_SELECTED_DENOTATION_COLOR: &str = "red";
 pub const DRAWN_OBJECT_UNDER_CURSOR_COLOR: [GLElementsValues; 4] =
     [0.752941, 0.752941, 0.752941, 1.0]; // grey
 pub const CANVAS_DRAWN_OBJECT_UNDER_CURSOR_DENOTATION_COLOR: &str = "grey";
@@ -468,14 +469,18 @@ impl DrawnObject
 
 
     pub fn add_displacements(&mut self, normalized_nodes: &Vec<NormalizedNode>,
-         drawn_displacements: &Vec<&DrawnBCData>, base_points_number: GLElementsNumbers,
-         height: GLElementsValues, base_radius: GLElementsValues)
+        drawn_displacements: &Vec<&DrawnBCData>, base_points_number: GLElementsNumbers,
+        height: GLElementsValues, base_radius: GLElementsValues, gl_mode: GLMode,
+        under_cursor_color: &[u8; 4], selected_color: &[u8; 4])
     {
         let mut start_index =
             if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
         let tolerance = TOLERANCE as GLElementsValues;
         for displacement in drawn_displacements.iter()
         {
+            let displacement_color = define_drawn_object_color(&gl_mode,
+                displacement.uid, selected_color, under_cursor_color,
+                &DRAWN_DISPLACEMENTS_COLOR);
             if let Some(position) = normalized_nodes
                 .iter()
                 .position(|node| node.number ==
@@ -508,13 +513,13 @@ impl DrawnObject
                 {
                     if point_number == 1
                     {
-                        self.colors_values.extend(&DRAWN_DISPLACEMENTS_COLOR);
-                        self.colors_values.extend(&DRAWN_DISPLACEMENTS_COLOR);
-                        self.colors_values.extend(&DRAWN_DISPLACEMENTS_COLOR);
+                        self.colors_values.extend(&displacement_color);
+                        self.colors_values.extend(&displacement_color);
+                        self.colors_values.extend(&displacement_color);
                     }
                     else
                     {
-                        self.colors_values.extend(&DRAWN_DISPLACEMENTS_COLOR);
+                        self.colors_values.extend(&displacement_color);
                     }
                     self.indexes_numbers.extend(&[start_index, start_index + point_number,
                         start_index + point_number + 1]);
@@ -533,7 +538,8 @@ impl DrawnObject
 
     fn add_force_line(&mut self, dof_parameter: GlobalDOFParameter, value: ElementsValues,
         x_start: GLElementsValues, y_start: GLElementsValues, z_start: GLElementsValues,
-        line_length: GLElementsValues, start_index: GLElementsNumbers)
+        line_length: GLElementsValues, start_index: GLElementsNumbers,
+        force_color: &[GLElementsValues; 4])
         -> (GLElementsValues, GLElementsValues, GLElementsValues)
     {
         let (x_end, y_end, z_end) =
@@ -646,8 +652,8 @@ impl DrawnObject
             };
         self.vertices_coordinates.extend(&[x_start, y_start, z_start]);
         self.vertices_coordinates.extend(&[x_end, y_end, z_end]);
-        self.colors_values.extend(&DRAWN_FORCES_COLOR);
-        self.colors_values.extend(&DRAWN_FORCES_COLOR);
+        self.colors_values.extend(force_color);
+        self.colors_values.extend(force_color);
         self.indexes_numbers.extend(&[start_index, start_index + 1]);
         self.modes.push(GLPrimitiveType::Lines);
         self.elements_numbers.push(2);
@@ -658,9 +664,10 @@ impl DrawnObject
 
 
     fn add_force_cap(&mut self, dof_parameter: GlobalDOFParameter, value: ElementsValues,
-         base_points_number: GLElementsNumbers, height: GLElementsValues,
-         base_radius: GLElementsValues, x_end: GLElementsValues, y_end: GLElementsValues,
-         z_end: GLElementsValues, start_index: GLElementsNumbers)
+        base_points_number: GLElementsNumbers, height: GLElementsValues,
+        base_radius: GLElementsValues, x_end: GLElementsValues, y_end: GLElementsValues,
+        z_end: GLElementsValues, start_index: GLElementsNumbers,
+        force_color: &[GLElementsValues; 4])
     {
         self.vertices_coordinates.extend(&[x_end, y_end, z_end]);
         let tolerance = TOLERANCE as GLElementsValues;
@@ -763,11 +770,13 @@ impl DrawnObject
         {
             if point_number == 1
             {
-                self.colors_values.extend(&DRAWN_FORCES_COLOR);
-                self.colors_values.extend(&DRAWN_FORCES_COLOR);
-                self.colors_values.extend(&DRAWN_FORCES_COLOR);
-            } else {
-                self.colors_values.extend(&DRAWN_FORCES_COLOR);
+                self.colors_values.extend(force_color);
+                self.colors_values.extend(force_color);
+                self.colors_values.extend(force_color);
+            }
+            else
+            {
+                self.colors_values.extend(force_color);
             }
             self.indexes_numbers.extend(&[start_index, start_index + point_number,
                 start_index + point_number + 1]);
@@ -784,12 +793,16 @@ impl DrawnObject
     pub fn add_forces(&mut self, normalized_nodes: &Vec<NormalizedNode>,
         drawn_forces: &Vec<&DrawnBCData>, line_length: GLElementsValues,
         base_points_number: GLElementsNumbers, height: GLElementsValues,
-        base_radius: GLElementsValues)
+        base_radius: GLElementsValues, gl_mode: GLMode, under_cursor_color: &[u8; 4],
+        selected_color: &[u8; 4])
     {
         let mut start_index =
             if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
         for force in drawn_forces.iter()
         {
+            let force_color = define_drawn_object_color(&gl_mode,
+                force.uid, selected_color, under_cursor_color,
+                &DRAWN_FORCES_COLOR);
             if let Some(position) = normalized_nodes
                 .iter()
                 .position(|node|
@@ -802,30 +815,33 @@ impl DrawnObject
                 {
                     let (x_end, y_end, z_end) =
                         self.add_force_line(GlobalDOFParameter::X, x_value, x_start,
-                            y_start, z_start, line_length, start_index);
+                            y_start, z_start, line_length, start_index, &force_color);
                     start_index += 2;
                     self.add_force_cap(GlobalDOFParameter::X, x_value,
-                        base_points_number, height, base_radius, x_end, y_end, z_end, start_index);
+                        base_points_number, height, base_radius, x_end, y_end, z_end, start_index,
+                        &force_color);
                     start_index += base_points_number + 1;
                 }
                 if let Some(y_value) = force.y_direction_value
                 {
                     let (x_end, y_end, z_end) =
                         self.add_force_line(GlobalDOFParameter::Y, y_value, x_start,
-                            y_start, z_start, line_length, start_index);
+                            y_start, z_start, line_length, start_index, &force_color);
                     start_index += 2;
                     self.add_force_cap(GlobalDOFParameter::Y, y_value,
-                        base_points_number, height, base_radius, x_end, y_end, z_end, start_index);
+                        base_points_number, height, base_radius, x_end, y_end, z_end, start_index,
+                        &force_color);
                     start_index += base_points_number + 1;
                 }
                 if let Some(z_value) = force.z_direction_value
                 {
                     let (x_end, y_end, z_end) =
                         self.add_force_line(GlobalDOFParameter::Z, z_value, x_start,
-                            y_start, z_start, line_length, start_index);
+                            y_start, z_start, line_length, start_index, &force_color);
                     start_index += 2;
                     self.add_force_cap(GlobalDOFParameter::Z, z_value,
-                        base_points_number, height, base_radius, x_end, y_end, z_end, start_index);
+                        base_points_number, height, base_radius, x_end, y_end, z_end, start_index,
+                        &force_color);
                     start_index += base_points_number + 1;
                 }
             }

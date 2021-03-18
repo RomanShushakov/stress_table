@@ -5,6 +5,12 @@ authors = ["roman shushakov <roman.a.shushakov@mail.ru>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+#[profile.release]
+#panic = 'abort'
+#codegen-units = 1
+#opt-level = 's'
+#lto = true
+
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -17,6 +23,8 @@ js-sys = "0.3.48"
 mat4 = "0.2.1"
 vec4 = "0.2.1"
 yew-router = "0.14.0"
+
+#wee_alloc = "0.4.5"
 
 
 [dependencies.web-sys]

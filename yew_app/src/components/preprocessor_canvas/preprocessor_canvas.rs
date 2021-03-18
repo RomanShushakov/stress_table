@@ -74,6 +74,8 @@ pub struct Props
     pub drawn_elements: Rc<Vec<FEDrawnElementData>>,
     pub add_analysis_message: Callback<String>,
     pub drawn_bcs: Rc<Vec<DrawnBCData>>,
+    pub add_object_info: Callback<String>,
+    pub reset_object_info: Callback<()>,
 }
 
 
@@ -140,6 +142,141 @@ impl PreprocessorCanvas
             KeyboardService::register_key_up(element, key_up_callback);
         self.key_up_task = Some(key_up_task);
     }
+
+
+    fn extract_object_info(&self) -> Option<String>
+    {
+        let object_info =
+            {
+                if let Some(position) = self.props.drawn_nodes
+                    .iter()
+                    .position(|node|
+                        transform_u32_to_array_of_u8(node.uid) == self.state.selected_color)
+                {
+                    let node_number = self.props.drawn_nodes[position].number;
+                    let node_coord_x = self.props.drawn_nodes[position].x;
+                    let node_coord_y = self.props.drawn_nodes[position].y;
+                    let node_coord_z = self.props.drawn_nodes[position].z;
+                    let object_info = format!("Node: #{}, X: {}, Y: {}, Z: {}",
+                        node_number, node_coord_x, node_coord_y, node_coord_z);
+                    Some(object_info)
+                }
+                else if let Some(position) = self.props.drawn_elements
+                    .iter()
+                    .position(|element|
+                        transform_u32_to_array_of_u8(element.uid) == self.state.selected_color)
+                {
+                    let element_type = &self.props.drawn_elements[position].fe_type;
+                    let element_number = &self.props.drawn_elements[position].number;
+                    let element_node_numbers =
+                        &self.props.drawn_elements[position].nodes_numbers;
+                    let element_properties = &self.props.drawn_elements[position].properties;
+                    let object_info = format!("Element: #{}, type: {:?}, nodes: {:?}, \
+                        props: {:?}",
+                        element_number, element_type, element_node_numbers, element_properties);
+                    Some(object_info)
+                }
+                else if let Some(position) = self.props.drawn_bcs
+                    .iter()
+                    .position(|bc|
+                        transform_u32_to_array_of_u8(bc.uid) == self.state.selected_color)
+                {
+                    let bc_type = &self.props.drawn_bcs[position].bc_type;
+                    let bc_number = &self.props.drawn_bcs[position].number;
+                    let bc_node_number =
+                        &self.props.drawn_bcs[position].node_number;
+                    let x_value =
+                        {
+                            if self.props.drawn_bcs[position].x_direction_value.is_some()
+                            {
+                                self.props.drawn_bcs[position].x_direction_value
+                                    .unwrap()
+                                    .to_string()
+                            }
+                            else
+                            {
+                                "N/A".to_string()
+                            }
+                        };
+                    let y_value =
+                        {
+                            if self.props.drawn_bcs[position].y_direction_value.is_some()
+                            {
+                                self.props.drawn_bcs[position].y_direction_value
+                                    .unwrap()
+                                    .to_string()
+                            }
+                            else
+                            {
+                                "N/A".to_string()
+                            }
+                        };
+                    let z_value =
+                        {
+                            if self.props.drawn_bcs[position].z_direction_value.is_some()
+                            {
+                                self.props.drawn_bcs[position].z_direction_value
+                                    .unwrap()
+                                    .to_string()
+                            }
+                            else
+                            {
+                                "N/A".to_string()
+                            }
+                        };
+                    let xy_value =
+                        {
+                            if self.props.drawn_bcs[position].xy_plane_value.is_some()
+                            {
+                                self.props.drawn_bcs[position].xy_plane_value
+                                    .unwrap()
+                                    .to_string()
+                            }
+                            else
+                            {
+                                "N/A".to_string()
+                            }
+                        };
+                    let yz_value =
+                        {
+                            if self.props.drawn_bcs[position].yz_plane_value.is_some()
+                            {
+                                self.props.drawn_bcs[position].yz_plane_value
+                                    .unwrap()
+                                    .to_string()
+                            }
+                            else
+                            {
+                                "N/A".to_string()
+                            }
+                        };
+                    let zx_value =
+                        {
+                            if self.props.drawn_bcs[position].zx_plane_value.is_some()
+                            {
+                                self.props.drawn_bcs[position].zx_plane_value
+                                    .unwrap()
+                                    .to_string()
+                            }
+                            else
+                            {
+                                "N/A".to_string()
+                            }
+                        };
+                    let object_info = format!("BC: #{}, type: {:?}, node: {}, \
+                        x value: {}, y value: {}, z value: {}, xy value {}, yz value: {} \
+                        zx value: {}",
+                        bc_number, bc_type, bc_node_number, x_value, y_value, z_value, xy_value,
+                        yz_value, zx_value);
+                    Some(object_info)
+                }
+                else
+                {
+                    None
+                }
+            };
+        object_info
+    }
 }
 
 
@@ -177,6 +314,7 @@ impl Component for PreprocessorCanvas
             state,
         }
     }
+
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender
     {
@@ -276,6 +414,15 @@ impl Component for PreprocessorCanvas
             Msg::MouseClick =>
                 {
                     self.state.selected_color = self.state.under_cursor_color;
+                    let object_info = self.extract_object_info();
+                    if object_info.is_some()
+                    {
+                        self.props.add_object_info.emit(object_info.unwrap());
+                    }
+                    else
+                    {
+                        self.props.reset_object_info.emit(());
+                    }
                     false
                 },
         }
@@ -407,7 +554,7 @@ impl PreprocessorCanvas
         gl.enable(GL::DEPTH_TEST);
         gl.clear(GL::COLOR_BUFFER_BIT);
         gl.clear(GL::DEPTH_BUFFER_BIT);
-        gl.line_width(3.0);
+        gl.line_width(3.5);
         let vertex_shader_code = include_str!("shaders/prep_shader.vert");
         let fragment_shader_code = include_str!("shaders/prep_shader.frag");
 
@@ -444,34 +591,38 @@ impl PreprocessorCanvas
                 }
             }
 
-            // let drawn_displacements: Vec<&DrawnBCData> = self.props.drawn_bcs
-            //         .iter()
-            //         .filter(|bc|
-            //             bc.bc_type == BCType::Displacement)
-            //         .collect();
-            // if !drawn_displacements.is_empty()
-            // {
-            //     drawn_object.add_displacements(
-            //         &normalized_nodes, &drawn_displacements,
-            //         DRAWN_DISPLACEMENTS_CAPS_BASE_POINTS_NUMBER,
-            //         DRAWN_DISPLACEMENTS_CAPS_HEIGHT / (1.0 + self.state.d_scale),
-            //         DRAWN_DISPLACEMENTS_CAPS_WIDTH / (1.0 + self.state.d_scale));
-            // }
-            //
-            // let drawn_forces: Vec<&DrawnBCData> = self.props.drawn_bcs
-            //         .iter()
-            //         .filter(|bc|
-            //             bc.bc_type == BCType::Force)
-            //         .collect();
-            // if !drawn_forces.is_empty()
-            // {
-            //     drawn_object.add_forces(
-            //         &normalized_nodes, &drawn_forces,
-            //         DRAWN_FORCES_LINE_LENGTH / (1.0 + self.state.d_scale),
-            //         DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER,
-            //         DRAWN_FORCES_CAPS_HEIGHT / (1.0 + self.state.d_scale),
-            //         DRAWN_FORCES_CAPS_WIDTH / (1.0 + self.state.d_scale));
-            // }
+            let drawn_displacements: Vec<&DrawnBCData> = self.props.drawn_bcs
+                    .iter()
+                    .filter(|bc|
+                        bc.bc_type == BCType::Displacement)
+                    .collect();
+            if !drawn_displacements.is_empty()
+            {
+                drawn_object.add_displacements(
+                    &normalized_nodes, &drawn_displacements,
+                    DRAWN_DISPLACEMENTS_CAPS_BASE_POINTS_NUMBER,
+                    DRAWN_DISPLACEMENTS_CAPS_HEIGHT / (1.0 + self.state.d_scale),
+                    DRAWN_DISPLACEMENTS_CAPS_WIDTH / (1.0 + self.state.d_scale),
+                    GLMode::Selection, &self.state.under_cursor_color,
+                    &self.state.selected_color);
+            }
+
+            let drawn_forces: Vec<&DrawnBCData> = self.props.drawn_bcs
+                    .iter()
+                    .filter(|bc|
+                        bc.bc_type == BCType::Force)
+                    .collect();
+            if !drawn_forces.is_empty()
+            {
+                drawn_object.add_forces(
+                    &normalized_nodes, &drawn_forces,
+                    DRAWN_FORCES_LINE_LENGTH / (1.0 + self.state.d_scale),
+                    DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER,
+                    DRAWN_FORCES_CAPS_HEIGHT / (1.0 + self.state.d_scale),
+                    DRAWN_FORCES_CAPS_WIDTH / (1.0 + self.state.d_scale),
+                    GLMode::Selection, &self.state.under_cursor_color,
+                    &self.state.selected_color);
+            }
 
             drawn_objects_buffers.render(&gl, &drawn_object, &shaders_variables);
 
@@ -529,6 +680,29 @@ impl PreprocessorCanvas
                     Err(e) => self.props.add_analysis_message.emit(e),
                     Ok(()) => (),
                 }
+            }
+
+            if !drawn_displacements.is_empty()
+            {
+                drawn_object.add_displacements(
+                    &normalized_nodes, &drawn_displacements,
+                    DRAWN_DISPLACEMENTS_CAPS_BASE_POINTS_NUMBER,
+                    DRAWN_DISPLACEMENTS_CAPS_HEIGHT / (1.0 + self.state.d_scale),
+                    DRAWN_DISPLACEMENTS_CAPS_WIDTH / (1.0 + self.state.d_scale),
+                    GLMode::Visible, &self.state.under_cursor_color,
+                    &self.state.selected_color);
+            }
+
+            if !drawn_forces.is_empty()
+            {
+                drawn_object.add_forces(
+                    &normalized_nodes, &drawn_forces,
+                    DRAWN_FORCES_LINE_LENGTH / (1.0 + self.state.d_scale),
+                    DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER,
+                    DRAWN_FORCES_CAPS_HEIGHT / (1.0 + self.state.d_scale),
+                    DRAWN_FORCES_CAPS_WIDTH / (1.0 + self.state.d_scale),
+                    GLMode::Visible, &self.state.under_cursor_color,
+                    &self.state.selected_color);
             }
 
             drawn_objects_buffers.render(&gl, &drawn_object, &shaders_variables);
@@ -609,59 +783,66 @@ impl PreprocessorCanvas
                     }
                 }
             }
-            //
-            // if !drawn_displacements.is_empty()
-            // {
-            //     for displacement in drawn_displacements
-            //     {
-            //         match displacement.find_denotation_coordinates(&normalized_nodes)
-            //         {
-            //             Ok(coordinates) =>
-            //                 {
-            //                     ctx.set_fill_style(&CANVAS_DRAWN_DISPLACEMENTS_DENOTATION_COLOR.into());
-            //                     add_denotation(&ctx,
-            //                     &[coordinates[0] + DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_X /
-            //                         (1.0 + self.state.d_scale),
-            //                         coordinates[1] - DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_Y /
-            //                         (1.0 + self.state.d_scale),
-            //                         coordinates[2], coordinates[3]],
-            //                     &matrix,
-            //                     self.props.canvas_width as f32,
-            //                     self.props.canvas_height as f32,
-            //                     &displacement.number.to_string());
-            //                     ctx.stroke();
-            //                 },
-            //             Err(e) => self.props.add_analysis_message.emit(e)
-            //         }
-            //     }
-            // }
-            //
-            //
-            // if !drawn_forces.is_empty()
-            // {
-            //     for force in drawn_forces
-            //     {
-            //         match force.find_denotation_coordinates(&normalized_nodes)
-            //         {
-            //             Ok(coordinates) =>
-            //                 {
-            //                     ctx.set_fill_style(&CANVAS_DRAWN_FORCES_DENOTATION_COLOR.into());
-            //                     add_denotation(&ctx,
-            //                     &[coordinates[0] + DRAWN_FORCES_DENOTATION_SHIFT_X /
-            //                         (1.0 + self.state.d_scale),
-            //                         coordinates[1] + DRAWN_FORCES_DENOTATION_SHIFT_Y /
-            //                         (1.0 + self.state.d_scale),
-            //                         coordinates[2], coordinates[3]],
-            //                     &matrix,
-            //                     self.props.canvas_width as f32,
-            //                     self.props.canvas_height as f32,
-            //                     &format!("#{}", force.number));
-            //                     ctx.stroke();
-            //                 },
-            //             Err(e) => self.props.add_analysis_message.emit(e)
-            //         }
-            //     }
-            // }
+
+            if !drawn_displacements.is_empty()
+            {
+                for displacement in drawn_displacements
+                {
+                    let denotation_color = define_drawn_object_denotation_color(
+                        displacement.uid, &self.state.selected_color,
+                        &self.state.under_cursor_color,
+                        CANVAS_DRAWN_DISPLACEMENTS_DENOTATION_COLOR);
+                    match displacement.find_denotation_coordinates(&normalized_nodes)
+                    {
+                        Ok(coordinates) =>
+                            {
+                                ctx.set_fill_style(&denotation_color.into());
+                                add_denotation(&ctx,
+                                &[coordinates[0] + DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_X /
+                                    (1.0 + self.state.d_scale),
+                                    coordinates[1] - DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_Y /
+                                    (1.0 + self.state.d_scale),
+                                    coordinates[2], coordinates[3]],
+                                &matrix,
+                                self.props.canvas_width as f32,
+                                self.props.canvas_height as f32,
+                                &displacement.number.to_string());
+                                ctx.stroke();
+                            },
+                        Err(e) => self.props.add_analysis_message.emit(e)
+                    }
+                }
+            }
+
+            if !drawn_forces.is_empty()
+            {
+                for force in drawn_forces
+                {
+                    let denotation_color = define_drawn_object_denotation_color(
+                        force.uid, &self.state.selected_color,
+                        &self.state.under_cursor_color,
+                        CANVAS_DRAWN_FORCES_DENOTATION_COLOR);
+                    match force.find_denotation_coordinates(&normalized_nodes)
+                    {
+                        Ok(coordinates) =>
+                            {
+                                ctx.set_fill_style(&denotation_color.into());
+                                add_denotation(&ctx,
+                                &[coordinates[0] + DRAWN_FORCES_DENOTATION_SHIFT_X /
+                                    (1.0 + self.state.d_scale),
+                                    coordinates[1] + DRAWN_FORCES_DENOTATION_SHIFT_Y /
+                                    (1.0 + self.state.d_scale),
+                                    coordinates[2], coordinates[3]],
+                                &matrix,
+                                self.props.canvas_width as f32,
+                                self.props.canvas_height as f32,
+                                &format!("#{}", force.number));
+                                ctx.stroke();
+                            },
+                        Err(e) => self.props.add_analysis_message.emit(e)
+                    }
+                }
+            }
         }
 
         let cs_buffers = Buffers::initialize(&gl);

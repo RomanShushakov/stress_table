@@ -21,9 +21,9 @@ const PREPROCESSOR_CLASS: &str = "preprocessor";
 const PREPROCESSOR_MENU_CLASS: &str = "preprocessor_menu";
 pub const PREPROCESSOR_BUTTON_CLASS: &str = "preprocessor_button";
 const PREPROCESSOR_CANVAS_CLASS: &str = "preprocessor_canvas";
-const ANALYSIS_ERROR_CLASS: &str = "analysis_error";
-const ANALYSIS_ERROR_MESSAGE_CLASS: &str = "analysis_error_message";
-const ANALYSIS_ERROR_BUTTON_CLASS: &str = "analysis_error_button";
+const ANALYSIS_INFO_CLASS: &str = "analysis_info";
+const ANALYSIS_MESSAGE_CLASS: &str = "analysis_message";
+const ANALYSIS_MESSAGE_BUTTON_CLASS: &str = "analysis_message_button";
 
 
 #[derive(Properties, Clone)]
@@ -62,10 +62,17 @@ pub struct Props
 }
 
 
+struct State
+{
+    object_info: Option<String>,
+}
+
+
 pub struct Preprocessor
 {
     link: ComponentLink<Self>,
     props: Props,
+    state: State,
 }
 
 
@@ -95,6 +102,8 @@ pub enum Msg
     ResetAnalysisMessage,
     Submit,
     EditFEM,
+    AddObjectInfo(String),
+    ResetObjectInfo,
 }
 
 
@@ -105,7 +114,8 @@ impl Component for Preprocessor
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self
     {
-        Self { props, link }
+        let state = State { object_info: None };
+        Self { props, link, state }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender
@@ -116,6 +126,8 @@ impl Component for Preprocessor
                 self.props.reset_analysis_message.emit(()),
             Msg::Submit => self.props.submit.emit(()),
             Msg::EditFEM => self.props.edit_fem.emit(()),
+            Msg::AddObjectInfo(info) => self.state.object_info = Some(info),
+            Msg::ResetObjectInfo => self.state.object_info = None,
         }
         true
     }
@@ -146,6 +158,10 @@ impl Component for Preprocessor
     fn view(&self) -> Html
     {
         type Button = RouterButton<AppRoute>;
+
+        let handle_add_object_info =
+            self.link.callback(|info: String| Msg::AddObjectInfo(info));
+        let handle_reset_object_info = self.link.callback(|_| Msg::ResetObjectInfo);
 
         html!
         {
@@ -248,30 +264,57 @@ impl Component for Preprocessor
                             drawn_elements=Rc::clone(&self.props.drawn_elements),
                             add_analysis_message=self.props.add_analysis_message.to_owned(),
                             drawn_bcs=Rc::clone(&self.props.drawn_bcs),
+                            add_object_info=handle_add_object_info.to_owned(),
+                            reset_object_info=handle_reset_object_info.to_owned(),
                         />
+                        {
+                            if let Some(info) = &self.state.object_info
+                            {
+                                html!
+                                {
+                                    <div class={ ANALYSIS_INFO_CLASS }>
+                                        <p class={ ANALYSIS_MESSAGE_CLASS }>{ &format!("Object: {}", info) }</p>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                html!
+                                {
+                                    <div class={ ANALYSIS_INFO_CLASS }>
+                                        <p class={ ANALYSIS_MESSAGE_CLASS }>{ "Object: " }</p>
+                                    </div>
+                                }
+                            }
+                        }
+                        {
+                            if let Some(message) = &self.props.analysis_message
+                            {
+                                html!
+                                {
+                                    <div class={ ANALYSIS_INFO_CLASS }>
+                                        <p class={ ANALYSIS_MESSAGE_CLASS }>{ &format!("Message: {}", message) }</p>
+                                        <button
+                                            class={ ANALYSIS_MESSAGE_BUTTON_CLASS },
+                                            onclick=self.link.callback(|_| Msg::ResetAnalysisMessage)
+                                        >
+                                            { "Hide message" }
+                                        </button>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                html!
+                                {
+                                    <div class={ ANALYSIS_INFO_CLASS }>
+                                        <p class={ ANALYSIS_MESSAGE_CLASS }>{ "Message: " }</p>
+                                    </div>
+                                }
+                            }
+                        }
                     </div>
                 </div>
-                {
-                    if let Some(error_message) = &self.props.analysis_message
-                    {
-                        html!
-                        {
-                            <div class={ ANALYSIS_ERROR_CLASS }>
-                                <p class={ ANALYSIS_ERROR_MESSAGE_CLASS }>{ error_message }</p>
-                                <button
-                                    class={ ANALYSIS_ERROR_BUTTON_CLASS },
-                                    onclick=self.link.callback(|_| Msg::ResetAnalysisMessage)
-                                >
-                                    { "Hide message" }
-                                </button>
-                            </div>
-                        }
-                    }
-                    else
-                    {
-                        html! {}
-                    }
-                }
             </>
         }
     }

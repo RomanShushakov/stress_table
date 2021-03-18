@@ -54,7 +54,7 @@ input {
 }
 
 
-.analysis_error {
+.analysis_info {
     display: flex;
     align-self: start;
     align-items: center;
@@ -62,17 +62,17 @@ input {
     flex-direction: row;
     padding-left: 0.5rem;
     padding-right: 0.5rem;
-    margin-top: 0.5rem;
 }
 
 
-.analysis_error_message {
+.analysis_message {
     font-size: 0.85rem;
-    margin: 0;
+    margin-top: 0.2rem;
+    margin-bottom: 0.2rem;
 }
 
 
-.analysis_error_button {
+.analysis_message_button {
     font-size: 0.85rem;
     margin-left: 0.25rem;
 }

@@ -49,6 +49,9 @@ use pages::{Preprocessor, Postprocessor};
 use yew_router::router::Render;
 
 
+// #[global_allocator]
+// static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+
 pub type ElementsNumbers = u16;
 pub type ElementsValues = f64;
 pub type GLElementsNumbers = u16;

@@ -59,6 +59,8 @@ pub struct Props
     // pub drawn_elements: Rc<Vec<FEDrawnElementData>>,
     // pub add_analysis_message: Callback<String>,
     // pub drawn_bcs: Rc<Vec<DrawnBCData>>,
+    pub add_object_info: Callback<String>,
+    pub reset_object_info: Callback<()>,
 }
 
 

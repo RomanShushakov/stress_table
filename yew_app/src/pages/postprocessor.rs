@@ -32,6 +32,7 @@ pub struct Props
 
 pub struct State
 {
+    object_info: Option<String>,
     pub magnitude: ElementsValues,
     pub is_plot_displacements_selected: bool,
 }
@@ -47,6 +48,8 @@ pub struct Postprocessor
 
 pub enum Msg
 {
+    AddObjectInfo(String),
+    ResetObjectInfo,
     ChangeMagnitude(ElementsValues),
     SelectPlotDisplacements,
 }
@@ -62,6 +65,7 @@ impl Component for Postprocessor
     {
         let state = State
             {
+                object_info: None,
                 magnitude: 1.0 as ElementsValues,
                 is_plot_displacements_selected: false,
             };
@@ -75,6 +79,8 @@ impl Component for Postprocessor
         {
             Msg::ChangeMagnitude(value) => self.state.magnitude = value,
             Msg::SelectPlotDisplacements => self.state.is_plot_displacements_selected = true,
+            Msg::AddObjectInfo(info) => self.state.object_info = Some(info),
+            Msg::ResetObjectInfo => self.state.object_info = None,
         }
         true
     }
@@ -99,6 +105,10 @@ impl Component for Postprocessor
     fn view(&self) -> Html
     {
         type Button = RouterButton<AppRoute>;
+
+        let handle_add_object_info =
+            self.link.callback(|info: String| Msg::AddObjectInfo(info));
+        let handle_reset_object_info = self.link.callback(|_| Msg::ResetObjectInfo);
 
         let handle_change_magnitude =
             self.link.callback(|value: ElementsValues| Msg::ChangeMagnitude(value));
@@ -149,6 +159,8 @@ impl Component for Postprocessor
                                         // drawn_elements=Rc::clone(&self.props.drawn_elements),
                                         // add_analysis_message=self.props.add_analysis_message.to_owned(),
                                         // drawn_bcs=Rc::clone(&self.props.drawn_bcs),
+                                        add_object_info=handle_add_object_info.to_owned(),
+                                        reset_object_info=handle_reset_object_info.to_owned(),
                                     />
                                 </div>
                                 // {

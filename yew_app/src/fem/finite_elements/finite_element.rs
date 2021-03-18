@@ -13,7 +13,7 @@ use std::slice::Iter;
 use self::FEType::*;
 
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug)]
 pub enum FEType
 {
     Truss2n2ip

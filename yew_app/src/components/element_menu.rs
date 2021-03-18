@@ -9,7 +9,7 @@ use std::rc::Rc;
 use crate::fem::FEType;
 
 use crate::auxiliary::{FEDrawnElementData};
-use crate::{ElementsNumbers, ElementsValues};
+use crate::{ElementsNumbers, ElementsValues, UIDNumbers};
 use crate::pages::PREPROCESSOR_BUTTON_CLASS;
 
 
@@ -100,6 +100,7 @@ impl ElementMenu
             .unwrap();
         let options: HtmlOptionsCollection = select.options();
         options.set_length(self.props.drawn_elements.len() as u32 + 1);
+        let uid = UIDNumbers::default();
         let number =
             {
                 let mut n = 0;
@@ -122,7 +123,7 @@ impl ElementMenu
         self.state.selected_element_number = number;
         let new_element = FEDrawnElementData
         {
-            fe_type: FEType::Truss2n2ip,
+            uid, fe_type: FEType::Truss2n2ip,
             number, nodes_numbers: vec![1 as ElementsNumbers, 2 as ElementsNumbers],
             properties: vec![1e6 as ElementsValues, 1.0 as ElementsValues],
         };
@@ -209,10 +210,12 @@ impl Component for ElementMenu
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self
     {
+        let uid = UIDNumbers::default();
         let default_element_type = FEType::Truss2n2ip;
         let default_element_number = 1 as ElementsNumbers;
         let default_element = FEDrawnElementData
             {
+                uid,
                 fe_type: default_element_type.to_owned(),
                 number: default_element_number,
                 nodes_numbers: vec![1 as ElementsNumbers, 2 as ElementsNumbers],
@@ -270,9 +273,11 @@ impl Component for ElementMenu
                                 }
                                 else
                                 {
+                                    let uid = UIDNumbers::default();
                                     self.state.new_element_number = selected_element_number;
                                     let new_element = FEDrawnElementData
                                         {
+                                            uid,
                                             fe_type: FEType::Truss2n2ip,
                                             number: selected_element_number,
                                             nodes_numbers: vec![1 as ElementsNumbers,

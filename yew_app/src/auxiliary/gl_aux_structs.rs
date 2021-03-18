@@ -1,14 +1,15 @@
-use crate::{GLElementsNumbers, GLElementsValues, TOLERANCE};
-use crate::auxiliary::gl_aux_functions::find_node_coordinates;
-
-use crate::{ElementsValues, ElementsNumbers};
-use crate::fem::{FENode, FEType, GlobalDOFParameter};
-use crate::auxiliary::{NormalizedNode, FEDrawnElementData, DrawnBCData};
-
 use web_sys::{WebGlBuffer, WebGlUniformLocation, WebGlProgram, WebGlRenderingContext as GL};
 use std::f32::consts::PI;
 use std::cell::RefCell;
 use std::rc::Rc;
+
+use crate::{GLElementsNumbers, GLElementsValues, TOLERANCE};
+use crate::auxiliary::gl_aux_functions::{find_node_coordinates, define_drawn_object_color};
+
+use crate::{ElementsValues, ElementsNumbers};
+use crate::fem::{FENode, FEType, GlobalDOFParameter};
+use crate::auxiliary::{NormalizedNode, FEDrawnElementData, DrawnBCData};
+use crate::auxiliary::aux_functions::transform_u32_to_array_of_u8;
 
 
 const CS_ORIGIN: [GLElementsValues; 3] = [0.0, 0.0, 0.0];
@@ -21,8 +22,8 @@ const CS_AXIS_Y_COLOR: [GLElementsValues; 4] = [0.0, 1.0, 0.0, 1.0]; // green
 const CS_AXIS_Z_COLOR: [GLElementsValues; 4] = [0.0, 0.0, 1.0, 1.0]; // blue
 
 pub const CS_AXES_SCALE: GLElementsValues = 0.1;
-pub const CS_AXES_CAPS_HEIGHT: GLElementsValues = 0.07; // arrow length
-pub const CS_AXES_CAPS_WIDTH: GLElementsValues = 0.035; // half of arrow width
+pub const CS_AXES_CAPS_HEIGHT: GLElementsValues = 0.1; // arrow length
+pub const CS_AXES_CAPS_WIDTH: GLElementsValues = 0.05; // half of arrow width
 pub const CS_AXES_CAPS_BASE_POINTS_NUMBER: u16 = 12; // the number of points in cone circular base
 
 pub const CS_AXES_X_SHIFT: GLElementsValues = 0.85; // shift of the cs in the x-direction
@@ -49,11 +50,9 @@ pub const DRAWN_NODES_DENOTATION_SHIFT: GLElementsValues = 0.02;
 
 pub const DRAWN_ELEMENTS_COLOR: [GLElementsValues; 4] = [0.0, 1.0, 1.0, 1.0]; // cyan
 pub const CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR: &str = "cyan";
+pub const DRAWN_ELEMENTS_DENOTATION_SHIFT: GLElementsValues = 0.01;
 
-// pub const DRAWN_ELEMENTS_DENOTATION_SHIFT: GLElementsValues = 0.02;
-//
 // pub const CANVAS_BACKGROUND_COLOR: &str = "black";
-
 
 pub const DRAWN_DISPLACEMENTS_COLOR: [GLElementsValues; 4] = [1.0, 0.5, 0.0, 1.0]; // orange
 pub const CANVAS_DRAWN_DISPLACEMENTS_DENOTATION_COLOR: &str = "orange";
@@ -89,6 +88,13 @@ pub const DRAWN_DEFORMED_SHAPE_NODES_COLOR: [GLElementsValues; 4] = [1.0, 1.0, 1
 pub const CANVAS_DRAWN_DEFORMED_SHAPE_NODES_DENOTATION_COLOR: &str = "white";
 pub const DRAWN_DEFORMED_SHAPE_NODES_DENOTATION_SHIFT: GLElementsValues = 0.02;
 
+pub const DRAWN_OBJECT_SELECTED_COLOR: [GLElementsValues; 4] = [1.0, 1.0, 1.0, 1.0]; // white
+pub const CANVAS_DRAWN_OBJECT_SELECTED_DENOTATION_COLOR: &str = "white";
+pub const DRAWN_OBJECT_UNDER_CURSOR_COLOR: [GLElementsValues; 4] =
+    [0.752941, 0.752941, 0.752941, 1.0]; // grey
+pub const CANVAS_DRAWN_OBJECT_UNDER_CURSOR_DENOTATION_COLOR: &str = "grey";
+
+
 
 pub enum CSAxis
 {
@@ -96,12 +102,18 @@ pub enum CSAxis
 }
 
 
-
 pub enum GLPrimitiveType
 {
     Points,
     Lines,
     Triangles,
+}
+
+
+pub enum GLMode
+{
+    Selection,
+    Visible,
 }
 
 
@@ -248,14 +260,17 @@ impl DrawnObject
     }
 
 
-    pub fn add_nodes(&mut self, normalized_nodes: &[NormalizedNode])
+    pub fn add_nodes(&mut self, normalized_nodes: &[NormalizedNode], gl_mode: GLMode,
+        under_cursor_color: &[u8; 4], selected_color: &[u8; 4])
     {
         let start_index =
             if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
         for (i, node) in normalized_nodes.iter().enumerate()
         {
             self.vertices_coordinates.extend(&[node.x, node.y, node.z]);
-            self.colors_values.extend(&DRAWN_NODES_COLOR);
+            let node_color = define_drawn_object_color(&gl_mode, node.uid, selected_color,
+                under_cursor_color,&DRAWN_NODES_COLOR);
+            self.colors_values.extend(&node_color);
             self.indexes_numbers.push(start_index + i as GLElementsNumbers);
         }
         self.modes.push(GLPrimitiveType::Points);
@@ -283,7 +298,8 @@ impl DrawnObject
 
 
     pub fn add_elements(&mut self, normalized_nodes: &Vec<NormalizedNode>,
-                        drawn_elements: &Vec<FEDrawnElementData>) -> Result<(), String>
+        drawn_elements: &Vec<FEDrawnElementData>, gl_mode: GLMode,
+        under_cursor_color: &[u8; 4], selected_color: &[u8; 4]) -> Result<(), String>
     {
         let start_index =
             if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
@@ -310,6 +326,9 @@ impl DrawnObject
         {
             for point_element in &point_elements
             {
+                let point_element_color = define_drawn_object_color(&gl_mode,
+                    point_element.uid, selected_color, under_cursor_color,
+                    &DRAWN_ELEMENTS_COLOR);
                 let node_number = point_element.nodes_numbers[0] as GLElementsNumbers;
                 let node_coordinates =
                     match find_node_coordinates(node_number, normalized_nodes)
@@ -321,7 +340,7 @@ impl DrawnObject
                             }
                     };
                 self.vertices_coordinates.extend(&node_coordinates);
-                self.colors_values.extend(&DRAWN_ELEMENTS_COLOR);
+                self.colors_values.extend(&point_element_color);
                 self.indexes_numbers.push(start_index + count as GLElementsNumbers);
                 count += 1;
             }
@@ -334,6 +353,9 @@ impl DrawnObject
         {
             for line_element in &line_elements
             {
+                let line_element_color = define_drawn_object_color(&gl_mode,
+                    line_element.uid, selected_color, under_cursor_color,
+                    &DRAWN_ELEMENTS_COLOR);
                 let node_1_number = line_element.nodes_numbers[0] as GLElementsNumbers;
                 let node_1_coordinates =
                     match find_node_coordinates(node_1_number, normalized_nodes)
@@ -345,7 +367,7 @@ impl DrawnObject
                             }
                     };
                 self.vertices_coordinates.extend(&node_1_coordinates);
-                self.colors_values.extend(&DRAWN_ELEMENTS_COLOR);
+                self.colors_values.extend(&line_element_color);
                 self.indexes_numbers.push(start_index + count as GLElementsNumbers);
                 count += 1;
                 let node_2_number = line_element.nodes_numbers[1] as GLElementsNumbers;
@@ -359,7 +381,7 @@ impl DrawnObject
                             }
                     };
                 self.vertices_coordinates.extend(&node_2_coordinates);
-                self.colors_values.extend(&DRAWN_ELEMENTS_COLOR);
+                self.colors_values.extend(&line_element_color);
                 self.indexes_numbers.push(start_index + count as GLElementsNumbers);
                 count += 1;
             }
@@ -372,6 +394,9 @@ impl DrawnObject
         {
             for complex_element in &complex_elements
             {
+                let complex_element_color = define_drawn_object_color(&gl_mode,
+                    complex_element.uid, selected_color, under_cursor_color,
+                    &DRAWN_ELEMENTS_COLOR);
                 for i in 1..complex_element.nodes_numbers.len()
                 {
                     let node_1_number = complex_element.nodes_numbers[i - 1] as GLElementsNumbers;
@@ -385,7 +410,7 @@ impl DrawnObject
                             }
                     };
                     self.vertices_coordinates.extend(&node_1_coordinates);
-                    self.colors_values.extend(&DRAWN_ELEMENTS_COLOR);
+                    self.colors_values.extend(&complex_element_color);
                     self.indexes_numbers.push(start_index + count as GLElementsNumbers);
                     count += 1;
                     let node_2_number = complex_element.nodes_numbers[i] as GLElementsNumbers;
@@ -399,7 +424,7 @@ impl DrawnObject
                                 }
                         };
                     self.vertices_coordinates.extend(&node_2_coordinates);
-                    self.colors_values.extend(&DRAWN_ELEMENTS_COLOR);
+                    self.colors_values.extend(&complex_element_color);
                     self.indexes_numbers.push(start_index + count as GLElementsNumbers);
                     count += 1;
                 }
@@ -414,7 +439,7 @@ impl DrawnObject
                         }
                 };
                 self.vertices_coordinates.extend(&node_1_coordinates);
-                self.colors_values.extend(&DRAWN_ELEMENTS_COLOR);
+                self.colors_values.extend(&complex_element_color);
                 self.indexes_numbers.push(start_index + count as GLElementsNumbers);
                 count += 1;
                 let node_2_number =
@@ -429,7 +454,7 @@ impl DrawnObject
                             }
                     };
                 self.vertices_coordinates.extend(&node_2_coordinates);
-                self.colors_values.extend(&DRAWN_ELEMENTS_COLOR);
+                self.colors_values.extend(&complex_element_color);
                 self.indexes_numbers.push(start_index + count as GLElementsNumbers);
                 count += 1;
             }

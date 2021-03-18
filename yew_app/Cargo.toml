@@ -38,7 +38,7 @@ features = [
   'WebGlUniformLocation',
   'WebGlProgram',
   'WebGlShader',
-#  'DomRect',
-#  'DomRectReadOnly',
+  'DomRect',
+  'DomRectReadOnly',
 #  'WebGlContextAttributes'
 ]

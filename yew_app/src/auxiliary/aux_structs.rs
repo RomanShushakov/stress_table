@@ -1,4 +1,4 @@
-use crate::{GLElementsNumbers, GLElementsValues};
+use crate::{GLElementsNumbers, GLElementsValues, UIDNumbers};
 use crate::{ElementsNumbers, ElementsValues};
 use crate::fem::{FEType, BCType};
 // use crate::components::preprocessor_canvas::gl::gl_aux_structs::DRAWN_ELEMENTS_DENOTATION_SHIFT;
@@ -32,6 +32,7 @@ impl View
 #[derive(Clone)]
 pub struct FEDrawnNodeData
 {
+    pub uid: UIDNumbers,
     pub number: ElementsNumbers,
     pub x: ElementsValues,
     pub y: ElementsValues,
@@ -41,6 +42,7 @@ pub struct FEDrawnNodeData
 
 pub struct NormalizedNode
 {
+    pub uid: UIDNumbers,
     pub number: GLElementsNumbers,
     pub x: GLElementsValues,
     pub y: GLElementsValues,
@@ -51,6 +53,7 @@ pub struct NormalizedNode
 #[derive(Clone)]
 pub struct FEDrawnElementData
 {
+    pub uid: UIDNumbers,
     pub fe_type: FEType,
     pub number: ElementsNumbers,
     pub nodes_numbers: Vec<ElementsNumbers>,
@@ -113,6 +116,7 @@ impl FEDrawnElementData
 #[derive(Clone, PartialEq, Debug)]
 pub struct DrawnBCData
 {
+    pub uid: UIDNumbers,
     pub bc_type: BCType,
     pub number: ElementsNumbers,
     pub node_number: ElementsNumbers,

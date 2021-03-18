@@ -16,17 +16,18 @@ use yew::services::keyboard::{KeyboardService, KeyListenerHandle};
 use yew::services::render::RenderTask;
 use yew::services::RenderService;
 
-use crate::auxiliary::gl_aux_functions::
-    {
-        add_denotation, initialize_shaders, normalize_nodes, add_hints,
-    };
+use crate::auxiliary::gl_aux_functions::{add_denotation, initialize_shaders, normalize_nodes, add_hints, define_drawn_object_denotation_color};
+
+use crate::auxiliary::gl_aux_structs::{Buffers, ShadersVariables, DrawnObject};
+use crate::auxiliary::gl_aux_structs::{CSAxis, GLMode};
+
 use crate::auxiliary::gl_aux_structs::
     {
-        Buffers, ShadersVariables, DrawnObject, CSAxis, CS_AXES_Y_SHIFT, CS_AXES_X_SHIFT,
-        CS_AXES_Z_SHIFT, CS_AXES_SCALE, CS_AXES_CAPS_BASE_POINTS_NUMBER, CS_AXES_CAPS_WIDTH,
-        CS_AXES_CAPS_HEIGHT, AXIS_X_DENOTATION_SHIFT_X, AXIS_X_DENOTATION_SHIFT_Y,
-        AXIS_Y_DENOTATION_SHIFT_X, AXIS_Y_DENOTATION_SHIFT_Y, AXIS_Z_DENOTATION_SHIFT_X,
-        AXIS_Z_DENOTATION_SHIFT_Y, AXIS_Z_DENOTATION_SHIFT_Z, CANVAS_AXES_DENOTATION_COLOR,
+        CS_AXES_Y_SHIFT, CS_AXES_X_SHIFT, CS_AXES_Z_SHIFT, CS_AXES_SCALE,
+        CS_AXES_CAPS_BASE_POINTS_NUMBER, CS_AXES_CAPS_WIDTH, CS_AXES_CAPS_HEIGHT,
+        AXIS_X_DENOTATION_SHIFT_X, AXIS_X_DENOTATION_SHIFT_Y, AXIS_Y_DENOTATION_SHIFT_X,
+        AXIS_Y_DENOTATION_SHIFT_Y, AXIS_Z_DENOTATION_SHIFT_X, AXIS_Z_DENOTATION_SHIFT_Y,
+        AXIS_Z_DENOTATION_SHIFT_Z, CANVAS_AXES_DENOTATION_COLOR,
         CANVAS_DRAWN_NODES_DENOTATION_COLOR, DRAWN_NODES_DENOTATION_SHIFT,
         CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR, DRAWN_DISPLACEMENTS_CAPS_BASE_POINTS_NUMBER,
         DRAWN_DISPLACEMENTS_CAPS_HEIGHT, DRAWN_DISPLACEMENTS_CAPS_WIDTH,
@@ -34,18 +35,20 @@ use crate::auxiliary::gl_aux_structs::
         DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_Y, DRAWN_FORCES_LINE_LENGTH, DRAWN_FORCES_CAPS_HEIGHT,
         DRAWN_FORCES_CAPS_WIDTH, DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER,
         CANVAS_DRAWN_FORCES_DENOTATION_COLOR, DRAWN_FORCES_DENOTATION_SHIFT_X,
-        DRAWN_FORCES_DENOTATION_SHIFT_Y, HINTS_COLOR,
+        DRAWN_FORCES_DENOTATION_SHIFT_Y, HINTS_COLOR, CANVAS_DRAWN_OBJECT_SELECTED_DENOTATION_COLOR,
+        CANVAS_DRAWN_OBJECT_UNDER_CURSOR_DENOTATION_COLOR, DRAWN_ELEMENTS_DENOTATION_SHIFT
     };
 
 use crate::fem::{FENode, FEType, BCType};
-use crate::{ElementsNumbers, ElementsValues, GLElementsNumbers, GLElementsValues};
+use crate::{ElementsNumbers, ElementsValues, GLElementsNumbers, GLElementsValues, UIDNumbers};
 use crate::auxiliary::{View, FEDrawnElementData, DrawnBCData, FEDrawnNodeData};
+use crate::auxiliary::aux_functions::transform_u32_to_array_of_u8;
 
 
 const PREPROCESSOR_CANVAS_CONTAINER_CLASS: &str = "preprocessor_canvas_container";
 const PREPROCESSOR_CANVAS_TEXT_CLASS: &str = "preprocessor_canvas_text";
 const PREPROCESSOR_CANVAS_GL_CLASS: &str = "preprocessor_canvas_gl";
-// const PREPROCESSOR_CANVAS_GL_ID: &str = "preprocessor_canvas_gl_id";
+const PREPROCESSOR_CANVAS_GL_ID: &str = "preprocessor_canvas_gl_id";
 
 
 fn window() -> Window
@@ -67,7 +70,7 @@ pub struct Props
     pub discard_view: Callback<()>,
     pub canvas_width: u32,
     pub canvas_height: u32,
-    pub nodes: Rc<Vec<FEDrawnNodeData>>,
+    pub drawn_nodes: Rc<Vec<FEDrawnNodeData>>,
     pub drawn_elements: Rc<Vec<FEDrawnElementData>>,
     pub add_analysis_message: Callback<String>,
     pub drawn_bcs: Rc<Vec<DrawnBCData>>,
@@ -84,13 +87,12 @@ pub enum Msg
     KeyDown(web_sys::KeyboardEvent),
     KeyUp(web_sys::KeyboardEvent),
     MouseWheel(web_sys::WheelEvent),
+    MouseClick
 }
 
 
 struct State
 {
-    // x: i32,
-    // y: i32,
     dx: GLElementsValues,
     dy: GLElementsValues,
     d_scale: GLElementsValues,
@@ -99,6 +101,10 @@ struct State
     pan: bool,
     rotate: bool,
     shift_key_pressed: bool,
+    selected_color: [u8; 4],
+    under_cursor_color: [u8; 4],
+    cursor_coord_x: i32,
+    cursor_coord_y: i32,
 }
 
 
@@ -151,8 +157,10 @@ impl Component for PreprocessorCanvas
         let pan = false;
         let rotate = false;
         let shift_key_pressed = false;
-        let state = State { // x: -1, y: -1,
-            dx, dy, d_scale, theta, phi, pan, rotate, shift_key_pressed };
+        let state = State {
+            dx, dy, d_scale, theta, phi, pan, rotate, shift_key_pressed,
+            selected_color: [0; 4], under_cursor_color: [0; 4],
+            cursor_coord_x: -1, cursor_coord_y: -1, };
         Self
         {
             props,
@@ -181,14 +189,14 @@ impl Component for PreprocessorCanvas
                 },
             Msg::MouseMove(mouse_event) =>
                 {
-                    // let mut mouse_x = mouse_event.client_x();
-                    // let mut mouse_y = mouse_event.client_y();
-                    // let rect = document().get_element_by_id(PREPROCESSOR_CANVAS_GL_ID).unwrap()
-                    //     .get_bounding_client_rect();
-                    // let x = mouse_x - rect.left() as i32;
-                    // let y = rect.bottom() as i32 - mouse_y;
-                    // self.state.x = x;
-                    // self.state.y = y;
+                    let mouse_x = mouse_event.client_x();
+                    let mouse_y = mouse_event.client_y();
+                    let rect = document().get_element_by_id(PREPROCESSOR_CANVAS_GL_ID).unwrap()
+                        .get_bounding_client_rect();
+                    let x = mouse_x - rect.left() as i32;
+                    let y = rect.bottom() as i32 - mouse_y;
+                    self.state.cursor_coord_x = x;
+                    self.state.cursor_coord_y = y;
 
                     if self.state.rotate
                     {
@@ -265,6 +273,11 @@ impl Component for PreprocessorCanvas
                     }
                     false
                 },
+            Msg::MouseClick =>
+                {
+                    self.state.selected_color = self.state.under_cursor_color;
+                    false
+                },
         }
     }
 
@@ -273,7 +286,7 @@ impl Component for PreprocessorCanvas
     {
         if (&self.props.view, &self.props.canvas_height, &self.props.canvas_width) !=
             (&props.view, &props.canvas_height, &props.canvas_width) ||
-            !Rc::ptr_eq(&self.props.nodes, &props.nodes) ||
+            !Rc::ptr_eq(&self.props.drawn_nodes, &props.drawn_nodes) ||
             !Rc::ptr_eq(&self.props.drawn_elements, &props.drawn_elements) ||
             !Rc::ptr_eq(&self.props.drawn_bcs, &props.drawn_bcs)
         {
@@ -329,9 +342,10 @@ impl Component for PreprocessorCanvas
                     onmousedown=self.link.callback(|_| Msg::MouseDown),
                     onmouseup=self.link.callback(|_| Msg::MouseUp),
                     onwheel=self.link.callback(move |event: WheelEvent| Msg::MouseWheel(event)),
+                    onclick=self.link.callback(|_| Msg::MouseClick)
                 />
                 <canvas ref=self.canvas_node_ref.clone()
-                    // id= { PREPROCESSOR_CANVAS_GL_ID },
+                    id= { PREPROCESSOR_CANVAS_GL_ID },
                     class={ PREPROCESSOR_CANVAS_GL_CLASS },
                 />
             </div>
@@ -392,6 +406,8 @@ impl PreprocessorCanvas
         ctx.clear_rect(0.0, 0.0, self.props.canvas_width as f64, self.props.canvas_height as f64);
         gl.enable(GL::DEPTH_TEST);
         gl.clear(GL::COLOR_BUFFER_BIT);
+        gl.clear(GL::DEPTH_BUFFER_BIT);
+        gl.line_width(3.0);
         let vertex_shader_code = include_str!("shaders/prep_shader.vert");
         let fragment_shader_code = include_str!("shaders/prep_shader.frag");
 
@@ -403,6 +419,250 @@ impl PreprocessorCanvas
             self.props.canvas_height as GLElementsValues;
         let z_near = 1.0 as GLElementsValues;
         let z_far = 101.0 as GLElementsValues;
+
+        if !self.props.drawn_nodes.is_empty()
+        {
+            let normalized_nodes = normalize_nodes(
+                Rc::clone(&self.props.drawn_nodes),
+                self.props.canvas_width as GLElementsValues,
+                self.props.canvas_height as GLElementsValues,
+                aspect as GLElementsValues);
+
+            let mut drawn_objects_buffers = Buffers::initialize(&gl);
+            let mut drawn_object = DrawnObject::create();
+            drawn_object.add_nodes(&normalized_nodes, GLMode::Selection,
+                &self.state.under_cursor_color, &self.state.selected_color);
+
+            if !self.props.drawn_elements.is_empty()
+            {
+                match drawn_object.add_elements(&normalized_nodes, &self.props.drawn_elements,
+                    GLMode::Selection, &self.state.under_cursor_color,
+                    &self.state.selected_color)
+                {
+                    Err(e) => self.props.add_analysis_message.emit(e),
+                    Ok(()) => (),
+                }
+            }
+
+            // let drawn_displacements: Vec<&DrawnBCData> = self.props.drawn_bcs
+            //         .iter()
+            //         .filter(|bc|
+            //             bc.bc_type == BCType::Displacement)
+            //         .collect();
+            // if !drawn_displacements.is_empty()
+            // {
+            //     drawn_object.add_displacements(
+            //         &normalized_nodes, &drawn_displacements,
+            //         DRAWN_DISPLACEMENTS_CAPS_BASE_POINTS_NUMBER,
+            //         DRAWN_DISPLACEMENTS_CAPS_HEIGHT / (1.0 + self.state.d_scale),
+            //         DRAWN_DISPLACEMENTS_CAPS_WIDTH / (1.0 + self.state.d_scale));
+            // }
+            //
+            // let drawn_forces: Vec<&DrawnBCData> = self.props.drawn_bcs
+            //         .iter()
+            //         .filter(|bc|
+            //             bc.bc_type == BCType::Force)
+            //         .collect();
+            // if !drawn_forces.is_empty()
+            // {
+            //     drawn_object.add_forces(
+            //         &normalized_nodes, &drawn_forces,
+            //         DRAWN_FORCES_LINE_LENGTH / (1.0 + self.state.d_scale),
+            //         DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER,
+            //         DRAWN_FORCES_CAPS_HEIGHT / (1.0 + self.state.d_scale),
+            //         DRAWN_FORCES_CAPS_WIDTH / (1.0 + self.state.d_scale));
+            // }
+
+            drawn_objects_buffers.render(&gl, &drawn_object, &shaders_variables);
+
+            // let field_of_view = 45.0 * PI / 180.0;
+            let mut projection_matrix = mat4::new_zero();
+
+            // mat4::perspective(&mut projection_matrix, &field_of_view, &aspect, &z_near, &z_far);
+
+            mat4::orthographic(&mut projection_matrix,
+                &(1.0 as GLElementsValues / aspect), &(1.0 as GLElementsValues),
+                &(-1.0 as GLElementsValues / aspect), &(-1.0 as GLElementsValues),
+                &z_near, &z_far);
+            let mut model_view_matrix = mat4::new_identity();
+            let mat_to_translate = model_view_matrix;
+            mat4::translate(&mut model_view_matrix, &mat_to_translate,
+                &[self.state.dx, self.state.dy, -2.0]);
+            let mat_to_scale = model_view_matrix;
+            mat4::scale(&mut model_view_matrix, &mat_to_scale,
+                &[1.0 + self.state.d_scale, 1.0 + self.state.d_scale, 1.0 + self.state.d_scale]);
+            let mat_to_rotate = model_view_matrix;
+            mat4::rotate_x(&mut model_view_matrix,&mat_to_rotate,&self.state.phi);
+            let mat_to_rotate = model_view_matrix;
+            mat4::rotate_y(&mut model_view_matrix, &mat_to_rotate, &self.state.theta);
+            gl.uniform_matrix4fv_with_f32_array(
+                Some(&shaders_variables.projection_matrix), false, &projection_matrix);
+            gl.uniform_matrix4fv_with_f32_array(
+                Some(&shaders_variables.model_view_matrix), false, &model_view_matrix);
+
+            drawn_object.draw(&gl);
+
+            let mut pixels = [0u8; 4];
+            match gl.read_pixels_with_opt_u8_array(
+                self.state.cursor_coord_x, self.state.cursor_coord_y, 1, 1, GL::RGBA,
+                GL::UNSIGNED_BYTE, Some(&mut pixels))
+            {
+                Ok(_) => self.state.under_cursor_color = pixels,
+                Err(msg) => self.props.add_analysis_message.emit(format!("{:?}", msg)),
+            }
+
+            gl.clear(GL::COLOR_BUFFER_BIT);
+            gl.clear(GL::DEPTH_BUFFER_BIT);
+
+            drawn_object = DrawnObject::create();
+            drawn_objects_buffers = Buffers::initialize(&gl);
+
+            drawn_object.add_nodes(&normalized_nodes, GLMode::Visible,
+            &self.state.under_cursor_color, &self.state.selected_color);
+
+            if !self.props.drawn_elements.is_empty()
+            {
+                match drawn_object.add_elements(&normalized_nodes, &self.props.drawn_elements,
+                    GLMode::Visible, &self.state.under_cursor_color,
+                    &self.state.selected_color)
+                {
+                    Err(e) => self.props.add_analysis_message.emit(e),
+                    Ok(()) => (),
+                }
+            }
+
+            drawn_objects_buffers.render(&gl, &drawn_object, &shaders_variables);
+
+            // let field_of_view = 45.0 * PI / 180.0;
+            let mut projection_matrix = mat4::new_zero();
+
+            // mat4::perspective(&mut projection_matrix, &field_of_view, &aspect, &z_near, &z_far);
+
+            mat4::orthographic(&mut projection_matrix,
+                &(1.0 as GLElementsValues / aspect), &(1.0 as GLElementsValues),
+                &(-1.0 as GLElementsValues / aspect), &(-1.0 as GLElementsValues),
+                &z_near, &z_far);
+            let mut model_view_matrix = mat4::new_identity();
+            let mat_to_translate = model_view_matrix;
+            mat4::translate(&mut model_view_matrix, &mat_to_translate,
+                &[self.state.dx, self.state.dy, -2.0]);
+            let mat_to_scale = model_view_matrix;
+            mat4::scale(&mut model_view_matrix, &mat_to_scale,
+                &[1.0 + self.state.d_scale, 1.0 + self.state.d_scale, 1.0 + self.state.d_scale]);
+            let mat_to_rotate = model_view_matrix;
+            mat4::rotate_x(&mut model_view_matrix,&mat_to_rotate,&self.state.phi);
+            let mat_to_rotate = model_view_matrix;
+            mat4::rotate_y(&mut model_view_matrix, &mat_to_rotate, &self.state.theta);
+            gl.uniform_matrix4fv_with_f32_array(
+                Some(&shaders_variables.projection_matrix), false, &projection_matrix);
+            gl.uniform_matrix4fv_with_f32_array(
+                Some(&shaders_variables.model_view_matrix), false, &model_view_matrix);
+
+            drawn_object.draw(&gl);
+
+            let mut matrix = mat4::new_identity();
+            mat4::mul(&mut matrix, &projection_matrix, &model_view_matrix);
+
+
+            for node in normalized_nodes.iter()
+            {
+                let denotation_color = define_drawn_object_denotation_color(node.uid,
+                    &self.state.selected_color, &self.state.under_cursor_color,
+                    CANVAS_DRAWN_NODES_DENOTATION_COLOR);
+                ctx.set_fill_style(&denotation_color.into());
+                add_denotation(&ctx,
+                &[node.x - DRAWN_NODES_DENOTATION_SHIFT / (1.0 + self.state.d_scale),
+                    node.y - DRAWN_NODES_DENOTATION_SHIFT / (1.0 + self.state.d_scale),
+                    node.z,
+                    1.0],
+                &matrix,
+                self.props.canvas_width as f32,
+                self.props.canvas_height as f32, &node.number.to_string());
+                 ctx.stroke();
+            }
+
+            if !self.props.drawn_elements.is_empty()
+            {
+                for element in self.props.drawn_elements.as_ref()
+                {
+                    let denotation_color = define_drawn_object_denotation_color(element.uid,
+                        &self.state.selected_color, &self.state.under_cursor_color,
+                        CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR);
+                    match element.find_denotation_coordinates(&normalized_nodes)
+                    {
+                        Ok(coordinates) =>
+                            {
+                                ctx.set_fill_style(&denotation_color.into());
+                                add_denotation(&ctx,
+                                &[coordinates[0],
+                                    coordinates[1] +
+                                        DRAWN_ELEMENTS_DENOTATION_SHIFT / (1.0 + self.state.d_scale),
+                                    coordinates[2],
+                                    coordinates[3]],
+                                &matrix,
+                                self.props.canvas_width as f32,
+                                self.props.canvas_height as f32,
+                                &element.number.to_string());
+                                ctx.stroke();
+                            },
+                        Err(e) => self.props.add_analysis_message.emit(e),
+                    }
+                }
+            }
+            //
+            // if !drawn_displacements.is_empty()
+            // {
+            //     for displacement in drawn_displacements
+            //     {
+            //         match displacement.find_denotation_coordinates(&normalized_nodes)
+            //         {
+            //             Ok(coordinates) =>
+            //                 {
+            //                     ctx.set_fill_style(&CANVAS_DRAWN_DISPLACEMENTS_DENOTATION_COLOR.into());
+            //                     add_denotation(&ctx,
+            //                     &[coordinates[0] + DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_X /
+            //                         (1.0 + self.state.d_scale),
+            //                         coordinates[1] - DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_Y /
+            //                         (1.0 + self.state.d_scale),
+            //                         coordinates[2], coordinates[3]],
+            //                     &matrix,
+            //                     self.props.canvas_width as f32,
+            //                     self.props.canvas_height as f32,
+            //                     &displacement.number.to_string());
+            //                     ctx.stroke();
+            //                 },
+            //             Err(e) => self.props.add_analysis_message.emit(e)
+            //         }
+            //     }
+            // }
+            //
+            //
+            // if !drawn_forces.is_empty()
+            // {
+            //     for force in drawn_forces
+            //     {
+            //         match force.find_denotation_coordinates(&normalized_nodes)
+            //         {
+            //             Ok(coordinates) =>
+            //                 {
+            //                     ctx.set_fill_style(&CANVAS_DRAWN_FORCES_DENOTATION_COLOR.into());
+            //                     add_denotation(&ctx,
+            //                     &[coordinates[0] + DRAWN_FORCES_DENOTATION_SHIFT_X /
+            //                         (1.0 + self.state.d_scale),
+            //                         coordinates[1] + DRAWN_FORCES_DENOTATION_SHIFT_Y /
+            //                         (1.0 + self.state.d_scale),
+            //                         coordinates[2], coordinates[3]],
+            //                     &matrix,
+            //                     self.props.canvas_width as f32,
+            //                     self.props.canvas_height as f32,
+            //                     &format!("#{}", force.number));
+            //                     ctx.stroke();
+            //                 },
+            //             Err(e) => self.props.add_analysis_message.emit(e)
+            //         }
+            //     }
+            // }
+        }
 
         let cs_buffers = Buffers::initialize(&gl);
         let mut cs_drawn_object = DrawnObject::create();
@@ -465,186 +725,6 @@ impl PreprocessorCanvas
             self.props.canvas_width as f32,
             self.props.canvas_height as f32, "Z");
         ctx.stroke();
-
-        if !self.props.nodes.is_empty()
-        {
-            let normalized_nodes = normalize_nodes(
-                Rc::clone(&self.props.nodes),
-                self.props.canvas_width as GLElementsValues,
-                self.props.canvas_height as GLElementsValues,
-                aspect as GLElementsValues);
-
-            let drawn_objects_buffers = Buffers::initialize(&gl);
-            let mut drawn_object = DrawnObject::create();
-            drawn_object.add_nodes(&normalized_nodes);
-
-            if !self.props.drawn_elements.is_empty()
-            {
-                match drawn_object.add_elements(&normalized_nodes, &self.props.drawn_elements)
-                {
-                    Err(e) => self.props.add_analysis_message.emit(e),
-                    Ok(()) => (),
-                }
-            }
-
-            let drawn_displacements: Vec<&DrawnBCData> = self.props.drawn_bcs
-                    .iter()
-                    .filter(|bc|
-                        bc.bc_type == BCType::Displacement)
-                    .collect();
-            if !drawn_displacements.is_empty()
-            {
-                drawn_object.add_displacements(
-                    &normalized_nodes, &drawn_displacements,
-                    DRAWN_DISPLACEMENTS_CAPS_BASE_POINTS_NUMBER,
-                    DRAWN_DISPLACEMENTS_CAPS_HEIGHT / (1.0 + self.state.d_scale),
-                    DRAWN_DISPLACEMENTS_CAPS_WIDTH / (1.0 + self.state.d_scale));
-            }
-
-            let drawn_forces: Vec<&DrawnBCData> = self.props.drawn_bcs
-                    .iter()
-                    .filter(|bc|
-                        bc.bc_type == BCType::Force)
-                    .collect();
-            if !drawn_forces.is_empty()
-            {
-                drawn_object.add_forces(
-                    &normalized_nodes, &drawn_forces,
-                    DRAWN_FORCES_LINE_LENGTH / (1.0 + self.state.d_scale),
-                    DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER,
-                    DRAWN_FORCES_CAPS_HEIGHT / (1.0 + self.state.d_scale),
-                    DRAWN_FORCES_CAPS_WIDTH / (1.0 + self.state.d_scale));
-            }
-
-            drawn_objects_buffers.render(&gl, &drawn_object, &shaders_variables);
-
-            // let field_of_view = 45.0 * PI / 180.0;
-            let mut projection_matrix = mat4::new_zero();
-
-            // mat4::perspective(&mut projection_matrix, &field_of_view, &aspect, &z_near, &z_far);
-
-            mat4::orthographic(&mut projection_matrix,
-                &(1.0 as GLElementsValues / aspect), &(1.0 as GLElementsValues),
-                &(-1.0 as GLElementsValues / aspect), &(-1.0 as GLElementsValues),
-                &z_near, &z_far);
-            let mut model_view_matrix = mat4::new_identity();
-            let mat_to_translate = model_view_matrix;
-            mat4::translate(&mut model_view_matrix, &mat_to_translate,
-                &[self.state.dx, self.state.dy, -2.0]);
-            let mat_to_scale = model_view_matrix;
-            mat4::scale(&mut model_view_matrix, &mat_to_scale,
-                &[1.0 + self.state.d_scale, 1.0 + self.state.d_scale, 1.0 + self.state.d_scale]);
-            let mat_to_rotate = model_view_matrix;
-            mat4::rotate_x(&mut model_view_matrix,&mat_to_rotate,&self.state.phi);
-            let mat_to_rotate = model_view_matrix;
-            mat4::rotate_y(&mut model_view_matrix, &mat_to_rotate, &self.state.theta);
-            gl.uniform_matrix4fv_with_f32_array(
-                Some(&shaders_variables.projection_matrix), false, &projection_matrix);
-            gl.uniform_matrix4fv_with_f32_array(
-                Some(&shaders_variables.model_view_matrix), false, &model_view_matrix);
-
-            drawn_object.draw(&gl);
-
-            // let mut pixels = [0u8; 4];
-            // match gl.read_pixels_with_opt_u8_array(
-            //     self.state.x, self.state.y, 1, 1, GL::RGBA, GL::UNSIGNED_BYTE, Some(&mut pixels))
-            // {
-            //     Ok(_) => yew::services::ConsoleService::log(&format!("{:?}", pixels)),
-            //     Err(e) => yew::services::ConsoleService::log(&format!("{:?}", e)),
-            // }
-
-            let mut matrix = mat4::new_identity();
-            mat4::mul(&mut matrix, &projection_matrix, &model_view_matrix);
-
-            ctx.set_fill_style(&CANVAS_DRAWN_NODES_DENOTATION_COLOR.into());
-            for node in normalized_nodes.iter()
-            {
-                add_denotation(&ctx,
-                &[node.x - DRAWN_NODES_DENOTATION_SHIFT / (1.0 + self.state.d_scale),
-                    node.y - DRAWN_NODES_DENOTATION_SHIFT / (1.0 + self.state.d_scale),
-                    node.z,
-                    1.0],
-                &matrix,
-                self.props.canvas_width as f32,
-                self.props.canvas_height as f32, &node.number.to_string());
-            }
-            ctx.stroke();
-
-            if !self.props.drawn_elements.is_empty()
-            {
-                for element in self.props.drawn_elements.as_ref()
-                {
-                    match element.find_denotation_coordinates(&normalized_nodes)
-                    {
-                        Ok(coordinates) =>
-                            {
-                                ctx.set_fill_style(&CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR.into());
-                                add_denotation(&ctx,
-                                &coordinates,
-                                &matrix,
-                                self.props.canvas_width as f32,
-                                self.props.canvas_height as f32,
-                                &element.number.to_string());
-                                ctx.stroke();
-                            },
-                        Err(e) => self.props.add_analysis_message.emit(e),
-                    }
-                }
-            }
-
-            if !drawn_displacements.is_empty()
-            {
-                for displacement in drawn_displacements
-                {
-                    match displacement.find_denotation_coordinates(&normalized_nodes)
-                    {
-                        Ok(coordinates) =>
-                            {
-                                ctx.set_fill_style(&CANVAS_DRAWN_DISPLACEMENTS_DENOTATION_COLOR.into());
-                                add_denotation(&ctx,
-                                &[coordinates[0] + DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_X /
-                                    (1.0 + self.state.d_scale),
-                                    coordinates[1] - DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_Y /
-                                    (1.0 + self.state.d_scale),
-                                    coordinates[2], coordinates[3]],
-                                &matrix,
-                                self.props.canvas_width as f32,
-                                self.props.canvas_height as f32,
-                                &displacement.number.to_string());
-                                ctx.stroke();
-                            },
-                        Err(e) => self.props.add_analysis_message.emit(e)
-                    }
-                }
-            }
-
-
-            if !drawn_forces.is_empty()
-            {
-                for force in drawn_forces
-                {
-                    match force.find_denotation_coordinates(&normalized_nodes)
-                    {
-                        Ok(coordinates) =>
-                            {
-                                ctx.set_fill_style(&CANVAS_DRAWN_FORCES_DENOTATION_COLOR.into());
-                                add_denotation(&ctx,
-                                &[coordinates[0] + DRAWN_FORCES_DENOTATION_SHIFT_X /
-                                    (1.0 + self.state.d_scale),
-                                    coordinates[1] + DRAWN_FORCES_DENOTATION_SHIFT_Y /
-                                    (1.0 + self.state.d_scale),
-                                    coordinates[2], coordinates[3]],
-                                &matrix,
-                                self.props.canvas_width as f32,
-                                self.props.canvas_height as f32,
-                                &format!("#{}", force.number));
-                                ctx.stroke();
-                            },
-                        Err(e) => self.props.add_analysis_message.emit(e)
-                    }
-                }
-            }
-        }
 
         ctx.set_fill_style(&HINTS_COLOR.into());
         add_hints(&ctx, self.props.canvas_width as f32,

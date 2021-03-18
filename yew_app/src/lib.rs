@@ -68,7 +68,6 @@ struct State
     canvas_height: u32,
     is_preprocessor_active: bool,
     fem: FEModel<ElementsNumbers, ElementsValues>,
-    selected_uid: Option<UIDNumbers>,
     analysis_message: Option<String>,
     global_analysis_result: Rc<Option<GlobalAnalysisResult<ElementsNumbers, ElementsValues>>>,
     // analysis_result: Option<AnalysisResult>,
@@ -103,7 +102,6 @@ enum Msg
     Submit,
     EditFEM,
     ChangeResultView(ResultView),
-    SelectUid(UIDNumbers),
 }
 
 
@@ -176,7 +174,6 @@ impl Component for Model
                     canvas_height: height,
                     is_preprocessor_active: true,
                     fem,
-                    selected_uid: None,
                     analysis_message: None,
                     global_analysis_result: Rc::new(None),
                     result_view: None,
@@ -366,7 +363,6 @@ impl Component for Model
                 },
             Msg::ChangeResultView(result_view) =>
                 self.state.result_view = Some(result_view),
-            Msg::SelectUid(uid) => self.state.selected_uid = Some(uid),
         }
         true
     }
@@ -388,7 +384,8 @@ impl Component for Model
 
         let mut drawn_uid_number = 0 as UIDNumbers;
 
-        let nodes = self.state.fem.drawn_nodes_rc(&mut drawn_uid_number);
+        let drawn_nodes =
+            self.state.fem.drawn_nodes_rc(&mut drawn_uid_number);
         let handle_add_node =
             self.link.callback(|data: FEDrawnNodeData| Msg::AddNode(data));
         let handle_update_node =
@@ -431,8 +428,6 @@ impl Component for Model
             Rc::clone(&self.state.global_analysis_result);
         let handle_edit_fem = self.link.callback(|_| Msg::EditFEM);
 
-        let handle_select_uid = self.link.callback(|uid: UIDNumbers| Msg::SelectUid(uid));
-
         let render = Router::render(move |switch: AppRoute| match switch
         {
             AppRoute::Preprocessor =>
@@ -444,7 +439,7 @@ impl Component for Model
                         discard_view=handle_discard_view.to_owned(),
                         is_preprocessor_active=preprocessor_is_active.to_owned(),
 
-                        nodes=Rc::clone(&nodes),
+                        drawn_nodes=Rc::clone(&drawn_nodes),
                         add_node=handle_add_node.to_owned(),
                         update_node=handle_update_node.to_owned(),
                         delete_node=handle_delete_node.to_owned(),
@@ -469,8 +464,6 @@ impl Component for Model
                         submit=handle_submit.to_owned(),
                         global_analysis_result=Rc::clone(&global_analysis_result),
                         edit_fem=handle_edit_fem.to_owned(),
-
-                        select_uid=handle_select_uid.to_owned(),
                     />
                 },
             AppRoute::Postprocessor =>
@@ -483,7 +476,7 @@ impl Component for Model
                         discard_view=handle_discard_view.to_owned(),
                         canvas_width=canvas_width.to_owned(),
                         canvas_height=canvas_height.to_owned(),
-                        nodes=Rc::clone(&nodes),
+                        drawn_nodes=Rc::clone(&drawn_nodes),
                     />
                 },
             AppRoute::HomePage =>
@@ -495,7 +488,7 @@ impl Component for Model
                         discard_view=handle_discard_view.to_owned(),
                         is_preprocessor_active=preprocessor_is_active.to_owned(),
 
-                        nodes=Rc::clone(&nodes),
+                        drawn_nodes=Rc::clone(&drawn_nodes),
                         add_node=handle_add_node.to_owned(),
                         update_node=handle_update_node.to_owned(),
                         delete_node=handle_delete_node.to_owned(),
@@ -520,8 +513,6 @@ impl Component for Model
                         submit=handle_submit.to_owned(),
                         global_analysis_result=Rc::clone(&global_analysis_result),
                         edit_fem=handle_edit_fem.to_owned(),
-
-                        select_uid=handle_select_uid.to_owned(),
                     />
                 },
         });

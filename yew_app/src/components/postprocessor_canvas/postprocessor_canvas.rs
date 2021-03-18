@@ -21,24 +21,7 @@ use crate::auxiliary::gl_aux_functions::
         add_denotation, initialize_shaders, normalize_nodes, add_hints, add_deformed_shape_nodes,
         update_displacement_value
     };
-use crate::auxiliary::gl_aux_structs::
-    {
-        Buffers, ShadersVariables, DrawnObject, CSAxis, CS_AXES_Y_SHIFT, CS_AXES_X_SHIFT,
-        CS_AXES_Z_SHIFT, CS_AXES_SCALE, CS_AXES_CAPS_BASE_POINTS_NUMBER, CS_AXES_CAPS_WIDTH,
-        CS_AXES_CAPS_HEIGHT, AXIS_X_DENOTATION_SHIFT_X, AXIS_X_DENOTATION_SHIFT_Y,
-        AXIS_Y_DENOTATION_SHIFT_X, AXIS_Y_DENOTATION_SHIFT_Y, AXIS_Z_DENOTATION_SHIFT_X,
-        AXIS_Z_DENOTATION_SHIFT_Y, AXIS_Z_DENOTATION_SHIFT_Z, CANVAS_AXES_DENOTATION_COLOR,
-        CANVAS_DRAWN_NODES_DENOTATION_COLOR, DRAWN_NODES_DENOTATION_SHIFT,
-        CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR, DRAWN_DISPLACEMENTS_CAPS_BASE_POINTS_NUMBER,
-        DRAWN_DISPLACEMENTS_CAPS_HEIGHT, DRAWN_DISPLACEMENTS_CAPS_WIDTH,
-        CANVAS_DRAWN_DISPLACEMENTS_DENOTATION_COLOR, DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_X,
-        DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_Y, DRAWN_FORCES_LINE_LENGTH, DRAWN_FORCES_CAPS_HEIGHT,
-        DRAWN_FORCES_CAPS_WIDTH, DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER,
-        CANVAS_DRAWN_FORCES_DENOTATION_COLOR, DRAWN_FORCES_DENOTATION_SHIFT_X,
-        DRAWN_FORCES_DENOTATION_SHIFT_Y, HINTS_COLOR, DRAWN_DEFORMED_SHAPE_NODES_COLOR,
-        CANVAS_DRAWN_DEFORMED_SHAPE_NODES_DENOTATION_COLOR,
-        DRAWN_DEFORMED_SHAPE_NODES_DENOTATION_SHIFT,
-    };
+use crate::auxiliary::gl_aux_structs::{Buffers, ShadersVariables, DrawnObject, CSAxis, CS_AXES_Y_SHIFT, CS_AXES_X_SHIFT, CS_AXES_Z_SHIFT, CS_AXES_SCALE, CS_AXES_CAPS_BASE_POINTS_NUMBER, CS_AXES_CAPS_WIDTH, CS_AXES_CAPS_HEIGHT, AXIS_X_DENOTATION_SHIFT_X, AXIS_X_DENOTATION_SHIFT_Y, AXIS_Y_DENOTATION_SHIFT_X, AXIS_Y_DENOTATION_SHIFT_Y, AXIS_Z_DENOTATION_SHIFT_X, AXIS_Z_DENOTATION_SHIFT_Y, AXIS_Z_DENOTATION_SHIFT_Z, CANVAS_AXES_DENOTATION_COLOR, CANVAS_DRAWN_NODES_DENOTATION_COLOR, DRAWN_NODES_DENOTATION_SHIFT, CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR, DRAWN_DISPLACEMENTS_CAPS_BASE_POINTS_NUMBER, DRAWN_DISPLACEMENTS_CAPS_HEIGHT, DRAWN_DISPLACEMENTS_CAPS_WIDTH, CANVAS_DRAWN_DISPLACEMENTS_DENOTATION_COLOR, DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_X, DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_Y, DRAWN_FORCES_LINE_LENGTH, DRAWN_FORCES_CAPS_HEIGHT, DRAWN_FORCES_CAPS_WIDTH, DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER, CANVAS_DRAWN_FORCES_DENOTATION_COLOR, DRAWN_FORCES_DENOTATION_SHIFT_X, DRAWN_FORCES_DENOTATION_SHIFT_Y, HINTS_COLOR, DRAWN_DEFORMED_SHAPE_NODES_COLOR, CANVAS_DRAWN_DEFORMED_SHAPE_NODES_DENOTATION_COLOR, DRAWN_DEFORMED_SHAPE_NODES_DENOTATION_SHIFT, GLMode};
 
 use crate::fem::{FENode, FEType, BCType, GlobalAnalysisResult, GlobalDOFParameter};
 use crate::{ElementsNumbers, ElementsValues, GLElementsNumbers, GLElementsValues};
@@ -70,7 +53,7 @@ pub struct Props
     pub canvas_width: u32,
     pub canvas_height: u32,
     pub magnitude: ElementsValues,
-    pub nodes: Rc<Vec<FEDrawnNodeData>>,
+    pub drawn_nodes: Rc<Vec<FEDrawnNodeData>>,
     pub global_analysis_result: Rc<Option<GlobalAnalysisResult<ElementsNumbers, ElementsValues>>>,
     pub is_plot_displacements_selected: bool,
     // pub drawn_elements: Rc<Vec<FEDrawnElementData>>,
@@ -269,7 +252,7 @@ impl Component for PostprocessorCanvas
             &self.props.magnitude, &self.props.is_plot_displacements_selected) !=
             (&props.view, &props.canvas_height, &props.canvas_width, &props.magnitude,
             &props.is_plot_displacements_selected) ||
-            !Rc::ptr_eq(&self.props.nodes, &props.nodes) ||
+            !Rc::ptr_eq(&self.props.drawn_nodes, &props.drawn_nodes) ||
             !Rc::ptr_eq(&self.props.global_analysis_result,
                 &props.global_analysis_result) // ||
             // !Rc::ptr_eq(&self.props.drawn_elements, &props.drawn_elements) ||
@@ -459,14 +442,14 @@ impl PostprocessorCanvas
             self.props.canvas_height as f32, "Z");
         ctx.stroke();
 
-        if !self.props.nodes.is_empty()
+        if !self.props.drawn_nodes.is_empty()
         {
-            let mut all_nodes = (*self.props.nodes.as_ref()).clone();
+            let mut all_nodes = (*self.props.drawn_nodes.as_ref()).clone();
             if let Some(global_analysis_result) =
                 self.props.global_analysis_result.as_ref()
             {
-                add_deformed_shape_nodes(&mut all_nodes, &self.props.nodes,
-                     &global_analysis_result, self.props.magnitude);
+                add_deformed_shape_nodes(&mut all_nodes, &self.props.drawn_nodes,
+                                         &global_analysis_result, self.props.magnitude);
             }
 
             let normalized_nodes = normalize_nodes(
@@ -477,7 +460,8 @@ impl PostprocessorCanvas
 
             let drawn_objects_buffers = Buffers::initialize(&gl);
             let mut drawn_object = DrawnObject::create();
-            drawn_object.add_nodes(&normalized_nodes[..normalized_nodes.len() / 2]);
+            drawn_object.add_nodes(&normalized_nodes[..normalized_nodes.len() / 2],
+                GLMode::Visible, &[0, 0, 0, 0], &[0, 0, 0, 0]);
 
             if self.props.is_plot_displacements_selected
             {

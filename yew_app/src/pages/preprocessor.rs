@@ -34,7 +34,7 @@ pub struct Props
     pub discard_view: Callback<()>,
     pub is_preprocessor_active: bool,
 
-    pub nodes: Rc<Vec<FEDrawnNodeData>>,
+    pub drawn_nodes: Rc<Vec<FEDrawnNodeData>>,
     pub add_node: Callback<FEDrawnNodeData>,
     pub update_node: Callback<FEDrawnNodeData>,
     pub delete_node: Callback<ElementsNumbers>,
@@ -59,8 +59,6 @@ pub struct Props
     pub submit: Callback<()>,
     pub global_analysis_result: Rc<Option<GlobalAnalysisResult<ElementsNumbers, ElementsValues>>>,
     pub edit_fem: Callback<()>,
-
-    pub select_uid: Callback<UIDNumbers>,
 }
 
 
@@ -75,7 +73,7 @@ impl Preprocessor
 {
     fn check_preprocessor_data(&self) -> bool
     {
-        if self.props.nodes.is_empty()
+        if self.props.drawn_nodes.is_empty()
         {
             return false;
         }
@@ -130,7 +128,7 @@ impl Component for Preprocessor
             (&props.view, &props.is_preprocessor_active,
              &props.canvas_height, &props.canvas_width,
              &props.analysis_message) ||
-            !Rc::ptr_eq(&self.props.nodes, &props.nodes) ||
+            !Rc::ptr_eq(&self.props.drawn_nodes, &props.drawn_nodes) ||
             !Rc::ptr_eq(&self.props.drawn_elements, &props.drawn_elements) ||
             !Rc::ptr_eq(&self.props.drawn_bcs, &props.drawn_bcs) ||
             !Rc::ptr_eq(&self.props.global_analysis_result,
@@ -160,7 +158,7 @@ impl Component for Preprocessor
                         />
                         <NodeMenu
                             is_preprocessor_active=self.props.is_preprocessor_active.to_owned(),
-                            nodes=Rc::clone(&self.props.nodes),
+                            drawn_nodes=Rc::clone(&self.props.drawn_nodes),
                             add_node=self.props.add_node.to_owned(),
                             update_node=self.props.update_node.to_owned(),
                             delete_node=self.props.delete_node.to_owned(),
@@ -246,7 +244,7 @@ impl Component for Preprocessor
                             discard_view=self.props.discard_view.to_owned(),
                             canvas_width=self.props.canvas_width.to_owned(),
                             canvas_height=self.props.canvas_height.to_owned(),
-                            nodes=Rc::clone(&self.props.nodes),
+                            drawn_nodes=Rc::clone(&self.props.drawn_nodes),
                             drawn_elements=Rc::clone(&self.props.drawn_elements),
                             add_analysis_message=self.props.add_analysis_message.to_owned(),
                             drawn_bcs=Rc::clone(&self.props.drawn_bcs),

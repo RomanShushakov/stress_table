@@ -7,7 +7,7 @@ use web_sys::
 use wasm_bindgen::JsCast;
 use std::rc::Rc;
 
-use crate::{DrawnBCData, ElementsNumbers, ElementsValues};
+use crate::{DrawnBCData, ElementsNumbers, ElementsValues, UIDNumbers};
 use crate::pages::PREPROCESSOR_BUTTON_CLASS;
 use crate::auxiliary::{DrawnDisplacementInputOption, FEDrawnElementData};
 use crate::fem::{FEType, BCType};
@@ -119,6 +119,7 @@ impl DisplacementMenu
             .iter()
             .filter(|bc| bc.bc_type == BCType::Displacement)
             .collect::<Vec<&DrawnBCData>>().len() as u32 + 1);
+        let uid = UIDNumbers::default();
         let number =
             {
                 let mut n = 0;
@@ -142,6 +143,7 @@ impl DisplacementMenu
             };
         self.state.selected_displacement = DrawnBCData
             {
+                uid,
                 bc_type: BCType::Displacement,
                 number: number as ElementsNumbers,
                 node_number: 1 as ElementsNumbers,
@@ -238,6 +240,7 @@ impl Component for DisplacementMenu
         let selected_displacement =
             DrawnBCData
             {
+                uid: UIDNumbers::default(),
                 bc_type: BCType::Displacement,
                 number: 1 as ElementsNumbers,
                 node_number: 1 as ElementsNumbers,
@@ -387,9 +390,11 @@ impl Component for DisplacementMenu
                                     let bc_type = BCType::Displacement;
                                     let number = select_displacement.value()
                                         .parse::<ElementsNumbers>().unwrap();
+                                    let uid = UIDNumbers::default();
                                     let node_number = 1 as ElementsNumbers;
                                     self.state.selected_displacement = DrawnBCData
                                         {
+                                            uid,
                                             bc_type,
                                             number,
                                             node_number,

@@ -26,7 +26,7 @@ pub struct Props
     pub discard_view: Callback<()>,
     pub canvas_width: u32,
     pub canvas_height: u32,
-    pub nodes: Rc<Vec<FEDrawnNodeData>>,
+    pub drawn_nodes: Rc<Vec<FEDrawnNodeData>>,
 }
 
 
@@ -143,7 +143,7 @@ impl Component for Postprocessor
                                         canvas_width=self.props.canvas_width.to_owned(),
                                         canvas_height=self.props.canvas_height.to_owned(),
                                         magnitude=self.state.magnitude.to_owned(),
-                                        nodes=Rc::clone(&self.props.nodes),
+                                        drawn_nodes=Rc::clone(&self.props.drawn_nodes),
                                         global_analysis_result=Rc::clone(&self.props.global_analysis_result),
                                         is_plot_displacements_selected=self.state.is_plot_displacements_selected.to_owned(),
                                         // drawn_elements=Rc::clone(&self.props.drawn_elements),

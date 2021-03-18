@@ -4,15 +4,20 @@ use std::rc::Rc;
 use std::cell::RefCell;
 
 use crate::fem::{FENode, GlobalAnalysisResult, GlobalDOFParameter, Displacements};
-use crate::{ElementsNumbers, ElementsValues};
+use crate::{ElementsNumbers, ElementsValues, UIDNumbers};
 use crate::{GLElementsValues, GLElementsNumbers};
 use crate::auxiliary::{NormalizedNode, FEDrawnElementData, FEDrawnNodeData};
+
+use crate::auxiliary::gl_aux_structs::GLMode;
 use crate::auxiliary::gl_aux_structs::
     {
         DRAWN_OBJECT_TO_CANVAS_WIDTH_SCALE, DRAWN_OBJECT_TO_CANVAS_HEIGHT_SCALE,
         CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR, HINT_SHIFT_X, ROTATION_HINT_SHIFT_Y,
-        ZOOM_HINT_SHIFT_Y, PAN_HINT_SHIFT_Y,
+        ZOOM_HINT_SHIFT_Y, PAN_HINT_SHIFT_Y, DRAWN_OBJECT_SELECTED_COLOR,
+        DRAWN_OBJECT_UNDER_CURSOR_COLOR, CANVAS_DRAWN_OBJECT_SELECTED_DENOTATION_COLOR,
+        CANVAS_DRAWN_OBJECT_UNDER_CURSOR_DENOTATION_COLOR
     };
+use crate::auxiliary::aux_functions::transform_u32_to_array_of_u8;
 
 
 pub fn initialize_shaders(gl: &GL, vertex_shader_code: &str, fragment_shader_code: &str)
@@ -157,6 +162,7 @@ pub fn normalize_nodes(nodes: Rc<Vec<FEDrawnNodeData>>, canvas_width: GLElements
     let multiplier =   min_canvas_side / max_object_side;
     for node in nodes.iter()
     {
+        let uid = node.uid;
         let number = node.number as GLElementsNumbers;
         let mut x = (node.x as GLElementsValues * multiplier -
             (x_max + x_min) * multiplier / 2.0) / (min_canvas_side  / 2.0) *
@@ -179,7 +185,7 @@ pub fn normalize_nodes(nodes: Rc<Vec<FEDrawnNodeData>>, canvas_width: GLElements
         {
             z = 0.0;
         }
-        let normalized_node = NormalizedNode { number, x, y, z };
+        let normalized_node = NormalizedNode { uid, number, x, y, z };
         normalized_nodes.push(normalized_node);
     }
     normalized_nodes
@@ -235,6 +241,7 @@ pub fn add_deformed_shape_nodes(nodes: &mut Vec<FEDrawnNodeData>,
         global_analysis_result.extract_displacements();
     for node in initial_nodes.iter()
     {
+        let uid = 0;
         let initial_node_number = node.number;
         let deformed_shape_node_number = initial_node_number +
             initial_nodes.len() as ElementsNumbers;
@@ -287,7 +294,7 @@ pub fn add_deformed_shape_nodes(nodes: &mut Vec<FEDrawnNodeData>,
             }
         };
         let deformed_shape_node =
-            FEDrawnNodeData { number: deformed_shape_node_number, x: deformed_shape_node_x,
+            FEDrawnNodeData { uid, number: deformed_shape_node_number, x: deformed_shape_node_x,
                 y: deformed_shape_node_y, z: deformed_shape_node_z };
         nodes.push(deformed_shape_node);
     }
@@ -306,4 +313,58 @@ pub fn update_displacement_value(mut value: ElementsValues, number: ElementsNumb
         value = global_displacements.displacements_values[position];
     }
     value
+}
+
+
+pub fn define_drawn_object_color(gl_mode: &GLMode, uid: UIDNumbers,
+    selected_color: &[u8; 4], under_cursor_color: &[u8; 4],
+    initial_color: &[GLElementsValues; 4]) -> [GLElementsValues; 4]
+{
+    match gl_mode
+    {
+        GLMode::Selection =>
+            {
+                let color = transform_u32_to_array_of_u8(uid);
+                let updated_color = [color[0] as GLElementsValues / 255.0,
+                    color[1] as GLElementsValues / 255.0,
+                    color[2] as GLElementsValues / 255.0,
+                    color[3] as GLElementsValues / 255.0];
+                    updated_color
+            },
+        GLMode::Visible =>
+            {
+                let transformed_uid = transform_u32_to_array_of_u8(uid);
+                if transformed_uid == *selected_color
+                {
+                    DRAWN_OBJECT_SELECTED_COLOR
+                }
+                else if transformed_uid == *under_cursor_color
+                {
+                    DRAWN_OBJECT_UNDER_CURSOR_COLOR
+                }
+                else
+                {
+                    *initial_color
+                }
+            }
+    }
+}
+
+
+pub fn define_drawn_object_denotation_color(uid: UIDNumbers, selected_color: &[u8; 4],
+    under_cursor_color: &[u8; 4], initial_denotation_color: &str) -> String
+{
+    let transformed_uid = transform_u32_to_array_of_u8(uid);
+    if transformed_uid == *selected_color
+    {
+        CANVAS_DRAWN_OBJECT_SELECTED_DENOTATION_COLOR.to_string()
+    }
+    else if transformed_uid == *under_cursor_color
+    {
+        CANVAS_DRAWN_OBJECT_UNDER_CURSOR_DENOTATION_COLOR.to_string()
+    }
+    else
+    {
+        initial_denotation_color.to_string()
+    }
 }

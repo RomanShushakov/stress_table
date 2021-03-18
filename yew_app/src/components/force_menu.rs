@@ -7,11 +7,7 @@ use web_sys::
 use wasm_bindgen::JsCast;
 use std::rc::Rc;
 
-use crate::
-    {
-        FEDrawnElementData, DrawnBCData,
-        ElementsNumbers, ElementsValues,
-    };
+use crate::{FEDrawnElementData, DrawnBCData, ElementsNumbers, ElementsValues, UIDNumbers};
 use crate::pages::PREPROCESSOR_BUTTON_CLASS;
 use crate::fem::{FEType, BCType};
 
@@ -102,6 +98,7 @@ impl ForceMenu
             .iter()
             .filter(|bc| bc.bc_type == BCType::Force)
             .collect::<Vec<&DrawnBCData>>().len() as u32 + 1);
+        let uid = UIDNumbers::default();
         let number =
             {
                 let mut n = 0;
@@ -125,6 +122,7 @@ impl ForceMenu
             };
         self.state.selected_force = DrawnBCData
             {
+                uid,
                 bc_type: BCType::Force,
                 number: number as ElementsNumbers,
                 node_number: 1 as ElementsNumbers,
@@ -253,6 +251,7 @@ impl Component for ForceMenu
         let selected_force =
             DrawnBCData
             {
+                uid: UIDNumbers::default(),
                 bc_type: BCType::Force,
                 number: 1 as ElementsNumbers,
                 node_number: 1 as ElementsNumbers,
@@ -297,12 +296,14 @@ impl Component for ForceMenu
                                 }
                                 else
                                 {
+                                    let uid = UIDNumbers::default();
                                     let bc_type = BCType::Force;
                                     let number = select_force.value()
                                         .parse::<ElementsNumbers>().unwrap();
                                     let node_number = 1 as ElementsNumbers;
                                     self.state.selected_force = DrawnBCData
                                         {
+                                            uid,
                                             bc_type,
                                             number,
                                             node_number,

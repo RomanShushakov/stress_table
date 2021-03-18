@@ -10,7 +10,7 @@ use std::cell::RefCell;
 
 use crate::fem::{FENode};
 use crate::auxiliary::FEDrawnNodeData;
-use crate::{ElementsNumbers, ElementsValues};
+use crate::{ElementsNumbers, ElementsValues, UIDNumbers};
 use crate::pages::PREPROCESSOR_BUTTON_CLASS;
 
 
@@ -32,7 +32,7 @@ const NODE_Z_COORD: &str = "node_z_coord";
 pub struct Props
 {
     pub is_preprocessor_active: bool,
-    pub nodes: Rc<Vec<FEDrawnNodeData>>,
+    pub drawn_nodes: Rc<Vec<FEDrawnNodeData>>,
     pub add_node: Callback<FEDrawnNodeData>,
     pub update_node: Callback<FEDrawnNodeData>,
     pub delete_node: Callback<ElementsNumbers>,
@@ -90,11 +90,12 @@ impl NodeMenu
             .map_err(|_| ())
             .unwrap();
         let options: HtmlOptionsCollection = select.options();
-        options.set_length(self.props.nodes.len() as u32 + 1);
+        options.set_length(self.props.drawn_nodes.len() as u32 + 1);
+        let uid = UIDNumbers::default();
         let number =
             {
                 let mut n = 0;
-                for (i, node) in self.props.nodes.iter().enumerate()
+                for (i, node) in self.props.drawn_nodes.iter().enumerate()
                 {
                     if let Ok(option) = HtmlOptionElement::new()
                     {
@@ -110,14 +111,14 @@ impl NodeMenu
                 n + 1
             };
         let (x, y, z) = (0.0, 0.0, 0.0);
-        self.state.selected_node = FEDrawnNodeData { number, x, y, z };
+        self.state.selected_node = FEDrawnNodeData { uid, number, x, y, z };
         if let Ok(option) = HtmlOptionElement::new()
         {
             option.set_value(&number.to_string());
             option.set_text(&format!("{} New", number));
-            options.set(self.props.nodes.len() as u32, Some(&option)).unwrap();
+            options.set(self.props.drawn_nodes.len() as u32, Some(&option)).unwrap();
         }
-        options.set_selected_index(self.props.nodes.len() as i32).unwrap();
+        options.set_selected_index(self.props.drawn_nodes.len() as i32).unwrap();
     }
 
 
@@ -149,7 +150,8 @@ impl Component for NodeMenu
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self
     {
-        let selected_node = FEDrawnNodeData { number: 1, x: 0.0, y: 0.0, z: 0.0 };
+        let selected_node = FEDrawnNodeData {
+            uid: UIDNumbers::default(), number: 1, x: 0.0, y: 0.0, z: 0.0 };
         Self { props, link, state: State { selected_node } }
     }
 
@@ -165,23 +167,26 @@ impl Component for NodeMenu
                     {
                         ChangeData::Select(select_node) =>
                             {
-                                if let Some(position) = self.props.nodes
+                                let uid = UIDNumbers::default();
+                                if let Some(position) = self.props.drawn_nodes
                                     .iter()
                                     .position(|node|
                                         node.number.to_string() == select_node.value())
                                 {
-                                    let number = self.props.nodes[position].number;
-                                    let x = self.props.nodes[position].x;
-                                    let y = self.props.nodes[position].y;
-                                    let z = self.props.nodes[position].z;
-                                    self.state.selected_node = FEDrawnNodeData { number, x, y, z };
+                                    let number = self.props.drawn_nodes[position].number;
+                                    let x = self.props.drawn_nodes[position].x;
+                                    let y = self.props.drawn_nodes[position].y;
+                                    let z = self.props.drawn_nodes[position].z;
+                                    self.state.selected_node = FEDrawnNodeData {
+                                        uid, number, x, y, z };
                                 }
                                 else
                                 {
                                     let number = select_node.value()
                                         .parse::<ElementsNumbers>().unwrap();
                                     let (x, y, z) = (0.0, 0.0, 0.0);
-                                    self.state.selected_node = FEDrawnNodeData { number, x, y, z };
+                                    self.state.selected_node = FEDrawnNodeData {
+                                        uid, number, x, y, z };
                                 }
                             },
                         _ => (),
@@ -195,23 +200,24 @@ impl Component for NodeMenu
                         self.read_inputted_coordinate(NODE_Y_COORD);
                     self.state.selected_node.z =
                         self.read_inputted_coordinate(NODE_Z_COORD);
+                    let uid = self.state.selected_node.uid;
                     let number = self.state.selected_node.number;
                     let x = self.state.selected_node.x;
                     let y = self.state.selected_node.y;
                     let z = self.state.selected_node.z;
-                    if self.props.nodes.iter().position(|node|
+                    if self.props.drawn_nodes.iter().position(|node|
                         node.number == number).is_none()
                     {
-                        self.props.add_node.emit(FEDrawnNodeData { number, x, y, z });
+                        self.props.add_node.emit(FEDrawnNodeData { uid, number, x, y, z });
                     }
                     else
                     {
-                        self.props.update_node.emit(FEDrawnNodeData { number, x, y, z });
+                        self.props.update_node.emit(FEDrawnNodeData { uid, number, x, y, z });
                     }
                 },
             Msg::DeleteNode =>
                 {
-                    if self.props.nodes.iter().position(|node|
+                    if self.props.drawn_nodes.iter().position(|node|
                         node.number == self.state.selected_node.number).is_some()
                     {
                         self.props.delete_node.emit(self.state.selected_node.number);
@@ -225,7 +231,7 @@ impl Component for NodeMenu
     fn change(&mut self, props: Self::Properties) -> ShouldRender
     {
         if &self.props.is_preprocessor_active != &props.is_preprocessor_active ||
-            !Rc::ptr_eq(&self.props.nodes, &props.nodes)
+            !Rc::ptr_eq(&self.props.drawn_nodes, &props.drawn_nodes)
         {
             self.props = props;
             self.update_node_menu();

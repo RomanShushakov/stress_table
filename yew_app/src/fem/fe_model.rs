@@ -674,11 +674,12 @@ impl<T, V> FEModel<T, V>
         let mut nodes = Vec::new();
         for node in self.nodes.iter()
         {
+            *drawn_uid_number += 1;
+            let uid = *drawn_uid_number;
             let number = node.borrow().extract_number();
             let (x, y, z) = node.borrow().extract_coordinates();
-            let drawn_node_data = FEDrawnNodeData { number, x, y, z };
+            let drawn_node_data = FEDrawnNodeData { uid, number, x, y, z };
             nodes.push(drawn_node_data);
-            *drawn_uid_number += 1;
         }
         Rc::new(nodes)
     }
@@ -689,14 +690,15 @@ impl<T, V> FEModel<T, V>
         let mut drawn_elements = Vec::new();
         for element in self.elements.iter()
         {
+            *drawn_uid_number += 1;
+            let uid = *drawn_uid_number;
             let fe_type = element.extract_fe_type();
             let number = element.extract_fe_number();
             let nodes_numbers = element.extract_nodes_numbers();
             let properties = element.extract_fe_properties();
             let drawn_element_data =
-                FEDrawnElementData { fe_type, number, nodes_numbers, properties };
+                FEDrawnElementData { uid, fe_type, number, nodes_numbers, properties };
             drawn_elements.push(drawn_element_data);
-            *drawn_uid_number += 1;
         }
         Rc::new(drawn_elements)
     }
@@ -707,11 +709,13 @@ impl<T, V> FEModel<T, V>
         let mut drawn_bcs = Vec::new();
         for bc in &self.boundary_conditions
         {
+            *drawn_uid_number += 1;
+            let uid = *drawn_uid_number;
             let bc_type = bc.extract_bc_type();
             let number = bc.extract_number().into() / GLOBAL_DOF;
             let node_number = bc.extract_node_number().into();
             let value = bc.extract_value().into();
-            let mut drawn_bc = DrawnBCData { bc_type, number, node_number,
+            let mut drawn_bc = DrawnBCData { uid, bc_type, number, node_number,
                     is_rotation_stiffness_enabled: false, x_direction_value: None,
                     y_direction_value: None, z_direction_value: None, xy_plane_value: None,
                     yz_plane_value: None, zx_plane_value: None
@@ -783,7 +787,6 @@ impl<T, V> FEModel<T, V>
             else
             {
                 drawn_bcs.push(drawn_bc);
-                *drawn_uid_number += 1;
             }
         }
         Rc::new(drawn_bcs)

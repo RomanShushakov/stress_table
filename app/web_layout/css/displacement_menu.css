@@ -51,7 +51,9 @@
 
 
 .displacement_menu_button {
-    width: 4.5rem;
+    /* width: 4.5rem; */
+    padding-left: 0rem;
+    padding-right: 0rem;
 }
 
 

@@ -317,8 +317,23 @@ impl Component for ElementMenu
                                 self.state.selected_element.properties[1] = selected_element_area;
                                 if selected_element_area_2 != 0.0 as ElementsValues
                                 {
-                                    self.state.selected_element.properties.push(
-                                        selected_element_area_2)
+                                    if self.state.selected_element.properties.len() == 3
+                                    {
+                                        self.state.selected_element.properties[2] =
+                                            selected_element_area_2
+                                    }
+                                    else
+                                    {
+                                        self.state.selected_element.properties.push(
+                                            selected_element_area_2)
+                                    }
+                                }
+                                else
+                                {
+                                    if self.state.selected_element.properties.len() == 3
+                                    {
+                                        self.state.selected_element.properties.remove(2);
+                                    }
                                 }
                                 if self.props.drawn_elements
                                     .iter()

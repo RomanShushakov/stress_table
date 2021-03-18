@@ -157,7 +157,7 @@ impl PreprocessorCanvas
                     let node_coord_x = self.props.drawn_nodes[position].x;
                     let node_coord_y = self.props.drawn_nodes[position].y;
                     let node_coord_z = self.props.drawn_nodes[position].z;
-                    let object_info = format!("Node: #{}, X: {}, Y: {}, Z: {}",
+                    let object_info = format!("Node: #{}, x: {}, y: {}, z: {}",
                         node_number, node_coord_x, node_coord_y, node_coord_z);
                     Some(object_info)
                 }

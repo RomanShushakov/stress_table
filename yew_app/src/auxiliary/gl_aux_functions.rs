@@ -18,7 +18,8 @@ use crate::auxiliary::gl_aux_structs::
         CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR, HINT_SHIFT_X, ROTATION_HINT_SHIFT_Y,
         ZOOM_HINT_SHIFT_Y, PAN_HINT_SHIFT_Y, DRAWN_OBJECT_SELECTED_COLOR,
         DRAWN_OBJECT_UNDER_CURSOR_COLOR, CANVAS_DRAWN_OBJECT_SELECTED_DENOTATION_COLOR,
-        CANVAS_DRAWN_OBJECT_UNDER_CURSOR_DENOTATION_COLOR
+        CANVAS_DRAWN_OBJECT_UNDER_CURSOR_DENOTATION_COLOR, DISPLACEMENT_SHIFT_X,
+        DISPLACEMENT_HEADER_SHIFT_Y, MIN_DISPLACEMENT_SHIFT_Y, MAX_DISPLACEMENT_SHIFT_Y,
     };
 use crate::auxiliary::aux_functions::transform_u32_to_array_of_u8;
 
@@ -220,18 +221,37 @@ pub fn find_node_coordinates(node_number: GLElementsNumbers, normalized_nodes: &
 
 pub fn add_hints(ctx: &CTX, canvas_width: f32, canvas_height: f32)
 {
-    let rotate_hint_x = canvas_width * HINT_SHIFT_X;
+    let hint_x = canvas_width * HINT_SHIFT_X;
     let rotate_hint_y = canvas_height * ROTATION_HINT_SHIFT_Y;
     let rotate_hint = "Rotate - Left Mouse Button";
-    ctx.fill_text(rotate_hint, rotate_hint_x as f64, rotate_hint_y as f64).unwrap();
-    let zoom_hint_x = canvas_width * HINT_SHIFT_X;
+    ctx.fill_text(rotate_hint, hint_x as f64, rotate_hint_y as f64).unwrap();
     let zoom_hint_y = canvas_height * ZOOM_HINT_SHIFT_Y;
     let zoom_hint = "Zoom - Mouse Wheel";
-    ctx.fill_text(zoom_hint, zoom_hint_x as f64, zoom_hint_y as f64).unwrap();
-    let pan_hint_x = canvas_width * HINT_SHIFT_X;
+    ctx.fill_text(zoom_hint, hint_x as f64, zoom_hint_y as f64).unwrap();
     let pan_hint_y = canvas_height * PAN_HINT_SHIFT_Y;
     let pan_hint = "Pan - Shift + Left Mouse Button";
-    ctx.fill_text(pan_hint, pan_hint_x as f64, pan_hint_y as f64).unwrap();
+    ctx.fill_text(pan_hint, hint_x as f64, pan_hint_y as f64).unwrap();
+}
+
+
+pub fn add_displacements_hints(ctx: &CTX, canvas_width: f32, canvas_height: f32,
+    min_displacement: ElementsValues, max_displacement: ElementsValues)
+{
+    let displacement_shift_x = canvas_width * DISPLACEMENT_SHIFT_X;
+    let displacement_header_shift_y = canvas_height * DISPLACEMENT_HEADER_SHIFT_Y;
+    let displacement_header = "DISPLACEMENTS";
+    ctx.fill_text(displacement_header, displacement_shift_x as f64,
+        displacement_header_shift_y as f64).unwrap();
+    let min_displacement_y = canvas_height * MIN_DISPLACEMENT_SHIFT_Y;
+    let min_displacement_hint = &format!("Min displacement: {:+.5e}", min_displacement);
+    ctx.fill_text(min_displacement_hint, displacement_shift_x as f64,
+        min_displacement_y as f64).unwrap();
+    let max_displacement_y = canvas_height * MAX_DISPLACEMENT_SHIFT_Y;
+    let max_displacement_hint = &format!("Max displacement: {:+.5e}", max_displacement);
+    ctx.fill_text(max_displacement_hint, displacement_shift_x as f64,
+        max_displacement_y as f64).unwrap();
+    ctx.fill_text(max_displacement_hint, displacement_shift_x as f64,
+        max_displacement_y as f64).unwrap();
 }
 
 

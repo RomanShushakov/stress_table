@@ -95,6 +95,10 @@ pub const DRAWN_OBJECT_UNDER_CURSOR_COLOR: [GLElementsValues; 4] =
     [0.752941, 0.752941, 0.752941, 1.0]; // grey
 pub const CANVAS_DRAWN_OBJECT_UNDER_CURSOR_DENOTATION_COLOR: &str = "grey";
 
+pub const DISPLACEMENT_SHIFT_X: GLElementsValues = 0.05;
+pub const DISPLACEMENT_HEADER_SHIFT_Y: GLElementsValues = 0.1;
+pub const MIN_DISPLACEMENT_SHIFT_Y: GLElementsValues = 0.15;
+pub const MAX_DISPLACEMENT_SHIFT_Y: GLElementsValues = 0.2;
 
 
 pub enum CSAxis

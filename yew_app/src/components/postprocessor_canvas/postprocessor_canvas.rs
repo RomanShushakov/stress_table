@@ -16,7 +16,12 @@ use yew::services::keyboard::{KeyboardService, KeyListenerHandle};
 use yew::services::render::RenderTask;
 use yew::services::RenderService;
 
-use crate::auxiliary::gl_aux_functions::{add_denotation, initialize_shaders, normalize_nodes, add_hints, extend_by_deformed_shape_nodes, update_displacement_value, define_drawn_object_denotation_color};
+use crate::auxiliary::gl_aux_functions::
+    {
+        add_denotation, initialize_shaders, normalize_nodes, add_hints,
+        extend_by_deformed_shape_nodes, update_displacement_value,
+        define_drawn_object_denotation_color, add_displacements_hints
+    };
 use crate::auxiliary::gl_aux_structs::{Buffers, ShadersVariables, DrawnObject};
 use crate::auxiliary::gl_aux_structs::{CSAxis, GLMode};
 use crate::auxiliary::gl_aux_structs::
@@ -44,7 +49,7 @@ use crate::auxiliary::
     {
         View, FEDrawnElementData, DrawnBCData, FEDrawnNodeData, DrawnAnalysisResultNodeData
     };
-use crate::auxiliary::aux_functions::transform_u32_to_array_of_u8;
+use crate::auxiliary::aux_functions::{transform_u32_to_array_of_u8, value_to_string};
 
 
 const POSTPROCESSOR_CANVAS_CONTAINER_CLASS: &str = "postprocessor_canvas_container";
@@ -278,6 +283,45 @@ impl PostprocessorCanvas
                 //         yz_value, zx_value);
                 //     Some(object_info)
                 // }
+                else if let Some(position) = self.state.drawn_analysis_results_for_nodes
+                    .iter()
+                    .position(|result|
+                        transform_u32_to_array_of_u8(result.uid) == self.state.selected_color)
+                {
+                    let result_type =
+                        &self.state.drawn_analysis_results_for_nodes[position].bc_type;
+                    let node_number =
+                        &self.state.drawn_analysis_results_for_nodes[position].node_number;
+                    let x_value = value_to_string(
+                        &self.state.drawn_analysis_results_for_nodes[position].x_direction_value);
+                    let y_value = value_to_string(
+                        &self.state.drawn_analysis_results_for_nodes[position].y_direction_value);
+                    let z_value = value_to_string(
+                        &self.state.drawn_analysis_results_for_nodes[position].z_direction_value);
+                    let xy_value = value_to_string(
+                        &self.state.drawn_analysis_results_for_nodes[position].xy_plane_value);
+                    let yz_value = value_to_string(
+                        &self.state.drawn_analysis_results_for_nodes[position].yz_plane_value);
+                    let zx_value = value_to_string(
+                        &self.state.drawn_analysis_results_for_nodes[position].zx_plane_value);
+                    match result_type
+                    {
+                        BCType::Displacement =>
+                            {
+                                let object_info = format!("Displacement at node: #{}, Ux: {}, \
+                                Uy: {}, Uz: {}, URx: {}, URy: {}, URz: {}", node_number, x_value,
+                                y_value, z_value, yz_value, zx_value, xy_value);
+                                Some(object_info)
+                            },
+                        BCType::Force =>
+                            {
+                                let object_info = format!("Reaction at node: #{}, Rx: {}, \
+                                Ry: {}, Rz: {}, Mx: {}, My: {}, Mz: {}", node_number, x_value,
+                                y_value, z_value, yz_value, zx_value, xy_value);
+                                Some(object_info)
+                            },
+                    }
+                }
                 else
                 {
                     None
@@ -563,7 +607,6 @@ impl PostprocessorCanvas
         gl.enable(GL::DEPTH_TEST);
         gl.clear(GL::COLOR_BUFFER_BIT);
         gl.clear(GL::DEPTH_BUFFER_BIT);
-        gl.line_width(3.5);
         let vertex_shader_code = include_str!("shaders/post_shader.vert");
         let fragment_shader_code = include_str!("shaders/post_shader.frag");
 
@@ -696,6 +739,7 @@ impl PostprocessorCanvas
 
             if self.props.is_plot_displacements_selected
             {
+                gl.line_width(3.5);
                 drawn_object.add_deformed_shape_nodes(
                     &normalized_nodes[normalized_nodes.len() / 2..],
                     GLMode::Visible, &self.state.under_cursor_color,
@@ -755,6 +799,8 @@ impl PostprocessorCanvas
 
             if self.props.is_plot_displacements_selected
             {
+                let mut min_displacement = 0 as ElementsValues;
+                let mut max_displacement = 0 as ElementsValues;
                 for node in normalized_nodes[normalized_nodes.len() / 2..].iter()
                 {
                     let denotation_color = define_drawn_object_denotation_color(node.uid,
@@ -779,6 +825,14 @@ impl PostprocessorCanvas
                                     &global_displacements, GlobalDOFParameter::Z);
                             }
                             let displacement_value = (x * x + y * y + z * z).sqrt();
+                            if displacement_value < min_displacement
+                            {
+                                min_displacement = displacement_value;
+                            }
+                            if displacement_value > max_displacement
+                            {
+                                max_displacement = displacement_value;
+                            }
                             if displacement_value > 0 as ElementsValues
                             {
                                 format!("{:+.3e}", displacement_value)
@@ -801,6 +855,10 @@ impl PostprocessorCanvas
                     &denotation);
                     ctx.stroke();
                 }
+                ctx.set_fill_style(&HINTS_COLOR.into());
+                add_displacements_hints(&ctx, self.props.canvas_width as f32,
+                    self.props.canvas_height as f32, min_displacement, max_displacement);
+                ctx.stroke();
             }
 
             // if !self.props.drawn_elements.is_empty()

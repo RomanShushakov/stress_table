@@ -176,6 +176,20 @@ impl DrawnDisplacementInputOption
 }
 
 
+pub struct DrawnAnalysisResultNodeData
+{
+    pub uid: UIDNumbers,
+    pub bc_type: BCType,
+    pub node_number: ElementsNumbers,
+    pub x_direction_value: Option<ElementsValues>,
+    pub y_direction_value: Option<ElementsValues>,
+    pub z_direction_value: Option<ElementsValues>,
+    pub xy_plane_value: Option<ElementsValues>,
+    pub yz_plane_value: Option<ElementsValues>,
+    pub zx_plane_value: Option<ElementsValues>,
+}
+
+
 #[derive(Clone, PartialEq, Debug)]
 pub struct MinMaxValues
 {

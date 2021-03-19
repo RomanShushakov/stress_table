@@ -5,7 +5,7 @@ use std::cell::RefCell;
 
 use crate::route::AppRoute;
 use crate::fem::{GlobalAnalysisResult, FENode};
-use crate::{ElementsNumbers, ElementsValues};
+use crate::{ElementsNumbers, ElementsValues, UIDNumbers};
 
 use crate::components::{ViewMenu, PostprocessorCanvas, PlotDisplacementsMenu};
 use crate::auxiliary::{View, FEDrawnNodeData};
@@ -15,6 +15,8 @@ const POSTPROCESSOR_CLASS: &str = "postprocessor";
 const POSTPROCESSOR_MENU_CLASS: &str = "postprocessor_menu";
 pub const POSTPROCESSOR_BUTTON_CLASS: &str = "postprocessor_button";
 const POSTPROCESSOR_CANVAS_CLASS: &str = "postprocessor_canvas";
+const ANALYSIS_INFO_CLASS: &str = "analysis_info";
+const ANALYSIS_MESSAGE_CLASS: &str = "analysis_message";
 
 
 #[derive(Properties, Clone)]
@@ -27,6 +29,7 @@ pub struct Props
     pub canvas_width: u32,
     pub canvas_height: u32,
     pub drawn_nodes: Rc<Vec<FEDrawnNodeData>>,
+    pub drawn_uid_number: UIDNumbers,
 }
 
 
@@ -88,7 +91,8 @@ impl Component for Postprocessor
     fn change(&mut self, props: Self::Properties) -> ShouldRender
     {
 
-        if &self.props.view != &props.view ||
+        if (&self.props.view, &self.props.drawn_uid_number) !=
+            (&props.view, &props.drawn_uid_number) ||
             !Rc::ptr_eq(&self.props.global_analysis_result,
                 &props.global_analysis_result)
         {
@@ -161,7 +165,28 @@ impl Component for Postprocessor
                                         // drawn_bcs=Rc::clone(&self.props.drawn_bcs),
                                         add_object_info=handle_add_object_info.to_owned(),
                                         reset_object_info=handle_reset_object_info.to_owned(),
+                                        drawn_uid_number=self.props.drawn_uid_number.to_owned(),
                                     />
+                                    {
+                                        if let Some(info) = &self.state.object_info
+                                        {
+                                            html!
+                                            {
+                                                <div class={ ANALYSIS_INFO_CLASS }>
+                                                    <p class={ ANALYSIS_MESSAGE_CLASS }>{ &format!("Object: {}", info) }</p>
+                                                </div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            html!
+                                            {
+                                                <div class={ ANALYSIS_INFO_CLASS }>
+                                                    <p class={ ANALYSIS_MESSAGE_CLASS }>{ "Object: " }</p>
+                                                </div>
+                                            }
+                                        }
+                                    }
                                 </div>
                                 // {
                                 //     if let Some(result_view) = &self.state.result_view

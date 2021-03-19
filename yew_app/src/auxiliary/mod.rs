@@ -7,5 +7,5 @@ pub use aux_structs::
     {
         View, DrawnBCData, NormalizedNode,
         FEDrawnNodeData, FEDrawnElementData,
-        DrawnDisplacementInputOption, ResultView, MinMaxValues, // AnalysisResult, DrawnNode
+        DrawnDisplacementInputOption, DrawnAnalysisResultNodeData, ResultView, MinMaxValues, // AnalysisResult, DrawnNode
     };

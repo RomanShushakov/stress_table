@@ -480,6 +480,7 @@ impl Component for Model
                         canvas_width=canvas_width.to_owned(),
                         canvas_height=canvas_height.to_owned(),
                         drawn_nodes=Rc::clone(&drawn_nodes),
+                        drawn_uid_number=drawn_uid_number.to_owned(),
                     />
                 },
             AppRoute::HomePage =>

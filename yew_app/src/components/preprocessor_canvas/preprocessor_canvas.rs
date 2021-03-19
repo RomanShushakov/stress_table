@@ -16,7 +16,11 @@ use yew::services::keyboard::{KeyboardService, KeyListenerHandle};
 use yew::services::render::RenderTask;
 use yew::services::RenderService;
 
-use crate::auxiliary::gl_aux_functions::{add_denotation, initialize_shaders, normalize_nodes, add_hints, define_drawn_object_denotation_color};
+use crate::auxiliary::gl_aux_functions::
+    {
+        add_denotation, initialize_shaders, normalize_nodes, add_hints,
+        define_drawn_object_denotation_color
+    };
 
 use crate::auxiliary::gl_aux_structs::{Buffers, ShadersVariables, DrawnObject};
 use crate::auxiliary::gl_aux_structs::{CSAxis, GLMode};
@@ -170,7 +174,8 @@ impl PreprocessorCanvas
                     let element_number = &self.props.drawn_elements[position].number;
                     let element_node_numbers =
                         &self.props.drawn_elements[position].nodes_numbers;
-                    let element_properties = &self.props.drawn_elements[position].properties;
+                    let element_properties =
+                        &self.props.drawn_elements[position].properties;
                     let object_info = format!("Element: #{}, type: {:?}, nodes: {:?}, \
                         props: {:?}",
                         element_number, element_type, element_node_numbers, element_properties);

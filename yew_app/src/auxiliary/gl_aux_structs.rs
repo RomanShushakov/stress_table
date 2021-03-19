@@ -281,14 +281,17 @@ impl DrawnObject
     }
 
 
-    pub fn add_deformed_shape_nodes(&mut self, normalized_nodes: &[NormalizedNode])
+    pub fn add_deformed_shape_nodes(&mut self, normalized_nodes: &[NormalizedNode], gl_mode: GLMode,
+        under_cursor_color: &[u8; 4], selected_color: &[u8; 4])
     {
         let start_index =
             if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
         for (i, node) in normalized_nodes.iter().enumerate()
         {
             self.vertices_coordinates.extend(&[node.x, node.y, node.z]);
-            self.colors_values.extend(&DRAWN_DEFORMED_SHAPE_NODES_COLOR);
+            let node_color = define_drawn_object_color(&gl_mode, node.uid, selected_color,
+                under_cursor_color,&DRAWN_DEFORMED_SHAPE_NODES_COLOR);
+            self.colors_values.extend(&node_color);
             self.indexes_numbers.push(start_index + i as GLElementsNumbers);
         }
         self.modes.push(GLPrimitiveType::Points);

@@ -20,7 +20,7 @@ use crate::auxiliary::gl_aux_functions::
     {
         add_denotation, initialize_shaders, normalize_nodes, add_hints,
         extend_by_deformed_shape_nodes, update_displacement_value,
-        define_drawn_object_denotation_color, add_displacements_hints
+        define_drawn_object_denotation_color, add_displacements_hints,
     };
 use crate::auxiliary::gl_aux_structs::{Buffers, ShadersVariables, DrawnObject};
 use crate::auxiliary::gl_aux_structs::{CSAxis, GLMode};
@@ -40,7 +40,7 @@ use crate::auxiliary::gl_aux_structs::
         CANVAS_DRAWN_FORCES_DENOTATION_COLOR, DRAWN_FORCES_DENOTATION_SHIFT_X,
         DRAWN_FORCES_DENOTATION_SHIFT_Y, HINTS_COLOR, DRAWN_DEFORMED_SHAPE_NODES_COLOR,
         CANVAS_DRAWN_DEFORMED_SHAPE_NODES_DENOTATION_COLOR,
-        DRAWN_DEFORMED_SHAPE_NODES_DENOTATION_SHIFT,
+        DRAWN_DEFORMED_SHAPE_NODES_DENOTATION_SHIFT, DRAWN_ELEMENTS_DENOTATION_SHIFT,
     };
 
 use crate::fem::{FENode, FEType, BCType, GlobalAnalysisResult, GlobalDOFParameter};
@@ -81,7 +81,7 @@ pub struct Props
     pub drawn_nodes: Rc<Vec<FEDrawnNodeData>>,
     pub global_analysis_result: Rc<Option<GlobalAnalysisResult<ElementsNumbers, ElementsValues>>>,
     pub is_plot_displacements_selected: bool,
-    // pub drawn_elements: Rc<Vec<FEDrawnElementData>>,
+    pub drawn_elements: Rc<Vec<FEDrawnElementData>>,
     // pub add_analysis_message: Callback<String>,
     // pub drawn_bcs: Rc<Vec<DrawnBCData>>,
     pub add_object_info: Callback<String>,
@@ -173,22 +173,22 @@ impl PostprocessorCanvas
                         node_number, node_coord_x, node_coord_y, node_coord_z);
                     Some(object_info)
                 }
-                // else if let Some(position) = self.props.drawn_elements
-                //     .iter()
-                //     .position(|element|
-                //         transform_u32_to_array_of_u8(element.uid) == self.state.selected_color)
-                // {
-                //     let element_type = &self.props.drawn_elements[position].fe_type;
-                //     let element_number = &self.props.drawn_elements[position].number;
-                //     let element_node_numbers =
-                //         &self.props.drawn_elements[position].nodes_numbers;
-                //     let element_properties =
-                //         &self.props.drawn_elements[position].properties;
-                //     let object_info = format!("Element: #{}, type: {:?}, nodes: {:?}, \
-                //         props: {:?}",
-                //         element_number, element_type, element_node_numbers, element_properties);
-                //     Some(object_info)
-                // }
+                else if let Some(position) = self.props.drawn_elements
+                    .iter()
+                    .position(|element|
+                        transform_u32_to_array_of_u8(element.uid) == self.state.selected_color)
+                {
+                    let element_type = &self.props.drawn_elements[position].fe_type;
+                    let element_number = &self.props.drawn_elements[position].number;
+                    let element_node_numbers =
+                        &self.props.drawn_elements[position].nodes_numbers;
+                    let element_properties =
+                        &self.props.drawn_elements[position].properties;
+                    let object_info = format!("Element: #{}, type: {:?}, nodes: {:?}, \
+                        props: {:?}",
+                        element_number, element_type, element_node_numbers, element_properties);
+                    Some(object_info)
+                }
                 // else if let Some(position) = self.props.drawn_bcs
                 //     .iter()
                 //     .position(|bc|
@@ -490,8 +490,8 @@ impl Component for PostprocessorCanvas
             &props.is_plot_displacements_selected) ||
             !Rc::ptr_eq(&self.props.drawn_nodes, &props.drawn_nodes) ||
             !Rc::ptr_eq(&self.props.global_analysis_result,
-                &props.global_analysis_result) // ||
-            // !Rc::ptr_eq(&self.props.drawn_elements, &props.drawn_elements) ||
+                &props.global_analysis_result) ||
+            !Rc::ptr_eq(&self.props.drawn_elements, &props.drawn_elements) // ||
             // !Rc::ptr_eq(&self.props.drawn_bcs, &props.drawn_bcs)
         {
             self.props = props;
@@ -607,6 +607,7 @@ impl PostprocessorCanvas
         gl.enable(GL::DEPTH_TEST);
         gl.clear(GL::COLOR_BUFFER_BIT);
         gl.clear(GL::DEPTH_BUFFER_BIT);
+        gl.line_width(10.0);
         let vertex_shader_code = include_str!("shaders/post_shader.vert");
         let fragment_shader_code = include_str!("shaders/post_shader.frag");
 
@@ -642,6 +643,20 @@ impl PostprocessorCanvas
                 GLMode::Selection, &self.state.under_cursor_color,
                 &self.state.selected_color);
 
+            if !self.props.drawn_elements.is_empty()
+            {
+                match drawn_object.add_elements(
+                    &normalized_nodes[..normalized_nodes.len() / 2],
+                    &self.props.drawn_elements,
+                    GLMode::Selection, &self.state.under_cursor_color,
+                    &self.state.selected_color)
+                {
+                    Err(msg) =>
+                        yew::services::DialogService::alert(&format!("{:?}", msg)),
+                    Ok(()) => (),
+                }
+            }
+
             if self.props.is_plot_displacements_selected
             {
                 drawn_object.add_deformed_shape_nodes(
@@ -649,16 +664,6 @@ impl PostprocessorCanvas
                     GLMode::Selection, &self.state.under_cursor_color,
                     &self.state.selected_color);
             }
-
-
-            // if !self.props.drawn_elements.is_empty()
-            // {
-            //     match drawn_object.add_elements(&normalized_nodes, &self.props.drawn_elements)
-            //     {
-            //         Err(e) => self.props.add_analysis_message.emit(e),
-            //         Ok(()) => (),
-            //     }
-            // }
 
             // let drawn_displacements: Vec<&DrawnBCData> = self.props.drawn_bcs
             //         .iter()
@@ -690,6 +695,7 @@ impl PostprocessorCanvas
             // }
 
             drawn_objects_buffers.render(&gl, &drawn_object, &shaders_variables);
+            let point_size = 10.0 as GLElementsValues;
 
             // let field_of_view = 45.0 * PI / 180.0;
             let mut projection_matrix = mat4::new_zero();
@@ -711,6 +717,8 @@ impl PostprocessorCanvas
             mat4::rotate_x(&mut model_view_matrix,&mat_to_rotate,&self.state.phi);
             let mat_to_rotate = model_view_matrix;
             mat4::rotate_y(&mut model_view_matrix, &mat_to_rotate, &self.state.theta);
+
+            gl.uniform1f(Some(&shaders_variables.point_size), point_size);
             gl.uniform_matrix4fv_with_f32_array(
                 Some(&shaders_variables.projection_matrix), false, &projection_matrix);
             gl.uniform_matrix4fv_with_f32_array(
@@ -729,6 +737,7 @@ impl PostprocessorCanvas
 
             gl.clear(GL::COLOR_BUFFER_BIT);
             gl.clear(GL::DEPTH_BUFFER_BIT);
+            gl.line_width(1.0);
 
             drawn_object = DrawnObject::create();
             drawn_objects_buffers = Buffers::initialize(&gl);
@@ -737,16 +746,44 @@ impl PostprocessorCanvas
                 GLMode::Visible, &self.state.under_cursor_color,
                 &self.state.selected_color);
 
+            if !self.props.drawn_elements.is_empty()
+            {
+                match drawn_object.add_elements(
+                    &normalized_nodes[..normalized_nodes.len() / 2],
+                    &self.props.drawn_elements,
+                    GLMode::Visible, &self.state.under_cursor_color,
+                    &self.state.selected_color)
+                {
+                    Err(msg) =>
+                        yew::services::DialogService::alert(&format!("{:?}", msg)),
+                    Ok(()) => (),
+                }
+            }
+
             if self.props.is_plot_displacements_selected
             {
-                gl.line_width(3.5);
                 drawn_object.add_deformed_shape_nodes(
                     &normalized_nodes[normalized_nodes.len() / 2..],
                     GLMode::Visible, &self.state.under_cursor_color,
                     &self.state.selected_color);
             }
 
+            if self.props.is_plot_displacements_selected && !self.props.drawn_elements.is_empty()
+            {
+                match drawn_object.add_deformed_shape_elements(
+                    &normalized_nodes[normalized_nodes.len() / 2..],
+                    &self.props.drawn_elements,
+                    GLMode::Visible, &self.state.under_cursor_color,
+                    &self.state.selected_color)
+                {
+                    Err(msg) =>
+                        yew::services::DialogService::alert(&format!("{:?}", msg)),
+                    Ok(()) => (),
+                }
+            }
+
             drawn_objects_buffers.render(&gl, &drawn_object, &shaders_variables);
+            let point_size = 5.0 as GLElementsValues;
 
             // let field_of_view = 45.0 * PI / 180.0;
             let mut projection_matrix = mat4::new_zero();
@@ -768,6 +805,7 @@ impl PostprocessorCanvas
             mat4::rotate_x(&mut model_view_matrix,&mat_to_rotate,&self.state.phi);
             let mat_to_rotate = model_view_matrix;
             mat4::rotate_y(&mut model_view_matrix, &mat_to_rotate, &self.state.theta);
+            gl.uniform1f(Some(&shaders_variables.point_size), point_size);
             gl.uniform_matrix4fv_with_f32_array(
                 Some(&shaders_variables.projection_matrix), false, &projection_matrix);
             gl.uniform_matrix4fv_with_f32_array(
@@ -795,6 +833,36 @@ impl PostprocessorCanvas
                 self.props.canvas_height as f32,
                 &node.number.to_string());
                 ctx.stroke();
+            }
+
+            if !self.props.drawn_elements.is_empty()
+            {
+                for element in self.props.drawn_elements.as_ref()
+                {
+                    let denotation_color = define_drawn_object_denotation_color(element.uid,
+                        &self.state.selected_color, &self.state.under_cursor_color,
+                        CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR);
+                    match element.find_denotation_coordinates(&normalized_nodes)
+                    {
+                        Ok(coordinates) =>
+                            {
+                                ctx.set_fill_style(&denotation_color.into());
+                                add_denotation(&ctx,
+                                &[coordinates[0],
+                                    coordinates[1] +
+                                        DRAWN_ELEMENTS_DENOTATION_SHIFT / (1.0 + self.state.d_scale),
+                                    coordinates[2],
+                                    coordinates[3]],
+                                &matrix,
+                                self.props.canvas_width as f32,
+                                self.props.canvas_height as f32,
+                                &element.number.to_string());
+                                ctx.stroke();
+                            },
+                        Err(msg) =>
+                            yew::services::DialogService::alert(&format!("{:?}", msg)),
+                    }
+                }
             }
 
             if self.props.is_plot_displacements_selected
@@ -939,6 +1007,7 @@ impl PostprocessorCanvas
 
         let cs_buffers = Buffers::initialize(&gl);
         let mut cs_drawn_object = DrawnObject::create();
+        gl.line_width(2.5);
 
         cs_drawn_object.add_cs_axis_line(CSAxis::X);
         cs_drawn_object.add_cs_axis_line(CSAxis::Y);
@@ -954,6 +1023,7 @@ impl PostprocessorCanvas
             CS_AXES_CAPS_HEIGHT, CS_AXES_CAPS_WIDTH);
 
         cs_buffers.render(&gl, &cs_drawn_object, &shaders_variables);
+        let point_size = 5.0 as GLElementsValues;
 
         let mut projection_matrix = mat4::new_zero();
         mat4::orthographic(&mut projection_matrix,
@@ -973,6 +1043,7 @@ impl PostprocessorCanvas
         mat4::rotate_x(&mut model_view_matrix,&mat_to_rotate,&self.state.phi);
         let mat_to_rotate = model_view_matrix;
         mat4::rotate_y(&mut model_view_matrix, &mat_to_rotate, &self.state.theta);
+        gl.uniform1f(Some(&shaders_variables.point_size), point_size);
         gl.uniform_matrix4fv_with_f32_array(
             Some(&shaders_variables.projection_matrix), false, &projection_matrix);
         gl.uniform_matrix4fv_with_f32_array(

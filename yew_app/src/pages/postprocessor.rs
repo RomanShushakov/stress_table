@@ -8,7 +8,7 @@ use crate::fem::{GlobalAnalysisResult, FENode};
 use crate::{ElementsNumbers, ElementsValues, UIDNumbers};
 
 use crate::components::{ViewMenu, PostprocessorCanvas, PlotDisplacementsMenu};
-use crate::auxiliary::{View, FEDrawnNodeData};
+use crate::auxiliary::{View, FEDrawnNodeData, FEDrawnElementData};
 
 
 const POSTPROCESSOR_CLASS: &str = "postprocessor";
@@ -30,6 +30,7 @@ pub struct Props
     pub canvas_height: u32,
     pub drawn_nodes: Rc<Vec<FEDrawnNodeData>>,
     pub drawn_uid_number: UIDNumbers,
+    pub drawn_elements: Rc<Vec<FEDrawnElementData>>,
 }
 
 
@@ -160,7 +161,7 @@ impl Component for Postprocessor
                                         drawn_nodes=Rc::clone(&self.props.drawn_nodes),
                                         global_analysis_result=Rc::clone(&self.props.global_analysis_result),
                                         is_plot_displacements_selected=self.state.is_plot_displacements_selected.to_owned(),
-                                        // drawn_elements=Rc::clone(&self.props.drawn_elements),
+                                        drawn_elements=Rc::clone(&self.props.drawn_elements),
                                         // add_analysis_message=self.props.add_analysis_message.to_owned(),
                                         // drawn_bcs=Rc::clone(&self.props.drawn_bcs),
                                         add_object_info=handle_add_object_info.to_owned(),

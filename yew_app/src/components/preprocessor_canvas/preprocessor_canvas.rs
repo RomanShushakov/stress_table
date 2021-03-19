@@ -559,7 +559,8 @@ impl PreprocessorCanvas
         gl.enable(GL::DEPTH_TEST);
         gl.clear(GL::COLOR_BUFFER_BIT);
         gl.clear(GL::DEPTH_BUFFER_BIT);
-        gl.line_width(3.5);
+        gl.line_width(10.0);
+
         let vertex_shader_code = include_str!("shaders/prep_shader.vert");
         let fragment_shader_code = include_str!("shaders/prep_shader.frag");
 
@@ -631,6 +632,8 @@ impl PreprocessorCanvas
 
             drawn_objects_buffers.render(&gl, &drawn_object, &shaders_variables);
 
+            let point_size = 10.0 as GLElementsValues;
+
             // let field_of_view = 45.0 * PI / 180.0;
             let mut projection_matrix = mat4::new_zero();
 
@@ -651,6 +654,7 @@ impl PreprocessorCanvas
             mat4::rotate_x(&mut model_view_matrix,&mat_to_rotate,&self.state.phi);
             let mat_to_rotate = model_view_matrix;
             mat4::rotate_y(&mut model_view_matrix, &mat_to_rotate, &self.state.theta);
+            gl.uniform1f(Some(&shaders_variables.point_size), point_size);
             gl.uniform_matrix4fv_with_f32_array(
                 Some(&shaders_variables.projection_matrix), false, &projection_matrix);
             gl.uniform_matrix4fv_with_f32_array(
@@ -669,6 +673,7 @@ impl PreprocessorCanvas
 
             gl.clear(GL::COLOR_BUFFER_BIT);
             gl.clear(GL::DEPTH_BUFFER_BIT);
+            gl.line_width(1.0);
 
             drawn_object = DrawnObject::create();
             drawn_objects_buffers = Buffers::initialize(&gl);
@@ -712,6 +717,8 @@ impl PreprocessorCanvas
 
             drawn_objects_buffers.render(&gl, &drawn_object, &shaders_variables);
 
+            let point_size = 5.0 as GLElementsValues;
+
             // let field_of_view = 45.0 * PI / 180.0;
             let mut projection_matrix = mat4::new_zero();
 
@@ -732,6 +739,7 @@ impl PreprocessorCanvas
             mat4::rotate_x(&mut model_view_matrix,&mat_to_rotate,&self.state.phi);
             let mat_to_rotate = model_view_matrix;
             mat4::rotate_y(&mut model_view_matrix, &mat_to_rotate, &self.state.theta);
+            gl.uniform1f(Some(&shaders_variables.point_size), point_size);
             gl.uniform_matrix4fv_with_f32_array(
                 Some(&shaders_variables.projection_matrix), false, &projection_matrix);
             gl.uniform_matrix4fv_with_f32_array(
@@ -741,7 +749,6 @@ impl PreprocessorCanvas
 
             let mut matrix = mat4::new_identity();
             mat4::mul(&mut matrix, &projection_matrix, &model_view_matrix);
-
 
             for node in normalized_nodes.iter()
             {
@@ -852,6 +859,7 @@ impl PreprocessorCanvas
 
         let cs_buffers = Buffers::initialize(&gl);
         let mut cs_drawn_object = DrawnObject::create();
+        gl.line_width(2.5);
 
         cs_drawn_object.add_cs_axis_line(CSAxis::X);
         cs_drawn_object.add_cs_axis_line(CSAxis::Y);
@@ -867,6 +875,8 @@ impl PreprocessorCanvas
             CS_AXES_CAPS_HEIGHT, CS_AXES_CAPS_WIDTH);
 
         cs_buffers.render(&gl, &cs_drawn_object, &shaders_variables);
+
+        let point_size = 5.0 as GLElementsValues;
 
         let mut projection_matrix = mat4::new_zero();
         mat4::orthographic(&mut projection_matrix,
@@ -886,6 +896,7 @@ impl PreprocessorCanvas
         mat4::rotate_x(&mut model_view_matrix,&mat_to_rotate,&self.state.phi);
         let mat_to_rotate = model_view_matrix;
         mat4::rotate_y(&mut model_view_matrix, &mat_to_rotate, &self.state.theta);
+        gl.uniform1f(Some(&shaders_variables.point_size), point_size);
         gl.uniform_matrix4fv_with_f32_array(
             Some(&shaders_variables.projection_matrix), false, &projection_matrix);
         gl.uniform_matrix4fv_with_f32_array(

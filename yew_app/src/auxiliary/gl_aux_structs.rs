@@ -85,7 +85,8 @@ pub const ROTATION_HINT_SHIFT_Y: GLElementsValues = 0.85;
 pub const ZOOM_HINT_SHIFT_Y: GLElementsValues = 0.9;
 pub const PAN_HINT_SHIFT_Y: GLElementsValues = 0.95;
 
-pub const DRAWN_DEFORMED_SHAPE_NODES_COLOR: [GLElementsValues; 4] = [1.0, 1.0, 1.0, 1.0]; // yellow
+pub const DRAWN_DEFORMED_SHAPE_NODES_COLOR: [GLElementsValues; 4] = [1.0, 1.0, 1.0, 1.0]; // white
+pub const DRAWN_DEFORMED_SHAPE_ELEMENTS_COLOR: [GLElementsValues; 4] = [1.0, 1.0, 1.0, 1.0]; // white
 pub const CANVAS_DRAWN_DEFORMED_SHAPE_NODES_DENOTATION_COLOR: &str = "white";
 pub const DRAWN_DEFORMED_SHAPE_NODES_DENOTATION_SHIFT: GLElementsValues = 0.02;
 
@@ -305,7 +306,7 @@ impl DrawnObject
     }
 
 
-    pub fn add_elements(&mut self, normalized_nodes: &Vec<NormalizedNode>,
+    pub fn add_elements(&mut self, normalized_nodes: &[NormalizedNode],
         drawn_elements: &Vec<FEDrawnElementData>, gl_mode: GLMode,
         under_cursor_color: &[u8; 4], selected_color: &[u8; 4]) -> Result<(), String>
     {
@@ -452,6 +453,184 @@ impl DrawnObject
                 count += 1;
                 let node_2_number =
                     complex_element.nodes_numbers[complex_element.nodes_numbers.len() - 1] as GLElementsNumbers;
+                let node_2_coordinates =
+                    match find_node_coordinates(node_2_number, normalized_nodes)
+                    {
+                        Ok(coordinates) => coordinates,
+                        Err(e) =>
+                            {
+                                return Err(e);
+                            }
+                    };
+                self.vertices_coordinates.extend(&node_2_coordinates);
+                self.colors_values.extend(&complex_element_color);
+                self.indexes_numbers.push(start_index + count as GLElementsNumbers);
+                count += 1;
+            }
+            self.modes.push(GLPrimitiveType::Lines);
+            self.elements_numbers.push(complex_elements.len() as i32 * 2);
+            let offset = self.define_offset();
+            self.offsets.push(offset);
+        }
+        Ok(())
+    }
+
+
+    pub fn add_deformed_shape_elements(&mut self, normalized_nodes: &[NormalizedNode],
+        drawn_elements: &Vec<FEDrawnElementData>, gl_mode: GLMode,
+        under_cursor_color: &[u8; 4], selected_color: &[u8; 4]) -> Result<(), String>
+    {
+        let start_index =
+            if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
+        let mut count = 0;
+        let mut point_elements = Vec::new();
+        let mut line_elements = Vec::new();
+        let mut complex_elements = Vec::new();
+        for element in drawn_elements
+        {
+            if element.nodes_numbers.len() == 1
+            {
+                point_elements.push(element);
+            }
+            if element.nodes_numbers.len() == 2
+            {
+                line_elements.push(element);
+            }
+            if element.nodes_numbers.len() > 2
+            {
+                complex_elements.push(element);
+            }
+        }
+        if !point_elements.is_empty()
+        {
+            for point_element in &point_elements
+            {
+                let point_element_color = define_drawn_object_color(&gl_mode,
+                    point_element.uid, selected_color, under_cursor_color,
+                    &DRAWN_DEFORMED_SHAPE_ELEMENTS_COLOR);
+                let node_number = point_element.nodes_numbers[0] as GLElementsNumbers +
+                    normalized_nodes.len() as GLElementsNumbers;
+                let node_coordinates =
+                    match find_node_coordinates(node_number, normalized_nodes)
+                    {
+                        Ok(coordinates) => coordinates,
+                        Err(e) =>
+                            {
+                                return Err(e);
+                            }
+                    };
+                self.vertices_coordinates.extend(&node_coordinates);
+                self.colors_values.extend(&point_element_color);
+                self.indexes_numbers.push(start_index + count as GLElementsNumbers);
+                count += 1;
+            }
+            self.modes.push(GLPrimitiveType::Points);
+            self.elements_numbers.push(point_elements.len() as i32);
+            let offset = self.define_offset();
+            self.offsets.push(offset);
+        }
+        if !line_elements.is_empty()
+        {
+            for line_element in &line_elements
+            {
+                let line_element_color = define_drawn_object_color(&gl_mode,
+                    line_element.uid, selected_color, under_cursor_color,
+                    &DRAWN_DEFORMED_SHAPE_ELEMENTS_COLOR);
+                let node_1_number = line_element.nodes_numbers[0] as GLElementsNumbers +
+                    normalized_nodes.len() as GLElementsNumbers;
+                let node_1_coordinates =
+                    match find_node_coordinates(node_1_number, normalized_nodes)
+                    {
+                        Ok(coordinates) => coordinates,
+                        Err(e) =>
+                            {
+                                return Err(e);
+                            }
+                    };
+                self.vertices_coordinates.extend(&node_1_coordinates);
+                self.colors_values.extend(&line_element_color);
+                self.indexes_numbers.push(start_index + count as GLElementsNumbers);
+                count += 1;
+                let node_2_number = line_element.nodes_numbers[1] as GLElementsNumbers +
+                    normalized_nodes.len() as GLElementsNumbers;
+                let node_2_coordinates =
+                    match find_node_coordinates(node_2_number, normalized_nodes)
+                    {
+                        Ok(coordinates) => coordinates,
+                        Err(e) =>
+                            {
+                                return Err(e);
+                            }
+                    };
+                self.vertices_coordinates.extend(&node_2_coordinates);
+                self.colors_values.extend(&line_element_color);
+                self.indexes_numbers.push(start_index + count as GLElementsNumbers);
+                count += 1;
+            }
+            self.modes.push(GLPrimitiveType::Lines);
+            self.elements_numbers.push(line_elements.len() as i32 * 2);
+            let offset = self.define_offset();
+            self.offsets.push(offset);
+        }
+        if !complex_elements.is_empty()
+        {
+            for complex_element in &complex_elements
+            {
+                let complex_element_color = define_drawn_object_color(&gl_mode,
+                    complex_element.uid, selected_color, under_cursor_color,
+                    &DRAWN_DEFORMED_SHAPE_ELEMENTS_COLOR);
+                for i in 1..complex_element.nodes_numbers.len()
+                {
+                    let node_1_number =
+                        complex_element.nodes_numbers[i - 1] as GLElementsNumbers +
+                            normalized_nodes.len() as GLElementsNumbers;
+                    let node_1_coordinates =
+                    match find_node_coordinates(node_1_number, normalized_nodes)
+                    {
+                        Ok(coordinates) => coordinates,
+                        Err(e) =>
+                            {
+                                return Err(e);
+                            }
+                    };
+                    self.vertices_coordinates.extend(&node_1_coordinates);
+                    self.colors_values.extend(&complex_element_color);
+                    self.indexes_numbers.push(start_index + count as GLElementsNumbers);
+                    count += 1;
+                    let node_2_number = complex_element.nodes_numbers[i] as GLElementsNumbers +
+                        normalized_nodes.len() as GLElementsNumbers;
+                    let node_2_coordinates =
+                        match find_node_coordinates(node_2_number, normalized_nodes)
+                        {
+                            Ok(coordinates) => coordinates,
+                            Err(e) =>
+                                {
+                                    return Err(e);
+                                }
+                        };
+                    self.vertices_coordinates.extend(&node_2_coordinates);
+                    self.colors_values.extend(&complex_element_color);
+                    self.indexes_numbers.push(start_index + count as GLElementsNumbers);
+                    count += 1;
+                }
+                let node_1_number = complex_element.nodes_numbers[0] as GLElementsNumbers +
+                    normalized_nodes.len() as GLElementsNumbers;
+                let node_1_coordinates =
+                match find_node_coordinates(node_1_number, normalized_nodes)
+                {
+                    Ok(coordinates) => coordinates,
+                    Err(e) =>
+                        {
+                            return Err(e);
+                        }
+                };
+                self.vertices_coordinates.extend(&node_1_coordinates);
+                self.colors_values.extend(&complex_element_color);
+                self.indexes_numbers.push(start_index + count as GLElementsNumbers);
+                count += 1;
+                let node_2_number =
+                    complex_element.nodes_numbers[complex_element.nodes_numbers.len() - 1]
+                        as GLElementsNumbers + normalized_nodes.len() as GLElementsNumbers;
                 let node_2_coordinates =
                     match find_node_coordinates(node_2_number, normalized_nodes)
                     {
@@ -878,6 +1057,7 @@ pub struct ShadersVariables
 {
     vertex_position: u32,
     vertex_color: u32,
+    pub point_size: WebGlUniformLocation,
     pub projection_matrix: WebGlUniformLocation,
     pub model_view_matrix: WebGlUniformLocation,
 }
@@ -889,13 +1069,15 @@ impl ShadersVariables
     {
         let vertex_position = gl.get_attrib_location(&shader_program, "aVertexPosition") as u32;
         let vertex_color = gl.get_attrib_location(&shader_program, "aVertexColor") as u32;
+        let point_size = gl.get_uniform_location(&shader_program, "uPointSize").unwrap();
         let projection_matrix = gl
             .get_uniform_location(&shader_program, "uProjectionMatrix")
             .unwrap();
         let model_view_matrix = gl
             .get_uniform_location(&shader_program, "uModelViewMatrix")
             .unwrap();
-        ShadersVariables { vertex_position, vertex_color, projection_matrix, model_view_matrix }
+        ShadersVariables {
+            vertex_position, vertex_color, point_size, projection_matrix, model_view_matrix }
     }
 }
 

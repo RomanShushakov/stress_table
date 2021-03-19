@@ -196,7 +196,7 @@ pub fn normalize_nodes(nodes: Rc<Vec<FEDrawnNodeData>>, canvas_width: GLElements
 }
 
 
-pub fn find_node_coordinates(node_number: GLElementsNumbers, normalized_nodes: &Vec<NormalizedNode>)
+pub fn find_node_coordinates(node_number: GLElementsNumbers, normalized_nodes: &[NormalizedNode])
     -> Result<[GLElementsValues; 3], String>
 {
     let node_coordinates =

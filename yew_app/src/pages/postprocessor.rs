@@ -43,7 +43,7 @@ pub struct State
     pub magnitude: ElementsValues,
     pub is_plot_displacements_selected: bool,
     pub is_plot_reactions_selected: bool,
-    pub plot_stresses_selected: Option<StressStrainComponent>,
+    pub stress_component_selected: Option<StressStrainComponent>,
 }
 
 
@@ -62,7 +62,7 @@ pub enum Msg
     ChangeMagnitude(ElementsValues),
     SelectPlotDisplacements,
     SelectPlotReactions,
-    SelectPlotStresses(StressStrainComponent),
+    SelectStressComponent(StressStrainComponent),
 }
 
 
@@ -80,7 +80,7 @@ impl Component for Postprocessor
                 magnitude: 1.0 as ElementsValues,
                 is_plot_displacements_selected: false,
                 is_plot_reactions_selected: false,
-                plot_stresses_selected: None,
+                stress_component_selected: None,
             };
         Self { props, link, state }
     }
@@ -95,19 +95,19 @@ impl Component for Postprocessor
                 {
                     self.state.is_plot_displacements_selected = true;
                     self.state.is_plot_reactions_selected = false;
-                    self.state.plot_stresses_selected = None;
+                    self.state.stress_component_selected = None;
                 },
             Msg::SelectPlotReactions =>
                 {
                     self.state.is_plot_displacements_selected = false;
                     self.state.is_plot_reactions_selected = true;
-                    self.state.plot_stresses_selected = None;
+                    self.state.stress_component_selected = None;
                 },
-            Msg::SelectPlotStresses(component) =>
+            Msg::SelectStressComponent(component) =>
                 {
                     self.state.is_plot_displacements_selected = false;
                     self.state.is_plot_reactions_selected = false;
-                    self.state.plot_stresses_selected = Some(component);
+                    self.state.stress_component_selected = Some(component);
                 },
             Msg::AddObjectInfo(info) => self.state.object_info = Some(info),
             Msg::ResetObjectInfo => self.state.object_info = None,
@@ -149,9 +149,9 @@ impl Component for Postprocessor
         let handle_select_plot_displacements =
             self.link.callback(|_| Msg::SelectPlotDisplacements);
 
-        let handle_select_plot_stresses =
+        let handle_select_stress_component =
             self.link.callback(|stress_component|
-                Msg::SelectPlotStresses(stress_component));
+                Msg::SelectStressComponent(stress_component));
         html!
         {
             <>
@@ -196,8 +196,8 @@ impl Component for Postprocessor
                                         { "Plot reactions" }
                                     </button>
                                     <PlotStressesMenu
-                                        plot_stresses_selected=self.state.plot_stresses_selected.to_owned(),
-                                        select_plot_stresses=handle_select_plot_stresses,
+                                        stress_component_selected=self.state.stress_component_selected.to_owned(),
+                                        select_stress_component=handle_select_stress_component,
                                     />
 
                                     // <ResultViewMenu

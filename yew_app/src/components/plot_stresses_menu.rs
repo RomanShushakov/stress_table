@@ -25,14 +25,14 @@ const PLOT_STRESSES_MENU_INPUT_FIELD_CLASS: &str = "plot_stresses_menu_input_fie
 #[derive(Properties, PartialEq, Clone)]
 pub struct Props
 {
-    pub plot_stresses_selected: Option<StressStrainComponent>,
-    pub select_plot_stresses: Callback<StressStrainComponent>,
+    pub stress_component_selected: Option<StressStrainComponent>,
+    pub select_stress_component: Callback<StressStrainComponent>,
 }
 
 
 struct State
 {
-    selected_stresses: StressStrainComponent,
+    stress_component_selected: StressStrainComponent,
 }
 
 
@@ -47,8 +47,8 @@ pub struct PlotStressesMenu
 pub enum Msg
 {
     ShowHidePlotStressesMenu,
-    SelectStress(ChangeData),
-    ApplyStress,
+    SelectStressComponent(ChangeData),
+    ApplyStressComponent,
 }
 
 
@@ -80,7 +80,7 @@ impl Component for PlotStressesMenu
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self
     {
-        Self { props, link, state: State { selected_stresses: StressStrainComponent::XX } }
+        Self { props, link, state: State { stress_component_selected: StressStrainComponent::XX } }
     }
 
 
@@ -89,7 +89,7 @@ impl Component for PlotStressesMenu
         match msg
         {
             Msg::ShowHidePlotStressesMenu => self.show_hide_plot_stresses_menu(),
-            Msg::SelectStress(data) =>
+            Msg::SelectStressComponent(data) =>
                 {
                     match data
                     {
@@ -97,36 +97,36 @@ impl Component for PlotStressesMenu
                             {
                                 if stress_select == StressStrainComponent::XX.as_str()
                                 {
-                                    self.state.selected_stresses = StressStrainComponent::XX;
+                                    self.state.stress_component_selected = StressStrainComponent::XX;
                                 }
                                 if stress_select == StressStrainComponent::XY.as_str()
                                 {
-                                    self.state.selected_stresses = StressStrainComponent::XY;
+                                    self.state.stress_component_selected = StressStrainComponent::XY;
                                 }
                                 if stress_select == StressStrainComponent::XZ.as_str()
                                 {
-                                    self.state.selected_stresses = StressStrainComponent::XZ;
+                                    self.state.stress_component_selected = StressStrainComponent::XZ;
                                 }
                                 if stress_select == StressStrainComponent::YY.as_str()
                                 {
-                                    self.state.selected_stresses = StressStrainComponent::YY;
+                                    self.state.stress_component_selected = StressStrainComponent::YY;
                                 }
                                 if stress_select == StressStrainComponent::YZ.as_str()
                                 {
-                                    self.state.selected_stresses = StressStrainComponent::YZ;
+                                    self.state.stress_component_selected = StressStrainComponent::YZ;
                                 }
                                 if stress_select == StressStrainComponent::ZZ.as_str()
                                 {
-                                    self.state.selected_stresses = StressStrainComponent::ZZ;
+                                    self.state.stress_component_selected = StressStrainComponent::ZZ;
                                 }
                                 return false;
                             }
                         _ => (),
                     }
                 },
-            Msg::ApplyStress =>
+            Msg::ApplyStressComponent =>
                 {
-                    self.props.select_plot_stresses.emit(self.state.selected_stresses.to_owned());
+                    self.props.select_stress_component.emit(self.state.stress_component_selected.to_owned());
                 },
         }
         true
@@ -163,13 +163,13 @@ impl Component for PlotStressesMenu
                         <div class={ PLOT_STRESSES_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                             <input
                                 class={ PLOT_STRESSES_MENU_INPUT_FIELD_CLASS },
-                                onchange=self.link.callback(|data: ChangeData| Msg::SelectStress(data)),
+                                onchange=self.link.callback(|data: ChangeData| Msg::SelectStressComponent(data)),
                                 type="radio", id={ PLOT_STRESS_XX_ID },
                                 name={ PLOT_STRESSES_INPUT_NAME },
                                 value={ StressStrainComponent::XX.as_str() },
                                 checked=
                                 {
-                                    if let Some(stress) = &self.props.plot_stresses_selected
+                                    if let Some(stress) = &self.props.stress_component_selected
                                     {
                                         if *stress == StressStrainComponent::XX
                                         {
@@ -193,13 +193,13 @@ impl Component for PlotStressesMenu
                         <div class={ PLOT_STRESSES_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                             <input
                                 class={ PLOT_STRESSES_MENU_INPUT_FIELD_CLASS },
-                                onchange=self.link.callback(|data: ChangeData| Msg::SelectStress(data)),
+                                onchange=self.link.callback(|data: ChangeData| Msg::SelectStressComponent(data)),
                                 type="radio", id={ PLOT_STRESS_XY_ID },
                                 name={ PLOT_STRESSES_INPUT_NAME },
                                 value={ StressStrainComponent::XY.as_str() },
                                 checked=
                                 {
-                                    if let Some(stress) = &self.props.plot_stresses_selected
+                                    if let Some(stress) = &self.props.stress_component_selected
                                     {
                                         if *stress == StressStrainComponent::XY
                                         {
@@ -224,13 +224,13 @@ impl Component for PlotStressesMenu
                         <div class={ PLOT_STRESSES_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                             <input
                                 class={ PLOT_STRESSES_MENU_INPUT_FIELD_CLASS },
-                                onchange=self.link.callback(|data: ChangeData| Msg::SelectStress(data)),
+                                onchange=self.link.callback(|data: ChangeData| Msg::SelectStressComponent(data)),
                                 type="radio", id={ PLOT_STRESS_XZ_ID },
                                 name={ PLOT_STRESSES_INPUT_NAME },
                                 value={ StressStrainComponent::XZ.as_str() },
                                 checked=
                                 {
-                                    if let Some(stress) = &self.props.plot_stresses_selected
+                                    if let Some(stress) = &self.props.stress_component_selected
                                     {
                                         if *stress == StressStrainComponent::XZ
                                         {
@@ -255,13 +255,13 @@ impl Component for PlotStressesMenu
                         <div class={ PLOT_STRESSES_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                             <input
                                 class={ PLOT_STRESSES_MENU_INPUT_FIELD_CLASS },
-                                onchange=self.link.callback(|data: ChangeData| Msg::SelectStress(data)),
+                                onchange=self.link.callback(|data: ChangeData| Msg::SelectStressComponent(data)),
                                 type="radio", id={ PLOT_STRESS_YY_ID },
                                 name={ PLOT_STRESSES_INPUT_NAME },
                                 value={ StressStrainComponent::YY.as_str() },
                                 checked=
                                 {
-                                    if let Some(stress) = &self.props.plot_stresses_selected
+                                    if let Some(stress) = &self.props.stress_component_selected
                                     {
                                         if *stress == StressStrainComponent::YY
                                         {
@@ -286,13 +286,13 @@ impl Component for PlotStressesMenu
                         <div class={ PLOT_STRESSES_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                             <input
                                 class={ PLOT_STRESSES_MENU_INPUT_FIELD_CLASS },
-                                onchange=self.link.callback(|data: ChangeData| Msg::SelectStress(data)),
+                                onchange=self.link.callback(|data: ChangeData| Msg::SelectStressComponent(data)),
                                 type="radio", id={ PLOT_STRESS_YZ_ID },
                                 name={ PLOT_STRESSES_INPUT_NAME },
                                 value={ StressStrainComponent::YZ.as_str() },
                                 checked=
                                 {
-                                    if let Some(stress) = &self.props.plot_stresses_selected
+                                    if let Some(stress) = &self.props.stress_component_selected
                                     {
                                         if *stress == StressStrainComponent::YZ
                                         {
@@ -317,13 +317,13 @@ impl Component for PlotStressesMenu
                         <div class={ PLOT_STRESSES_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                             <input
                                 class={ PLOT_STRESSES_MENU_INPUT_FIELD_CLASS },
-                                onchange=self.link.callback(|data: ChangeData| Msg::SelectStress(data)),
+                                onchange=self.link.callback(|data: ChangeData| Msg::SelectStressComponent(data)),
                                 type="radio", id={ PLOT_STRESS_ZZ_ID },
                                 name={ PLOT_STRESSES_INPUT_NAME },
                                 value={ StressStrainComponent::ZZ.as_str() },
                                 checked=
                                 {
-                                    if let Some(stress) = &self.props.plot_stresses_selected
+                                    if let Some(stress) = &self.props.stress_component_selected
                                     {
                                         if *stress == StressStrainComponent::ZZ
                                         {
@@ -349,7 +349,7 @@ impl Component for PlotStressesMenu
                     <div class={ PLOT_STRESSES_MENU_BUTTONS_CONTAINER_CLASS }>
                         <button
                             class={ PLOT_STRESSES_MENU_BUTTON_CLASS },
-                            onclick=self.link.callback(|_| Msg::ApplyStress),
+                            onclick=self.link.callback(|_| Msg::ApplyStressComponent),
                         >
                             { "Apply" }
                         </button>

@@ -190,12 +190,12 @@ pub struct DrawnAnalysisResultNodeData
 }
 
 
-#[derive(Clone, PartialEq, Debug)]
-pub struct MinMaxValues
-{
-    pub min_value: ElementsValues,
-    pub max_value: ElementsValues,
-}
+// #[derive(Clone, PartialEq, Debug)]
+// pub struct MinMaxValues
+// {
+//     pub min_value: ElementsValues,
+//     pub max_value: ElementsValues,
+// }
 
 
 // #[derive(Clone, PartialEq)]

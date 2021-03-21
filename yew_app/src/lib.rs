@@ -37,7 +37,7 @@ mod auxiliary;
 use auxiliary::
     {
         View, FEDrawnNodeData, DrawnBCData,
-        ResultView, MinMaxValues, // AnalysisResult,
+        ResultView, // MinMaxValues, // AnalysisResult,
     };
 use crate::auxiliary::FEDrawnElementData;
 

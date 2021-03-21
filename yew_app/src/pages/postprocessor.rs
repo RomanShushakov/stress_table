@@ -5,9 +5,10 @@ use std::cell::RefCell;
 
 use crate::route::AppRoute;
 use crate::fem::{GlobalAnalysisResult, FENode, Displacements};
+use crate::fem::{StressStrainComponent};
 use crate::{ElementsNumbers, ElementsValues, UIDNumbers};
 
-use crate::components::{ViewMenu, PostprocessorCanvas, PlotDisplacementsMenu};
+use crate::components::{ViewMenu, PostprocessorCanvas, PlotDisplacementsMenu, PlotStressesMenu};
 use crate::auxiliary::{View, FEDrawnNodeData, FEDrawnElementData};
 use crate::fem::global_analysis::fe_global_analysis_result::Reactions;
 
@@ -42,6 +43,7 @@ pub struct State
     pub magnitude: ElementsValues,
     pub is_plot_displacements_selected: bool,
     pub is_plot_reactions_selected: bool,
+    pub plot_stresses_selected: Option<StressStrainComponent>,
 }
 
 
@@ -60,6 +62,7 @@ pub enum Msg
     ChangeMagnitude(ElementsValues),
     SelectPlotDisplacements,
     SelectPlotReactions,
+    SelectPlotStresses(StressStrainComponent),
 }
 
 
@@ -77,6 +80,7 @@ impl Component for Postprocessor
                 magnitude: 1.0 as ElementsValues,
                 is_plot_displacements_selected: false,
                 is_plot_reactions_selected: false,
+                plot_stresses_selected: None,
             };
         Self { props, link, state }
     }
@@ -91,11 +95,19 @@ impl Component for Postprocessor
                 {
                     self.state.is_plot_displacements_selected = true;
                     self.state.is_plot_reactions_selected = false;
+                    self.state.plot_stresses_selected = None;
                 },
             Msg::SelectPlotReactions =>
                 {
-                    self.state.is_plot_reactions_selected = true;
                     self.state.is_plot_displacements_selected = false;
+                    self.state.is_plot_reactions_selected = true;
+                    self.state.plot_stresses_selected = None;
+                },
+            Msg::SelectPlotStresses(component) =>
+                {
+                    self.state.is_plot_displacements_selected = false;
+                    self.state.is_plot_reactions_selected = false;
+                    self.state.plot_stresses_selected = Some(component);
                 },
             Msg::AddObjectInfo(info) => self.state.object_info = Some(info),
             Msg::ResetObjectInfo => self.state.object_info = None,
@@ -136,6 +148,10 @@ impl Component for Postprocessor
 
         let handle_select_plot_displacements =
             self.link.callback(|_| Msg::SelectPlotDisplacements);
+
+        let handle_select_plot_stresses =
+            self.link.callback(|stress_component|
+                Msg::SelectPlotStresses(stress_component));
         html!
         {
             <>
@@ -179,6 +195,10 @@ impl Component for Postprocessor
                                     >
                                         { "Plot reactions" }
                                     </button>
+                                    <PlotStressesMenu
+                                        plot_stresses_selected=self.state.plot_stresses_selected.to_owned(),
+                                        select_plot_stresses=handle_select_plot_stresses,
+                                    />
 
                                     // <ResultViewMenu
                                     //     result_view=self.state.result_view.to_owned(),

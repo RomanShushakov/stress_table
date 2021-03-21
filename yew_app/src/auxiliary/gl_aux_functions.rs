@@ -20,6 +20,7 @@ use crate::auxiliary::gl_aux_structs::
         DRAWN_OBJECT_UNDER_CURSOR_COLOR, CANVAS_DRAWN_OBJECT_SELECTED_DENOTATION_COLOR,
         CANVAS_DRAWN_OBJECT_UNDER_CURSOR_DENOTATION_COLOR, DISPLACEMENT_SHIFT_X,
         DISPLACEMENT_HEADER_SHIFT_Y, MIN_DISPLACEMENT_SHIFT_Y, MAX_DISPLACEMENT_SHIFT_Y,
+        REACTION_SHIFT_X, REACTION_HEADER_SHIFT_Y,
     };
 use crate::auxiliary::aux_functions::transform_u32_to_array_of_u8;
 use crate::fem::global_analysis::fe_global_analysis_result::Reactions;
@@ -251,8 +252,16 @@ pub fn add_displacements_hints(ctx: &CTX, canvas_width: f32, canvas_height: f32,
     let max_displacement_hint = &format!("Max displacement: {:+.5e}", max_displacement);
     ctx.fill_text(max_displacement_hint, displacement_shift_x as f64,
         max_displacement_y as f64).unwrap();
-    ctx.fill_text(max_displacement_hint, displacement_shift_x as f64,
-        max_displacement_y as f64).unwrap();
+}
+
+
+pub fn add_reactions_hints(ctx: &CTX, canvas_width: f32, canvas_height: f32)
+{
+    let reaction_shift_x = canvas_width * REACTION_SHIFT_X;
+    let reaction_header_shift_y = canvas_height * REACTION_HEADER_SHIFT_Y;
+    let reaction_header = "REACTIONS";
+    ctx.fill_text(reaction_header, reaction_shift_x as f64,
+        reaction_header_shift_y as f64).unwrap();
 }
 
 

@@ -21,7 +21,7 @@ use crate::auxiliary::gl_aux_functions::
         add_denotation, initialize_shaders, normalize_nodes, add_hints,
         extend_by_deformed_shape_nodes, update_displacement_value,
         define_drawn_object_denotation_color, add_displacements_hints,
-        extend_by_reactions
+        extend_by_reactions, add_reactions_hints
     };
 use crate::auxiliary::gl_aux_structs::{Buffers, ShadersVariables, DrawnObject};
 use crate::auxiliary::gl_aux_structs::{CSAxis, GLMode};
@@ -977,6 +977,14 @@ impl PostprocessorCanvas
                 ctx.set_fill_style(&HINTS_COLOR.into());
                 add_displacements_hints(&ctx, self.props.canvas_width as f32,
                     self.props.canvas_height as f32, min_displacement, max_displacement);
+                ctx.stroke();
+            }
+
+            if self.props.is_plot_reactions_selected
+            {
+                ctx.set_fill_style(&HINTS_COLOR.into());
+                add_reactions_hints(&ctx, self.props.canvas_width as f32,
+                    self.props.canvas_height as f32);
                 ctx.stroke();
             }
 

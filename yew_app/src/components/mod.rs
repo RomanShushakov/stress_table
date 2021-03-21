@@ -4,12 +4,9 @@ pub mod preprocessor_canvas;
 mod element_menu;
 mod displacement_menu;
 mod force_menu;
-// mod preprocessor_canvas;
-// mod result_view_menu;
 pub mod postprocessor_canvas;
 pub mod plot_displacements_menu;
-// mod all_results_table;
-
+pub mod plot_stresses_menu;
 
 pub use view_menu::ViewMenu;
 pub use node_menu::NodeMenu;
@@ -17,8 +14,6 @@ pub use preprocessor_canvas::preprocessor_canvas::PreprocessorCanvas;
 pub use element_menu::ElementMenu;
 pub use displacement_menu::DisplacementMenu;
 pub use force_menu::ForceMenu;
-// pub use preprocessor_canvas::PreprocessorCanvas;
-// pub use result_view_menu::ResultViewMenu;
 pub use postprocessor_canvas::postprocessor_canvas::PostprocessorCanvas;
 pub use plot_displacements_menu::PlotDisplacementsMenu;
-// pub use all_results_table::AllResultsTable;
+pub use plot_stresses_menu::PlotStressesMenu;

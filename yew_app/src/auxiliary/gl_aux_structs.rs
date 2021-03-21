@@ -102,6 +102,9 @@ pub const DISPLACEMENT_HEADER_SHIFT_Y: GLElementsValues = 0.1;
 pub const MIN_DISPLACEMENT_SHIFT_Y: GLElementsValues = 0.15;
 pub const MAX_DISPLACEMENT_SHIFT_Y: GLElementsValues = 0.2;
 
+pub const REACTION_SHIFT_X: GLElementsValues = 0.05;
+pub const REACTION_HEADER_SHIFT_Y: GLElementsValues = 0.1;
+
 
 pub enum CSAxis
 {

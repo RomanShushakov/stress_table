@@ -548,6 +548,7 @@ impl Component for PreprocessorCanvas
     }
 }
 
+
 impl PreprocessorCanvas
 {
     fn render_gl_and_ctx(&mut self, _timestamp: f64)

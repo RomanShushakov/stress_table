@@ -19,7 +19,7 @@ use yew_router::prelude::*;
 use yew_router::agent::RouteRequest;
 
 mod fem;
-use crate::fem::{FEModel, FEData, GlobalAnalysisResult};
+use crate::fem::{FEModel, FEData, GlobalAnalysisResult, Displacements};
 use crate::fem::{GlobalDOFParameter, BCType};
 use crate::fem::GLOBAL_DOF;
 mod extended_matrix;
@@ -47,6 +47,7 @@ use route::AppRoute;
 mod pages;
 use pages::{Preprocessor, Postprocessor};
 use yew_router::router::Render;
+use crate::fem::global_analysis::fe_global_analysis_result::Reactions;
 
 
 // #[global_allocator]
@@ -72,7 +73,8 @@ struct State
     is_preprocessor_active: bool,
     fem: FEModel<ElementsNumbers, ElementsValues>,
     analysis_message: Option<String>,
-    global_analysis_result: Rc<Option<GlobalAnalysisResult<ElementsNumbers, ElementsValues>>>,
+    global_displacements: Rc<Option<Displacements<ElementsNumbers, ElementsValues>>>,
+    reactions: Rc<Option<Reactions<ElementsNumbers, ElementsValues>>>,
     // analysis_result: Option<AnalysisResult>,
     result_view: Option<ResultView>,
 }
@@ -178,7 +180,8 @@ impl Component for Model
                     is_preprocessor_active: true,
                     fem,
                     analysis_message: None,
-                    global_analysis_result: Rc::new(None),
+                    global_displacements: Rc::new(None),
+                    reactions: Rc::new(None),
                     result_view: None,
                 },
             resize_task: None,
@@ -353,15 +356,24 @@ impl Component for Model
                     match self.submit()
                     {
                         Ok(global_analysis_result) =>
-                            self.state.global_analysis_result =
-                                Rc::new(Some(global_analysis_result)),
+                            {
+                                let global_displacements =
+                                    global_analysis_result.extract_displacements();
+                                let reactions =
+                                    global_analysis_result.extract_reactions();
+                                self.state.global_displacements =
+                                    Rc::new(Some(global_displacements));
+                                self.state.reactions =
+                                    Rc::new(Some(reactions));
+                            },
                         Err(msg) => self.state.analysis_message = Some(msg),
                     }
                 },
             Msg::EditFEM =>
                 {
                     self.state.is_preprocessor_active = true;
-                    self.state.global_analysis_result = Rc::new(None);
+                    self.state.global_displacements = Rc::new(None);
+                    self.state.reactions = Rc::new(None);
                     self.state.result_view = None;
                 },
             Msg::ChangeResultView(result_view) =>
@@ -427,8 +439,9 @@ impl Component for Model
         let canvas_width = self.state.canvas_width.to_owned();
         let canvas_height = self.state.canvas_height.to_owned();
         let analysis_message = self.state.analysis_message.to_owned();
-        let global_analysis_result =
-            Rc::clone(&self.state.global_analysis_result);
+        let global_displacements =
+            Rc::clone(&self.state.global_displacements);
+        let reactions = Rc::clone(&self.state.reactions);
         let handle_edit_fem = self.link.callback(|_| Msg::EditFEM);
 
         let render = Router::render(move |switch: AppRoute| match switch
@@ -465,7 +478,8 @@ impl Component for Model
                         reset_analysis_message=handle_reset_analysis_message.to_owned(),
 
                         submit=handle_submit.to_owned(),
-                        global_analysis_result=Rc::clone(&global_analysis_result),
+                        global_displacements=Rc::clone(&global_displacements),
+                        reactions=Rc::clone(&reactions),
                         edit_fem=handle_edit_fem.to_owned(),
                     />
                 },
@@ -473,7 +487,8 @@ impl Component for Model
                 html!
                 {
                     <Postprocessor
-                        global_analysis_result=Rc::clone(&global_analysis_result),
+                        global_displacements=Rc::clone(&global_displacements),
+                        reactions=Rc::clone(&reactions),
                         view=view.to_owned(),
                         change_view=handle_change_view.to_owned(),
                         discard_view=handle_discard_view.to_owned(),
@@ -516,7 +531,8 @@ impl Component for Model
                         reset_analysis_message=handle_reset_analysis_message.to_owned(),
 
                         submit=handle_submit.to_owned(),
-                        global_analysis_result=Rc::clone(&global_analysis_result),
+                        global_displacements=Rc::clone(&global_displacements),
+                        reactions=Rc::clone(&reactions),
                         edit_fem=handle_edit_fem.to_owned(),
                     />
                 },

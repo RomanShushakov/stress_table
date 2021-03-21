@@ -4,11 +4,12 @@ use std::rc::Rc;
 use std::cell::RefCell;
 
 use crate::route::AppRoute;
-use crate::fem::{GlobalAnalysisResult, FENode};
+use crate::fem::{GlobalAnalysisResult, FENode, Displacements};
 use crate::{ElementsNumbers, ElementsValues, UIDNumbers};
 
 use crate::components::{ViewMenu, PostprocessorCanvas, PlotDisplacementsMenu};
 use crate::auxiliary::{View, FEDrawnNodeData, FEDrawnElementData};
+use crate::fem::global_analysis::fe_global_analysis_result::Reactions;
 
 
 const POSTPROCESSOR_CLASS: &str = "postprocessor";
@@ -22,7 +23,8 @@ const ANALYSIS_MESSAGE_CLASS: &str = "analysis_message";
 #[derive(Properties, Clone)]
 pub struct Props
 {
-    pub global_analysis_result: Rc<Option<GlobalAnalysisResult<ElementsNumbers, ElementsValues>>>,
+    pub global_displacements: Rc<Option<Displacements<ElementsNumbers, ElementsValues>>>,
+    pub reactions: Rc<Option<Reactions<ElementsNumbers, ElementsValues>>>,
     pub view: Option<View>,
     pub change_view: Callback<View>,
     pub discard_view: Callback<()>,
@@ -39,6 +41,7 @@ pub struct State
     object_info: Option<String>,
     pub magnitude: ElementsValues,
     pub is_plot_displacements_selected: bool,
+    pub is_plot_reactions_selected: bool,
 }
 
 
@@ -56,6 +59,7 @@ pub enum Msg
     ResetObjectInfo,
     ChangeMagnitude(ElementsValues),
     SelectPlotDisplacements,
+    SelectPlotReactions,
 }
 
 
@@ -72,6 +76,7 @@ impl Component for Postprocessor
                 object_info: None,
                 magnitude: 1.0 as ElementsValues,
                 is_plot_displacements_selected: false,
+                is_plot_reactions_selected: false,
             };
         Self { props, link, state }
     }
@@ -82,20 +87,31 @@ impl Component for Postprocessor
         match msg
         {
             Msg::ChangeMagnitude(value) => self.state.magnitude = value,
-            Msg::SelectPlotDisplacements => self.state.is_plot_displacements_selected = true,
+            Msg::SelectPlotDisplacements =>
+                {
+                    self.state.is_plot_displacements_selected = true;
+                    self.state.is_plot_reactions_selected = false;
+                },
+            Msg::SelectPlotReactions =>
+                {
+                    self.state.is_plot_reactions_selected = true;
+                    self.state.is_plot_displacements_selected = false;
+                },
             Msg::AddObjectInfo(info) => self.state.object_info = Some(info),
             Msg::ResetObjectInfo => self.state.object_info = None,
         }
         true
     }
 
+
     fn change(&mut self, props: Self::Properties) -> ShouldRender
     {
 
-        if (&self.props.view, &self.props.drawn_uid_number) !=
-            (&props.view, &props.drawn_uid_number) ||
-            !Rc::ptr_eq(&self.props.global_analysis_result,
-                &props.global_analysis_result)
+        if (&self.props.view, &self.props.drawn_uid_number, &self.props.canvas_width,
+            &self.props.canvas_height) !=
+            (&props.view, &props.drawn_uid_number, &props.canvas_width, &props.canvas_height) ||
+            !Rc::ptr_eq(&self.props.global_displacements, &props.global_displacements) ||
+            !Rc::ptr_eq(&self.props.reactions, &props.reactions)
         {
             self.props = props;
             true
@@ -124,7 +140,8 @@ impl Component for Postprocessor
         {
             <>
                 {
-                    if self.props.global_analysis_result.as_ref().is_some()
+                    if self.props.global_displacements.as_ref().is_some() &&
+                        self.props.reactions.as_ref().is_some()
                     {
                         html!
                         {
@@ -132,7 +149,7 @@ impl Component for Postprocessor
                                 <div class={ POSTPROCESSOR_MENU_CLASS }>
 
                                     <Button route=AppRoute::Preprocessor
-                                        classes={POSTPROCESSOR_BUTTON_CLASS }
+                                        classes={ POSTPROCESSOR_BUTTON_CLASS }
                                     >
                                       { "FEM" }
                                     </Button>
@@ -145,6 +162,23 @@ impl Component for Postprocessor
                                         change_magnitude=handle_change_magnitude,
                                         select_plot_displacements=handle_select_plot_displacements,
                                     />
+
+                                    <button class={ POSTPROCESSOR_BUTTON_CLASS }
+                                        onclick=self.link.callback(|_| Msg::SelectPlotReactions),
+                                        disabled=
+                                            {
+                                                if self.props.reactions.as_ref().is_some()
+                                                {
+                                                    false
+                                                }
+                                                else
+                                                {
+                                                    true
+                                                }
+                                            },
+                                    >
+                                        { "Plot reactions" }
+                                    </button>
 
                                     // <ResultViewMenu
                                     //     result_view=self.state.result_view.to_owned(),
@@ -159,8 +193,10 @@ impl Component for Postprocessor
                                         canvas_height=self.props.canvas_height.to_owned(),
                                         magnitude=self.state.magnitude.to_owned(),
                                         drawn_nodes=Rc::clone(&self.props.drawn_nodes),
-                                        global_analysis_result=Rc::clone(&self.props.global_analysis_result),
+                                        global_displacements=Rc::clone(&self.props.global_displacements),
                                         is_plot_displacements_selected=self.state.is_plot_displacements_selected.to_owned(),
+                                        reactions=Rc::clone(&self.props.reactions),
+                                        is_plot_reactions_selected=self.state.is_plot_reactions_selected.to_owned(),
                                         drawn_elements=Rc::clone(&self.props.drawn_elements),
                                         // add_analysis_message=self.props.add_analysis_message.to_owned(),
                                         // drawn_bcs=Rc::clone(&self.props.drawn_bcs),

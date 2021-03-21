@@ -22,6 +22,7 @@ use crate::auxiliary::gl_aux_structs::
         DISPLACEMENT_HEADER_SHIFT_Y, MIN_DISPLACEMENT_SHIFT_Y, MAX_DISPLACEMENT_SHIFT_Y,
     };
 use crate::auxiliary::aux_functions::transform_u32_to_array_of_u8;
+use crate::fem::global_analysis::fe_global_analysis_result::Reactions;
 
 
 pub fn initialize_shaders(gl: &GL, vertex_shader_code: &str, fragment_shader_code: &str)
@@ -257,20 +258,19 @@ pub fn add_displacements_hints(ctx: &CTX, canvas_width: f32, canvas_height: f32,
 
 pub fn extend_by_deformed_shape_nodes(nodes: &mut Vec<FEDrawnNodeData>,
     initial_nodes: &Rc<Vec<FEDrawnNodeData>>,
-    global_analysis_result: &GlobalAnalysisResult<ElementsNumbers, ElementsValues>,
+    global_displacements: &Displacements<ElementsNumbers, ElementsValues>,
     magnitude: ElementsValues, drawn_uid_number: UIDNumbers,
-    drawn_analysis_results_for_nodes: &mut Vec<DrawnAnalysisResultNodeData>)
+    drawn_analysis_results_for_nodes: &mut Vec<DrawnAnalysisResultNodeData>) -> UIDNumbers
 {
     let mut uid = drawn_uid_number;
-    let displacements =
-        global_analysis_result.extract_displacements();
     for node in initial_nodes.iter()
     {
         uid += 1;
         let initial_node_number = node.number;
         let mut drawn_analysis_result_node_data = DrawnAnalysisResultNodeData
             {
-                uid, bc_type: BCType::Displacement, node_number: initial_node_number,
+                uid, bc_type: BCType::Displacement,
+                node_number: initial_node_number,
                 x_direction_value: None, y_direction_value: None, z_direction_value: None,
                 xy_plane_value: None, yz_plane_value: None, zx_plane_value: None,
             };
@@ -279,15 +279,15 @@ pub fn extend_by_deformed_shape_nodes(nodes: &mut Vec<FEDrawnNodeData>,
         let initial_node_x = node.x;
         let deformed_shape_node_x =
         {
-            if let Some(position) = displacements.dof_parameters_data
+            if let Some(position) = global_displacements.dof_parameters_data
                 .iter()
                 .position(|displacement|
                     displacement.same(GlobalDOFParameter::X,
                         initial_node_number))
             {
                 drawn_analysis_result_node_data.x_direction_value =
-                    Some(displacements.displacements_values[position]);
-                initial_node_x + displacements.displacements_values[position] * magnitude
+                    Some(global_displacements.displacements_values[position]);
+                initial_node_x + global_displacements.displacements_values[position] * magnitude
             }
             else
             {
@@ -297,15 +297,15 @@ pub fn extend_by_deformed_shape_nodes(nodes: &mut Vec<FEDrawnNodeData>,
         let initial_node_y = node.y;
         let deformed_shape_node_y =
         {
-            if let Some(position) = displacements.dof_parameters_data
+            if let Some(position) = global_displacements.dof_parameters_data
                 .iter()
                 .position(|displacement|
                     displacement.same(GlobalDOFParameter::Y,
                         initial_node_number))
             {
                 drawn_analysis_result_node_data.y_direction_value =
-                    Some(displacements.displacements_values[position]);
-                initial_node_y + displacements.displacements_values[position] * magnitude
+                    Some(global_displacements.displacements_values[position]);
+                initial_node_y + global_displacements.displacements_values[position] * magnitude
             }
             else
             {
@@ -315,53 +315,122 @@ pub fn extend_by_deformed_shape_nodes(nodes: &mut Vec<FEDrawnNodeData>,
         let initial_node_z = node.z;
         let deformed_shape_node_z =
         {
-            if let Some(position) = displacements.dof_parameters_data
+            if let Some(position) = global_displacements.dof_parameters_data
                 .iter()
                 .position(|displacement|
                     displacement.same(GlobalDOFParameter::Z,
                         initial_node_number))
             {
                 drawn_analysis_result_node_data.z_direction_value =
-                    Some(displacements.displacements_values[position]);
-                initial_node_z + displacements.displacements_values[position] * magnitude
+                    Some(global_displacements.displacements_values[position]);
+                initial_node_z + global_displacements.displacements_values[position] * magnitude
             }
             else
             {
                 initial_node_z
             }
         };
-        if let Some(position) = displacements.dof_parameters_data
+        if let Some(position) = global_displacements.dof_parameters_data
             .iter()
             .position(|displacement|
                 displacement.same(GlobalDOFParameter::ThX,
                     initial_node_number))
         {
             drawn_analysis_result_node_data.yz_plane_value =
-                Some(displacements.displacements_values[position]);
+                Some(global_displacements.displacements_values[position]);
         }
-        if let Some(position) = displacements.dof_parameters_data
+        if let Some(position) = global_displacements.dof_parameters_data
             .iter()
             .position(|displacement|
                 displacement.same(GlobalDOFParameter::ThY,
                     initial_node_number))
         {
             drawn_analysis_result_node_data.zx_plane_value =
-                Some(displacements.displacements_values[position]);
+                Some(global_displacements.displacements_values[position]);
         }
-        if let Some(position) = displacements.dof_parameters_data
+        if let Some(position) = global_displacements.dof_parameters_data
             .iter()
             .position(|displacement|
                 displacement.same(GlobalDOFParameter::ThZ,
                     initial_node_number))
         {
             drawn_analysis_result_node_data.xy_plane_value =
-                Some(displacements.displacements_values[position]);
+                Some(global_displacements.displacements_values[position]);
         }
         drawn_analysis_results_for_nodes.push(drawn_analysis_result_node_data);
         let deformed_shape_node =
-            FEDrawnNodeData { uid, number: deformed_shape_node_number, x: deformed_shape_node_x,
-                y: deformed_shape_node_y, z: deformed_shape_node_z };
+            FEDrawnNodeData { uid, number: deformed_shape_node_number,
+                x: deformed_shape_node_x, y: deformed_shape_node_y, z: deformed_shape_node_z };
         nodes.push(deformed_shape_node);
+    }
+    uid
+}
+
+
+pub fn extend_by_reactions(initial_nodes: &Rc<Vec<FEDrawnNodeData>>,
+    reactions: &Reactions<ElementsNumbers, ElementsValues>, drawn_uid_number: UIDNumbers,
+    drawn_analysis_results_for_nodes: &mut Vec<DrawnAnalysisResultNodeData>)
+{
+    let mut uid = drawn_uid_number;
+    for node in initial_nodes.iter()
+    {
+        uid += 1;
+        let mut drawn_analysis_result_node_data = DrawnAnalysisResultNodeData
+            {
+                uid, bc_type: BCType::Force,
+                node_number: node.number,
+                x_direction_value: None, y_direction_value: None, z_direction_value: None,
+                xy_plane_value: None, yz_plane_value: None, zx_plane_value: None,
+            };
+        if let Some(position) = reactions.dof_parameters_data
+            .iter()
+            .position(|reaction|
+                reaction.same(GlobalDOFParameter::X, node.number))
+        {
+            drawn_analysis_result_node_data.x_direction_value =
+                Some(reactions.reactions_values[position]);
+        }
+        if let Some(position) = reactions.dof_parameters_data
+            .iter()
+            .position(|reaction|
+                reaction.same(GlobalDOFParameter::Y, node.number))
+        {
+            drawn_analysis_result_node_data.y_direction_value =
+                Some(reactions.reactions_values[position]);
+        }
+        if let Some(position) = reactions.dof_parameters_data
+            .iter()
+            .position(|reaction|
+                reaction.same(GlobalDOFParameter::Z, node.number))
+        {
+            drawn_analysis_result_node_data.z_direction_value =
+                Some(reactions.reactions_values[position]);
+        }
+        if let Some(position) = reactions.dof_parameters_data
+            .iter()
+            .position(|displacement|
+                displacement.same(GlobalDOFParameter::ThX, node.number))
+        {
+            drawn_analysis_result_node_data.yz_plane_value =
+                Some(reactions.reactions_values[position]);
+        }
+        if let Some(position) = reactions.dof_parameters_data
+            .iter()
+            .position(|reaction|
+                reaction.same(GlobalDOFParameter::ThY, node.number))
+        {
+            drawn_analysis_result_node_data.zx_plane_value =
+                Some(reactions.reactions_values[position]);
+        }
+        if let Some(position) = reactions.dof_parameters_data
+            .iter()
+            .position(|reaction|
+                reaction.same(GlobalDOFParameter::ThZ, node.number))
+        {
+            drawn_analysis_result_node_data.xy_plane_value =
+                Some(reactions.reactions_values[position]);
+        }
+        drawn_analysis_results_for_nodes.push(drawn_analysis_result_node_data);
     }
 }
 

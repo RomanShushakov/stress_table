@@ -21,6 +21,7 @@ use crate::auxiliary::gl_aux_functions::
         add_denotation, initialize_shaders, normalize_nodes, add_hints,
         extend_by_deformed_shape_nodes, update_displacement_value,
         define_drawn_object_denotation_color, add_displacements_hints,
+        extend_by_reactions
     };
 use crate::auxiliary::gl_aux_structs::{Buffers, ShadersVariables, DrawnObject};
 use crate::auxiliary::gl_aux_structs::{CSAxis, GLMode};
@@ -43,13 +44,14 @@ use crate::auxiliary::gl_aux_structs::
         DRAWN_DEFORMED_SHAPE_NODES_DENOTATION_SHIFT, DRAWN_ELEMENTS_DENOTATION_SHIFT,
     };
 
-use crate::fem::{FENode, FEType, BCType, GlobalAnalysisResult, GlobalDOFParameter};
+use crate::fem::{FENode, FEType, BCType, GlobalAnalysisResult, GlobalDOFParameter, Displacements};
 use crate::{ElementsNumbers, ElementsValues, GLElementsNumbers, GLElementsValues, UIDNumbers};
 use crate::auxiliary::
     {
         View, FEDrawnElementData, DrawnBCData, FEDrawnNodeData, DrawnAnalysisResultNodeData
     };
 use crate::auxiliary::aux_functions::{transform_u32_to_array_of_u8, value_to_string};
+use crate::fem::global_analysis::fe_global_analysis_result::Reactions;
 
 
 const POSTPROCESSOR_CANVAS_CONTAINER_CLASS: &str = "postprocessor_canvas_container";
@@ -79,8 +81,10 @@ pub struct Props
     pub canvas_height: u32,
     pub magnitude: ElementsValues,
     pub drawn_nodes: Rc<Vec<FEDrawnNodeData>>,
-    pub global_analysis_result: Rc<Option<GlobalAnalysisResult<ElementsNumbers, ElementsValues>>>,
+    pub global_displacements: Rc<Option<Displacements<ElementsNumbers, ElementsValues>>>,
     pub is_plot_displacements_selected: bool,
+    pub reactions: Rc<Option<Reactions<ElementsNumbers, ElementsValues>>>,
+    pub is_plot_reactions_selected: bool,
     pub drawn_elements: Rc<Vec<FEDrawnElementData>>,
     // pub add_analysis_message: Callback<String>,
     // pub drawn_bcs: Rc<Vec<DrawnBCData>>,
@@ -485,14 +489,14 @@ impl Component for PostprocessorCanvas
     fn change(&mut self, props: Self::Properties) -> ShouldRender
     {
         if (&self.props.view, &self.props.canvas_height, &self.props.canvas_width,
-            &self.props.magnitude, &self.props.is_plot_displacements_selected) !=
+            &self.props.magnitude, &self.props.is_plot_displacements_selected,
+            &self.props.is_plot_reactions_selected) !=
             (&props.view, &props.canvas_height, &props.canvas_width, &props.magnitude,
-            &props.is_plot_displacements_selected) ||
+            &props.is_plot_displacements_selected, &props.is_plot_reactions_selected) ||
             !Rc::ptr_eq(&self.props.drawn_nodes, &props.drawn_nodes) ||
-            !Rc::ptr_eq(&self.props.global_analysis_result,
-                &props.global_analysis_result) ||
-            !Rc::ptr_eq(&self.props.drawn_elements, &props.drawn_elements) // ||
-            // !Rc::ptr_eq(&self.props.drawn_bcs, &props.drawn_bcs)
+            !Rc::ptr_eq(&self.props.global_displacements, &props.global_displacements) ||
+            !Rc::ptr_eq(&self.props.reactions, &props.reactions) ||
+            !Rc::ptr_eq(&self.props.drawn_elements, &props.drawn_elements)
         {
             self.props = props;
             if let Some(view) = &self.props.view
@@ -604,6 +608,7 @@ impl PostprocessorCanvas
         let ctx = self.ctx.as_ref().expect("CTX Context not initialized!");
         gl.clear_color(0.0, 0.0, 0.0, 1.0);
         ctx.clear_rect(0.0, 0.0, self.props.canvas_width as f64, self.props.canvas_height as f64);
+        self.state.drawn_analysis_results_for_nodes = Vec::new();
         gl.enable(GL::DEPTH_TEST);
         gl.clear(GL::COLOR_BUFFER_BIT);
         gl.clear(GL::DEPTH_BUFFER_BIT);
@@ -623,14 +628,19 @@ impl PostprocessorCanvas
         if !self.props.drawn_nodes.is_empty()
         {
             let mut all_nodes = (*self.props.drawn_nodes.as_ref()).clone();
-            if let Some(global_analysis_result) =
-                self.props.global_analysis_result.as_ref()
+            if let Some(global_displacements) =
+                self.props.global_displacements.as_ref()
             {
-                extend_by_deformed_shape_nodes(&mut all_nodes, &self.props.drawn_nodes,
-                   &global_analysis_result, self.props.magnitude, self.props.drawn_uid_number,
-                   &mut self.state.drawn_analysis_results_for_nodes);
+                let updated_drawn_uid_number =
+                    extend_by_deformed_shape_nodes(&mut all_nodes,
+                   &self.props.drawn_nodes, &global_displacements, self.props.magnitude,
+                    self.props.drawn_uid_number, &mut self.state.drawn_analysis_results_for_nodes);
+                if let Some(reactions) = self.props.reactions.as_ref()
+                {
+                    extend_by_reactions(&self.props.drawn_nodes, &reactions,
+                        updated_drawn_uid_number, &mut self.state.drawn_analysis_results_for_nodes);
+                }
             }
-
             let normalized_nodes = normalize_nodes(
                 Rc::new(all_nodes),
                 self.props.canvas_width as GLElementsValues,
@@ -663,6 +673,28 @@ impl PostprocessorCanvas
                     &normalized_nodes[normalized_nodes.len() / 2..],
                     GLMode::Selection, &self.state.under_cursor_color,
                     &self.state.selected_color);
+            }
+
+            if self.props.is_plot_reactions_selected
+            {
+                let reactions =
+                    self.state.drawn_analysis_results_for_nodes
+                        .iter()
+                        .filter(|result|
+                            result.bc_type == BCType::Force)
+                        .collect::<Vec<_>>();
+                if !reactions.is_empty()
+                {
+                    drawn_object.add_reactions(
+                    &normalized_nodes[..normalized_nodes.len() / 2],
+                    &reactions,
+                    DRAWN_FORCES_LINE_LENGTH / (1.0 + self.state.d_scale),
+                    DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER,
+                    DRAWN_FORCES_CAPS_HEIGHT / (1.0 + self.state.d_scale),
+                    DRAWN_FORCES_CAPS_WIDTH / (1.0 + self.state.d_scale),
+                    GLMode::Selection, &self.state.under_cursor_color,
+                    &self.state.selected_color);
+                }
             }
 
             // let drawn_displacements: Vec<&DrawnBCData> = self.props.drawn_bcs
@@ -782,6 +814,28 @@ impl PostprocessorCanvas
                 }
             }
 
+            if self.props.is_plot_reactions_selected
+            {
+                let reactions =
+                    self.state.drawn_analysis_results_for_nodes
+                        .iter()
+                        .filter(|result|
+                            result.bc_type == BCType::Force)
+                        .collect::<Vec<_>>();
+                if !reactions.is_empty()
+                {
+                    drawn_object.add_reactions(
+                    &normalized_nodes[..normalized_nodes.len() / 2],
+                    &reactions,
+                    DRAWN_FORCES_LINE_LENGTH / (1.0 + self.state.d_scale),
+                    DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER,
+                    DRAWN_FORCES_CAPS_HEIGHT / (1.0 + self.state.d_scale),
+                    DRAWN_FORCES_CAPS_WIDTH / (1.0 + self.state.d_scale),
+                    GLMode::Visible, &self.state.under_cursor_color,
+                    &self.state.selected_color);
+                }
+            }
+
             drawn_objects_buffers.render(&gl, &drawn_object, &shaders_variables);
             let point_size = 5.0 as GLElementsValues;
 
@@ -812,7 +866,6 @@ impl PostprocessorCanvas
                 Some(&shaders_variables.model_view_matrix), false, &model_view_matrix);
 
             drawn_object.draw(&gl);
-
 
             let mut matrix = mat4::new_identity();
             mat4::mul(&mut matrix, &projection_matrix, &model_view_matrix);
@@ -878,11 +931,9 @@ impl PostprocessorCanvas
                     let denotation =
                         {
                             let (mut x, mut y, mut z) = (0.0, 0.0, 0.0);
-                            if let Some(global_analysis_result) =
-                                self.props.global_analysis_result.as_ref()
+                            if let Some(global_displacements) =
+                                self.props.global_displacements.as_ref()
                             {
-                                let global_displacements =
-                                    global_analysis_result.extract_displacements();
                                 let node_number = node.number as ElementsNumbers -
                                     normalized_nodes.len() as ElementsNumbers / 2;
                                 x = update_displacement_value(x, node_number,

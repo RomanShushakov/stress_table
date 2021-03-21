@@ -5,7 +5,7 @@ use std::rc::Rc;
 use std::cell::RefCell;
 
 use crate::auxiliary::{View, FEDrawnNodeData, FEDrawnElementData, DrawnBCData};
-use crate::fem::{FENode, GlobalAnalysisResult};
+use crate::fem::{FENode, GlobalAnalysisResult, Displacements};
 use crate::{ElementsNumbers, ElementsValues, UIDNumbers};
 
 use crate::components::
@@ -15,6 +15,7 @@ use crate::components::
     };
 
 use crate::route::AppRoute;
+use crate::fem::global_analysis::fe_global_analysis_result::Reactions;
 
 
 const PREPROCESSOR_CLASS: &str = "preprocessor";
@@ -57,7 +58,8 @@ pub struct Props
     pub reset_analysis_message: Callback<()>,
 
     pub submit: Callback<()>,
-    pub global_analysis_result: Rc<Option<GlobalAnalysisResult<ElementsNumbers, ElementsValues>>>,
+    pub global_displacements: Rc<Option<Displacements<ElementsNumbers, ElementsValues>>>,
+    pub reactions: Rc<Option<Reactions<ElementsNumbers, ElementsValues>>>,
     pub edit_fem: Callback<()>,
 }
 
@@ -143,8 +145,8 @@ impl Component for Preprocessor
             !Rc::ptr_eq(&self.props.drawn_nodes, &props.drawn_nodes) ||
             !Rc::ptr_eq(&self.props.drawn_elements, &props.drawn_elements) ||
             !Rc::ptr_eq(&self.props.drawn_bcs, &props.drawn_bcs) ||
-            !Rc::ptr_eq(&self.props.global_analysis_result,
-                &props.global_analysis_result)
+            !Rc::ptr_eq(&self.props.global_displacements, &props.global_displacements) ||
+            !Rc::ptr_eq(&self.props.reactions, &props.reactions)
         {
             self.props = props;
             true
@@ -225,7 +227,8 @@ impl Component for Preprocessor
                             onclick=self.link.callback(|_| Msg::EditFEM),
                             disabled=
                                 {
-                                    if self.props.global_analysis_result.as_ref().is_some()
+                                    if self.props.global_displacements.as_ref().is_some() ||
+                                        self.props.reactions.as_ref().is_some()
                                     {
                                         false
                                     }
@@ -241,7 +244,8 @@ impl Component for Preprocessor
                             classes={PREPROCESSOR_BUTTON_CLASS },
                             disabled=
                                 {
-                                    if self.props.global_analysis_result.as_ref().is_some()
+                                    if self.props.global_displacements.as_ref().is_some() ||
+                                        self.props.reactions.as_ref().is_some()
                                     {
                                         false
                                     }

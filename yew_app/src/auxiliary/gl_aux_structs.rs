@@ -8,9 +8,10 @@ use crate::auxiliary::gl_aux_functions::{find_node_coordinates, define_drawn_obj
 
 use crate::{ElementsValues, ElementsNumbers};
 use crate::fem::{FENode, FEType, GlobalDOFParameter};
-use crate::auxiliary::{NormalizedNode, FEDrawnElementData, DrawnBCData};
+use crate::auxiliary::{NormalizedNode, FEDrawnElementData, DrawnBCData, DrawnAnalysisResultNodeData};
 use crate::auxiliary::aux_functions::transform_u32_to_array_of_u8;
 use yew::Callback;
+use crate::fem::global_analysis::fe_global_analysis_result::Reactions;
 
 
 const CS_ORIGIN: [GLElementsValues; 3] = [0.0, 0.0, 0.0];
@@ -1028,6 +1029,65 @@ impl DrawnObject
                     self.add_force_cap(GlobalDOFParameter::Z, z_value,
                         base_points_number, height, base_radius, x_end, y_end, z_end, start_index,
                         &force_color);
+                    start_index += base_points_number + 1;
+                }
+            }
+        }
+    }
+
+
+    pub fn add_reactions(&mut self, normalized_nodes: &[NormalizedNode],
+        reactions: &Vec<&DrawnAnalysisResultNodeData>,
+        line_length: GLElementsValues, base_points_number: GLElementsNumbers,
+        height: GLElementsValues, base_radius: GLElementsValues, gl_mode: GLMode,
+        under_cursor_color: &[u8; 4], selected_color: &[u8; 4])
+    {
+        let mut start_index =
+            if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
+        for reaction in reactions
+        {
+            let reaction_color = define_drawn_object_color(&gl_mode,
+                reaction.uid, selected_color, under_cursor_color,
+                &DRAWN_FORCES_COLOR);
+            if let Some(position) = normalized_nodes
+                .iter()
+                .position(|node|
+                    node.number == reaction.node_number as GLElementsNumbers)
+            {
+                let x_start = normalized_nodes[position].x;
+                let y_start = normalized_nodes[position].y;
+                let z_start = normalized_nodes[position].z;
+                if let Some(x_value) = reaction.x_direction_value
+                {
+                    let (x_end, y_end, z_end) =
+                        self.add_force_line(GlobalDOFParameter::X, x_value, x_start,
+                            y_start, z_start, line_length, start_index, &reaction_color);
+                    start_index += 2;
+                    self.add_force_cap(GlobalDOFParameter::X, x_value,
+                        base_points_number, height, base_radius, x_end, y_end, z_end, start_index,
+                        &reaction_color);
+                    start_index += base_points_number + 1;
+                }
+                if let Some(y_value) = reaction.y_direction_value
+                {
+                    let (x_end, y_end, z_end) =
+                        self.add_force_line(GlobalDOFParameter::Y, y_value, x_start,
+                            y_start, z_start, line_length, start_index, &reaction_color);
+                    start_index += 2;
+                    self.add_force_cap(GlobalDOFParameter::Y, y_value,
+                        base_points_number, height, base_radius, x_end, y_end, z_end, start_index,
+                        &reaction_color);
+                    start_index += base_points_number + 1;
+                }
+                if let Some(z_value) = reaction.z_direction_value
+                {
+                    let (x_end, y_end, z_end) =
+                        self.add_force_line(GlobalDOFParameter::Z, z_value, x_start,
+                            y_start, z_start, line_length, start_index, &reaction_color);
+                    start_index += 2;
+                    self.add_force_cap(GlobalDOFParameter::Z, z_value,
+                        base_points_number, height, base_radius, x_end, y_end, z_end, start_index,
+                        &reaction_color);
                     start_index += base_points_number + 1;
                 }
             }

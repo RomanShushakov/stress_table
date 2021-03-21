@@ -27,3 +27,23 @@ impl StressStrainComponent
         COMPONENTS.iter()
     }
 }
+
+
+impl StressStrainComponent
+{
+    pub fn as_str(&self) -> String
+    {
+        match self
+        {
+            StressStrainComponent::XX => String::from("Stress XX"),
+            StressStrainComponent::XY => String::from("Stress XY"),
+            StressStrainComponent::XZ => String::from("Stress XZ"),
+            StressStrainComponent::YX => String::from("Stress YX"),
+            StressStrainComponent::YY => String::from("Stress YY"),
+            StressStrainComponent::YZ => String::from("Stress YZ"),
+            StressStrainComponent::ZX => String::from("Stress ZX"),
+            StressStrainComponent::ZY => String::from("Stress ZY"),
+            StressStrainComponent::ZZ => String::from("Stress ZZ"),
+        }
+    }
+}

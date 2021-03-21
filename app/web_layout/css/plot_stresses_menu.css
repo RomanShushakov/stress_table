@@ -1,0 +1,49 @@
+
+.plot_stresses_menu {
+    display: flex;
+    align-items: center;
+    box-sizing: content-box;
+    flex-direction: column;
+    margin-bottom: 0.5rem;
+}
+
+
+.hidden
+{
+    display: none;
+}
+
+
+.plot_stresses_menu_input_fields_container {
+    display: flex;
+    align-items: center;
+    align-self: start;
+    box-sizing: content-box;
+    flex-direction: column;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+
+.plot_stresses_menu_input_field {
+    width: 2rem;
+}
+
+.plot_stresses_menu_buttons {
+    display: flex;
+    align-items: center;
+    align-self: center;
+    box-sizing: content-box;
+    flex-direction: row;
+}
+
+
+.plot_stresses_menu_button {
+    /* width: 4.5rem; */
+    padding-left: 0rem;
+    padding-right: 0rem;
+}
+
+.plot_stresses_input_field_container {
+    width: 7rem;
+}

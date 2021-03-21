@@ -1,40 +1,42 @@
 use yew::prelude::*;
 use web_sys::DomTokenList;
 
-use crate::{View};
 use crate::pages::PREPROCESSOR_BUTTON_CLASS;
+use crate::fem::StressStrainComponent;
 
 
-const VIEW_MENU_ID: &str = "view_menu";
-const VIEW_MENU_CLASS: &str = "view_menu";
-const VIEW_MENU_INPUT_FIELDS_CONTAINER_CLASS: &str = "view_menu_input_fields_container";
-const VIEW_MENU_INPUT_FIELD_CONTAINER_CLASS: &str = "view_input_field_container";
-const VIEW_MENU_BUTTONS_CONTAINER_CLASS: &str = "view_menu_buttons";
-const VIEW_MENU_BUTTON_CLASS: &str = "view_menu_button";
+const PLOT_STRESSES_MENU_ID: &str = "plot_stresses_menu";
+const PLOT_STRESSES_MENU_CLASS: &str = "plot_stresses_menu";
+const PLOT_STRESSES_MENU_INPUT_FIELDS_CONTAINER_CLASS: &str = "plot_stresses_menu_input_fields_container";
+const PLOT_STRESSES_MENU_INPUT_FIELD_CONTAINER_CLASS: &str = "plot_stresses_input_field_container";
+const PLOT_STRESSES_MENU_BUTTONS_CONTAINER_CLASS: &str = "plot_stresses_menu_buttons";
+const PLOT_STRESSES_MENU_BUTTON_CLASS: &str = "plot_stresses_menu_button";
 const HIDDEN: &str = "hidden";
-const VIEW_INPUT_NAME: &str = "view";
-const PLANE_XY_VIEW_ID: &str = "plane_xy_view";
-const PLANE_ZY_VIEW_ID: &str = "plane_zy_view";
-const PLANE_XZ_VIEW_ID: &str = "plane_xz_view";
-const ISOMETRIC_VIEW_ID: &str = "isometric_view";
-const VIEW_MENU_INPUT_FIELD_CLASS: &str = "view_menu_input_field";
+const PLOT_STRESSES_INPUT_NAME: &str = "plot_stresses";
+const PLOT_STRESS_XX_ID: &str = "plot_stress_xx";
+const PLOT_STRESS_XY_ID: &str = "plot_stress_xy";
+const PLOT_STRESS_XZ_ID: &str = "plot_stress_xz";
+const PLOT_STRESS_YY_ID: &str = "plot_stress_yy";
+const PLOT_STRESS_YZ_ID: &str = "plot_stress_yz";
+const PLOT_STRESS_ZZ_ID: &str = "plot_stress_zz";
+const PLOT_STRESSES_MENU_INPUT_FIELD_CLASS: &str = "plot_stresses_menu_input_field";
 
 
 #[derive(Properties, PartialEq, Clone)]
 pub struct Props
 {
-    pub view: Option<View>,
-    pub change_view: Callback<View>,
+    pub plot_stresses_selected: Option<StressStrainComponent>,
+    pub select_plot_stresses: Callback<StressStrainComponent>,
 }
 
 
 struct State
 {
-    selected_view: View,
+    selected_stresses: StressStrainComponent,
 }
 
 
-pub struct ViewMenu
+pub struct PlotStressesMenu
 {
     link: ComponentLink<Self>,
     props: Props,
@@ -44,33 +46,33 @@ pub struct ViewMenu
 
 pub enum Msg
 {
-    ShowHideViewMenu,
-    SelectView(ChangeData),
-    ApplyView,
+    ShowHidePlotStressesMenu,
+    SelectStress(ChangeData),
+    ApplyStress,
 }
 
 
 impl PlotStressesMenu
 {
-    fn show_hide_view_menu(&self)
+    fn show_hide_plot_stresses_menu(&self)
     {
         let window = web_sys::window().unwrap();
         let document = window.document().unwrap();
-        let element = document.get_element_by_id(VIEW_MENU_ID).unwrap();
+        let element = document.get_element_by_id(PLOT_STRESSES_MENU_ID).unwrap();
         let class_list: DomTokenList = element.class_list();
         if class_list.contains(HIDDEN)
         {
-            element.set_class_name(VIEW_MENU_CLASS);
+            element.set_class_name(PLOT_STRESSES_MENU_CLASS);
         }
         else
         {
-            element.set_class_name(&(VIEW_MENU_CLASS.to_owned() + " " + HIDDEN));
+            element.set_class_name(&(PLOT_STRESSES_MENU_CLASS.to_owned() + " " + HIDDEN));
         }
     }
 }
 
 
-impl Component for ViewMenu
+impl Component for PlotStressesMenu
 {
     type Message = Msg;
     type Properties = Props;
@@ -78,7 +80,7 @@ impl Component for ViewMenu
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self
     {
-        Self { props, link, state: State { selected_view: View::PlaneXY } }
+        Self { props, link, state: State { selected_stresses: StressStrainComponent::XX } }
     }
 
 
@@ -86,37 +88,45 @@ impl Component for ViewMenu
     {
         match msg
         {
-            Msg::ShowHideViewMenu => self.show_hide_view_menu(),
-            Msg::SelectView(data) =>
+            Msg::ShowHidePlotStressesMenu => self.show_hide_plot_stresses_menu(),
+            Msg::SelectStress(data) =>
                 {
                     match data
                     {
-                        ChangeData::Value(view_select) =>
+                        ChangeData::Value(stress_select) =>
                             {
-                                if view_select == View::PlaneXY.as_str()
+                                if stress_select == StressStrainComponent::XX.as_str()
                                 {
-                                    self.state.selected_view = View::PlaneXY;
+                                    self.state.selected_stresses = StressStrainComponent::XX;
                                 }
-                                if view_select == View::PlaneZY.as_str()
+                                if stress_select == StressStrainComponent::XY.as_str()
                                 {
-                                    self.state.selected_view = View::PlaneZY;
+                                    self.state.selected_stresses = StressStrainComponent::XY;
                                 }
-                                if view_select == View::PlaneXZ.as_str()
+                                if stress_select == StressStrainComponent::XZ.as_str()
                                 {
-                                    self.state.selected_view = View::PlaneXZ;
+                                    self.state.selected_stresses = StressStrainComponent::XZ;
                                 }
-                                if view_select == View::Isometric.as_str()
+                                if stress_select == StressStrainComponent::YY.as_str()
                                 {
-                                    self.state.selected_view = View::Isometric;
+                                    self.state.selected_stresses = StressStrainComponent::YY;
+                                }
+                                if stress_select == StressStrainComponent::YZ.as_str()
+                                {
+                                    self.state.selected_stresses = StressStrainComponent::YZ;
+                                }
+                                if stress_select == StressStrainComponent::ZZ.as_str()
+                                {
+                                    self.state.selected_stresses = StressStrainComponent::ZZ;
                                 }
                                 return false;
-                            },
+                            }
                         _ => (),
                     }
                 },
-            Msg::ApplyView =>
+            Msg::ApplyStress =>
                 {
-                    self.props.change_view.emit(self.state.selected_view.to_owned());
+                    self.props.select_plot_stresses.emit(self.state.selected_stresses.to_owned());
                 },
         }
         true
@@ -144,25 +154,24 @@ impl Component for ViewMenu
             <>
                 <button
                     class={ PREPROCESSOR_BUTTON_CLASS },
-                    // disabled=true,
-                    onclick=self.link.callback(|_| Msg::ShowHideViewMenu),
+                    onclick=self.link.callback(|_| Msg::ShowHidePlotStressesMenu),
                 >
-                    { "View" }
+                    { "Plot stresses" }
                 </button>
-                <div id = { VIEW_MENU_ID } class={ VIEW_MENU_CLASS.to_owned() + " " + HIDDEN }>
-                    <div class={ VIEW_MENU_INPUT_FIELDS_CONTAINER_CLASS }>
-                        <div class={ VIEW_MENU_INPUT_FIELD_CONTAINER_CLASS }>
+                <div id = { PLOT_STRESSES_MENU_ID } class={ PLOT_STRESSES_MENU_CLASS.to_owned() + " " + HIDDEN }>
+                    <div class={ PLOT_STRESSES_MENU_INPUT_FIELDS_CONTAINER_CLASS }>
+                        <div class={ PLOT_STRESSES_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                             <input
-                                class={ VIEW_MENU_INPUT_FIELD_CLASS },
-                                onchange=self.link.callback(|data: ChangeData| Msg::SelectView(data)),
-                                type="radio", id={ PLANE_XY_VIEW_ID },
-                                name={ VIEW_INPUT_NAME },
-                                value={ View::PlaneXY.as_str() },
+                                class={ PLOT_STRESSES_MENU_INPUT_FIELD_CLASS },
+                                onchange=self.link.callback(|data: ChangeData| Msg::SelectStress(data)),
+                                type="radio", id={ PLOT_STRESS_XX_ID },
+                                name={ PLOT_STRESSES_INPUT_NAME },
+                                value={ StressStrainComponent::XX.as_str() },
                                 checked=
                                 {
-                                    if let Some(view) = &self.props.view
+                                    if let Some(stress) = &self.props.plot_stresses_selected
                                     {
-                                        if *view == View::PlaneXY
+                                        if *stress == StressStrainComponent::XX
                                         {
                                             true
                                         }
@@ -177,22 +186,22 @@ impl Component for ViewMenu
                                     }
                                 },
                             />
-                            <label for={ PLANE_XY_VIEW_ID }>
-                                { View::PlaneXY.as_str() }
+                            <label for={ PLOT_STRESS_XX_ID }>
+                                { StressStrainComponent::XX.as_str() }
                             </label>
                         </div>
-                        <div class={ VIEW_MENU_INPUT_FIELD_CONTAINER_CLASS }>
+                        <div class={ PLOT_STRESSES_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                             <input
-                                class={ VIEW_MENU_INPUT_FIELD_CLASS },
-                                onchange=self.link.callback(|data: ChangeData| Msg::SelectView(data)),
-                                type="radio", id={ PLANE_ZY_VIEW_ID },
-                                name={ VIEW_INPUT_NAME },
-                                value={ View::PlaneZY.as_str() },
+                                class={ PLOT_STRESSES_MENU_INPUT_FIELD_CLASS },
+                                onchange=self.link.callback(|data: ChangeData| Msg::SelectStress(data)),
+                                type="radio", id={ PLOT_STRESS_XY_ID },
+                                name={ PLOT_STRESSES_INPUT_NAME },
+                                value={ StressStrainComponent::XY.as_str() },
                                 checked=
                                 {
-                                    if let Some(view) = &self.props.view
+                                    if let Some(stress) = &self.props.plot_stresses_selected
                                     {
-                                        if *view == View::PlaneZY
+                                        if *stress == StressStrainComponent::XY
                                         {
                                             true
                                         }
@@ -206,23 +215,24 @@ impl Component for ViewMenu
                                         false
                                     }
                                 },
+                                disabled=true,
                             />
-                            <label for={ PLANE_ZY_VIEW_ID }>
-                                { View::PlaneZY.as_str() }
+                            <label for={ PLOT_STRESS_XY_ID }>
+                                { StressStrainComponent::XY.as_str() }
                             </label>
                         </div>
-                        <div class={ VIEW_MENU_INPUT_FIELD_CONTAINER_CLASS }>
+                        <div class={ PLOT_STRESSES_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                             <input
-                                class={ VIEW_MENU_INPUT_FIELD_CLASS },
-                                onchange=self.link.callback(|data: ChangeData| Msg::SelectView(data)),
-                                type="radio", id={ PLANE_XZ_VIEW_ID },
-                                name={ VIEW_INPUT_NAME },
-                                value={ View::PlaneXZ.as_str() },
+                                class={ PLOT_STRESSES_MENU_INPUT_FIELD_CLASS },
+                                onchange=self.link.callback(|data: ChangeData| Msg::SelectStress(data)),
+                                type="radio", id={ PLOT_STRESS_XZ_ID },
+                                name={ PLOT_STRESSES_INPUT_NAME },
+                                value={ StressStrainComponent::XZ.as_str() },
                                 checked=
                                 {
-                                    if let Some(view) = &self.props.view
+                                    if let Some(stress) = &self.props.plot_stresses_selected
                                     {
-                                        if *view == View::PlaneXZ
+                                        if *stress == StressStrainComponent::XZ
                                         {
                                             true
                                         }
@@ -236,23 +246,24 @@ impl Component for ViewMenu
                                         false
                                     }
                                 },
+                                disabled=true,
                             />
-                            <label for={ PLANE_XZ_VIEW_ID }>
-                                { View::PlaneXZ.as_str() }
+                            <label for={ PLOT_STRESS_XZ_ID }>
+                                { StressStrainComponent::XZ.as_str() }
                             </label>
                         </div>
-                        <div class={ VIEW_MENU_INPUT_FIELD_CONTAINER_CLASS }>
+                        <div class={ PLOT_STRESSES_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                             <input
-                                class={ VIEW_MENU_INPUT_FIELD_CLASS },
-                                onchange=self.link.callback(|data: ChangeData| Msg::SelectView(data)),
-                                type="radio", id={ ISOMETRIC_VIEW_ID },
-                                name={ VIEW_INPUT_NAME },
-                                value={ View::Isometric.as_str() },
+                                class={ PLOT_STRESSES_MENU_INPUT_FIELD_CLASS },
+                                onchange=self.link.callback(|data: ChangeData| Msg::SelectStress(data)),
+                                type="radio", id={ PLOT_STRESS_YY_ID },
+                                name={ PLOT_STRESSES_INPUT_NAME },
+                                value={ StressStrainComponent::YY.as_str() },
                                 checked=
                                 {
-                                    if let Some(view) = &self.props.view
+                                    if let Some(stress) = &self.props.plot_stresses_selected
                                     {
-                                        if *view == View::Isometric
+                                        if *stress == StressStrainComponent::YY
                                         {
                                             true
                                         }
@@ -266,16 +277,79 @@ impl Component for ViewMenu
                                         false
                                     }
                                 },
+                                disabled=true,
                             />
-                            <label for={ ISOMETRIC_VIEW_ID }>
-                                { View::Isometric.as_str() }
+                            <label for={ PLOT_STRESS_YY_ID }>
+                                { StressStrainComponent::YY.as_str() }
+                            </label>
+                        </div>
+                        <div class={ PLOT_STRESSES_MENU_INPUT_FIELD_CONTAINER_CLASS }>
+                            <input
+                                class={ PLOT_STRESSES_MENU_INPUT_FIELD_CLASS },
+                                onchange=self.link.callback(|data: ChangeData| Msg::SelectStress(data)),
+                                type="radio", id={ PLOT_STRESS_YZ_ID },
+                                name={ PLOT_STRESSES_INPUT_NAME },
+                                value={ StressStrainComponent::YZ.as_str() },
+                                checked=
+                                {
+                                    if let Some(stress) = &self.props.plot_stresses_selected
+                                    {
+                                        if *stress == StressStrainComponent::YZ
+                                        {
+                                            true
+                                        }
+                                        else
+                                        {
+                                            false
+                                        }
+                                    }
+                                    else
+                                    {
+                                        false
+                                    }
+                                },
+                                disabled=true,
+                            />
+                            <label for={ PLOT_STRESS_YZ_ID }>
+                                { StressStrainComponent::YZ.as_str() }
+                            </label>
+                        </div>
+                        <div class={ PLOT_STRESSES_MENU_INPUT_FIELD_CONTAINER_CLASS }>
+                            <input
+                                class={ PLOT_STRESSES_MENU_INPUT_FIELD_CLASS },
+                                onchange=self.link.callback(|data: ChangeData| Msg::SelectStress(data)),
+                                type="radio", id={ PLOT_STRESS_ZZ_ID },
+                                name={ PLOT_STRESSES_INPUT_NAME },
+                                value={ StressStrainComponent::ZZ.as_str() },
+                                checked=
+                                {
+                                    if let Some(stress) = &self.props.plot_stresses_selected
+                                    {
+                                        if *stress == StressStrainComponent::ZZ
+                                        {
+                                            true
+                                        }
+                                        else
+                                        {
+                                            false
+                                        }
+                                    }
+                                    else
+                                    {
+                                        false
+                                    }
+                                },
+                                disabled=true,
+                            />
+                            <label for={ PLOT_STRESS_ZZ_ID }>
+                                { StressStrainComponent::ZZ.as_str() }
                             </label>
                         </div>
                     </div>
-                    <div class={ VIEW_MENU_BUTTONS_CONTAINER_CLASS }>
+                    <div class={ PLOT_STRESSES_MENU_BUTTONS_CONTAINER_CLASS }>
                         <button
-                            class={ VIEW_MENU_BUTTON_CLASS },
-                            onclick=self.link.callback(|_| Msg::ApplyView),
+                            class={ PLOT_STRESSES_MENU_BUTTON_CLASS },
+                            onclick=self.link.callback(|_| Msg::ApplyStress),
                         >
                             { "Apply" }
                         </button>

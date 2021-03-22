@@ -6,10 +6,7 @@ use std::cell::RefCell;
 use crate::fem::{FENode, GlobalAnalysisResult, GlobalDOFParameter, Displacements, BCType};
 use crate::{ElementsNumbers, ElementsValues, UIDNumbers};
 use crate::{GLElementsValues, GLElementsNumbers};
-use crate::auxiliary::
-    {
-        NormalizedNode, FEDrawnElementData, FEDrawnNodeData, DrawnAnalysisResultNodeData
-    };
+use crate::auxiliary::{NormalizedNode, FEDrawnElementData, FEDrawnNodeData, DrawnAnalysisResultNodeData, DrawnAnalysisResultElementData};
 
 use crate::auxiliary::gl_aux_structs::GLMode;
 use crate::auxiliary::gl_aux_structs::
@@ -24,6 +21,7 @@ use crate::auxiliary::gl_aux_structs::
     };
 use crate::auxiliary::aux_functions::transform_u32_to_array_of_u8;
 use crate::fem::global_analysis::fe_global_analysis_result::Reactions;
+use crate::fem::element_analysis::fe_element_analysis_result::ElementsAnalysisResult;
 
 
 pub fn initialize_shaders(gl: &GL, vertex_shader_code: &str, fragment_shader_code: &str)
@@ -268,10 +266,11 @@ pub fn add_reactions_hints(ctx: &CTX, canvas_width: f32, canvas_height: f32)
 pub fn extend_by_deformed_shape_nodes(nodes: &mut Vec<FEDrawnNodeData>,
     initial_nodes: &Rc<Vec<FEDrawnNodeData>>,
     global_displacements: &Displacements<ElementsNumbers, ElementsValues>,
-    magnitude: ElementsValues, drawn_uid_number: UIDNumbers,
-    drawn_analysis_results_for_nodes: &mut Vec<DrawnAnalysisResultNodeData>) -> UIDNumbers
+    magnitude: ElementsValues,
+    uid_number: &mut UIDNumbers,
+    drawn_analysis_results_for_nodes: &mut Vec<DrawnAnalysisResultNodeData>)
 {
-    let mut uid = drawn_uid_number;
+    let mut uid = *uid_number;
     for node in initial_nodes.iter()
     {
         uid += 1;
@@ -372,15 +371,16 @@ pub fn extend_by_deformed_shape_nodes(nodes: &mut Vec<FEDrawnNodeData>,
                 x: deformed_shape_node_x, y: deformed_shape_node_y, z: deformed_shape_node_z };
         nodes.push(deformed_shape_node);
     }
-    uid
+    *uid_number = uid;
 }
 
 
 pub fn extend_by_reactions(initial_nodes: &Rc<Vec<FEDrawnNodeData>>,
-    reactions: &Reactions<ElementsNumbers, ElementsValues>, drawn_uid_number: UIDNumbers,
+    reactions: &Reactions<ElementsNumbers, ElementsValues>,
+    uid_number: &mut UIDNumbers,
     drawn_analysis_results_for_nodes: &mut Vec<DrawnAnalysisResultNodeData>)
 {
-    let mut uid = drawn_uid_number;
+    let mut uid = *uid_number;
     for node in initial_nodes.iter()
     {
         uid += 1;
@@ -441,6 +441,29 @@ pub fn extend_by_reactions(initial_nodes: &Rc<Vec<FEDrawnNodeData>>,
         }
         drawn_analysis_results_for_nodes.push(drawn_analysis_result_node_data);
     }
+    *uid_number = uid;
+}
+
+
+pub fn extend_by_elements_analysis_result(
+    elements_analysis_result: &ElementsAnalysisResult<ElementsNumbers, ElementsValues>,
+    uid_number: &mut UIDNumbers,
+    drawn_analysis_results_for_elements: &mut Vec<DrawnAnalysisResultElementData>)
+{
+    let mut uid = *uid_number;
+    let elements_analysis_data =
+        elements_analysis_result.extract_elements_analysis_data();
+    for i in 0..elements_analysis_data.len()
+    {
+        uid += 1;
+        let drawn_analysis_result_element_data = DrawnAnalysisResultElementData
+            {
+                uid,
+                element_analysis_data: elements_analysis_data[i].to_owned(),
+            };
+        drawn_analysis_results_for_elements.push(drawn_analysis_result_element_data);
+    }
+    *uid_number = uid;
 }
 
 

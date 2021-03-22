@@ -215,7 +215,6 @@ impl Component for PlotStressesMenu
                                         false
                                     }
                                 },
-                                disabled=true,
                             />
                             <label for={ PLOT_STRESS_XY_ID }>
                                 { StressStrainComponent::XY.as_str() }
@@ -246,7 +245,6 @@ impl Component for PlotStressesMenu
                                         false
                                     }
                                 },
-                                disabled=true,
                             />
                             <label for={ PLOT_STRESS_XZ_ID }>
                                 { StressStrainComponent::XZ.as_str() }
@@ -277,7 +275,6 @@ impl Component for PlotStressesMenu
                                         false
                                     }
                                 },
-                                disabled=true,
                             />
                             <label for={ PLOT_STRESS_YY_ID }>
                                 { StressStrainComponent::YY.as_str() }
@@ -308,7 +305,6 @@ impl Component for PlotStressesMenu
                                         false
                                     }
                                 },
-                                disabled=true,
                             />
                             <label for={ PLOT_STRESS_YZ_ID }>
                                 { StressStrainComponent::YZ.as_str() }
@@ -339,7 +335,6 @@ impl Component for PlotStressesMenu
                                         false
                                     }
                                 },
-                                disabled=true,
                             />
                             <label for={ PLOT_STRESS_ZZ_ID }>
                                 { StressStrainComponent::ZZ.as_str() }

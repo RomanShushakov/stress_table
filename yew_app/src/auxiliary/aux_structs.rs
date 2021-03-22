@@ -1,6 +1,7 @@
 use crate::{GLElementsNumbers, GLElementsValues, UIDNumbers};
 use crate::{ElementsNumbers, ElementsValues};
-use crate::fem::{FEType, BCType};
+use crate::fem::{FEType, BCType, ElementAnalysisData};
+use crate::fem::element_analysis::fe_stress_strain_components::EARType;
 // use crate::components::preprocessor_canvas::gl::gl_aux_structs::DRAWN_ELEMENTS_DENOTATION_SHIFT;
 
 
@@ -190,42 +191,9 @@ pub struct DrawnAnalysisResultNodeData
 }
 
 
-// #[derive(Clone, PartialEq, Debug)]
-// pub struct MinMaxValues
-// {
-//     pub min_value: ElementsValues,
-//     pub max_value: ElementsValues,
-// }
-
-
-// #[derive(Clone, PartialEq)]
-// pub struct AnalysisResult
-// {
-//     pub displacements: HashMap<Displacement<u16>, f64>,
-//     pub reactions: HashMap<Force<u16>, f64>,
-//     pub strains_and_stresses: HashMap<u16, Vec<StrainStress<f64>>>,
-//     pub min_max_stress_values: HashMap<StrainStressComponent, MinMaxValues>,
-// }
-
-
-#[derive(Clone, PartialEq)]
-pub enum ResultView
+#[derive(Debug)]
+pub struct DrawnAnalysisResultElementData
 {
-    PlotStresses,
-    PlotReactions,
-    PrintAllResults,
-}
-
-
-impl ResultView
-{
-    pub fn as_str(&self) -> String
-    {
-        match self
-        {
-            ResultView::PlotStresses => String::from("Plot stresses"),
-            ResultView::PlotReactions => String::from("Plot reactions"),
-            ResultView::PrintAllResults => String::from("Print all results"),
-        }
-    }
+    pub uid: UIDNumbers,
+    pub element_analysis_data: ElementAnalysisData<ElementsNumbers, ElementsValues>,
 }

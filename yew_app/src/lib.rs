@@ -25,20 +25,9 @@ use crate::fem::GLOBAL_DOF;
 mod extended_matrix;
 
 mod components;
-use components::
-    {
-        NodeMenu, PreprocessorCanvas, ElementMenu,
-        ViewMenu, DisplacementMenu, ForceMenu, // ResultViewMenu, PostprocessorCanvas,
-        // AllResultsTable,
-    };
-
 
 mod auxiliary;
-use auxiliary::
-    {
-        View, FEDrawnNodeData, DrawnBCData,
-        ResultView, // MinMaxValues, // AnalysisResult,
-    };
+use auxiliary::{ View, FEDrawnNodeData, DrawnBCData };
 use crate::auxiliary::FEDrawnElementData;
 
 mod route;
@@ -48,6 +37,7 @@ mod pages;
 use pages::{Preprocessor, Postprocessor};
 use yew_router::router::Render;
 use crate::fem::global_analysis::fe_global_analysis_result::Reactions;
+use crate::fem::element_analysis::fe_element_analysis_result::ElementsAnalysisResult;
 
 
 // #[global_allocator]
@@ -75,8 +65,7 @@ struct State
     analysis_message: Option<String>,
     global_displacements: Rc<Option<Displacements<ElementsNumbers, ElementsValues>>>,
     reactions: Rc<Option<Reactions<ElementsNumbers, ElementsValues>>>,
-    // analysis_result: Option<AnalysisResult>,
-    result_view: Option<ResultView>,
+    elements_analysis_result: Rc<Option<ElementsAnalysisResult<ElementsNumbers, ElementsValues>>>,
 }
 
 
@@ -106,7 +95,6 @@ enum Msg
     ResetAnalysisMessage,
     Submit,
     EditFEM,
-    ChangeResultView(ResultView),
 }
 
 
@@ -129,13 +117,21 @@ impl Model
     }
 
 
-    fn submit(&mut self) -> Result<GlobalAnalysisResult<ElementsNumbers, ElementsValues>, String>
+    fn submit(&mut self) -> Result<(), String>
     {
         let global_analysis_result = self.state.fem.global_analysis()?;
+        let global_displacements =
+            global_analysis_result.extract_displacements();
+        let reactions = global_analysis_result.extract_reactions();
+        let elements_analysis_result =
+            self.state.fem.elements_analysis(&global_displacements)?;
+        self.state.global_displacements = Rc::new(Some(global_displacements));
+        self.state.reactions = Rc::new(Some(reactions));
+        self.state.elements_analysis_result = Rc::new(Some(elements_analysis_result));
         let analysis_success_message = "The analysis was successfully completed!".to_string();
         self.state.analysis_message = Some(analysis_success_message);
         self.state.is_preprocessor_active = false;
-        Ok(global_analysis_result)
+        Ok(())
     }
 }
 
@@ -182,7 +178,7 @@ impl Component for Model
                     analysis_message: None,
                     global_displacements: Rc::new(None),
                     reactions: Rc::new(None),
-                    result_view: None,
+                    elements_analysis_result: Rc::new(None),
                 },
             resize_task: None,
         }
@@ -355,17 +351,7 @@ impl Component for Model
                 {
                     match self.submit()
                     {
-                        Ok(global_analysis_result) =>
-                            {
-                                let global_displacements =
-                                    global_analysis_result.extract_displacements();
-                                let reactions =
-                                    global_analysis_result.extract_reactions();
-                                self.state.global_displacements =
-                                    Rc::new(Some(global_displacements));
-                                self.state.reactions =
-                                    Rc::new(Some(reactions));
-                            },
+                        Ok(global_analysis_result) => (),
                         Err(msg) => self.state.analysis_message = Some(msg),
                     }
                 },
@@ -374,10 +360,8 @@ impl Component for Model
                     self.state.is_preprocessor_active = true;
                     self.state.global_displacements = Rc::new(None);
                     self.state.reactions = Rc::new(None);
-                    self.state.result_view = None;
+                    self.state.elements_analysis_result = Rc::new(None);
                 },
-            Msg::ChangeResultView(result_view) =>
-                self.state.result_view = Some(result_view),
         }
         true
     }
@@ -397,10 +381,10 @@ impl Component for Model
         let handle_change_view = self.link.callback(|view: View| Msg::ChangeView(view));
         let handle_discard_view = self.link.callback(|_| Msg::DiscardView);
 
-        let mut drawn_uid_number = 0 as UIDNumbers;
+        let mut postproc_init_uid_number = 0 as UIDNumbers;
 
         let drawn_nodes =
-            self.state.fem.drawn_nodes_rc(&mut drawn_uid_number);
+            self.state.fem.drawn_nodes_rc(&mut postproc_init_uid_number);
         let handle_add_node =
             self.link.callback(|data: FEDrawnNodeData| Msg::AddNode(data));
         let handle_update_node =
@@ -409,7 +393,7 @@ impl Component for Model
             self.link.callback(|number: ElementsNumbers| Msg::DeleteNode(number));
 
         let drawn_elements =
-            self.state.fem.drawn_elements_rc(&mut drawn_uid_number);
+            self.state.fem.drawn_elements_rc(&mut postproc_init_uid_number);
         let handle_add_element =
             self.link.callback(|data: FEDrawnElementData| Msg::AddElement(data));
         let handle_update_element =
@@ -418,15 +402,12 @@ impl Component for Model
             self.link.callback(|number: ElementsNumbers| Msg::DeleteElement(number));
 
         let drawn_bcs =
-            self.state.fem.drawn_bcs_rc(&mut drawn_uid_number);
+            self.state.fem.drawn_bcs_rc(&mut postproc_init_uid_number);
         let handle_add_bc = self.link.callback(|data: DrawnBCData| Msg::AddBC(data));
         let handle_update_bc =
             self.link.callback(|data: DrawnBCData| Msg::UpdateBC(data));
         let handle_delete_bc =
             self.link.callback(|data: DrawnBCData| Msg::DeleteBC(data));
-
-        let handle_change_result_view =
-            self.link.callback(|result_view: ResultView| Msg::ChangeResultView(result_view));
 
         let handle_reset_analysis_message =
             self.link.callback(|_| Msg::ResetAnalysisMessage);
@@ -442,6 +423,8 @@ impl Component for Model
         let global_displacements =
             Rc::clone(&self.state.global_displacements);
         let reactions = Rc::clone(&self.state.reactions);
+        let elements_analysis_result =
+            Rc::clone(&self.state.elements_analysis_result);
         let handle_edit_fem = self.link.callback(|_| Msg::EditFEM);
 
         let render = Router::render(move |switch: AppRoute| match switch
@@ -480,6 +463,7 @@ impl Component for Model
                         submit=handle_submit.to_owned(),
                         global_displacements=Rc::clone(&global_displacements),
                         reactions=Rc::clone(&reactions),
+                        elements_analysis_result=Rc::clone(&elements_analysis_result),
                         edit_fem=handle_edit_fem.to_owned(),
                     />
                 },
@@ -487,16 +471,17 @@ impl Component for Model
                 html!
                 {
                     <Postprocessor
-                        global_displacements=Rc::clone(&global_displacements),
-                        reactions=Rc::clone(&reactions),
                         view=view.to_owned(),
                         change_view=handle_change_view.to_owned(),
                         discard_view=handle_discard_view.to_owned(),
                         canvas_width=canvas_width.to_owned(),
                         canvas_height=canvas_height.to_owned(),
                         drawn_nodes=Rc::clone(&drawn_nodes),
-                        drawn_uid_number=drawn_uid_number.to_owned(),
                         drawn_elements=Rc::clone(&drawn_elements),
+                        postproc_init_uid_number=postproc_init_uid_number.to_owned(),
+                        global_displacements=Rc::clone(&global_displacements),
+                        reactions=Rc::clone(&reactions),
+                        elements_analysis_result=Rc::clone(&elements_analysis_result),
                     />
                 },
             AppRoute::HomePage =>
@@ -533,6 +518,7 @@ impl Component for Model
                         submit=handle_submit.to_owned(),
                         global_displacements=Rc::clone(&global_displacements),
                         reactions=Rc::clone(&reactions),
+                        elements_analysis_result=Rc::clone(&elements_analysis_result),
                         edit_fem=handle_edit_fem.to_owned(),
                     />
                 },

@@ -11,6 +11,7 @@ use crate::{ElementsNumbers, ElementsValues, UIDNumbers};
 use crate::components::{ViewMenu, PostprocessorCanvas, PlotDisplacementsMenu, PlotStressesMenu};
 use crate::auxiliary::{View, FEDrawnNodeData, FEDrawnElementData};
 use crate::fem::global_analysis::fe_global_analysis_result::Reactions;
+use crate::fem::element_analysis::fe_element_analysis_result::ElementsAnalysisResult;
 
 
 const POSTPROCESSOR_CLASS: &str = "postprocessor";
@@ -24,16 +25,17 @@ const ANALYSIS_MESSAGE_CLASS: &str = "analysis_message";
 #[derive(Properties, Clone)]
 pub struct Props
 {
-    pub global_displacements: Rc<Option<Displacements<ElementsNumbers, ElementsValues>>>,
-    pub reactions: Rc<Option<Reactions<ElementsNumbers, ElementsValues>>>,
     pub view: Option<View>,
     pub change_view: Callback<View>,
     pub discard_view: Callback<()>,
     pub canvas_width: u32,
     pub canvas_height: u32,
     pub drawn_nodes: Rc<Vec<FEDrawnNodeData>>,
-    pub drawn_uid_number: UIDNumbers,
     pub drawn_elements: Rc<Vec<FEDrawnElementData>>,
+    pub postproc_init_uid_number: UIDNumbers,
+    pub global_displacements: Rc<Option<Displacements<ElementsNumbers, ElementsValues>>>,
+    pub reactions: Rc<Option<Reactions<ElementsNumbers, ElementsValues>>>,
+    pub elements_analysis_result: Rc<Option<ElementsAnalysisResult<ElementsNumbers, ElementsValues>>>,
 }
 
 
@@ -118,12 +120,13 @@ impl Component for Postprocessor
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender
     {
-
-        if (&self.props.view, &self.props.drawn_uid_number, &self.props.canvas_width,
+        if (&self.props.view, &self.props.postproc_init_uid_number, &self.props.canvas_width,
             &self.props.canvas_height) !=
-            (&props.view, &props.drawn_uid_number, &props.canvas_width, &props.canvas_height) ||
+            (&props.view, &props.postproc_init_uid_number, &props.canvas_width, &props.canvas_height) ||
             !Rc::ptr_eq(&self.props.global_displacements, &props.global_displacements) ||
-            !Rc::ptr_eq(&self.props.reactions, &props.reactions)
+            !Rc::ptr_eq(&self.props.reactions, &props.reactions) ||
+            !Rc::ptr_eq(&self.props.elements_analysis_result,
+                        &props.elements_analysis_result)
         {
             self.props = props;
             true
@@ -199,11 +202,6 @@ impl Component for Postprocessor
                                         stress_component_selected=self.state.stress_component_selected.to_owned(),
                                         select_stress_component=handle_select_stress_component,
                                     />
-
-                                    // <ResultViewMenu
-                                    //     result_view=self.state.result_view.to_owned(),
-                                    //     change_result_view=handle_change_result_view,
-                                    // />
                                 </div>
                                 <div class={ POSTPROCESSOR_CANVAS_CLASS }>
                                     <PostprocessorCanvas
@@ -213,16 +211,16 @@ impl Component for Postprocessor
                                         canvas_height=self.props.canvas_height.to_owned(),
                                         magnitude=self.state.magnitude.to_owned(),
                                         drawn_nodes=Rc::clone(&self.props.drawn_nodes),
+                                        drawn_elements=Rc::clone(&self.props.drawn_elements),
                                         global_displacements=Rc::clone(&self.props.global_displacements),
                                         is_plot_displacements_selected=self.state.is_plot_displacements_selected.to_owned(),
                                         reactions=Rc::clone(&self.props.reactions),
                                         is_plot_reactions_selected=self.state.is_plot_reactions_selected.to_owned(),
-                                        drawn_elements=Rc::clone(&self.props.drawn_elements),
-                                        // add_analysis_message=self.props.add_analysis_message.to_owned(),
-                                        // drawn_bcs=Rc::clone(&self.props.drawn_bcs),
+                                        stress_component_selected=self.state.stress_component_selected.to_owned(),
+                                        elements_analysis_result=Rc::clone(&self.props.elements_analysis_result),
                                         add_object_info=handle_add_object_info.to_owned(),
                                         reset_object_info=handle_reset_object_info.to_owned(),
-                                        drawn_uid_number=self.props.drawn_uid_number.to_owned(),
+                                        postproc_init_uid_number=self.props.postproc_init_uid_number.to_owned(),
                                     />
                                     {
                                         if let Some(info) = &self.state.object_info

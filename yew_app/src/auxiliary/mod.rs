@@ -5,7 +5,6 @@ pub mod aux_functions;
 
 pub use aux_structs::
     {
-        View, DrawnBCData, NormalizedNode,
-        FEDrawnNodeData, FEDrawnElementData,
-        DrawnDisplacementInputOption, DrawnAnalysisResultNodeData, ResultView, //MinMaxValues, // AnalysisResult, DrawnNode
+        View, DrawnBCData, NormalizedNode, FEDrawnNodeData, FEDrawnElementData,
+        DrawnDisplacementInputOption, DrawnAnalysisResultNodeData, DrawnAnalysisResultElementData,
     };

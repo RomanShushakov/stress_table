@@ -21,7 +21,7 @@ use crate::auxiliary::gl_aux_functions::
         add_denotation, initialize_shaders, normalize_nodes, add_hints,
         extend_by_deformed_shape_nodes, update_displacement_value,
         define_drawn_object_denotation_color, add_displacements_hints,
-        extend_by_reactions, add_reactions_hints
+        extend_by_reactions, add_reactions_hints, extend_by_elements_analysis_result,
     };
 use crate::auxiliary::gl_aux_structs::{Buffers, ShadersVariables, DrawnObject};
 use crate::auxiliary::gl_aux_structs::{CSAxis, GLMode};
@@ -44,14 +44,17 @@ use crate::auxiliary::gl_aux_structs::
         DRAWN_DEFORMED_SHAPE_NODES_DENOTATION_SHIFT, DRAWN_ELEMENTS_DENOTATION_SHIFT,
     };
 
-use crate::fem::{FENode, FEType, BCType, GlobalAnalysisResult, GlobalDOFParameter, Displacements};
+use crate::fem::{FENode, GlobalAnalysisResult, Displacements};
+use crate::fem::{FEType, BCType, GlobalDOFParameter, StressStrainComponent};
 use crate::{ElementsNumbers, ElementsValues, GLElementsNumbers, GLElementsValues, UIDNumbers};
 use crate::auxiliary::
     {
-        View, FEDrawnElementData, DrawnBCData, FEDrawnNodeData, DrawnAnalysisResultNodeData
+        View, FEDrawnElementData, DrawnBCData, FEDrawnNodeData, DrawnAnalysisResultNodeData,
+        DrawnAnalysisResultElementData
     };
 use crate::auxiliary::aux_functions::{transform_u32_to_array_of_u8, value_to_string};
 use crate::fem::global_analysis::fe_global_analysis_result::Reactions;
+use crate::fem::element_analysis::fe_element_analysis_result::ElementsAnalysisResult;
 
 
 const POSTPROCESSOR_CANVAS_CONTAINER_CLASS: &str = "postprocessor_canvas_container";
@@ -81,16 +84,16 @@ pub struct Props
     pub canvas_height: u32,
     pub magnitude: ElementsValues,
     pub drawn_nodes: Rc<Vec<FEDrawnNodeData>>,
+    pub drawn_elements: Rc<Vec<FEDrawnElementData>>,
     pub global_displacements: Rc<Option<Displacements<ElementsNumbers, ElementsValues>>>,
     pub is_plot_displacements_selected: bool,
     pub reactions: Rc<Option<Reactions<ElementsNumbers, ElementsValues>>>,
     pub is_plot_reactions_selected: bool,
-    pub drawn_elements: Rc<Vec<FEDrawnElementData>>,
-    // pub add_analysis_message: Callback<String>,
-    // pub drawn_bcs: Rc<Vec<DrawnBCData>>,
+    pub stress_component_selected: Option<StressStrainComponent>,
+    pub elements_analysis_result: Rc<Option<ElementsAnalysisResult<ElementsNumbers, ElementsValues>>>,
     pub add_object_info: Callback<String>,
     pub reset_object_info: Callback<()>,
-    pub drawn_uid_number: UIDNumbers,
+    pub postproc_init_uid_number: UIDNumbers,
 }
 
 
@@ -123,6 +126,7 @@ struct State
     cursor_coord_x: i32,
     cursor_coord_y: i32,
     drawn_analysis_results_for_nodes: Vec<DrawnAnalysisResultNodeData>,
+    drawn_analysis_results_for_elements: Vec<DrawnAnalysisResultElementData>,
 }
 
 
@@ -352,10 +356,11 @@ impl Component for PostprocessorCanvas
         let rotate = false;
         let shift_key_pressed = false;
         let drawn_analysis_results_for_nodes = Vec::new();
+        let drawn_analysis_results_for_elements = Vec::new();
         let state = State {
             dx, dy, d_scale, theta, phi, pan, rotate, shift_key_pressed, selected_color: [0; 4],
             under_cursor_color: [0; 4], cursor_coord_x: -1, cursor_coord_y: -1,
-            drawn_analysis_results_for_nodes };
+            drawn_analysis_results_for_nodes, drawn_analysis_results_for_elements };
         Self
         {
             props,
@@ -494,9 +499,11 @@ impl Component for PostprocessorCanvas
             (&props.view, &props.canvas_height, &props.canvas_width, &props.magnitude,
             &props.is_plot_displacements_selected, &props.is_plot_reactions_selected) ||
             !Rc::ptr_eq(&self.props.drawn_nodes, &props.drawn_nodes) ||
+            !Rc::ptr_eq(&self.props.drawn_elements, &props.drawn_elements) ||
             !Rc::ptr_eq(&self.props.global_displacements, &props.global_displacements) ||
             !Rc::ptr_eq(&self.props.reactions, &props.reactions) ||
-            !Rc::ptr_eq(&self.props.drawn_elements, &props.drawn_elements)
+            !Rc::ptr_eq(&self.props.elements_analysis_result,
+                &props.elements_analysis_result)
         {
             self.props = props;
             if let Some(view) = &self.props.view
@@ -608,7 +615,9 @@ impl PostprocessorCanvas
         let ctx = self.ctx.as_ref().expect("CTX Context not initialized!");
         gl.clear_color(0.0, 0.0, 0.0, 1.0);
         ctx.clear_rect(0.0, 0.0, self.props.canvas_width as f64, self.props.canvas_height as f64);
+        let mut posproc_uid_number = self.props.postproc_init_uid_number;
         self.state.drawn_analysis_results_for_nodes = Vec::new();
+        self.state.drawn_analysis_results_for_elements = Vec::new();
         gl.enable(GL::DEPTH_TEST);
         gl.clear(GL::COLOR_BUFFER_BIT);
         gl.clear(GL::DEPTH_BUFFER_BIT);
@@ -631,14 +640,22 @@ impl PostprocessorCanvas
             if let Some(global_displacements) =
                 self.props.global_displacements.as_ref()
             {
-                let updated_drawn_uid_number =
-                    extend_by_deformed_shape_nodes(&mut all_nodes,
-                   &self.props.drawn_nodes, &global_displacements, self.props.magnitude,
-                    self.props.drawn_uid_number, &mut self.state.drawn_analysis_results_for_nodes);
+                extend_by_deformed_shape_nodes(&mut all_nodes,
+                    &self.props.drawn_nodes, &global_displacements, self.props.magnitude,
+                    &mut posproc_uid_number,
+                    &mut self.state.drawn_analysis_results_for_nodes);
                 if let Some(reactions) = self.props.reactions.as_ref()
                 {
                     extend_by_reactions(&self.props.drawn_nodes, &reactions,
-                        updated_drawn_uid_number, &mut self.state.drawn_analysis_results_for_nodes);
+                        &mut posproc_uid_number,
+                        &mut self.state.drawn_analysis_results_for_nodes);
+                }
+                if let Some(elements_analysis_result) =
+                    self.props.elements_analysis_result.as_ref()
+                {
+                    extend_by_elements_analysis_result(&elements_analysis_result,
+                        &mut posproc_uid_number,
+                        &mut self.state.drawn_analysis_results_for_elements);
                 }
             }
             let normalized_nodes = normalize_nodes(

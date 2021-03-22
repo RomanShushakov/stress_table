@@ -47,3 +47,23 @@ impl StressStrainComponent
         }
     }
 }
+
+
+pub enum EARType
+{
+    Stress,
+    Strain,
+}
+
+
+impl EARType
+{
+    pub fn as_str(&self) -> String
+    {
+        match self
+        {
+            EARType::Stress => String::from("Stress"),
+            EARType::Strain => String::from("Strain"),
+        }
+    }
+}

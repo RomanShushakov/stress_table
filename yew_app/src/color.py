@@ -8,9 +8,9 @@ def defined_color(a, b, elem_length):
     points_distances = {
         a: 0,
     }
-    for i in range(5):
-        if a < transition_points[i]:
-            point = transition_points[i]
+    for transition_point in transition_points:
+        if a < transition_point:
+            point = transition_point
             point_range = point - a
             break
     while point < b:

@@ -8,7 +8,7 @@ use crate::auxiliary::gl_aux_functions::{find_node_coordinates, define_drawn_obj
 
 use crate::{ElementsValues, ElementsNumbers};
 use crate::fem::{FENode, FEType, GlobalDOFParameter};
-use crate::auxiliary::{NormalizedNode, FEDrawnElementData, DrawnBCData, DrawnAnalysisResultNodeData};
+use crate::auxiliary::{NormalizedNode, FEDrawnElementData, FEDrawnBCData, FEDrawnAnalysisResultNodeData};
 use crate::auxiliary::aux_functions::transform_u32_to_array_of_u8;
 use yew::Callback;
 use crate::fem::global_analysis::fe_global_analysis_result::Reactions;
@@ -659,7 +659,7 @@ impl DrawnObject
 
 
     pub fn add_displacements(&mut self, normalized_nodes: &Vec<NormalizedNode>,
-        drawn_displacements: &Vec<&DrawnBCData>, base_points_number: GLElementsNumbers,
+        drawn_displacements: &Vec<&FEDrawnBCData>, base_points_number: GLElementsNumbers,
         height: GLElementsValues, base_radius: GLElementsValues, gl_mode: GLMode,
         under_cursor_color: &[u8; 4], selected_color: &[u8; 4])
     {
@@ -981,10 +981,10 @@ impl DrawnObject
 
 
     pub fn add_forces(&mut self, normalized_nodes: &Vec<NormalizedNode>,
-        drawn_forces: &Vec<&DrawnBCData>, line_length: GLElementsValues,
-        base_points_number: GLElementsNumbers, height: GLElementsValues,
-        base_radius: GLElementsValues, gl_mode: GLMode, under_cursor_color: &[u8; 4],
-        selected_color: &[u8; 4])
+                      drawn_forces: &Vec<&FEDrawnBCData>, line_length: GLElementsValues,
+                      base_points_number: GLElementsNumbers, height: GLElementsValues,
+                      base_radius: GLElementsValues, gl_mode: GLMode, under_cursor_color: &[u8; 4],
+                      selected_color: &[u8; 4])
     {
         let mut start_index =
             if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
@@ -1040,10 +1040,10 @@ impl DrawnObject
 
 
     pub fn add_reactions(&mut self, normalized_nodes: &[NormalizedNode],
-        reactions: &Vec<&DrawnAnalysisResultNodeData>,
-        line_length: GLElementsValues, base_points_number: GLElementsNumbers,
-        height: GLElementsValues, base_radius: GLElementsValues, gl_mode: GLMode,
-        under_cursor_color: &[u8; 4], selected_color: &[u8; 4])
+                         reactions: &Vec<&FEDrawnAnalysisResultNodeData>,
+                         line_length: GLElementsValues, base_points_number: GLElementsNumbers,
+                         height: GLElementsValues, base_radius: GLElementsValues, gl_mode: GLMode,
+                         under_cursor_color: &[u8; 4], selected_color: &[u8; 4])
     {
         let mut start_index =
             if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };

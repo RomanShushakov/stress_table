@@ -4,7 +4,7 @@ use yew_router::prelude::{RouterButton};
 use std::rc::Rc;
 use std::cell::RefCell;
 
-use crate::auxiliary::{View, FEDrawnNodeData, FEDrawnElementData, DrawnBCData};
+use crate::auxiliary::{View, FEDrawnNodeData, FEDrawnElementData, FEDrawnBCData};
 use crate::fem::{FENode, GlobalAnalysisResult, Displacements};
 use crate::{ElementsNumbers, ElementsValues, UIDNumbers};
 
@@ -46,10 +46,10 @@ pub struct Props
     pub update_element: Callback<FEDrawnElementData>,
     pub delete_element: Callback<ElementsNumbers>,
 
-    pub drawn_bcs: Rc<Vec<DrawnBCData>>,
-    pub add_bc: Callback<DrawnBCData>,
-    pub update_bc: Callback<DrawnBCData>,
-    pub delete_bc: Callback<DrawnBCData>,
+    pub drawn_bcs: Rc<Vec<FEDrawnBCData>>,
+    pub add_bc: Callback<FEDrawnBCData>,
+    pub update_bc: Callback<FEDrawnBCData>,
+    pub delete_bc: Callback<FEDrawnBCData>,
     pub add_analysis_message: Callback<String>,
 
     pub canvas_width: u32,

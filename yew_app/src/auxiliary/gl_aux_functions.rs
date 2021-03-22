@@ -6,7 +6,7 @@ use std::cell::RefCell;
 use crate::fem::{FENode, GlobalAnalysisResult, GlobalDOFParameter, Displacements, BCType};
 use crate::{ElementsNumbers, ElementsValues, UIDNumbers};
 use crate::{GLElementsValues, GLElementsNumbers};
-use crate::auxiliary::{NormalizedNode, FEDrawnElementData, FEDrawnNodeData, DrawnAnalysisResultNodeData, DrawnAnalysisResultElementData};
+use crate::auxiliary::{NormalizedNode, FEDrawnElementData, FEDrawnNodeData, FEDrawnAnalysisResultNodeData, DrawnAnalysisResultElementData};
 
 use crate::auxiliary::gl_aux_structs::GLMode;
 use crate::auxiliary::gl_aux_structs::
@@ -154,9 +154,10 @@ fn find_max_object_side(x_min: GLElementsValues, x_max: GLElementsValues, y_min:
 
 
 pub fn normalize_nodes(nodes: Rc<Vec<FEDrawnNodeData>>, canvas_width: GLElementsValues,
-    canvas_height: GLElementsValues, aspect: GLElementsValues)
+    canvas_height: GLElementsValues)
     -> Vec<NormalizedNode>
 {
+    let aspect = canvas_width / canvas_height;
     let mut normalized_nodes = Vec::new();
     let (x_min, x_max, y_min, y_max, z_min, z_max)
         = find_object_min_max_coordinates(Rc::clone(&nodes));
@@ -268,14 +269,14 @@ pub fn extend_by_deformed_shape_nodes(nodes: &mut Vec<FEDrawnNodeData>,
     global_displacements: &Displacements<ElementsNumbers, ElementsValues>,
     magnitude: ElementsValues,
     uid_number: &mut UIDNumbers,
-    drawn_analysis_results_for_nodes: &mut Vec<DrawnAnalysisResultNodeData>)
+    drawn_analysis_results_for_nodes: &mut Vec<FEDrawnAnalysisResultNodeData>)
 {
     let mut uid = *uid_number;
     for node in initial_nodes.iter()
     {
         uid += 1;
         let initial_node_number = node.number;
-        let mut drawn_analysis_result_node_data = DrawnAnalysisResultNodeData
+        let mut drawn_analysis_result_node_data = FEDrawnAnalysisResultNodeData
             {
                 uid, bc_type: BCType::Displacement,
                 node_number: initial_node_number,
@@ -378,13 +379,13 @@ pub fn extend_by_deformed_shape_nodes(nodes: &mut Vec<FEDrawnNodeData>,
 pub fn extend_by_reactions(initial_nodes: &Rc<Vec<FEDrawnNodeData>>,
     reactions: &Reactions<ElementsNumbers, ElementsValues>,
     uid_number: &mut UIDNumbers,
-    drawn_analysis_results_for_nodes: &mut Vec<DrawnAnalysisResultNodeData>)
+    drawn_analysis_results_for_nodes: &mut Vec<FEDrawnAnalysisResultNodeData>)
 {
     let mut uid = *uid_number;
     for node in initial_nodes.iter()
     {
         uid += 1;
-        let mut drawn_analysis_result_node_data = DrawnAnalysisResultNodeData
+        let mut drawn_analysis_result_node_data = FEDrawnAnalysisResultNodeData
             {
                 uid, bc_type: BCType::Force,
                 node_number: node.number,

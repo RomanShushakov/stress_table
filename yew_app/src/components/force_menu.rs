@@ -7,7 +7,7 @@ use web_sys::
 use wasm_bindgen::JsCast;
 use std::rc::Rc;
 
-use crate::{FEDrawnElementData, DrawnBCData, ElementsNumbers, ElementsValues, UIDNumbers};
+use crate::{FEDrawnElementData, FEDrawnBCData, ElementsNumbers, ElementsValues, UIDNumbers};
 use crate::pages::PREPROCESSOR_BUTTON_CLASS;
 use crate::fem::{FEType, BCType};
 
@@ -34,17 +34,17 @@ pub struct Props
 {
     pub is_preprocessor_active: bool,
     pub drawn_elements: Rc<Vec<FEDrawnElementData>>,
-    pub drawn_bcs: Rc<Vec<DrawnBCData>>,
-    pub add_bc: Callback<DrawnBCData>,
-    pub update_bc: Callback<DrawnBCData>,
-    pub delete_bc: Callback<DrawnBCData>,
+    pub drawn_bcs: Rc<Vec<FEDrawnBCData>>,
+    pub add_bc: Callback<FEDrawnBCData>,
+    pub update_bc: Callback<FEDrawnBCData>,
+    pub delete_bc: Callback<FEDrawnBCData>,
     pub add_analysis_message: Callback<String>,
 }
 
 
 struct State
 {
-    selected_force: DrawnBCData,
+    selected_force: FEDrawnBCData,
 }
 
 
@@ -97,7 +97,7 @@ impl ForceMenu
         options.set_length(self.props.drawn_bcs
             .iter()
             .filter(|bc| bc.bc_type == BCType::Force)
-            .collect::<Vec<&DrawnBCData>>().len() as u32 + 1);
+            .collect::<Vec<&FEDrawnBCData>>().len() as u32 + 1);
         let uid = UIDNumbers::default();
         let number =
             {
@@ -120,7 +120,7 @@ impl ForceMenu
                 }
                 n + 1
             };
-        self.state.selected_force = DrawnBCData
+        self.state.selected_force = FEDrawnBCData
             {
                 uid,
                 bc_type: BCType::Force,
@@ -141,12 +141,12 @@ impl ForceMenu
             options.set(self.props.drawn_bcs
                 .iter()
                 .filter(|bc| bc.bc_type == BCType::Force)
-                .collect::<Vec<&DrawnBCData>>().len() as u32, Some(&option)).unwrap();
+                .collect::<Vec<&FEDrawnBCData>>().len() as u32, Some(&option)).unwrap();
         }
         options.set_selected_index(self.props.drawn_bcs
             .iter()
             .filter(|bc| bc.bc_type == BCType::Force)
-            .collect::<Vec<&DrawnBCData>>().len() as i32)
+            .collect::<Vec<&FEDrawnBCData>>().len() as i32)
             .unwrap();
     }
 
@@ -249,7 +249,7 @@ impl Component for ForceMenu
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self
     {
         let selected_force =
-            DrawnBCData
+            FEDrawnBCData
             {
                 uid: UIDNumbers::default(),
                 bc_type: BCType::Force,
@@ -301,7 +301,7 @@ impl Component for ForceMenu
                                     let number = select_force.value()
                                         .parse::<ElementsNumbers>().unwrap();
                                     let node_number = 1 as ElementsNumbers;
-                                    self.state.selected_force = DrawnBCData
+                                    self.state.selected_force = FEDrawnBCData
                                         {
                                             uid,
                                             bc_type,

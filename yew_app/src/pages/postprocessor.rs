@@ -9,7 +9,7 @@ use crate::fem::{StressStrainComponent};
 use crate::{ElementsNumbers, ElementsValues, UIDNumbers};
 
 use crate::components::{ViewMenu, PostprocessorCanvas, PlotDisplacementsMenu, PlotStressesMenu};
-use crate::auxiliary::{View, FEDrawnNodeData, FEDrawnElementData};
+use crate::auxiliary::{View, FEDrawnNodeData, FEDrawnElementData, FEDrawnAnalysisResultNodeData};
 use crate::fem::global_analysis::fe_global_analysis_result::Reactions;
 use crate::fem::element_analysis::fe_element_analysis_result::ElementsAnalysisResult;
 
@@ -43,6 +43,8 @@ pub struct State
 {
     object_info: Option<String>,
     pub magnitude: ElementsValues,
+    pub drawn_nodes_extended: Vec<FEDrawnNodeData>,
+    pub drawn_analysis_results_for_nodes: Vec<FEDrawnAnalysisResultNodeData>,
     pub is_plot_displacements_selected: bool,
     pub is_plot_reactions_selected: bool,
     pub stress_component_selected: Option<StressStrainComponent>,
@@ -76,10 +78,23 @@ impl Component for Postprocessor
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self
     {
+        let drawn_nodes_extended =
+            {
+                if !props.drawn_nodes.is_empty()
+                {
+                    (*props.drawn_nodes.as_ref()).clone()
+                }
+                else
+                {
+                    Vec::new()
+                }
+            };
         let state = State
             {
                 object_info: None,
                 magnitude: 1.0 as ElementsValues,
+                drawn_nodes_extended,
+                drawn_analysis_results_for_nodes: Vec::new(),
                 is_plot_displacements_selected: false,
                 is_plot_reactions_selected: false,
                 stress_component_selected: None,
@@ -129,6 +144,14 @@ impl Component for Postprocessor
                         &props.elements_analysis_result)
         {
             self.props = props;
+            if !props.drawn_nodes.is_empty()
+            {
+                self.state.drawn_nodes_extended = (*self.props.drawn_nodes.as_ref()).clone();
+            }
+            else
+            {
+                Vec::new()
+            }
             true
         }
         else
@@ -160,7 +183,8 @@ impl Component for Postprocessor
             <>
                 {
                     if self.props.global_displacements.as_ref().is_some() &&
-                        self.props.reactions.as_ref().is_some()
+                        self.props.reactions.as_ref().is_some() &&
+                        self.props.elements_analysis_result.as_ref().is_some()
                     {
                         html!
                         {
@@ -184,17 +208,6 @@ impl Component for Postprocessor
 
                                     <button class={ POSTPROCESSOR_BUTTON_CLASS }
                                         onclick=self.link.callback(|_| Msg::SelectPlotReactions),
-                                        disabled=
-                                            {
-                                                if self.props.reactions.as_ref().is_some()
-                                                {
-                                                    false
-                                                }
-                                                else
-                                                {
-                                                    true
-                                                }
-                                            },
                                     >
                                         { "Plot reactions" }
                                     </button>

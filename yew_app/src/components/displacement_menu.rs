@@ -7,9 +7,9 @@ use web_sys::
 use wasm_bindgen::JsCast;
 use std::rc::Rc;
 
-use crate::{DrawnBCData, ElementsNumbers, ElementsValues, UIDNumbers};
+use crate::{FEDrawnBCData, ElementsNumbers, ElementsValues, UIDNumbers};
 use crate::pages::PREPROCESSOR_BUTTON_CLASS;
-use crate::auxiliary::{DrawnDisplacementInputOption, FEDrawnElementData};
+use crate::auxiliary::{FEDrawnDisplacementInputOption, FEDrawnElementData};
 use crate::fem::{FEType, BCType};
 
 
@@ -43,17 +43,17 @@ pub struct Props
 {
     pub is_preprocessor_active: bool,
     pub drawn_elements: Rc<Vec<FEDrawnElementData>>,
-    pub drawn_bcs: Rc<Vec<DrawnBCData>>,
-    pub add_bc: Callback<DrawnBCData>,
-    pub update_bc: Callback<DrawnBCData>,
-    pub delete_bc: Callback<DrawnBCData>,
+    pub drawn_bcs: Rc<Vec<FEDrawnBCData>>,
+    pub add_bc: Callback<FEDrawnBCData>,
+    pub update_bc: Callback<FEDrawnBCData>,
+    pub delete_bc: Callback<FEDrawnBCData>,
     pub add_analysis_message: Callback<String>,
 }
 
 
 struct State
 {
-    selected_displacement: DrawnBCData,
+    selected_displacement: FEDrawnBCData,
     displacement_x_is_active: bool,
     displacement_y_is_active: bool,
     displacement_z_is_active: bool,
@@ -118,7 +118,7 @@ impl DisplacementMenu
         options.set_length(self.props.drawn_bcs
             .iter()
             .filter(|bc| bc.bc_type == BCType::Displacement)
-            .collect::<Vec<&DrawnBCData>>().len() as u32 + 1);
+            .collect::<Vec<&FEDrawnBCData>>().len() as u32 + 1);
         let uid = UIDNumbers::default();
         let number =
             {
@@ -141,7 +141,7 @@ impl DisplacementMenu
                 }
                 n + 1
             };
-        self.state.selected_displacement = DrawnBCData
+        self.state.selected_displacement = FEDrawnBCData
             {
                 uid,
                 bc_type: BCType::Displacement,
@@ -166,13 +166,13 @@ impl DisplacementMenu
             option.set_value(&number.to_string());
             option.set_text(&format!("{} New", number));
             options.set(self.props.drawn_bcs.iter().filter(|bc|
-                bc.bc_type == BCType::Displacement).collect::<Vec<&DrawnBCData>>().len() as u32,
-                Some(&option)).unwrap();
+                bc.bc_type == BCType::Displacement).collect::<Vec<&FEDrawnBCData>>().len() as u32,
+                        Some(&option)).unwrap();
         }
         options.set_selected_index(self.props.drawn_bcs
             .iter()
             .filter(|bc| bc.bc_type == BCType::Displacement)
-            .collect::<Vec<&DrawnBCData>>().len() as i32)
+            .collect::<Vec<&FEDrawnBCData>>().len() as i32)
             .unwrap();
     }
 
@@ -238,7 +238,7 @@ impl Component for DisplacementMenu
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self
     {
         let selected_displacement =
-            DrawnBCData
+            FEDrawnBCData
             {
                 uid: UIDNumbers::default(),
                 bc_type: BCType::Displacement,
@@ -392,7 +392,7 @@ impl Component for DisplacementMenu
                                         .parse::<ElementsNumbers>().unwrap();
                                     let uid = UIDNumbers::default();
                                     let node_number = 1 as ElementsNumbers;
-                                    self.state.selected_displacement = DrawnBCData
+                                    self.state.selected_displacement = FEDrawnBCData
                                         {
                                             uid,
                                             bc_type,
@@ -451,18 +451,18 @@ impl Component for DisplacementMenu
                     {
                         ChangeData::Value(x_input_option) =>
                             {
-                                if x_input_option == DrawnDisplacementInputOption::Free.as_str()
+                                if x_input_option == FEDrawnDisplacementInputOption::Free.as_str()
                                 {
                                     self.state.displacement_x_is_active = false;
                                     self.state.selected_displacement.x_direction_value = None;
                                 }
-                                if x_input_option == DrawnDisplacementInputOption::Restrained.as_str()
+                                if x_input_option == FEDrawnDisplacementInputOption::Restrained.as_str()
                                 {
                                     self.state.displacement_x_is_active = false;
                                     self.state.selected_displacement.x_direction_value =
                                         Some(0.0 as ElementsValues);
                                 }
-                                if x_input_option == DrawnDisplacementInputOption::Value.as_str()
+                                if x_input_option == FEDrawnDisplacementInputOption::Value.as_str()
                                 {
                                     self.state.displacement_x_is_active = true;
                                 }
@@ -476,19 +476,19 @@ impl Component for DisplacementMenu
                     {
                         ChangeData::Value(y_input_option) =>
                             {
-                                if y_input_option == DrawnDisplacementInputOption::Free.as_str()
+                                if y_input_option == FEDrawnDisplacementInputOption::Free.as_str()
                                 {
                                     self.state.displacement_y_is_active = false;
                                     self.state.selected_displacement.y_direction_value = None;
                                 }
                                 if y_input_option ==
-                                    DrawnDisplacementInputOption::Restrained.as_str()
+                                    FEDrawnDisplacementInputOption::Restrained.as_str()
                                 {
                                     self.state.displacement_y_is_active = false;
                                     self.state.selected_displacement.y_direction_value =
                                         Some(0.0 as ElementsValues);
                                 }
-                                if y_input_option == DrawnDisplacementInputOption::Value.as_str()
+                                if y_input_option == FEDrawnDisplacementInputOption::Value.as_str()
                                 {
                                     self.state.displacement_y_is_active = true;
                                 }
@@ -502,19 +502,19 @@ impl Component for DisplacementMenu
                     {
                         ChangeData::Value(z_input_option) =>
                             {
-                                if z_input_option == DrawnDisplacementInputOption::Free.as_str()
+                                if z_input_option == FEDrawnDisplacementInputOption::Free.as_str()
                                 {
                                     self.state.displacement_z_is_active = false;
                                     self.state.selected_displacement.z_direction_value = None;
                                 }
                                 if z_input_option ==
-                                    DrawnDisplacementInputOption::Restrained.as_str()
+                                    FEDrawnDisplacementInputOption::Restrained.as_str()
                                 {
                                     self.state.displacement_z_is_active = false;
                                     self.state.selected_displacement.z_direction_value =
                                         Some(0.0 as ElementsValues);
                                 }
-                                if z_input_option == DrawnDisplacementInputOption::Value.as_str()
+                                if z_input_option == FEDrawnDisplacementInputOption::Value.as_str()
                                 {
                                     self.state.displacement_z_is_active = true;
                                 }
@@ -528,19 +528,19 @@ impl Component for DisplacementMenu
                     {
                         ChangeData::Value(xy_input_option) =>
                             {
-                                if xy_input_option == DrawnDisplacementInputOption::Free.as_str()
+                                if xy_input_option == FEDrawnDisplacementInputOption::Free.as_str()
                                 {
                                     self.state.rotation_xy_is_active = false;
                                     self.state.selected_displacement.xy_plane_value = None;
                                 }
                                 if xy_input_option ==
-                                    DrawnDisplacementInputOption::Restrained.as_str()
+                                    FEDrawnDisplacementInputOption::Restrained.as_str()
                                 {
                                     self.state.rotation_xy_is_active = false;
                                     self.state.selected_displacement.xy_plane_value =
                                         Some(0.0 as ElementsValues);
                                 }
-                                if xy_input_option == DrawnDisplacementInputOption::Value.as_str()
+                                if xy_input_option == FEDrawnDisplacementInputOption::Value.as_str()
                                 {
                                     self.state.rotation_xy_is_active = true;
                                 }
@@ -554,19 +554,19 @@ impl Component for DisplacementMenu
                     {
                         ChangeData::Value(yz_input_option) =>
                             {
-                                if yz_input_option == DrawnDisplacementInputOption::Free.as_str()
+                                if yz_input_option == FEDrawnDisplacementInputOption::Free.as_str()
                                 {
                                     self.state.rotation_yz_is_active = false;
                                     self.state.selected_displacement.yz_plane_value = None;
                                 }
                                 if yz_input_option ==
-                                    DrawnDisplacementInputOption::Restrained.as_str()
+                                    FEDrawnDisplacementInputOption::Restrained.as_str()
                                 {
                                     self.state.rotation_yz_is_active = false;
                                     self.state.selected_displacement.yz_plane_value =
                                         Some(0.0 as ElementsValues);
                                 }
-                                if yz_input_option == DrawnDisplacementInputOption::Value.as_str()
+                                if yz_input_option == FEDrawnDisplacementInputOption::Value.as_str()
                                 {
                                     self.state.rotation_yz_is_active = true;
                                 }
@@ -580,19 +580,19 @@ impl Component for DisplacementMenu
                     {
                         ChangeData::Value(zx_input_option) =>
                             {
-                                if zx_input_option == DrawnDisplacementInputOption::Free.as_str()
+                                if zx_input_option == FEDrawnDisplacementInputOption::Free.as_str()
                                 {
                                     self.state.rotation_zx_is_active = false;
                                     self.state.selected_displacement.zx_plane_value = None;
                                 }
                                 if zx_input_option ==
-                                    DrawnDisplacementInputOption::Restrained.as_str()
+                                    FEDrawnDisplacementInputOption::Restrained.as_str()
                                 {
                                     self.state.rotation_zx_is_active = false;
                                     self.state.selected_displacement.zx_plane_value =
                                         Some(0.0 as ElementsValues);
                                 }
-                                if zx_input_option == DrawnDisplacementInputOption::Value.as_str()
+                                if zx_input_option == FEDrawnDisplacementInputOption::Value.as_str()
                                 {
                                     self.state.rotation_zx_is_active = true;
                                 }
@@ -783,11 +783,11 @@ impl Component for DisplacementMenu
                                                     onchange=self.link.callback(|data: ChangeData| Msg::SelectDisplacementXInputOption(data)),
                                                     type="radio", id={ DISPLACEMENT_IN_X_DIRECTION_INPUT_NAME },
                                                     name={ DISPLACEMENT_IN_X_DIRECTION_INPUT_NAME },
-                                                    value={ DrawnDisplacementInputOption::Free.as_str() },
+                                                    value={ FEDrawnDisplacementInputOption::Free.as_str() },
                                                     checked={ self.state.selected_displacement.x_direction_value.is_none() },
                                                 />
                                                 <label for={ DISPLACEMENT_IN_X_DIRECTION_INPUT_NAME }>
-                                                    { DrawnDisplacementInputOption::Free.as_str() }
+                                                    { FEDrawnDisplacementInputOption::Free.as_str() }
                                                 </label>
                                             </div>
                                             <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
@@ -796,7 +796,7 @@ impl Component for DisplacementMenu
                                                     onchange=self.link.callback(|data: ChangeData| Msg::SelectDisplacementXInputOption(data)),
                                                     type="radio", id={ DISPLACEMENT_IN_X_DIRECTION_INPUT_NAME },
                                                     name={ DISPLACEMENT_IN_X_DIRECTION_INPUT_NAME },
-                                                    value={ DrawnDisplacementInputOption::Restrained.as_str() },
+                                                    value={ FEDrawnDisplacementInputOption::Restrained.as_str() },
                                                     checked=
                                                         {
                                                             if let Some(value) = self.state.selected_displacement.x_direction_value
@@ -817,7 +817,7 @@ impl Component for DisplacementMenu
                                                         },
                                                 />
                                                 <label for={ DISPLACEMENT_IN_X_DIRECTION_INPUT_NAME }>
-                                                    { DrawnDisplacementInputOption::Restrained.as_str() }
+                                                    { FEDrawnDisplacementInputOption::Restrained.as_str() }
                                                 </label>
                                             </div>
                                             <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
@@ -826,11 +826,11 @@ impl Component for DisplacementMenu
                                                     onchange=self.link.callback(|data: ChangeData| Msg::SelectDisplacementXInputOption(data)),
                                                     type="radio", id={ DISPLACEMENT_IN_X_DIRECTION_INPUT_NAME },
                                                     name={ DISPLACEMENT_IN_X_DIRECTION_INPUT_NAME },
-                                                    value={ DrawnDisplacementInputOption::Value.as_str() },
+                                                    value={ FEDrawnDisplacementInputOption::Value.as_str() },
                                                     checked={ self.state.displacement_x_is_active },
                                                 />
                                                 <label for={ DISPLACEMENT_IN_X_DIRECTION_INPUT_NAME }>
-                                                    { DrawnDisplacementInputOption::Value.as_str() }
+                                                    { FEDrawnDisplacementInputOption::Value.as_str() }
                                                 </label>
                                             </div>
                                             <input
@@ -863,11 +863,11 @@ impl Component for DisplacementMenu
                                                     onchange=self.link.callback(|data: ChangeData| Msg::SelectDisplacementYInputOption(data)),
                                                     type="radio", id={ DISPLACEMENT_IN_Y_DIRECTION_INPUT_NAME },
                                                     name={ DISPLACEMENT_IN_Y_DIRECTION_INPUT_NAME },
-                                                    value={ DrawnDisplacementInputOption::Free.as_str() },
+                                                    value={ FEDrawnDisplacementInputOption::Free.as_str() },
                                                     checked={ self.state.selected_displacement.y_direction_value.is_none() },
                                                 />
                                                 <label for={ DISPLACEMENT_IN_Y_DIRECTION_INPUT_NAME }>
-                                                    { DrawnDisplacementInputOption::Free.as_str() }
+                                                    { FEDrawnDisplacementInputOption::Free.as_str() }
                                                 </label>
                                             </div>
                                             <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
@@ -876,7 +876,7 @@ impl Component for DisplacementMenu
                                                     onchange=self.link.callback(|data: ChangeData| Msg::SelectDisplacementYInputOption(data)),
                                                     type="radio", id={ DISPLACEMENT_IN_Y_DIRECTION_INPUT_NAME },
                                                     name={ DISPLACEMENT_IN_Y_DIRECTION_INPUT_NAME },
-                                                    value={ DrawnDisplacementInputOption::Restrained.as_str() },
+                                                    value={ FEDrawnDisplacementInputOption::Restrained.as_str() },
                                                     checked=
                                                         {
                                                             if let Some(value) = self.state.selected_displacement.y_direction_value
@@ -897,7 +897,7 @@ impl Component for DisplacementMenu
                                                         },
                                                 />
                                                 <label for={ DISPLACEMENT_IN_Y_DIRECTION_INPUT_NAME }>
-                                                    { DrawnDisplacementInputOption::Restrained.as_str() }
+                                                    { FEDrawnDisplacementInputOption::Restrained.as_str() }
                                                 </label>
                                             </div>
                                             <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
@@ -906,11 +906,11 @@ impl Component for DisplacementMenu
                                                     onchange=self.link.callback(|data: ChangeData| Msg::SelectDisplacementYInputOption(data)),
                                                     type="radio", id={ DISPLACEMENT_IN_Y_DIRECTION_INPUT_NAME },
                                                     name={ DISPLACEMENT_IN_Y_DIRECTION_INPUT_NAME },
-                                                    value={ DrawnDisplacementInputOption::Value.as_str() },
+                                                    value={ FEDrawnDisplacementInputOption::Value.as_str() },
                                                     checked={ self.state.displacement_y_is_active },
                                                 />
                                                 <label for={ DISPLACEMENT_IN_Y_DIRECTION_INPUT_NAME }>
-                                                    { DrawnDisplacementInputOption::Value.as_str() }
+                                                    { FEDrawnDisplacementInputOption::Value.as_str() }
                                                 </label>
                                             </div>
                                             <input
@@ -944,11 +944,11 @@ impl Component for DisplacementMenu
                                                     type="radio",
                                                     id={ DISPLACEMENT_IN_Z_DIRECTION_INPUT_NAME },
                                                     name={ DISPLACEMENT_IN_Z_DIRECTION_INPUT_NAME },
-                                                    value={ DrawnDisplacementInputOption::Free.as_str() },
+                                                    value={ FEDrawnDisplacementInputOption::Free.as_str() },
                                                     checked={ self.state.selected_displacement.z_direction_value.is_none() },
                                                 />
                                                 <label for={ DISPLACEMENT_IN_Z_DIRECTION_INPUT_NAME }>
-                                                    { DrawnDisplacementInputOption::Free.as_str() }
+                                                    { FEDrawnDisplacementInputOption::Free.as_str() }
                                                 </label>
                                             </div>
                                             <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
@@ -958,7 +958,7 @@ impl Component for DisplacementMenu
                                                     type="radio",
                                                     id={ DISPLACEMENT_IN_Z_DIRECTION_INPUT_NAME },
                                                     name={ DISPLACEMENT_IN_Z_DIRECTION_INPUT_NAME },
-                                                    value={ DrawnDisplacementInputOption::Restrained.as_str() },
+                                                    value={ FEDrawnDisplacementInputOption::Restrained.as_str() },
                                                     checked=
                                                         {
                                                             if let Some(value) = self.state.selected_displacement.z_direction_value
@@ -979,7 +979,7 @@ impl Component for DisplacementMenu
                                                         },
                                                 />
                                                 <label for={ DISPLACEMENT_IN_Z_DIRECTION_INPUT_NAME }>
-                                                    { DrawnDisplacementInputOption::Restrained.as_str() }
+                                                    { FEDrawnDisplacementInputOption::Restrained.as_str() }
                                                 </label>
                                             </div>
                                             <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
@@ -989,11 +989,11 @@ impl Component for DisplacementMenu
                                                     type="radio",
                                                     id={ DISPLACEMENT_IN_Z_DIRECTION_INPUT_NAME },
                                                     name={ DISPLACEMENT_IN_Z_DIRECTION_INPUT_NAME },
-                                                    value={ DrawnDisplacementInputOption::Value.as_str() },
+                                                    value={ FEDrawnDisplacementInputOption::Value.as_str() },
                                                     checked={ self.state.displacement_z_is_active },
                                                 />
                                                 <label for={ DISPLACEMENT_IN_Z_DIRECTION_INPUT_NAME }>
-                                                    { DrawnDisplacementInputOption::Value.as_str() }
+                                                    { FEDrawnDisplacementInputOption::Value.as_str() }
                                                 </label>
                                             </div>
                                             <input
@@ -1033,11 +1033,11 @@ impl Component for DisplacementMenu
                                                                     type="radio",
                                                                     id={ ROTATION_IN_XY_PLANE_INPUT_NAME },
                                                                     name={ ROTATION_IN_XY_PLANE_INPUT_NAME },
-                                                                    value={ DrawnDisplacementInputOption::Free.as_str() },
+                                                                    value={ FEDrawnDisplacementInputOption::Free.as_str() },
                                                                     checked={ self.state.selected_displacement.xy_plane_value.is_none() },
                                                                 />
                                                                 <label for={ ROTATION_IN_XY_PLANE_INPUT_NAME }>
-                                                                    { DrawnDisplacementInputOption::Free.as_str() }
+                                                                    { FEDrawnDisplacementInputOption::Free.as_str() }
                                                                 </label>
                                                             </div>
                                                             <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
@@ -1047,7 +1047,7 @@ impl Component for DisplacementMenu
                                                                     type="radio",
                                                                     id={ ROTATION_IN_XY_PLANE_INPUT_NAME },
                                                                     name={ ROTATION_IN_XY_PLANE_INPUT_NAME },
-                                                                    value={ DrawnDisplacementInputOption::Restrained.as_str() },
+                                                                    value={ FEDrawnDisplacementInputOption::Restrained.as_str() },
                                                                     checked=
                                                                         {
                                                                             if let Some(value) = self.state.selected_displacement.xy_plane_value
@@ -1068,7 +1068,7 @@ impl Component for DisplacementMenu
                                                                         },
                                                                 />
                                                                 <label for={ ROTATION_IN_XY_PLANE_INPUT_NAME }>
-                                                                    { DrawnDisplacementInputOption::Restrained.as_str() }
+                                                                    { FEDrawnDisplacementInputOption::Restrained.as_str() }
                                                                 </label>
                                                             </div>
                                                             <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
@@ -1078,11 +1078,11 @@ impl Component for DisplacementMenu
                                                                     type="radio",
                                                                     id={ ROTATION_IN_XY_PLANE_INPUT_NAME },
                                                                     name={ ROTATION_IN_XY_PLANE_INPUT_NAME },
-                                                                    value={ DrawnDisplacementInputOption::Value.as_str() },
+                                                                    value={ FEDrawnDisplacementInputOption::Value.as_str() },
                                                                     checked={ self.state.rotation_xy_is_active },
                                                                 />
                                                                 <label for={ ROTATION_IN_XY_PLANE_INPUT_NAME }>
-                                                                    { DrawnDisplacementInputOption::Value.as_str() }
+                                                                    { FEDrawnDisplacementInputOption::Value.as_str() }
                                                                 </label>
                                                             </div>
                                                             <input
@@ -1116,11 +1116,11 @@ impl Component for DisplacementMenu
                                                                     type="radio",
                                                                     id={ ROTATION_IN_YZ_PLANE_INPUT_NAME },
                                                                     name={ ROTATION_IN_YZ_PLANE_INPUT_NAME },
-                                                                    value={ DrawnDisplacementInputOption::Free.as_str() },
+                                                                    value={ FEDrawnDisplacementInputOption::Free.as_str() },
                                                                     checked={ self.state.selected_displacement.yz_plane_value.is_none() },
                                                                 />
                                                                 <label for={ ROTATION_IN_YZ_PLANE_INPUT_NAME }>
-                                                                    { DrawnDisplacementInputOption::Free.as_str() }
+                                                                    { FEDrawnDisplacementInputOption::Free.as_str() }
                                                                 </label>
                                                             </div>
                                                             <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
@@ -1130,7 +1130,7 @@ impl Component for DisplacementMenu
                                                                     type="radio",
                                                                     id={ ROTATION_IN_YZ_PLANE_INPUT_NAME },
                                                                     name={ ROTATION_IN_YZ_PLANE_INPUT_NAME },
-                                                                    value={ DrawnDisplacementInputOption::Restrained.as_str() },
+                                                                    value={ FEDrawnDisplacementInputOption::Restrained.as_str() },
                                                                     checked=
                                                                         {
                                                                             if let Some(value) = self.state.selected_displacement.yz_plane_value
@@ -1151,7 +1151,7 @@ impl Component for DisplacementMenu
                                                                         },
                                                                 />
                                                                 <label for={ ROTATION_IN_YZ_PLANE_INPUT_NAME }>
-                                                                    { DrawnDisplacementInputOption::Restrained.as_str() }
+                                                                    { FEDrawnDisplacementInputOption::Restrained.as_str() }
                                                                 </label>
                                                             </div>
                                                             <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
@@ -1161,11 +1161,11 @@ impl Component for DisplacementMenu
                                                                     type="radio",
                                                                     id={ ROTATION_IN_YZ_PLANE_INPUT_NAME },
                                                                     name={ ROTATION_IN_YZ_PLANE_INPUT_NAME },
-                                                                    value={ DrawnDisplacementInputOption::Value.as_str() },
+                                                                    value={ FEDrawnDisplacementInputOption::Value.as_str() },
                                                                     checked={ self.state.rotation_yz_is_active },
                                                                 />
                                                                 <label for={ ROTATION_IN_YZ_PLANE_INPUT_NAME }>
-                                                                    { DrawnDisplacementInputOption::Value.as_str() }
+                                                                    { FEDrawnDisplacementInputOption::Value.as_str() }
                                                                 </label>
                                                             </div>
                                                             <input
@@ -1199,11 +1199,11 @@ impl Component for DisplacementMenu
                                                                     type="radio",
                                                                     id={ ROTATION_IN_ZX_PLANE_INPUT_NAME },
                                                                     name={ ROTATION_IN_ZX_PLANE_INPUT_NAME },
-                                                                    value={ DrawnDisplacementInputOption::Free.as_str() },
+                                                                    value={ FEDrawnDisplacementInputOption::Free.as_str() },
                                                                     checked={ self.state.selected_displacement.zx_plane_value.is_none() },
                                                                 />
                                                                 <label for={ ROTATION_IN_ZX_PLANE_INPUT_NAME }>
-                                                                    { DrawnDisplacementInputOption::Free.as_str() }
+                                                                    { FEDrawnDisplacementInputOption::Free.as_str() }
                                                                 </label>
                                                             </div>
                                                             <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
@@ -1213,7 +1213,7 @@ impl Component for DisplacementMenu
                                                                     type="radio",
                                                                     id={ ROTATION_IN_ZX_PLANE_INPUT_NAME },
                                                                     name={ ROTATION_IN_ZX_PLANE_INPUT_NAME },
-                                                                    value={ DrawnDisplacementInputOption::Restrained.as_str() },
+                                                                    value={ FEDrawnDisplacementInputOption::Restrained.as_str() },
                                                                     checked=
                                                                         {
                                                                             if let Some(value) = self.state.selected_displacement.zx_plane_value
@@ -1234,7 +1234,7 @@ impl Component for DisplacementMenu
                                                                         },
                                                                 />
                                                                 <label for={ ROTATION_IN_ZX_PLANE_INPUT_NAME }>
-                                                                    { DrawnDisplacementInputOption::Restrained.as_str() }
+                                                                    { FEDrawnDisplacementInputOption::Restrained.as_str() }
                                                                 </label>
                                                             </div>
                                                             <div class={ DISPLACEMENT_MENU_INPUT_FIELD_CONTAINER_CLASS }>
@@ -1244,11 +1244,11 @@ impl Component for DisplacementMenu
                                                                     type="radio",
                                                                     id={ ROTATION_IN_ZX_PLANE_INPUT_NAME },
                                                                     name={ ROTATION_IN_ZX_PLANE_INPUT_NAME },
-                                                                    value={ DrawnDisplacementInputOption::Value.as_str() },
+                                                                    value={ FEDrawnDisplacementInputOption::Value.as_str() },
                                                                     checked={ self.state.rotation_zx_is_active },
                                                                 />
                                                                 <label for={ ROTATION_IN_ZX_PLANE_INPUT_NAME }>
-                                                                    { DrawnDisplacementInputOption::Value.as_str() }
+                                                                    { FEDrawnDisplacementInputOption::Value.as_str() }
                                                                 </label>
                                                             </div>
                                                             <input

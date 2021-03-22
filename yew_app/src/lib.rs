@@ -27,7 +27,7 @@ mod extended_matrix;
 mod components;
 
 mod auxiliary;
-use auxiliary::{ View, FEDrawnNodeData, DrawnBCData };
+use auxiliary::{View, FEDrawnNodeData, FEDrawnBCData};
 use crate::auxiliary::FEDrawnElementData;
 
 mod route;
@@ -88,9 +88,9 @@ enum Msg
     AddElement(FEDrawnElementData),
     UpdateElement(FEDrawnElementData),
     DeleteElement(ElementsNumbers),
-    AddBC(DrawnBCData),
-    UpdateBC(DrawnBCData),
-    DeleteBC(DrawnBCData),
+    AddBC(FEDrawnBCData),
+    UpdateBC(FEDrawnBCData),
+    DeleteBC(FEDrawnBCData),
     AddAnalysisErrorMessage(String),
     ResetAnalysisMessage,
     Submit,
@@ -403,11 +403,11 @@ impl Component for Model
 
         let drawn_bcs =
             self.state.fem.drawn_bcs_rc(&mut postproc_init_uid_number);
-        let handle_add_bc = self.link.callback(|data: DrawnBCData| Msg::AddBC(data));
+        let handle_add_bc = self.link.callback(|data: FEDrawnBCData| Msg::AddBC(data));
         let handle_update_bc =
-            self.link.callback(|data: DrawnBCData| Msg::UpdateBC(data));
+            self.link.callback(|data: FEDrawnBCData| Msg::UpdateBC(data));
         let handle_delete_bc =
-            self.link.callback(|data: DrawnBCData| Msg::DeleteBC(data));
+            self.link.callback(|data: FEDrawnBCData| Msg::DeleteBC(data));
 
         let handle_reset_analysis_message =
             self.link.callback(|_| Msg::ResetAnalysisMessage);

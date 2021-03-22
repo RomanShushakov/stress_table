@@ -49,7 +49,7 @@ use crate::fem::{FEType, BCType, GlobalDOFParameter, StressStrainComponent};
 use crate::{ElementsNumbers, ElementsValues, GLElementsNumbers, GLElementsValues, UIDNumbers};
 use crate::auxiliary::
     {
-        View, FEDrawnElementData, DrawnBCData, FEDrawnNodeData, DrawnAnalysisResultNodeData,
+        View, FEDrawnElementData, FEDrawnBCData, FEDrawnNodeData, FEDrawnAnalysisResultNodeData,
         DrawnAnalysisResultElementData
     };
 use crate::auxiliary::aux_functions::{transform_u32_to_array_of_u8, value_to_string};
@@ -125,7 +125,7 @@ struct State
     under_cursor_color: [u8; 4],
     cursor_coord_x: i32,
     cursor_coord_y: i32,
-    drawn_analysis_results_for_nodes: Vec<DrawnAnalysisResultNodeData>,
+    drawn_analysis_results_for_nodes: Vec<FEDrawnAnalysisResultNodeData>,
     drawn_analysis_results_for_elements: Vec<DrawnAnalysisResultElementData>,
 }
 
@@ -661,8 +661,7 @@ impl PostprocessorCanvas
             let normalized_nodes = normalize_nodes(
                 Rc::new(all_nodes),
                 self.props.canvas_width as GLElementsValues,
-                self.props.canvas_height as GLElementsValues,
-                aspect as GLElementsValues);
+                self.props.canvas_height as GLElementsValues);
 
             let mut drawn_objects_buffers = Buffers::initialize(&gl);
             let mut drawn_object = DrawnObject::create();

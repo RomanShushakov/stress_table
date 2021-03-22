@@ -14,7 +14,7 @@ use crate::extended_matrix::extract_element_value;
 use crate::{ElementsNumbers, ElementsValues, UIDNumbers};
 
 use crate::fem::element_analysis::fe_element_analysis_result::ElementsAnalysisResult;
-use crate::auxiliary::{FEDrawnElementData, DrawnBCData, FEDrawnNodeData};
+use crate::auxiliary::{FEDrawnElementData, FEDrawnBCData, FEDrawnNodeData};
 
 use std::ops::{Sub, Div, Rem, SubAssign, Mul, Add, AddAssign, MulAssign};
 use std::hash::Hash;
@@ -704,7 +704,7 @@ impl<T, V> FEModel<T, V>
     }
 
 
-    pub fn drawn_bcs_rc(&self, drawn_uid_number: &mut UIDNumbers) -> Rc<Vec<DrawnBCData>>
+    pub fn drawn_bcs_rc(&self, drawn_uid_number: &mut UIDNumbers) -> Rc<Vec<FEDrawnBCData>>
     {
         let mut drawn_bcs = Vec::new();
         for bc in &self.boundary_conditions
@@ -715,7 +715,7 @@ impl<T, V> FEModel<T, V>
             let number = bc.extract_number().into() / GLOBAL_DOF;
             let node_number = bc.extract_node_number().into();
             let value = bc.extract_value().into();
-            let mut drawn_bc = DrawnBCData { uid, bc_type, number, node_number,
+            let mut drawn_bc = FEDrawnBCData { uid, bc_type, number, node_number,
                     is_rotation_stiffness_enabled: false, x_direction_value: None,
                     y_direction_value: None, z_direction_value: None, xy_plane_value: None,
                     yz_plane_value: None, zx_plane_value: None
@@ -745,7 +745,7 @@ impl<T, V> FEModel<T, V>
                 }
             }
             if let Some(position) = drawn_bcs
-                .iter().position(|data: &DrawnBCData|
+                .iter().position(|data: &FEDrawnBCData|
                     data.number == number && data.bc_type == bc_type)
             {
                 if !drawn_bcs[position].is_rotation_stiffness_enabled

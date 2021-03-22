@@ -45,7 +45,7 @@ use crate::auxiliary::gl_aux_structs::
 
 use crate::fem::{FENode, FEType, BCType};
 use crate::{ElementsNumbers, ElementsValues, GLElementsNumbers, GLElementsValues, UIDNumbers};
-use crate::auxiliary::{View, FEDrawnElementData, DrawnBCData, FEDrawnNodeData};
+use crate::auxiliary::{View, FEDrawnElementData, FEDrawnBCData, FEDrawnNodeData, NormalizedNode};
 use crate::auxiliary::aux_functions::transform_u32_to_array_of_u8;
 
 
@@ -77,7 +77,7 @@ pub struct Props
     pub drawn_nodes: Rc<Vec<FEDrawnNodeData>>,
     pub drawn_elements: Rc<Vec<FEDrawnElementData>>,
     pub add_analysis_message: Callback<String>,
-    pub drawn_bcs: Rc<Vec<DrawnBCData>>,
+    pub drawn_bcs: Rc<Vec<FEDrawnBCData>>,
     pub add_object_info: Callback<String>,
     pub reset_object_info: Callback<()>,
 }
@@ -111,6 +111,7 @@ struct State
     under_cursor_color: [u8; 4],
     cursor_coord_x: i32,
     cursor_coord_y: i32,
+    normalized_nodes: Vec<NormalizedNode>,
 }
 
 
@@ -299,10 +300,23 @@ impl Component for PreprocessorCanvas
         let pan = false;
         let rotate = false;
         let shift_key_pressed = false;
+        let normalized_nodes =
+            {
+                if !props.drawn_nodes.is_empty()
+                {
+                    normalize_nodes(Rc::clone(&props.drawn_nodes),
+                        props.canvas_width as GLElementsValues,
+                        props.canvas_height as GLElementsValues)
+                }
+                else
+                {
+                    Vec::new()
+                }
+            };
         let state = State {
             dx, dy, d_scale, theta, phi, pan, rotate, shift_key_pressed,
             selected_color: [0; 4], under_cursor_color: [0; 4],
-            cursor_coord_x: -1, cursor_coord_y: -1, };
+            cursor_coord_x: -1, cursor_coord_y: -1, normalized_nodes };
         Self
         {
             props,
@@ -473,6 +487,17 @@ impl Component for PreprocessorCanvas
                         },
                 }
             }
+            if !self.props.drawn_nodes.is_empty()
+            {
+                self.state.normalized_nodes = normalize_nodes(
+                    Rc::clone(&self.props.drawn_nodes),
+                    self.props.canvas_width as GLElementsValues,
+                    self.props.canvas_height as GLElementsValues);
+            }
+            else
+            {
+                self.state.normalized_nodes = Vec::new();
+            }
             true
         }
         else
@@ -574,31 +599,25 @@ impl PreprocessorCanvas
         let z_near = 1.0 as GLElementsValues;
         let z_far = 101.0 as GLElementsValues;
 
-        if !self.props.drawn_nodes.is_empty()
+        if !self.state.normalized_nodes.is_empty()
         {
-            let normalized_nodes = normalize_nodes(
-                Rc::clone(&self.props.drawn_nodes),
-                self.props.canvas_width as GLElementsValues,
-                self.props.canvas_height as GLElementsValues,
-                aspect as GLElementsValues);
-
             let mut drawn_objects_buffers = Buffers::initialize(&gl);
             let mut drawn_object = DrawnObject::create();
-            drawn_object.add_nodes(&normalized_nodes, GLMode::Selection,
+            drawn_object.add_nodes(&self.state.normalized_nodes, GLMode::Selection,
                 &self.state.under_cursor_color, &self.state.selected_color);
 
             if !self.props.drawn_elements.is_empty()
             {
-                match drawn_object.add_elements(&normalized_nodes, &self.props.drawn_elements,
-                    GLMode::Selection, &self.state.under_cursor_color,
-                    &self.state.selected_color)
+                match drawn_object.add_elements(&self.state.normalized_nodes,
+                    &self.props.drawn_elements, GLMode::Selection,
+                    &self.state.under_cursor_color, &self.state.selected_color)
                 {
                     Err(e) => self.props.add_analysis_message.emit(e),
                     Ok(()) => (),
                 }
             }
 
-            let drawn_displacements: Vec<&DrawnBCData> = self.props.drawn_bcs
+            let drawn_displacements: Vec<&FEDrawnBCData> = self.props.drawn_bcs
                     .iter()
                     .filter(|bc|
                         bc.bc_type == BCType::Displacement)
@@ -606,7 +625,7 @@ impl PreprocessorCanvas
             if !drawn_displacements.is_empty()
             {
                 drawn_object.add_displacements(
-                    &normalized_nodes, &drawn_displacements,
+                    &self.state.normalized_nodes, &drawn_displacements,
                     DRAWN_DISPLACEMENTS_CAPS_BASE_POINTS_NUMBER,
                     DRAWN_DISPLACEMENTS_CAPS_HEIGHT / (1.0 + self.state.d_scale),
                     DRAWN_DISPLACEMENTS_CAPS_WIDTH / (1.0 + self.state.d_scale),
@@ -614,7 +633,7 @@ impl PreprocessorCanvas
                     &self.state.selected_color);
             }
 
-            let drawn_forces: Vec<&DrawnBCData> = self.props.drawn_bcs
+            let drawn_forces: Vec<&FEDrawnBCData> = self.props.drawn_bcs
                     .iter()
                     .filter(|bc|
                         bc.bc_type == BCType::Force)
@@ -622,7 +641,7 @@ impl PreprocessorCanvas
             if !drawn_forces.is_empty()
             {
                 drawn_object.add_forces(
-                    &normalized_nodes, &drawn_forces,
+                    &self.state.normalized_nodes, &drawn_forces,
                     DRAWN_FORCES_LINE_LENGTH / (1.0 + self.state.d_scale),
                     DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER,
                     DRAWN_FORCES_CAPS_HEIGHT / (1.0 + self.state.d_scale),
@@ -679,14 +698,14 @@ impl PreprocessorCanvas
             drawn_object = DrawnObject::create();
             drawn_objects_buffers = Buffers::initialize(&gl);
 
-            drawn_object.add_nodes(&normalized_nodes, GLMode::Visible,
+            drawn_object.add_nodes(&self.state.normalized_nodes, GLMode::Visible,
             &self.state.under_cursor_color, &self.state.selected_color);
 
             if !self.props.drawn_elements.is_empty()
             {
-                match drawn_object.add_elements(&normalized_nodes, &self.props.drawn_elements,
-                    GLMode::Visible, &self.state.under_cursor_color,
-                    &self.state.selected_color)
+                match drawn_object.add_elements(&self.state.normalized_nodes,
+                    &self.props.drawn_elements, GLMode::Visible,
+                    &self.state.under_cursor_color, &self.state.selected_color)
                 {
                     Err(e) => self.props.add_analysis_message.emit(e),
                     Ok(()) => (),
@@ -696,7 +715,7 @@ impl PreprocessorCanvas
             if !drawn_displacements.is_empty()
             {
                 drawn_object.add_displacements(
-                    &normalized_nodes, &drawn_displacements,
+                    &self.state.normalized_nodes, &drawn_displacements,
                     DRAWN_DISPLACEMENTS_CAPS_BASE_POINTS_NUMBER,
                     DRAWN_DISPLACEMENTS_CAPS_HEIGHT / (1.0 + self.state.d_scale),
                     DRAWN_DISPLACEMENTS_CAPS_WIDTH / (1.0 + self.state.d_scale),
@@ -707,7 +726,7 @@ impl PreprocessorCanvas
             if !drawn_forces.is_empty()
             {
                 drawn_object.add_forces(
-                    &normalized_nodes, &drawn_forces,
+                    &self.state.normalized_nodes, &drawn_forces,
                     DRAWN_FORCES_LINE_LENGTH / (1.0 + self.state.d_scale),
                     DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER,
                     DRAWN_FORCES_CAPS_HEIGHT / (1.0 + self.state.d_scale),
@@ -751,7 +770,7 @@ impl PreprocessorCanvas
             let mut matrix = mat4::new_identity();
             mat4::mul(&mut matrix, &projection_matrix, &model_view_matrix);
 
-            for node in normalized_nodes.iter()
+            for node in self.state.normalized_nodes.iter()
             {
                 let denotation_color = define_drawn_object_denotation_color(node.uid,
                     &self.state.selected_color, &self.state.under_cursor_color,
@@ -775,7 +794,7 @@ impl PreprocessorCanvas
                     let denotation_color = define_drawn_object_denotation_color(element.uid,
                         &self.state.selected_color, &self.state.under_cursor_color,
                         CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR);
-                    match element.find_denotation_coordinates(&normalized_nodes)
+                    match element.find_denotation_coordinates(&self.state.normalized_nodes)
                     {
                         Ok(coordinates) =>
                             {
@@ -805,7 +824,7 @@ impl PreprocessorCanvas
                         displacement.uid, &self.state.selected_color,
                         &self.state.under_cursor_color,
                         CANVAS_DRAWN_DISPLACEMENTS_DENOTATION_COLOR);
-                    match displacement.find_denotation_coordinates(&normalized_nodes)
+                    match displacement.find_denotation_coordinates(&self.state.normalized_nodes)
                     {
                         Ok(coordinates) =>
                             {
@@ -835,7 +854,7 @@ impl PreprocessorCanvas
                         force.uid, &self.state.selected_color,
                         &self.state.under_cursor_color,
                         CANVAS_DRAWN_FORCES_DENOTATION_COLOR);
-                    match force.find_denotation_coordinates(&normalized_nodes)
+                    match force.find_denotation_coordinates(&self.state.normalized_nodes)
                     {
                         Ok(coordinates) =>
                             {

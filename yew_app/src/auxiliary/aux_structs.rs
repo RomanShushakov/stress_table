@@ -115,7 +115,7 @@ impl FEDrawnElementData
 
 
 #[derive(Clone, PartialEq, Debug)]
-pub struct DrawnBCData
+pub struct FEDrawnBCData
 {
     pub uid: UIDNumbers,
     pub bc_type: BCType,
@@ -131,7 +131,7 @@ pub struct DrawnBCData
 }
 
 
-impl DrawnBCData
+impl FEDrawnBCData
 {
     pub fn find_denotation_coordinates(&self, normalized_nodes: &Vec<NormalizedNode>)
     -> Result<[GLElementsValues; 4], String>
@@ -147,7 +147,7 @@ impl DrawnBCData
         }
         else
         {
-            return Err(format!("FEDrawnElementData: Node {} does not \
+            return Err(format!("FEDrawnBCData: Node {} does not \
                 exist!", self.node_number));
         }
         Ok(denotation_coordinates)
@@ -155,7 +155,7 @@ impl DrawnBCData
 }
 
 
-pub enum DrawnDisplacementInputOption
+pub enum FEDrawnDisplacementInputOption
 {
     Free,
     Restrained,
@@ -163,21 +163,21 @@ pub enum DrawnDisplacementInputOption
 }
 
 
-impl DrawnDisplacementInputOption
+impl FEDrawnDisplacementInputOption
 {
     pub fn as_str(&self) -> String
     {
         match self
         {
-            DrawnDisplacementInputOption::Free => String::from("Free"),
-            DrawnDisplacementInputOption::Restrained => String::from("Restrained"),
-            DrawnDisplacementInputOption::Value => String::from("Value"),
+            FEDrawnDisplacementInputOption::Free => String::from("Free"),
+            FEDrawnDisplacementInputOption::Restrained => String::from("Restrained"),
+            FEDrawnDisplacementInputOption::Value => String::from("Value"),
         }
     }
 }
 
 
-pub struct DrawnAnalysisResultNodeData
+pub struct FEDrawnAnalysisResultNodeData
 {
     pub uid: UIDNumbers,
     pub bc_type: BCType,

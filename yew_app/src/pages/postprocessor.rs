@@ -4,7 +4,7 @@ use std::rc::Rc;
 use std::cell::RefCell;
 
 use crate::route::AppRoute;
-use crate::fem::{GlobalAnalysisResult, FENode, Displacements};
+use crate::fem::{GlobalAnalysisResult, FENode, Displacements, BCType, GlobalDOFParameter};
 use crate::fem::{StressStrainComponent};
 use crate::{ElementsNumbers, ElementsValues, UIDNumbers};
 
@@ -59,6 +59,216 @@ pub struct Postprocessor
 }
 
 
+impl Postprocessor
+{
+    fn default_drawn_nodes_extended_and_analysis_results_for_nodes(&mut self)
+    {
+        self.state.drawn_analysis_results_for_nodes = Vec::new();
+        self.state.drawn_nodes_extended = if !self.props.drawn_nodes.is_empty()
+        {
+            (*self.props.drawn_nodes.as_ref()).clone()
+        }
+        else
+        {
+            Vec::new()
+        };
+    }
+
+
+    fn extend_by_deformed_shape_nodes(&mut self)
+    {
+        self.default_drawn_nodes_extended_and_analysis_results_for_nodes();
+        if let Some(global_displacements) =
+            self.props.global_displacements.as_ref()
+        {
+            let mut uid = self.props.postproc_init_uid_number;
+            for drawn_node in self.props.drawn_nodes.iter()
+            {
+                uid += 1;
+                let initial_node_number = drawn_node.number;
+                let mut drawn_analysis_result_node_data = FEDrawnAnalysisResultNodeData
+                    {
+                        uid, bc_type: BCType::Displacement,
+                        node_number: initial_node_number,
+                        x_direction_value: None, y_direction_value: None, z_direction_value: None,
+                        xy_plane_value: None, yz_plane_value: None, zx_plane_value: None,
+                    };
+                let deformed_shape_node_number = initial_node_number +
+                    self.props.drawn_nodes.len() as ElementsNumbers;
+                let initial_node_x = drawn_node.x;
+                let deformed_shape_node_x =
+                {
+                    if let Some(position) = global_displacements.dof_parameters_data
+                        .iter()
+                        .position(|displacement|
+                            displacement.same(GlobalDOFParameter::X,
+                                initial_node_number))
+                    {
+                        drawn_analysis_result_node_data.x_direction_value =
+                            Some(global_displacements.displacements_values[position]);
+                        initial_node_x + global_displacements.displacements_values[position] *
+                            self.state.magnitude
+                    }
+                    else
+                    {
+                        initial_node_x
+                    }
+                };
+                let initial_node_y = drawn_node.y;
+                let deformed_shape_node_y =
+                {
+                    if let Some(position) = global_displacements.dof_parameters_data
+                        .iter()
+                        .position(|displacement|
+                            displacement.same(GlobalDOFParameter::Y,
+                                initial_node_number))
+                    {
+                        drawn_analysis_result_node_data.y_direction_value =
+                            Some(global_displacements.displacements_values[position]);
+                        initial_node_y + global_displacements.displacements_values[position] *
+                            self.state.magnitude
+                    }
+                    else
+                    {
+                        initial_node_y
+                    }
+                };
+                let initial_node_z = drawn_node.z;
+                let deformed_shape_node_z =
+                {
+                    if let Some(position) = global_displacements.dof_parameters_data
+                        .iter()
+                        .position(|displacement|
+                            displacement.same(GlobalDOFParameter::Z,
+                                initial_node_number))
+                    {
+                        drawn_analysis_result_node_data.z_direction_value =
+                            Some(global_displacements.displacements_values[position]);
+                        initial_node_z + global_displacements.displacements_values[position] *
+                            self.state.magnitude
+                    }
+                    else
+                    {
+                        initial_node_z
+                    }
+                };
+                if let Some(position) = global_displacements.dof_parameters_data
+                    .iter()
+                    .position(|displacement|
+                        displacement.same(GlobalDOFParameter::ThX,
+                            initial_node_number))
+                {
+                    drawn_analysis_result_node_data.yz_plane_value =
+                        Some(global_displacements.displacements_values[position]);
+                }
+                if let Some(position) = global_displacements.dof_parameters_data
+                    .iter()
+                    .position(|displacement|
+                        displacement.same(GlobalDOFParameter::ThY,
+                            initial_node_number))
+                {
+                    drawn_analysis_result_node_data.zx_plane_value =
+                        Some(global_displacements.displacements_values[position]);
+                }
+                if let Some(position) = global_displacements.dof_parameters_data
+                    .iter()
+                    .position(|displacement|
+                        displacement.same(GlobalDOFParameter::ThZ,
+                            initial_node_number))
+                {
+                    drawn_analysis_result_node_data.xy_plane_value =
+                        Some(global_displacements.displacements_values[position]);
+                }
+                self.state.drawn_analysis_results_for_nodes.push(
+                    drawn_analysis_result_node_data);
+                let deformed_shape_node =
+                    FEDrawnNodeData { uid, number: deformed_shape_node_number,
+                        x: deformed_shape_node_x, y: deformed_shape_node_y,
+                        z: deformed_shape_node_z };
+                self.state.drawn_nodes_extended.push(deformed_shape_node);
+            }
+        }
+    }
+
+
+    fn extend_by_reactions(&mut self)
+    {
+        self.default_drawn_nodes_extended_and_analysis_results_for_nodes();
+        if let Some(reactions) = self.props.reactions.as_ref()
+        {
+            let mut uid = self.props.postproc_init_uid_number;
+            for drawn_node in self.props.drawn_nodes.iter()
+            {
+                uid += 1;
+                let mut drawn_analysis_result_node_data = FEDrawnAnalysisResultNodeData
+                    {
+                        uid, bc_type: BCType::Force,
+                        node_number: drawn_node.number,
+                        x_direction_value: None, y_direction_value: None, z_direction_value: None,
+                        xy_plane_value: None, yz_plane_value: None, zx_plane_value: None,
+                    };
+                if let Some(position) = reactions.dof_parameters_data
+                    .iter()
+                    .position(|reaction|
+                        reaction.same(GlobalDOFParameter::X,
+                            drawn_node.number))
+                {
+                    drawn_analysis_result_node_data.x_direction_value =
+                        Some(reactions.reactions_values[position]);
+                }
+                if let Some(position) = reactions.dof_parameters_data
+                    .iter()
+                    .position(|reaction|
+                        reaction.same(GlobalDOFParameter::Y,
+                            drawn_node.number))
+                {
+                    drawn_analysis_result_node_data.y_direction_value =
+                        Some(reactions.reactions_values[position]);
+                }
+                if let Some(position) = reactions.dof_parameters_data
+                    .iter()
+                    .position(|reaction|
+                        reaction.same(GlobalDOFParameter::Z,
+                            drawn_node.number))
+                {
+                    drawn_analysis_result_node_data.z_direction_value =
+                        Some(reactions.reactions_values[position]);
+                }
+                if let Some(position) = reactions.dof_parameters_data
+                    .iter()
+                    .position(|displacement|
+                        displacement.same(GlobalDOFParameter::ThX,
+                            drawn_node.number))
+                {
+                    drawn_analysis_result_node_data.yz_plane_value =
+                        Some(reactions.reactions_values[position]);
+                }
+                if let Some(position) = reactions.dof_parameters_data
+                    .iter()
+                    .position(|reaction|
+                        reaction.same(GlobalDOFParameter::ThY,
+                            drawn_node.number))
+                {
+                    drawn_analysis_result_node_data.zx_plane_value =
+                        Some(reactions.reactions_values[position]);
+                }
+                if let Some(position) = reactions.dof_parameters_data
+                    .iter()
+                    .position(|reaction|
+                        reaction.same(GlobalDOFParameter::ThZ,
+                            drawn_node.number))
+                {
+                    drawn_analysis_result_node_data.xy_plane_value =
+                        Some(reactions.reactions_values[position]);
+                }
+                self.state.drawn_analysis_results_for_nodes.push(
+                    drawn_analysis_result_node_data);
+            }
+        }
+    }
+}
+
+
 pub enum Msg
 {
     AddObjectInfo(String),
@@ -104,21 +314,31 @@ impl Component for Postprocessor
     {
         match msg
         {
-            Msg::ChangeMagnitude(value) => self.state.magnitude = value,
+            Msg::ChangeMagnitude(value) =>
+                {
+                    self.state.magnitude = value;
+                    if self.state.is_plot_displacements_selected
+                    {
+                        self.extend_by_deformed_shape_nodes();
+                    }
+                },
             Msg::SelectPlotDisplacements =>
                 {
+                    self.extend_by_deformed_shape_nodes();
                     self.state.is_plot_displacements_selected = true;
                     self.state.is_plot_reactions_selected = false;
                     self.state.stress_component_selected = None;
                 },
             Msg::SelectPlotReactions =>
                 {
+                    self.extend_by_reactions();
                     self.state.is_plot_displacements_selected = false;
                     self.state.is_plot_reactions_selected = true;
                     self.state.stress_component_selected = None;
                 },
             Msg::SelectStressComponent(component) =>
                 {
+                    self.default_drawn_nodes_extended_and_analysis_results_for_nodes();
                     self.state.is_plot_displacements_selected = false;
                     self.state.is_plot_reactions_selected = false;
                     self.state.stress_component_selected = Some(component);
@@ -134,21 +354,14 @@ impl Component for Postprocessor
     {
         if (&self.props.view, &self.props.postproc_init_uid_number, &self.props.canvas_width,
             &self.props.canvas_height) !=
-            (&props.view, &props.postproc_init_uid_number, &props.canvas_width, &props.canvas_height) ||
+            (&props.view, &props.postproc_init_uid_number, &props.canvas_width,
+             &props.canvas_height) ||
             !Rc::ptr_eq(&self.props.global_displacements, &props.global_displacements) ||
             !Rc::ptr_eq(&self.props.reactions, &props.reactions) ||
             !Rc::ptr_eq(&self.props.elements_analysis_result,
                         &props.elements_analysis_result)
         {
             self.props = props;
-            self.state.drawn_nodes_extended = if !self.props.drawn_nodes.is_empty()
-                {
-                    (*self.props.drawn_nodes.as_ref()).clone()
-                }
-                else
-                {
-                    Vec::new()
-                };
             true
         }
         else
@@ -219,18 +432,14 @@ impl Component for Postprocessor
                                         discard_view=self.props.discard_view.to_owned(),
                                         canvas_width=self.props.canvas_width.to_owned(),
                                         canvas_height=self.props.canvas_height.to_owned(),
-                                        magnitude=self.state.magnitude.to_owned(),
-                                        drawn_nodes=Rc::clone(&self.props.drawn_nodes),
                                         drawn_elements=Rc::clone(&self.props.drawn_elements),
-                                        global_displacements=Rc::clone(&self.props.global_displacements),
+                                        drawn_nodes_extended=self.state.drawn_nodes_extended.to_owned(),
+                                        drawn_analysis_results_for_nodes=self.state.drawn_analysis_results_for_nodes.to_owned(),
                                         is_plot_displacements_selected=self.state.is_plot_displacements_selected.to_owned(),
-                                        reactions=Rc::clone(&self.props.reactions),
                                         is_plot_reactions_selected=self.state.is_plot_reactions_selected.to_owned(),
                                         stress_component_selected=self.state.stress_component_selected.to_owned(),
-                                        elements_analysis_result=Rc::clone(&self.props.elements_analysis_result),
                                         add_object_info=handle_add_object_info.to_owned(),
                                         reset_object_info=handle_reset_object_info.to_owned(),
-                                        postproc_init_uid_number=self.props.postproc_init_uid_number.to_owned(),
                                     />
                                     {
                                         if let Some(info) = &self.state.object_info

@@ -16,12 +16,19 @@ use yew::services::keyboard::{KeyboardService, KeyListenerHandle};
 use yew::services::render::RenderTask;
 use yew::services::RenderService;
 
+
+use crate::auxiliary::
+    {
+        FEDrawnElementData, FEDrawnBCData, FEDrawnNodeData, FEDrawnAnalysisResultNodeData,
+        DrawnAnalysisResultElementData, NormalizedNode
+    };
+use crate::auxiliary::{View};
+use crate::auxiliary::aux_functions::{transform_u32_to_array_of_u8, value_to_string};
 use crate::auxiliary::gl_aux_functions::
     {
         add_denotation, initialize_shaders, normalize_nodes, add_hints,
-        extend_by_deformed_shape_nodes, update_displacement_value,
         define_drawn_object_denotation_color, add_displacements_hints,
-        extend_by_reactions, add_reactions_hints, extend_by_elements_analysis_result,
+        add_reactions_hints, extend_by_elements_analysis_result,
     };
 use crate::auxiliary::gl_aux_structs::{Buffers, ShadersVariables, DrawnObject};
 use crate::auxiliary::gl_aux_structs::{CSAxis, GLMode};
@@ -46,15 +53,10 @@ use crate::auxiliary::gl_aux_structs::
 
 use crate::fem::{FENode, GlobalAnalysisResult, Displacements};
 use crate::fem::{FEType, BCType, GlobalDOFParameter, StressStrainComponent};
-use crate::{ElementsNumbers, ElementsValues, GLElementsNumbers, GLElementsValues, UIDNumbers};
-use crate::auxiliary::
-    {
-        View, FEDrawnElementData, FEDrawnBCData, FEDrawnNodeData, FEDrawnAnalysisResultNodeData,
-        DrawnAnalysisResultElementData
-    };
-use crate::auxiliary::aux_functions::{transform_u32_to_array_of_u8, value_to_string};
 use crate::fem::global_analysis::fe_global_analysis_result::Reactions;
 use crate::fem::element_analysis::fe_element_analysis_result::ElementsAnalysisResult;
+
+use crate::{ElementsNumbers, ElementsValues, GLElementsNumbers, GLElementsValues, UIDNumbers};
 
 
 const POSTPROCESSOR_CANVAS_CONTAINER_CLASS: &str = "postprocessor_canvas_container";
@@ -82,18 +84,14 @@ pub struct Props
     pub discard_view: Callback<()>,
     pub canvas_width: u32,
     pub canvas_height: u32,
-    pub magnitude: ElementsValues,
-    pub drawn_nodes: Rc<Vec<FEDrawnNodeData>>,
     pub drawn_elements: Rc<Vec<FEDrawnElementData>>,
-    pub global_displacements: Rc<Option<Displacements<ElementsNumbers, ElementsValues>>>,
+    pub drawn_nodes_extended: Vec<FEDrawnNodeData>,
+    pub drawn_analysis_results_for_nodes: Vec<FEDrawnAnalysisResultNodeData>,
     pub is_plot_displacements_selected: bool,
-    pub reactions: Rc<Option<Reactions<ElementsNumbers, ElementsValues>>>,
     pub is_plot_reactions_selected: bool,
     pub stress_component_selected: Option<StressStrainComponent>,
-    pub elements_analysis_result: Rc<Option<ElementsAnalysisResult<ElementsNumbers, ElementsValues>>>,
     pub add_object_info: Callback<String>,
     pub reset_object_info: Callback<()>,
-    pub postproc_init_uid_number: UIDNumbers,
 }
 
 
@@ -125,8 +123,7 @@ struct State
     under_cursor_color: [u8; 4],
     cursor_coord_x: i32,
     cursor_coord_y: i32,
-    drawn_analysis_results_for_nodes: Vec<FEDrawnAnalysisResultNodeData>,
-    drawn_analysis_results_for_elements: Vec<DrawnAnalysisResultElementData>,
+    normalized_nodes: Vec<NormalizedNode>,
 }
 
 
@@ -168,35 +165,6 @@ impl PostprocessorCanvas
     {
         let object_info =
             {
-                if let Some(position) = self.props.drawn_nodes
-                    .iter()
-                    .position(|node|
-                        transform_u32_to_array_of_u8(node.uid) == self.state.selected_color)
-                {
-                    let node_number = self.props.drawn_nodes[position].number;
-                    let node_coord_x = self.props.drawn_nodes[position].x;
-                    let node_coord_y = self.props.drawn_nodes[position].y;
-                    let node_coord_z = self.props.drawn_nodes[position].z;
-                    let object_info = format!("Node: #{}, x: {}, y: {}, z: {}",
-                        node_number, node_coord_x, node_coord_y, node_coord_z);
-                    Some(object_info)
-                }
-                else if let Some(position) = self.props.drawn_elements
-                    .iter()
-                    .position(|element|
-                        transform_u32_to_array_of_u8(element.uid) == self.state.selected_color)
-                {
-                    let element_type = &self.props.drawn_elements[position].fe_type;
-                    let element_number = &self.props.drawn_elements[position].number;
-                    let element_node_numbers =
-                        &self.props.drawn_elements[position].nodes_numbers;
-                    let element_properties =
-                        &self.props.drawn_elements[position].properties;
-                    let object_info = format!("Element: #{}, type: {:?}, nodes: {:?}, \
-                        props: {:?}",
-                        element_number, element_type, element_node_numbers, element_properties);
-                    Some(object_info)
-                }
                 // else if let Some(position) = self.props.drawn_bcs
                 //     .iter()
                 //     .position(|bc|
@@ -291,34 +259,35 @@ impl PostprocessorCanvas
                 //         yz_value, zx_value);
                 //     Some(object_info)
                 // }
-                else if let Some(position) = self.state.drawn_analysis_results_for_nodes
+                if let Some(position) = self.props.drawn_analysis_results_for_nodes
                     .iter()
                     .position(|result|
                         transform_u32_to_array_of_u8(result.uid) == self.state.selected_color)
                 {
                     let result_type =
-                        &self.state.drawn_analysis_results_for_nodes[position].bc_type;
+                        &self.props.drawn_analysis_results_for_nodes[position].bc_type;
                     let node_number =
-                        &self.state.drawn_analysis_results_for_nodes[position].node_number;
+                        &self.props.drawn_analysis_results_for_nodes[position].node_number;
                     let x_value = value_to_string(
-                        &self.state.drawn_analysis_results_for_nodes[position].x_direction_value);
+                        &self.props.drawn_analysis_results_for_nodes[position].x_direction_value);
                     let y_value = value_to_string(
-                        &self.state.drawn_analysis_results_for_nodes[position].y_direction_value);
+                        &self.props.drawn_analysis_results_for_nodes[position].y_direction_value);
                     let z_value = value_to_string(
-                        &self.state.drawn_analysis_results_for_nodes[position].z_direction_value);
+                        &self.props.drawn_analysis_results_for_nodes[position].z_direction_value);
                     let xy_value = value_to_string(
-                        &self.state.drawn_analysis_results_for_nodes[position].xy_plane_value);
+                        &self.props.drawn_analysis_results_for_nodes[position].xy_plane_value);
                     let yz_value = value_to_string(
-                        &self.state.drawn_analysis_results_for_nodes[position].yz_plane_value);
+                        &self.props.drawn_analysis_results_for_nodes[position].yz_plane_value);
                     let zx_value = value_to_string(
-                        &self.state.drawn_analysis_results_for_nodes[position].zx_plane_value);
+                        &self.props.drawn_analysis_results_for_nodes[position].zx_plane_value);
                     match result_type
                     {
                         BCType::Displacement =>
                             {
-                                let object_info = format!("Displacement at node: #{}, Ux: {}, \
-                                Uy: {}, Uz: {}, URx: {}, URy: {}, URz: {}", node_number, x_value,
-                                y_value, z_value, yz_value, zx_value, xy_value);
+                                let object_info = format!("Displacement at node: #{}, \
+                                Ux: {}, Uy: {}, Uz: {}, URx: {}, URy: {}, URz: {}", node_number,
+                                x_value, y_value, z_value,
+                                yz_value, zx_value, xy_value);
                                 Some(object_info)
                             },
                         BCType::Force =>
@@ -355,12 +324,20 @@ impl Component for PostprocessorCanvas
         let pan = false;
         let rotate = false;
         let shift_key_pressed = false;
-        let drawn_analysis_results_for_nodes = Vec::new();
-        let drawn_analysis_results_for_elements = Vec::new();
+        let normalized_nodes = if !props.drawn_nodes_extended.is_empty()
+            {
+                normalize_nodes(Rc::new(props.drawn_nodes_extended.to_owned()),
+                    props.canvas_width as GLElementsValues,
+                    props.canvas_height as GLElementsValues)
+            }
+            else
+            {
+                Vec::new()
+            };
         let state = State {
             dx, dy, d_scale, theta, phi, pan, rotate, shift_key_pressed, selected_color: [0; 4],
             under_cursor_color: [0; 4], cursor_coord_x: -1, cursor_coord_y: -1,
-            drawn_analysis_results_for_nodes, drawn_analysis_results_for_elements };
+            normalized_nodes };
         Self
         {
             props,
@@ -494,16 +471,12 @@ impl Component for PostprocessorCanvas
     fn change(&mut self, props: Self::Properties) -> ShouldRender
     {
         if (&self.props.view, &self.props.canvas_height, &self.props.canvas_width,
-            &self.props.magnitude, &self.props.is_plot_displacements_selected,
-            &self.props.is_plot_reactions_selected) !=
-            (&props.view, &props.canvas_height, &props.canvas_width, &props.magnitude,
-            &props.is_plot_displacements_selected, &props.is_plot_reactions_selected) ||
-            !Rc::ptr_eq(&self.props.drawn_nodes, &props.drawn_nodes) ||
-            !Rc::ptr_eq(&self.props.drawn_elements, &props.drawn_elements) ||
-            !Rc::ptr_eq(&self.props.global_displacements, &props.global_displacements) ||
-            !Rc::ptr_eq(&self.props.reactions, &props.reactions) ||
-            !Rc::ptr_eq(&self.props.elements_analysis_result,
-                &props.elements_analysis_result)
+            &self.props.is_plot_displacements_selected, &self.props.is_plot_reactions_selected,
+            &self.props.drawn_nodes_extended, &self.props.drawn_analysis_results_for_nodes) !=
+            (&props.view, &props.canvas_height, &props.canvas_width,
+            &props.is_plot_displacements_selected, &props.is_plot_reactions_selected,
+            &props.drawn_nodes_extended, &props.drawn_analysis_results_for_nodes) ||
+            !Rc::ptr_eq(&self.props.drawn_elements, &props.drawn_elements)
         {
             self.props = props;
             if let Some(view) = &self.props.view
@@ -536,6 +509,19 @@ impl Component for PostprocessorCanvas
                         },
                 }
             }
+            self.state.normalized_nodes = if !self.props.drawn_nodes_extended.is_empty()
+                {
+                    normalize_nodes(
+                    Rc::new(self.props.drawn_nodes_extended.to_owned()),
+                    self.props.canvas_width as GLElementsValues,
+                    self.props.canvas_height as GLElementsValues)
+                }
+                else
+                {
+                    Vec::new()
+                };
+            self.state.under_cursor_color = [0; 4];
+            self.state.selected_color = [0; 4];
             true
         }
         else
@@ -615,9 +601,6 @@ impl PostprocessorCanvas
         let ctx = self.ctx.as_ref().expect("CTX Context not initialized!");
         gl.clear_color(0.0, 0.0, 0.0, 1.0);
         ctx.clear_rect(0.0, 0.0, self.props.canvas_width as f64, self.props.canvas_height as f64);
-        let mut posproc_uid_number = self.props.postproc_init_uid_number;
-        self.state.drawn_analysis_results_for_nodes = Vec::new();
-        self.state.drawn_analysis_results_for_elements = Vec::new();
         gl.enable(GL::DEPTH_TEST);
         gl.clear(GL::COLOR_BUFFER_BIT);
         gl.clear(GL::DEPTH_BUFFER_BIT);
@@ -634,59 +617,15 @@ impl PostprocessorCanvas
         let z_near = 1.0 as GLElementsValues;
         let z_far = 101.0 as GLElementsValues;
 
-        if !self.props.drawn_nodes.is_empty()
+        if !self.state.normalized_nodes.is_empty()
         {
-            let mut all_nodes = (*self.props.drawn_nodes.as_ref()).clone();
-            if let Some(global_displacements) =
-                self.props.global_displacements.as_ref()
-            {
-                extend_by_deformed_shape_nodes(&mut all_nodes,
-                    &self.props.drawn_nodes, &global_displacements, self.props.magnitude,
-                    &mut posproc_uid_number,
-                    &mut self.state.drawn_analysis_results_for_nodes);
-                if let Some(reactions) = self.props.reactions.as_ref()
-                {
-                    extend_by_reactions(&self.props.drawn_nodes, &reactions,
-                        &mut posproc_uid_number,
-                        &mut self.state.drawn_analysis_results_for_nodes);
-                }
-                if let Some(elements_analysis_result) =
-                    self.props.elements_analysis_result.as_ref()
-                {
-                    extend_by_elements_analysis_result(&elements_analysis_result,
-                        &mut posproc_uid_number,
-                        &mut self.state.drawn_analysis_results_for_elements);
-                }
-            }
-            let normalized_nodes = normalize_nodes(
-                Rc::new(all_nodes),
-                self.props.canvas_width as GLElementsValues,
-                self.props.canvas_height as GLElementsValues);
-
+            let length = self.state.normalized_nodes.len();
             let mut drawn_objects_buffers = Buffers::initialize(&gl);
             let mut drawn_object = DrawnObject::create();
-            drawn_object.add_nodes(&normalized_nodes[..normalized_nodes.len() / 2],
-                GLMode::Selection, &self.state.under_cursor_color,
-                &self.state.selected_color);
-
-            if !self.props.drawn_elements.is_empty()
-            {
-                match drawn_object.add_elements(
-                    &normalized_nodes[..normalized_nodes.len() / 2],
-                    &self.props.drawn_elements,
-                    GLMode::Selection, &self.state.under_cursor_color,
-                    &self.state.selected_color)
-                {
-                    Err(msg) =>
-                        yew::services::DialogService::alert(&format!("{:?}", msg)),
-                    Ok(()) => (),
-                }
-            }
-
             if self.props.is_plot_displacements_selected
             {
                 drawn_object.add_deformed_shape_nodes(
-                    &normalized_nodes[normalized_nodes.len() / 2..],
+                    &self.state.normalized_nodes[length / 2..],
                     GLMode::Selection, &self.state.under_cursor_color,
                     &self.state.selected_color);
             }
@@ -694,7 +633,7 @@ impl PostprocessorCanvas
             if self.props.is_plot_reactions_selected
             {
                 let reactions =
-                    self.state.drawn_analysis_results_for_nodes
+                    self.props.drawn_analysis_results_for_nodes
                         .iter()
                         .filter(|result|
                             result.bc_type == BCType::Force)
@@ -702,7 +641,7 @@ impl PostprocessorCanvas
                 if !reactions.is_empty()
                 {
                     drawn_object.add_reactions(
-                    &normalized_nodes[..normalized_nodes.len() / 2],
+                    &self.state.normalized_nodes.as_slice(),
                     &reactions,
                     DRAWN_FORCES_LINE_LENGTH / (1.0 + self.state.d_scale),
                     DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER,
@@ -790,50 +729,64 @@ impl PostprocessorCanvas
             drawn_object = DrawnObject::create();
             drawn_objects_buffers = Buffers::initialize(&gl);
 
-            drawn_object.add_nodes(&normalized_nodes[..normalized_nodes.len() / 2],
-                GLMode::Visible, &self.state.under_cursor_color,
-                &self.state.selected_color);
-
-            if !self.props.drawn_elements.is_empty()
-            {
-                match drawn_object.add_elements(
-                    &normalized_nodes[..normalized_nodes.len() / 2],
-                    &self.props.drawn_elements,
-                    GLMode::Visible, &self.state.under_cursor_color,
-                    &self.state.selected_color)
-                {
-                    Err(msg) =>
-                        yew::services::DialogService::alert(&format!("{:?}", msg)),
-                    Ok(()) => (),
-                }
-            }
-
             if self.props.is_plot_displacements_selected
             {
-                drawn_object.add_deformed_shape_nodes(
-                    &normalized_nodes[normalized_nodes.len() / 2..],
+                drawn_object.add_nodes(&self.state.normalized_nodes[..length / 2],
                     GLMode::Visible, &self.state.under_cursor_color,
                     &self.state.selected_color);
-            }
 
-            if self.props.is_plot_displacements_selected && !self.props.drawn_elements.is_empty()
-            {
-                match drawn_object.add_deformed_shape_elements(
-                    &normalized_nodes[normalized_nodes.len() / 2..],
-                    &self.props.drawn_elements,
+                drawn_object.add_deformed_shape_nodes(
+                    &self.state.normalized_nodes[length / 2..],
                     GLMode::Visible, &self.state.under_cursor_color,
-                    &self.state.selected_color)
+                    &self.state.selected_color);
+
+                if !self.props.drawn_elements.is_empty()
                 {
-                    Err(msg) =>
-                        yew::services::DialogService::alert(&format!("{:?}", msg)),
-                    Ok(()) => (),
+                    match drawn_object.add_elements(
+                        &self.state.normalized_nodes[..length / 2],
+                        &self.props.drawn_elements,
+                        GLMode::Visible, &self.state.under_cursor_color,
+                        &self.state.selected_color)
+                    {
+                        Err(msg) =>
+                            yew::services::DialogService::alert(&format!("{:?}", msg)),
+                        Ok(()) => (),
+                    }
+
+                    match drawn_object.add_deformed_shape_elements(
+                        &self.state.normalized_nodes[length / 2..],
+                        &self.props.drawn_elements,
+                        GLMode::Visible, &self.state.under_cursor_color,
+                        &self.state.selected_color)
+                    {
+                        Err(msg) =>
+                            yew::services::DialogService::alert(&format!("{:?}", msg)),
+                        Ok(()) => (),
+                    }
                 }
             }
-
-            if self.props.is_plot_reactions_selected
+            else if self.props.is_plot_reactions_selected
             {
+                drawn_object.add_nodes(&self.state.normalized_nodes.as_slice(),
+                    GLMode::Visible, &self.state.under_cursor_color,
+                    &self.state.selected_color);
+
+                if !self.props.drawn_elements.is_empty()
+                {
+                    match drawn_object.add_elements(
+                        &self.state.normalized_nodes.as_slice(),
+                        &self.props.drawn_elements,
+                        GLMode::Visible, &self.state.under_cursor_color,
+                        &self.state.selected_color)
+                    {
+                        Err(msg) =>
+                            yew::services::DialogService::alert(&format!("{:?}", msg)),
+                        Ok(()) => (),
+                    }
+                }
+
                 let reactions =
-                    self.state.drawn_analysis_results_for_nodes
+                    self.props.drawn_analysis_results_for_nodes
                         .iter()
                         .filter(|result|
                             result.bc_type == BCType::Force)
@@ -841,7 +794,7 @@ impl PostprocessorCanvas
                 if !reactions.is_empty()
                 {
                     drawn_object.add_reactions(
-                    &normalized_nodes[..normalized_nodes.len() / 2],
+                    &self.state.normalized_nodes.as_slice(),
                     &reactions,
                     DRAWN_FORCES_LINE_LENGTH / (1.0 + self.state.d_scale),
                     DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER,
@@ -849,6 +802,26 @@ impl PostprocessorCanvas
                     DRAWN_FORCES_CAPS_WIDTH / (1.0 + self.state.d_scale),
                     GLMode::Visible, &self.state.under_cursor_color,
                     &self.state.selected_color);
+                }
+            }
+            else
+            {
+                drawn_object.add_nodes(&self.state.normalized_nodes.as_slice(),
+                    GLMode::Visible, &self.state.under_cursor_color,
+                    &self.state.selected_color);
+
+                if !self.props.drawn_elements.is_empty()
+                {
+                    match drawn_object.add_elements(
+                        &self.state.normalized_nodes.as_slice(),
+                        &self.props.drawn_elements,
+                        GLMode::Visible, &self.state.under_cursor_color,
+                        &self.state.selected_color)
+                    {
+                        Err(msg) =>
+                            yew::services::DialogService::alert(&format!("{:?}", msg)),
+                        Ok(()) => (),
+                    }
                 }
             }
 
@@ -886,24 +859,6 @@ impl PostprocessorCanvas
             let mut matrix = mat4::new_identity();
             mat4::mul(&mut matrix, &projection_matrix, &model_view_matrix);
 
-            for node in normalized_nodes[..normalized_nodes.len() / 2].iter()
-            {
-                let denotation_color = define_drawn_object_denotation_color(node.uid,
-                    &self.state.selected_color, &self.state.under_cursor_color,
-                    CANVAS_DRAWN_NODES_DENOTATION_COLOR);
-                ctx.set_fill_style(&denotation_color.into());
-                add_denotation(&ctx,
-                &[node.x - DRAWN_NODES_DENOTATION_SHIFT / (1.0 + self.state.d_scale),
-                    node.y - DRAWN_NODES_DENOTATION_SHIFT / (1.0 + self.state.d_scale),
-                    node.z,
-                    1.0],
-                &matrix,
-                self.props.canvas_width as f32,
-                self.props.canvas_height as f32,
-                &node.number.to_string());
-                ctx.stroke();
-            }
-
             if !self.props.drawn_elements.is_empty()
             {
                 for element in self.props.drawn_elements.as_ref()
@@ -911,7 +866,7 @@ impl PostprocessorCanvas
                     let denotation_color = define_drawn_object_denotation_color(element.uid,
                         &self.state.selected_color, &self.state.under_cursor_color,
                         CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR);
-                    match element.find_denotation_coordinates(&normalized_nodes)
+                    match element.find_denotation_coordinates(&self.state.normalized_nodes)
                     {
                         Ok(coordinates) =>
                             {
@@ -936,9 +891,27 @@ impl PostprocessorCanvas
 
             if self.props.is_plot_displacements_selected
             {
+                for node in self.state.normalized_nodes[..length / 2].iter()
+                {
+                    let denotation_color = define_drawn_object_denotation_color(node.uid,
+                        &self.state.selected_color, &self.state.under_cursor_color,
+                        CANVAS_DRAWN_NODES_DENOTATION_COLOR);
+                    ctx.set_fill_style(&denotation_color.into());
+                    add_denotation(&ctx,
+                    &[node.x - DRAWN_NODES_DENOTATION_SHIFT / (1.0 + self.state.d_scale),
+                        node.y - DRAWN_NODES_DENOTATION_SHIFT / (1.0 + self.state.d_scale),
+                        node.z,
+                        1.0],
+                    &matrix,
+                    self.props.canvas_width as f32,
+                    self.props.canvas_height as f32,
+                    &node.number.to_string());
+                    ctx.stroke();
+                }
+
                 let mut min_displacement = 0 as ElementsValues;
                 let mut max_displacement = 0 as ElementsValues;
-                for node in normalized_nodes[normalized_nodes.len() / 2..].iter()
+                for node in self.state.normalized_nodes[length / 2..].iter()
                 {
                     let denotation_color = define_drawn_object_denotation_color(node.uid,
                         &self.state.selected_color, &self.state.under_cursor_color,
@@ -947,18 +920,40 @@ impl PostprocessorCanvas
                     let denotation =
                         {
                             let (mut x, mut y, mut z) = (0.0, 0.0, 0.0);
-                            if let Some(global_displacements) =
-                                self.props.global_displacements.as_ref()
+
+                            let node_number = node.number as ElementsNumbers -
+                                length as ElementsNumbers / 2;
+                            let analysis_data =
+                                {
+                                    if let Some(position) =
+                                        self.props.drawn_analysis_results_for_nodes
+                                        .iter()
+                                        .position(|data|
+                                            data.node_number == node_number)
+                                    {
+                                        Some(&self.props.drawn_analysis_results_for_nodes[position])
+                                    }
+                                    else
+                                    {
+                                        None
+                                    }
+                                };
+                            if analysis_data.is_some()
                             {
-                                let node_number = node.number as ElementsNumbers -
-                                    normalized_nodes.len() as ElementsNumbers / 2;
-                                x = update_displacement_value(x, node_number,
-                                    &global_displacements, GlobalDOFParameter::X);
-                                y = update_displacement_value(y, node_number,
-                                    &global_displacements, GlobalDOFParameter::Y);
-                                z = update_displacement_value(z, node_number,
-                                    &global_displacements, GlobalDOFParameter::Z);
+                                if analysis_data.unwrap().x_direction_value.is_some()
+                                {
+                                    x = analysis_data.unwrap().x_direction_value.unwrap();
+                                }
+                                if analysis_data.unwrap().y_direction_value.is_some()
+                                {
+                                    y = analysis_data.unwrap().y_direction_value.unwrap();
+                                }
+                                if analysis_data.unwrap().z_direction_value.is_some()
+                                {
+                                    z = analysis_data.unwrap().z_direction_value.unwrap();
+                                }
                             }
+
                             let displacement_value = (x * x + y * y + z * z).sqrt();
                             if displacement_value < min_displacement
                             {
@@ -995,13 +990,49 @@ impl PostprocessorCanvas
                     self.props.canvas_height as f32, min_displacement, max_displacement);
                 ctx.stroke();
             }
-
-            if self.props.is_plot_reactions_selected
+            else if self.props.is_plot_reactions_selected
             {
+                for node in self.state.normalized_nodes.iter()
+                {
+                    let denotation_color = define_drawn_object_denotation_color(node.uid,
+                        &self.state.selected_color, &self.state.under_cursor_color,
+                        CANVAS_DRAWN_NODES_DENOTATION_COLOR);
+                    ctx.set_fill_style(&denotation_color.into());
+                    add_denotation(&ctx,
+                    &[node.x - DRAWN_NODES_DENOTATION_SHIFT / (1.0 + self.state.d_scale),
+                        node.y - DRAWN_NODES_DENOTATION_SHIFT / (1.0 + self.state.d_scale),
+                        node.z,
+                        1.0],
+                    &matrix,
+                    self.props.canvas_width as f32,
+                    self.props.canvas_height as f32,
+                    &node.number.to_string());
+                    ctx.stroke();
+                }
                 ctx.set_fill_style(&HINTS_COLOR.into());
                 add_reactions_hints(&ctx, self.props.canvas_width as f32,
                     self.props.canvas_height as f32);
                 ctx.stroke();
+            }
+            else
+            {
+                for node in self.state.normalized_nodes.iter()
+                {
+                    let denotation_color = define_drawn_object_denotation_color(node.uid,
+                        &self.state.selected_color, &self.state.under_cursor_color,
+                        CANVAS_DRAWN_NODES_DENOTATION_COLOR);
+                    ctx.set_fill_style(&denotation_color.into());
+                    add_denotation(&ctx,
+                    &[node.x - DRAWN_NODES_DENOTATION_SHIFT / (1.0 + self.state.d_scale),
+                        node.y - DRAWN_NODES_DENOTATION_SHIFT / (1.0 + self.state.d_scale),
+                        node.z,
+                        1.0],
+                    &matrix,
+                    self.props.canvas_width as f32,
+                    self.props.canvas_height as f32,
+                    &node.number.to_string());
+                    ctx.stroke();
+                }
             }
 
             // if !self.props.drawn_elements.is_empty()

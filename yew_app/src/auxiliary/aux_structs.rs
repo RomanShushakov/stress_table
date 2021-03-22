@@ -30,7 +30,7 @@ impl View
 }
 
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct FEDrawnNodeData
 {
     pub uid: UIDNumbers,
@@ -177,6 +177,7 @@ impl FEDrawnDisplacementInputOption
 }
 
 
+#[derive(Clone, PartialEq)]
 pub struct FEDrawnAnalysisResultNodeData
 {
     pub uid: UIDNumbers,

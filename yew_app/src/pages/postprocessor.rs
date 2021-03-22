@@ -78,16 +78,13 @@ impl Component for Postprocessor
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self
     {
-        let drawn_nodes_extended =
+        let drawn_nodes_extended = if !props.drawn_nodes.is_empty()
             {
-                if !props.drawn_nodes.is_empty()
-                {
-                    (*props.drawn_nodes.as_ref()).clone()
-                }
-                else
-                {
-                    Vec::new()
-                }
+                (*props.drawn_nodes.as_ref()).clone()
+            }
+            else
+            {
+                Vec::new()
             };
         let state = State
             {
@@ -144,14 +141,14 @@ impl Component for Postprocessor
                         &props.elements_analysis_result)
         {
             self.props = props;
-            if !props.drawn_nodes.is_empty()
-            {
-                self.state.drawn_nodes_extended = (*self.props.drawn_nodes.as_ref()).clone();
-            }
-            else
-            {
-                Vec::new()
-            }
+            self.state.drawn_nodes_extended = if !self.props.drawn_nodes.is_empty()
+                {
+                    (*self.props.drawn_nodes.as_ref()).clone()
+                }
+                else
+                {
+                    Vec::new()
+                };
             true
         }
         else

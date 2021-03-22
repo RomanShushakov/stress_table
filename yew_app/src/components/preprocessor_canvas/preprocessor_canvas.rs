@@ -300,18 +300,15 @@ impl Component for PreprocessorCanvas
         let pan = false;
         let rotate = false;
         let shift_key_pressed = false;
-        let normalized_nodes =
+        let normalized_nodes = if !props.drawn_nodes.is_empty()
             {
-                if !props.drawn_nodes.is_empty()
-                {
-                    normalize_nodes(Rc::clone(&props.drawn_nodes),
-                        props.canvas_width as GLElementsValues,
-                        props.canvas_height as GLElementsValues)
-                }
-                else
-                {
-                    Vec::new()
-                }
+                normalize_nodes(Rc::clone(&props.drawn_nodes),
+                    props.canvas_width as GLElementsValues,
+                    props.canvas_height as GLElementsValues)
+            }
+            else
+            {
+                Vec::new()
             };
         let state = State {
             dx, dy, d_scale, theta, phi, pan, rotate, shift_key_pressed,
@@ -487,17 +484,17 @@ impl Component for PreprocessorCanvas
                         },
                 }
             }
-            if !self.props.drawn_nodes.is_empty()
-            {
-                self.state.normalized_nodes = normalize_nodes(
+            self.state.normalized_nodes = if !self.props.drawn_nodes.is_empty()
+                {
+                    normalize_nodes(
                     Rc::clone(&self.props.drawn_nodes),
                     self.props.canvas_width as GLElementsValues,
-                    self.props.canvas_height as GLElementsValues);
-            }
-            else
-            {
-                self.state.normalized_nodes = Vec::new();
-            }
+                    self.props.canvas_height as GLElementsValues)
+                }
+                else
+                {
+                    Vec::new()
+                };
             true
         }
         else

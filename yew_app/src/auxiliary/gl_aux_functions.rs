@@ -338,3 +338,36 @@ pub fn define_drawn_object_denotation_color(uid: UIDNumbers, selected_color: &[u
         initial_denotation_color.to_string()
     }
 }
+
+
+pub fn define_color_value(value: ElementsValues, min_value: ElementsValues,
+    max_value: ElementsValues) -> ElementsValues
+{
+    (value - min_value) * 1020.0 / (max_value - min_value)
+}
+
+
+pub fn define_color_array_by_value(color_value: ElementsValues) -> [GLElementsValues; 4]
+{
+    let color_value = color_value as GLElementsValues;
+    if  (color_value >= 0.0) && (color_value <= 255.0)
+    {
+        [0.0, color_value / 255.0, 1.0, 1.0]
+    }
+    else if (color_value > 255.0) && (color_value <= 510.0)
+    {
+        [0.0, 1.0, (510.0 - color_value) / 255.0, 1.0]
+    }
+    else if (color_value > 510.0) && (color_value <= 765.0)
+    {
+        [(color_value - 510.0) / 255.0, 1.0, 0.0, 1.0]
+    }
+    else if (color_value > 765.0) && (color_value <= 1020.0)
+    {
+        [1.0, (1020.0 - color_value) / 255.0, 0.0, 1.0]
+    }
+    else
+    {
+        [1.0, 0.0, 0.0, 1.0]
+    }
+}

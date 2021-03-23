@@ -1,6 +1,9 @@
 pub use crate::fem::element_analysis::fe_stress_strain_components::{StressStrainComponent};
 pub use crate::fem::element_analysis::fe_force_moment_components::ForceComponent;
-pub use crate::fem::element_analysis::fe_element_analysis_result::ElementAnalysisData;
+pub use crate::fem::element_analysis::fe_element_analysis_result::
+    {
+        ElementAnalysisData, ElementStrains, ElementStresses, ElementForces
+    };
 
 pub use crate::fem::aux_functions_fe_model::compose_stiffness_sub_groups;
 pub use crate::fem::fe_model::{FEModel, SeparatedMatrix};

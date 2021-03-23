@@ -9,7 +9,11 @@ use crate::fem::{StressStrainComponent};
 use crate::{ElementsNumbers, ElementsValues, UIDNumbers};
 
 use crate::components::{ViewMenu, PostprocessorCanvas, PlotDisplacementsMenu, PlotStressesMenu};
-use crate::auxiliary::{View, FEDrawnNodeData, FEDrawnElementData, FEDrawnAnalysisResultNodeData};
+use crate::auxiliary::
+    {
+        View, FEDrawnNodeData, FEDrawnElementData, FEDrawnAnalysisResultNodeData,
+        DrawnAnalysisResultElementData
+    };
 use crate::fem::global_analysis::fe_global_analysis_result::Reactions;
 use crate::fem::element_analysis::fe_element_analysis_result::ElementsAnalysisResult;
 
@@ -45,9 +49,12 @@ pub struct State
     pub magnitude: ElementsValues,
     pub drawn_nodes_extended: Vec<FEDrawnNodeData>,
     pub drawn_analysis_results_for_nodes: Vec<FEDrawnAnalysisResultNodeData>,
+    pub drawn_analysis_results_for_elements: Vec<DrawnAnalysisResultElementData>,
     pub is_plot_displacements_selected: bool,
     pub is_plot_reactions_selected: bool,
     pub stress_component_selected: Option<StressStrainComponent>,
+    pub min_selected_value: Option<ElementsValues>,
+    pub max_selected_value: Option<ElementsValues>,
 }
 
 
@@ -72,6 +79,12 @@ impl Postprocessor
         {
             Vec::new()
         };
+    }
+
+
+    fn default_analysis_results_for_elements(&mut self)
+    {
+        self.state.drawn_analysis_results_for_elements = Vec::new();
     }
 
 
@@ -266,6 +279,80 @@ impl Postprocessor
             }
         }
     }
+
+
+    fn extend_by_analysis_result_element_data(&mut self)
+    {
+        self.default_analysis_results_for_elements();
+        if let Some(elements_analysis_result) =
+            self.props.elements_analysis_result.as_ref()
+        {
+            let mut uid = self.props.postproc_init_uid_number;
+            let elements_analysis_data =
+                elements_analysis_result.extract_elements_analysis_data();
+            for data in elements_analysis_data.iter()
+            {
+                uid += 1;
+
+                let mut drawn_analysis_result_element_data = DrawnAnalysisResultElementData
+                    {
+                        uid, element_analysis_data: data.to_owned()
+                    };
+                self.state.drawn_analysis_results_for_elements.push(
+                    drawn_analysis_result_element_data);
+            }
+        }
+    }
+
+
+    fn extract_min_max_stress_for_component(&self, component: StressStrainComponent)
+        -> (Option<ElementsValues>, Option<ElementsValues>)
+    {
+        let first_appropriate_value =
+            {
+                if let Some(position) =
+                    self.state.drawn_analysis_results_for_elements[0].element_analysis_data
+                        .extract_stresses().stresses_components.iter()
+                        .position(|c| *c == component )
+                {
+                    Some(self.state.drawn_analysis_results_for_elements[0].element_analysis_data
+                        .extract_stresses().stresses_values[position])
+                }
+                else
+                {
+                    None
+                }
+            };
+        let mut min_value = first_appropriate_value;
+        let mut max_value = first_appropriate_value;
+        for data in self.state.drawn_analysis_results_for_elements.iter()
+        {
+            let element_stresses = data.element_analysis_data.extract_stresses();
+            for (c, value) in
+                element_stresses.stresses_components.iter()
+                    .zip(element_stresses.stresses_values)
+            {
+                if *c == component
+                {
+                    if min_value.is_some()
+                    {
+                        if value < min_value.unwrap()
+                        {
+                            min_value = Some(value);
+                        }
+                    }
+                    if max_value.is_some()
+                    {
+                        if value > max_value.unwrap()
+                        {
+                            max_value = Some(value);
+                        }
+                    }
+                }
+            }
+        }
+        (min_value, max_value)
+    }
 }
 
 
@@ -302,9 +389,12 @@ impl Component for Postprocessor
                 magnitude: 1.0 as ElementsValues,
                 drawn_nodes_extended,
                 drawn_analysis_results_for_nodes: Vec::new(),
+                drawn_analysis_results_for_elements: Vec::new(),
                 is_plot_displacements_selected: false,
                 is_plot_reactions_selected: false,
                 stress_component_selected: None,
+                min_selected_value: None,
+                max_selected_value: None,
             };
         Self { props, link, state }
     }
@@ -328,6 +418,8 @@ impl Component for Postprocessor
                     self.state.is_plot_displacements_selected = true;
                     self.state.is_plot_reactions_selected = false;
                     self.state.stress_component_selected = None;
+                    self.state.min_selected_value = None;
+                    self.state.max_selected_value = None;
                 },
             Msg::SelectPlotReactions =>
                 {
@@ -335,13 +427,20 @@ impl Component for Postprocessor
                     self.state.is_plot_displacements_selected = false;
                     self.state.is_plot_reactions_selected = true;
                     self.state.stress_component_selected = None;
+                    self.state.min_selected_value = None;
+                    self.state.max_selected_value = None;
                 },
             Msg::SelectStressComponent(component) =>
                 {
                     self.default_drawn_nodes_extended_and_analysis_results_for_nodes();
+                    self.extend_by_analysis_result_element_data();
                     self.state.is_plot_displacements_selected = false;
                     self.state.is_plot_reactions_selected = false;
                     self.state.stress_component_selected = Some(component);
+                    let (min_value, max_value) =
+                        self.extract_min_max_stress_for_component(component);
+                    self.state.min_selected_value = min_value;
+                    self.state.max_selected_value = max_value;
                 },
             Msg::AddObjectInfo(info) => self.state.object_info = Some(info),
             Msg::ResetObjectInfo => self.state.object_info = None,
@@ -435,9 +534,12 @@ impl Component for Postprocessor
                                         drawn_elements=Rc::clone(&self.props.drawn_elements),
                                         drawn_nodes_extended=self.state.drawn_nodes_extended.to_owned(),
                                         drawn_analysis_results_for_nodes=self.state.drawn_analysis_results_for_nodes.to_owned(),
+                                        drawn_analysis_results_for_elements=self.state.drawn_analysis_results_for_elements.to_owned(),
                                         is_plot_displacements_selected=self.state.is_plot_displacements_selected.to_owned(),
                                         is_plot_reactions_selected=self.state.is_plot_reactions_selected.to_owned(),
                                         stress_component_selected=self.state.stress_component_selected.to_owned(),
+                                        min_selected_value=self.state.min_selected_value.to_owned(),
+                                        max_selected_value=self.state.max_selected_value.to_owned(),
                                         add_object_info=handle_add_object_info.to_owned(),
                                         reset_object_info=handle_reset_object_info.to_owned(),
                                     />

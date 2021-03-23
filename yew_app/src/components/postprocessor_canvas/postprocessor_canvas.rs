@@ -28,7 +28,7 @@ use crate::auxiliary::gl_aux_functions::
     {
         add_denotation, initialize_shaders, normalize_nodes, add_hints,
         define_drawn_object_denotation_color, add_displacements_hints,
-        add_reactions_hints, extend_by_elements_analysis_result,
+        add_reactions_hints, extend_by_elements_analysis_result
     };
 use crate::auxiliary::gl_aux_structs::{Buffers, ShadersVariables, DrawnObject};
 use crate::auxiliary::gl_aux_structs::{CSAxis, GLMode};
@@ -87,9 +87,12 @@ pub struct Props
     pub drawn_elements: Rc<Vec<FEDrawnElementData>>,
     pub drawn_nodes_extended: Vec<FEDrawnNodeData>,
     pub drawn_analysis_results_for_nodes: Vec<FEDrawnAnalysisResultNodeData>,
+    pub drawn_analysis_results_for_elements: Vec<DrawnAnalysisResultElementData>,
     pub is_plot_displacements_selected: bool,
     pub is_plot_reactions_selected: bool,
     pub stress_component_selected: Option<StressStrainComponent>,
+    pub min_selected_value: Option<ElementsValues>,
+    pub max_selected_value: Option<ElementsValues>,
     pub add_object_info: Callback<String>,
     pub reset_object_info: Callback<()>,
 }
@@ -472,10 +475,14 @@ impl Component for PostprocessorCanvas
     {
         if (&self.props.view, &self.props.canvas_height, &self.props.canvas_width,
             &self.props.is_plot_displacements_selected, &self.props.is_plot_reactions_selected,
-            &self.props.drawn_nodes_extended, &self.props.drawn_analysis_results_for_nodes) !=
+            &self.props.drawn_nodes_extended, &self.props.drawn_analysis_results_for_nodes,
+            &self.props.drawn_analysis_results_for_elements, &self.props.min_selected_value,
+            &self.props.max_selected_value) !=
             (&props.view, &props.canvas_height, &props.canvas_width,
             &props.is_plot_displacements_selected, &props.is_plot_reactions_selected,
-            &props.drawn_nodes_extended, &props.drawn_analysis_results_for_nodes) ||
+            &props.drawn_nodes_extended, &props.drawn_analysis_results_for_nodes,
+            &props.drawn_analysis_results_for_elements, &props.min_selected_value,
+            &props.max_selected_value) ||
             !Rc::ptr_eq(&self.props.drawn_elements, &props.drawn_elements)
         {
             self.props = props;
@@ -619,13 +626,13 @@ impl PostprocessorCanvas
 
         if !self.state.normalized_nodes.is_empty()
         {
-            let length = self.state.normalized_nodes.len();
+            let nodes_number = self.state.normalized_nodes.len();
             let mut drawn_objects_buffers = Buffers::initialize(&gl);
             let mut drawn_object = DrawnObject::create();
             if self.props.is_plot_displacements_selected
             {
                 drawn_object.add_deformed_shape_nodes(
-                    &self.state.normalized_nodes[length / 2..],
+                    &self.state.normalized_nodes[nodes_number / 2..],
                     GLMode::Selection, &self.state.under_cursor_color,
                     &self.state.selected_color);
             }
@@ -652,34 +659,21 @@ impl PostprocessorCanvas
                 }
             }
 
-            // let drawn_displacements: Vec<&DrawnBCData> = self.props.drawn_bcs
-            //         .iter()
-            //         .filter(|bc|
-            //             bc.bc_type == BCType::Displacement)
-            //         .collect();
-            // if !drawn_displacements.is_empty()
-            // {
-            //     drawn_object.add_displacements(
-            //         &normalized_nodes, &drawn_displacements,
-            //         DRAWN_DISPLACEMENTS_CAPS_BASE_POINTS_NUMBER,
-            //         DRAWN_DISPLACEMENTS_CAPS_HEIGHT / (1.0 + self.state.d_scale),
-            //         DRAWN_DISPLACEMENTS_CAPS_WIDTH / (1.0 + self.state.d_scale));
-            // }
-
-            // let drawn_forces: Vec<&DrawnBCData> = self.props.drawn_bcs
-            //         .iter()
-            //         .filter(|bc|
-            //             bc.bc_type == BCType::Force)
-            //         .collect();
-            // if !drawn_forces.is_empty()
-            // {
-            //     drawn_object.add_forces(
-            //         &normalized_nodes, &drawn_forces,
-            //         DRAWN_FORCES_LINE_LENGTH / (1.0 + self.state.d_scale),
-            //         DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER,
-            //         DRAWN_FORCES_CAPS_HEIGHT / (1.0 + self.state.d_scale),
-            //         DRAWN_FORCES_CAPS_WIDTH / (1.0 + self.state.d_scale));
-            // }
+            if self.props.stress_component_selected.is_some()
+            {
+                if !self.props.drawn_elements.is_empty()
+                {
+                    match drawn_object.add_elements_with_results_for_selection(
+                        &self.state.normalized_nodes.as_slice(),
+                        &self.props.drawn_elements,
+                        &self.props.drawn_analysis_results_for_elements)
+                    {
+                        Err(msg) =>
+                            yew::services::DialogService::alert(&format!("{:?}", msg)),
+                        Ok(()) => (),
+                    }
+                }
+            }
 
             drawn_objects_buffers.render(&gl, &drawn_object, &shaders_variables);
             let point_size = 10.0 as GLElementsValues;
@@ -731,19 +725,20 @@ impl PostprocessorCanvas
 
             if self.props.is_plot_displacements_selected
             {
-                drawn_object.add_nodes(&self.state.normalized_nodes[..length / 2],
+                drawn_object.add_nodes(
+                    &self.state.normalized_nodes[..nodes_number / 2],
                     GLMode::Visible, &self.state.under_cursor_color,
                     &self.state.selected_color);
 
                 drawn_object.add_deformed_shape_nodes(
-                    &self.state.normalized_nodes[length / 2..],
+                    &self.state.normalized_nodes[nodes_number / 2..],
                     GLMode::Visible, &self.state.under_cursor_color,
                     &self.state.selected_color);
 
                 if !self.props.drawn_elements.is_empty()
                 {
                     match drawn_object.add_elements(
-                        &self.state.normalized_nodes[..length / 2],
+                        &self.state.normalized_nodes[..nodes_number / 2],
                         &self.props.drawn_elements,
                         GLMode::Visible, &self.state.under_cursor_color,
                         &self.state.selected_color)
@@ -754,7 +749,7 @@ impl PostprocessorCanvas
                     }
 
                     match drawn_object.add_deformed_shape_elements(
-                        &self.state.normalized_nodes[length / 2..],
+                        &self.state.normalized_nodes[nodes_number / 2..],
                         &self.props.drawn_elements,
                         GLMode::Visible, &self.state.under_cursor_color,
                         &self.state.selected_color)
@@ -802,6 +797,30 @@ impl PostprocessorCanvas
                     DRAWN_FORCES_CAPS_WIDTH / (1.0 + self.state.d_scale),
                     GLMode::Visible, &self.state.under_cursor_color,
                     &self.state.selected_color);
+                }
+            }
+            else if let Some(component) = self.props.stress_component_selected
+            {
+                drawn_object.add_nodes(&self.state.normalized_nodes.as_slice(),
+                    GLMode::Visible, &self.state.under_cursor_color,
+                    &self.state.selected_color);
+
+                if !self.props.drawn_elements.is_empty()
+                {
+                    match drawn_object.add_elements_with_results_for_visualization(
+                        &self.state.normalized_nodes.as_slice(),
+                        &self.props.drawn_elements,
+                        &self.props.drawn_analysis_results_for_elements,
+                        &component,
+                        &self.props.min_selected_value,
+                        &self.props.max_selected_value,
+                        GLMode::Visible, &self.state.under_cursor_color,
+                        &self.state.selected_color)
+                    {
+                        Err(msg) =>
+                            yew::services::DialogService::alert(&format!("{:?}", msg)),
+                        Ok(()) => (),
+                    }
                 }
             }
             else
@@ -891,7 +910,7 @@ impl PostprocessorCanvas
 
             if self.props.is_plot_displacements_selected
             {
-                for node in self.state.normalized_nodes[..length / 2].iter()
+                for node in self.state.normalized_nodes[..nodes_number / 2].iter()
                 {
                     let denotation_color = define_drawn_object_denotation_color(node.uid,
                         &self.state.selected_color, &self.state.under_cursor_color,
@@ -911,7 +930,7 @@ impl PostprocessorCanvas
 
                 let mut min_displacement = 0 as ElementsValues;
                 let mut max_displacement = 0 as ElementsValues;
-                for node in self.state.normalized_nodes[length / 2..].iter()
+                for node in self.state.normalized_nodes[nodes_number / 2..].iter()
                 {
                     let denotation_color = define_drawn_object_denotation_color(node.uid,
                         &self.state.selected_color, &self.state.under_cursor_color,
@@ -922,7 +941,7 @@ impl PostprocessorCanvas
                             let (mut x, mut y, mut z) = (0.0, 0.0, 0.0);
 
                             let node_number = node.number as ElementsNumbers -
-                                length as ElementsNumbers / 2;
+                                nodes_number as ElementsNumbers / 2;
                             let analysis_data =
                                 {
                                     if let Some(position) =

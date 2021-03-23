@@ -192,7 +192,7 @@ pub struct FEDrawnAnalysisResultNodeData
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DrawnAnalysisResultElementData
 {
     pub uid: UIDNumbers,

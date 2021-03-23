@@ -4,11 +4,19 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::{GLElementsNumbers, GLElementsValues, TOLERANCE};
-use crate::auxiliary::gl_aux_functions::{find_node_coordinates, define_drawn_object_color};
+use crate::auxiliary::gl_aux_functions::
+    {
+        find_node_coordinates, define_drawn_object_color, define_color_value,
+        define_color_array_by_value,
+    };
 
 use crate::{ElementsValues, ElementsNumbers};
-use crate::fem::{FENode, FEType, GlobalDOFParameter};
-use crate::auxiliary::{NormalizedNode, FEDrawnElementData, FEDrawnBCData, FEDrawnAnalysisResultNodeData};
+use crate::fem::{FENode, FEType, GlobalDOFParameter, StressStrainComponent};
+use crate::auxiliary::
+    {
+        NormalizedNode, FEDrawnElementData, FEDrawnBCData, FEDrawnAnalysisResultNodeData,
+        DrawnAnalysisResultElementData
+    };
 use crate::auxiliary::aux_functions::transform_u32_to_array_of_u8;
 use yew::Callback;
 use crate::fem::global_analysis::fe_global_analysis_result::Reactions;
@@ -105,6 +113,7 @@ pub const MAX_DISPLACEMENT_SHIFT_Y: GLElementsValues = 0.2;
 pub const REACTION_SHIFT_X: GLElementsValues = 0.05;
 pub const REACTION_HEADER_SHIFT_Y: GLElementsValues = 0.1;
 
+pub const DRAWN_OBJECT_DEFAULT_RESULT_COLOR: [GLElementsValues; 4] = [0.0, 0.0, 1.0, 1.0]; // blue
 
 pub enum CSAxis
 {
@@ -658,6 +667,352 @@ impl DrawnObject
     }
 
 
+    pub fn add_elements_with_results_for_selection(&mut self, normalized_nodes: &[NormalizedNode],
+        drawn_elements: &Vec<FEDrawnElementData>,
+        drawn_analysis_results_for_elements: &Vec<DrawnAnalysisResultElementData>)
+        -> Result<(), String>
+    {
+        let start_index =
+            if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
+        let mut count = 0;
+        let mut point_elements = Vec::new();
+        let mut line_elements = Vec::new();
+        let mut complex_elements = Vec::new();
+        for element in drawn_elements
+        {
+            if element.nodes_numbers.len() == 1
+            {
+                point_elements.push(element);
+            }
+            if element.nodes_numbers.len() == 2
+            {
+                line_elements.push(element);
+            }
+            if element.nodes_numbers.len() > 2
+            {
+                complex_elements.push(element);
+            }
+        }
+        if !point_elements.is_empty()
+        {
+            for point_element in &point_elements
+            {
+                let uid =
+                    {
+                        if let Some(position) = drawn_analysis_results_for_elements
+                            .iter()
+                            .position(|data|
+                                data.element_analysis_data.number_same(point_element.number))
+                        {
+                            drawn_analysis_results_for_elements[position].uid
+                        }
+                        else
+                        {
+                            point_element.uid
+                        }
+                    };
+                let default_color = [0; 4];
+                let point_element_color = define_drawn_object_color(
+                    &GLMode::Selection,
+                    uid, &default_color, &default_color,
+                    &DRAWN_ELEMENTS_COLOR);
+                let node_number = point_element.nodes_numbers[0] as GLElementsNumbers;
+                let node_coordinates =
+                    match find_node_coordinates(node_number, normalized_nodes)
+                    {
+                        Ok(coordinates) => coordinates,
+                        Err(e) =>
+                            {
+                                return Err(e);
+                            }
+                    };
+                self.vertices_coordinates.extend(&node_coordinates);
+                self.colors_values.extend(&point_element_color);
+                self.indexes_numbers.push(start_index + count as GLElementsNumbers);
+                count += 1;
+            }
+            self.modes.push(GLPrimitiveType::Points);
+            self.elements_numbers.push(point_elements.len() as i32);
+            let offset = self.define_offset();
+            self.offsets.push(offset);
+        }
+        if !line_elements.is_empty()
+        {
+            for line_element in &line_elements
+            {
+                let uid =
+                    {
+                        if let Some(position) = drawn_analysis_results_for_elements
+                            .iter()
+                            .position(|data|
+                                data.element_analysis_data.number_same(line_element.number))
+                        {
+                            drawn_analysis_results_for_elements[position].uid
+                        }
+                        else
+                        {
+                            line_element.uid
+                        }
+                    };
+                let default_color = [0; 4];
+                let line_element_color = define_drawn_object_color(
+                    &GLMode::Selection,
+                    uid, &default_color, &default_color,
+                    &DRAWN_ELEMENTS_COLOR);
+                let node_1_number = line_element.nodes_numbers[0] as GLElementsNumbers;
+                let node_1_coordinates =
+                    match find_node_coordinates(node_1_number, normalized_nodes)
+                    {
+                        Ok(coordinates) => coordinates,
+                        Err(e) =>
+                            {
+                                return Err(e);
+                            }
+                    };
+                self.vertices_coordinates.extend(&node_1_coordinates);
+                self.colors_values.extend(&line_element_color);
+                self.indexes_numbers.push(start_index + count as GLElementsNumbers);
+                count += 1;
+                let node_2_number = line_element.nodes_numbers[1] as GLElementsNumbers;
+                let node_2_coordinates =
+                    match find_node_coordinates(node_2_number, normalized_nodes)
+                    {
+                        Ok(coordinates) => coordinates,
+                        Err(e) =>
+                            {
+                                return Err(e);
+                            }
+                    };
+                self.vertices_coordinates.extend(&node_2_coordinates);
+                self.colors_values.extend(&line_element_color);
+                self.indexes_numbers.push(start_index + count as GLElementsNumbers);
+                count += 1;
+            }
+            self.modes.push(GLPrimitiveType::Lines);
+            self.elements_numbers.push(line_elements.len() as i32 * 2);
+            let offset = self.define_offset();
+            self.offsets.push(offset);
+        }
+        if !complex_elements.is_empty()
+        {
+            for complex_element in &complex_elements
+            {
+                let uid =
+                    {
+                        if let Some(position) = drawn_analysis_results_for_elements
+                            .iter()
+                            .position(|data|
+                                data.element_analysis_data.number_same(complex_element.number))
+                        {
+                            drawn_analysis_results_for_elements[position].uid
+                        }
+                        else
+                        {
+                            complex_element.uid
+                        }
+                    };
+                let default_color = [0; 4];
+                let complex_element_color = define_drawn_object_color(
+                    &GLMode::Selection,
+                    uid, &default_color, &default_color,
+                    &DRAWN_ELEMENTS_COLOR);
+                for i in 1..complex_element.nodes_numbers.len()
+                {
+                    let node_1_number = complex_element.nodes_numbers[i - 1] as GLElementsNumbers;
+                    let node_1_coordinates =
+                    match find_node_coordinates(node_1_number, normalized_nodes)
+                    {
+                        Ok(coordinates) => coordinates,
+                        Err(e) =>
+                            {
+                                return Err(e);
+                            }
+                    };
+                    self.vertices_coordinates.extend(&node_1_coordinates);
+                    self.colors_values.extend(&complex_element_color);
+                    self.indexes_numbers.push(start_index + count as GLElementsNumbers);
+                    count += 1;
+                    let node_2_number = complex_element.nodes_numbers[i] as GLElementsNumbers;
+                    let node_2_coordinates =
+                        match find_node_coordinates(node_2_number, normalized_nodes)
+                        {
+                            Ok(coordinates) => coordinates,
+                            Err(e) =>
+                                {
+                                    return Err(e);
+                                }
+                        };
+                    self.vertices_coordinates.extend(&node_2_coordinates);
+                    self.colors_values.extend(&complex_element_color);
+                    self.indexes_numbers.push(start_index + count as GLElementsNumbers);
+                    count += 1;
+                }
+                let node_1_number = complex_element.nodes_numbers[0] as GLElementsNumbers;
+                let node_1_coordinates =
+                match find_node_coordinates(node_1_number, normalized_nodes)
+                {
+                    Ok(coordinates) => coordinates,
+                    Err(e) =>
+                        {
+                            return Err(e);
+                        }
+                };
+                self.vertices_coordinates.extend(&node_1_coordinates);
+                self.colors_values.extend(&complex_element_color);
+                self.indexes_numbers.push(start_index + count as GLElementsNumbers);
+                count += 1;
+                let node_2_number =
+                    complex_element.nodes_numbers[complex_element.nodes_numbers.len() - 1] as GLElementsNumbers;
+                let node_2_coordinates =
+                    match find_node_coordinates(node_2_number, normalized_nodes)
+                    {
+                        Ok(coordinates) => coordinates,
+                        Err(e) =>
+                            {
+                                return Err(e);
+                            }
+                    };
+                self.vertices_coordinates.extend(&node_2_coordinates);
+                self.colors_values.extend(&complex_element_color);
+                self.indexes_numbers.push(start_index + count as GLElementsNumbers);
+                count += 1;
+            }
+            self.modes.push(GLPrimitiveType::Lines);
+            self.elements_numbers.push(complex_elements.len() as i32 * 2);
+            let offset = self.define_offset();
+            self.offsets.push(offset);
+        }
+        Ok(())
+    }
+
+
+    pub fn add_elements_with_results_for_visualization(&mut self,
+        normalized_nodes: &[NormalizedNode],
+        drawn_elements: &Vec<FEDrawnElementData>,
+        drawn_analysis_results_for_elements: &Vec<DrawnAnalysisResultElementData>,
+        component: &StressStrainComponent,
+        min_selected_value: &Option<ElementsValues>,
+        max_selected_value: &Option<ElementsValues>,
+        gl_mode: GLMode,
+        under_cursor_color: &[u8; 4], selected_color: &[u8; 4]) -> Result<(), String>
+    {
+        let start_index =
+            if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
+        let mut lines_count = 0;
+        for element in drawn_elements.iter()
+            .filter(|elem| elem.fe_type == FEType::Truss2n2ip)
+        {
+            let uid =
+            {
+                if let Some(position) = drawn_analysis_results_for_elements
+                    .iter()
+                    .position(|data|
+                        data.element_analysis_data.number_same(element.number))
+                {
+                    drawn_analysis_results_for_elements[position].uid
+                }
+                else
+                {
+                    element.uid
+                }
+            };
+            if min_selected_value.is_none() || max_selected_value.is_none()
+            {
+                let element_color = define_drawn_object_color(&gl_mode,
+                    uid, selected_color, under_cursor_color,
+                    &DRAWN_OBJECT_DEFAULT_RESULT_COLOR);
+                let node_1_number = element.nodes_numbers[0] as GLElementsNumbers;
+                let node_1_coordinates =
+                    match find_node_coordinates(node_1_number, normalized_nodes)
+                    {
+                        Ok(coordinates) => coordinates,
+                        Err(e) =>
+                            {
+                                return Err(e);
+                            }
+                    };
+                self.vertices_coordinates.extend(&node_1_coordinates);
+                self.colors_values.extend(&element_color);
+                self.indexes_numbers.push(start_index + lines_count as GLElementsNumbers);
+                lines_count += 1;
+                let node_2_number = element.nodes_numbers[1] as GLElementsNumbers;
+                let node_2_coordinates =
+                    match find_node_coordinates(node_2_number, normalized_nodes)
+                    {
+                        Ok(coordinates) => coordinates,
+                        Err(e) =>
+                            {
+                                return Err(e);
+                            }
+                    };
+                self.vertices_coordinates.extend(&node_2_coordinates);
+                self.colors_values.extend(&element_color);
+                self.indexes_numbers.push(start_index + lines_count as GLElementsNumbers);
+                lines_count += 1;
+            }
+            else
+            {
+                let min_value = min_selected_value.unwrap();
+                let max_value = max_selected_value.unwrap();
+                if let Some(position) = drawn_analysis_results_for_elements.iter()
+                    .position(|data|
+                        data.element_analysis_data.number_same(element.number))
+                {
+                    let element_analysis_data =
+                        &drawn_analysis_results_for_elements[position].element_analysis_data;
+                    let element_stresses =
+                        element_analysis_data.extract_stresses();
+                    if element_stresses.stresses_components.len() == 1 &&
+                        element_stresses.stresses_components[0] == *component
+                    {
+                        let stress_value = element_stresses.stresses_values[0];
+                        let color_value = define_color_value(stress_value, min_value,
+                            max_value);
+                        let color_array = define_color_array_by_value(color_value);
+                        let element_color = define_drawn_object_color(&gl_mode,
+                            uid, selected_color, under_cursor_color,
+                            &color_array);
+                        let node_1_number = element.nodes_numbers[0] as GLElementsNumbers;
+                        let node_1_coordinates =
+                            match find_node_coordinates(node_1_number, normalized_nodes)
+                            {
+                                Ok(coordinates) => coordinates,
+                                Err(e) =>
+                                    {
+                                        return Err(e);
+                                    }
+                            };
+                        self.vertices_coordinates.extend(&node_1_coordinates);
+                        self.colors_values.extend(&element_color);
+                        self.indexes_numbers.push(start_index + lines_count as GLElementsNumbers);
+                        lines_count += 1;
+                        let node_2_number = element.nodes_numbers[1] as GLElementsNumbers;
+                        let node_2_coordinates =
+                            match find_node_coordinates(node_2_number, normalized_nodes)
+                            {
+                                Ok(coordinates) => coordinates,
+                                Err(e) =>
+                                    {
+                                        return Err(e);
+                                    }
+                            };
+                        self.vertices_coordinates.extend(&node_2_coordinates);
+                        self.colors_values.extend(&element_color);
+                        self.indexes_numbers.push(start_index + lines_count as GLElementsNumbers);
+                        lines_count += 1;
+                    }
+                }
+            }
+        }
+        self.modes.push(GLPrimitiveType::Lines);
+        self.elements_numbers.push(lines_count as i32);
+        let offset = self.define_offset();
+        self.offsets.push(offset);
+
+        Ok(())
+    }
+
+
     pub fn add_displacements(&mut self, normalized_nodes: &Vec<NormalizedNode>,
         drawn_displacements: &Vec<&FEDrawnBCData>, base_points_number: GLElementsNumbers,
         height: GLElementsValues, base_radius: GLElementsValues, gl_mode: GLMode,
@@ -981,10 +1336,10 @@ impl DrawnObject
 
 
     pub fn add_forces(&mut self, normalized_nodes: &Vec<NormalizedNode>,
-                      drawn_forces: &Vec<&FEDrawnBCData>, line_length: GLElementsValues,
-                      base_points_number: GLElementsNumbers, height: GLElementsValues,
-                      base_radius: GLElementsValues, gl_mode: GLMode, under_cursor_color: &[u8; 4],
-                      selected_color: &[u8; 4])
+        drawn_forces: &Vec<&FEDrawnBCData>, line_length: GLElementsValues,
+        base_points_number: GLElementsNumbers, height: GLElementsValues,
+        base_radius: GLElementsValues, gl_mode: GLMode, under_cursor_color: &[u8; 4],
+        selected_color: &[u8; 4])
     {
         let mut start_index =
             if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
@@ -1040,10 +1395,10 @@ impl DrawnObject
 
 
     pub fn add_reactions(&mut self, normalized_nodes: &[NormalizedNode],
-                         reactions: &Vec<&FEDrawnAnalysisResultNodeData>,
-                         line_length: GLElementsValues, base_points_number: GLElementsNumbers,
-                         height: GLElementsValues, base_radius: GLElementsValues, gl_mode: GLMode,
-                         under_cursor_color: &[u8; 4], selected_color: &[u8; 4])
+        reactions: &Vec<&FEDrawnAnalysisResultNodeData>,
+        line_length: GLElementsValues, base_points_number: GLElementsNumbers,
+        height: GLElementsValues, base_radius: GLElementsValues, gl_mode: GLMode,
+        under_cursor_color: &[u8; 4], selected_color: &[u8; 4])
     {
         let mut start_index =
             if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };

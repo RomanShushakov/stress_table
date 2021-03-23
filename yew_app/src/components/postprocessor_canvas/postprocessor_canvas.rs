@@ -51,7 +51,7 @@ use crate::auxiliary::gl_aux_structs::
         DRAWN_DEFORMED_SHAPE_NODES_DENOTATION_SHIFT, DRAWN_ELEMENTS_DENOTATION_SHIFT,
     };
 
-use crate::fem::{FENode, GlobalAnalysisResult, Displacements, Reactions, ElementsAnalysisResult};
+use crate::fem::{FENode, GlobalAnalysisResult, Displacements, Reactions, ElementsAnalysisResult, EARComponentTrait};
 use crate::fem::{FEType, BCType, GlobalDOFParameter, StressStrainComponent, EARType};
 
 
@@ -301,6 +301,46 @@ impl PostprocessorCanvas
                             },
                     }
                 }
+                // else if let Some(position) = self.props.drawn_analysis_results_for_elements
+                //     .iter()
+                //     .position(|result|
+                //         transform_u32_to_array_of_u8(result.uid) == self.state.selected_color)
+                // {
+                //     let result_type =
+                //         &self.props.drawn_analysis_results_for_nodes[position].bc_type;
+                //     let node_number =
+                //         &self.props.drawn_analysis_results_for_nodes[position].node_number;
+                //     let x_value = value_to_string(
+                //         &self.props.drawn_analysis_results_for_nodes[position].x_direction_value);
+                //     let y_value = value_to_string(
+                //         &self.props.drawn_analysis_results_for_nodes[position].y_direction_value);
+                //     let z_value = value_to_string(
+                //         &self.props.drawn_analysis_results_for_nodes[position].z_direction_value);
+                //     let xy_value = value_to_string(
+                //         &self.props.drawn_analysis_results_for_nodes[position].xy_plane_value);
+                //     let yz_value = value_to_string(
+                //         &self.props.drawn_analysis_results_for_nodes[position].yz_plane_value);
+                //     let zx_value = value_to_string(
+                //         &self.props.drawn_analysis_results_for_nodes[position].zx_plane_value);
+                //     match result_type
+                //     {
+                //         BCType::Displacement =>
+                //             {
+                //                 let object_info = format!("Displacement at node: #{}, \
+                //                 Ux: {}, Uy: {}, Uz: {}, URx: {}, URy: {}, URz: {}", node_number,
+                //                 x_value, y_value, z_value,
+                //                 yz_value, zx_value, xy_value);
+                //                 Some(object_info)
+                //             },
+                //         BCType::Force =>
+                //             {
+                //                 let object_info = format!("Reaction at node: #{}, Rx: {}, \
+                //                 Ry: {}, Rz: {}, Mx: {}, My: {}, Mz: {}", node_number, x_value,
+                //                 y_value, z_value, yz_value, zx_value, xy_value);
+                //                 Some(object_info)
+                //             },
+                //     }
+                // }
                 else
                 {
                     None
@@ -807,11 +847,13 @@ impl PostprocessorCanvas
 
                 if !self.props.drawn_elements.is_empty()
                 {
+                    let boxed_component: Box<dyn EARComponentTrait> = Box::new(component);
                     match drawn_object.add_elements_with_results_for_visualization(
                         &self.state.normalized_nodes.as_slice(),
                         &self.props.drawn_elements,
                         &self.props.drawn_analysis_results_for_elements,
-                        &component,
+                        &EARType::Stress,
+                        &boxed_component,
                         &self.props.min_selected_value,
                         &self.props.max_selected_value,
                         GLMode::Visible, &self.state.under_cursor_color,

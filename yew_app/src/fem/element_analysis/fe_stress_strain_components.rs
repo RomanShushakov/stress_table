@@ -2,6 +2,8 @@ use crate::ElementsNumbers;
 
 use std::slice::Iter;
 use self::StressStrainComponent::*;
+use crate::fem::EARComponentTrait;
+use std::any::Any;
 
 
 pub const STRESS_STRAIN_COMPONENTS_NUMBER: ElementsNumbers = 9;
@@ -45,5 +47,23 @@ impl StressStrainComponent
             StressStrainComponent::ZY => String::from("Stress ZY"),
             StressStrainComponent::ZZ => String::from("Stress ZZ"),
         }
+    }
+}
+
+
+impl EARComponentTrait for StressStrainComponent
+{
+    fn as_any(&self) -> &dyn Any
+    {
+        self
+    }
+
+
+    fn same(&self, other: &Box<dyn EARComponentTrait>) -> bool
+    {
+        other
+            .as_any()
+            .downcast_ref::<StressStrainComponent>()
+            .map_or(false, |component| self == component)
     }
 }

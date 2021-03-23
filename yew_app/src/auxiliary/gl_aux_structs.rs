@@ -11,7 +11,7 @@ use crate::auxiliary::gl_aux_functions::
     };
 
 use crate::{ElementsValues, ElementsNumbers};
-use crate::fem::{FENode, FEType, GlobalDOFParameter, StressStrainComponent};
+use crate::fem::{FENode, FEType, GlobalDOFParameter, StressStrainComponent, EARType, EARComponentTrait};
 use crate::auxiliary::
     {
         NormalizedNode, FEDrawnElementData, FEDrawnBCData, FEDrawnAnalysisResultNodeData,
@@ -890,7 +890,8 @@ impl DrawnObject
         normalized_nodes: &[NormalizedNode],
         drawn_elements: &Vec<FEDrawnElementData>,
         drawn_analysis_results_for_elements: &Vec<DrawnAnalysisResultElementData>,
-        component: &StressStrainComponent,
+        ear_type: &EARType,
+        component: &Box<dyn EARComponentTrait>,
         min_selected_value: &Option<ElementsValues>,
         max_selected_value: &Option<ElementsValues>,
         gl_mode: GLMode,
@@ -960,13 +961,56 @@ impl DrawnObject
                 {
                     let element_analysis_data =
                         &drawn_analysis_results_for_elements[position].element_analysis_data;
-                    let element_stresses =
-                        element_analysis_data.extract_stresses();
-                    if element_stresses.stresses_components.len() == 1 &&
-                        element_stresses.stresses_components[0] == *component
+
+                    let (values, components) =
+                        {
+                            match ear_type
+                            {
+                                EARType::Stress =>
+                                    {
+                                        let mut boxed_components: Vec<Box<dyn EARComponentTrait>> =
+                                            Vec::new();
+                                        let data =
+                                            element_analysis_data.extract_stresses();
+                                        for component in
+                                            data.stresses_components.iter()
+                                        {
+                                            boxed_components.push(Box::new(*component))
+                                        }
+                                        (data.stresses_values, boxed_components)
+                                    },
+                                EARType::Strain =>
+                                    {
+                                        let mut boxed_components: Vec<Box<dyn EARComponentTrait>> =
+                                            Vec::new();
+                                        let data =
+                                            element_analysis_data.extract_strains();
+                                        for component in
+                                            data.strains_components.iter()
+                                        {
+                                            boxed_components.push(Box::new(*component))
+                                        }
+                                        (data.strains_values, boxed_components)
+                                    },
+                                EARType::Force =>
+                                    {
+                                        let mut boxed_components: Vec<Box<dyn EARComponentTrait>> =
+                                            Vec::new();
+                                        let data =
+                                            element_analysis_data.extract_forces();
+                                        for component in
+                                            data.forces_components.iter()
+                                        {
+                                            boxed_components.push(Box::new(*component))
+                                        }
+                                        (data.forces_values, boxed_components)
+                                    },
+                            }
+                        };
+                    if components.len() == 1 && components[0].same(component)
                     {
-                        let stress_value = element_stresses.stresses_values[0];
-                        let color_value = define_color_value(stress_value, min_value,
+                        let value = values[0];
+                        let color_value = define_color_value(value, min_value,
                             max_value);
                         let color_array = define_color_array_by_value(color_value);
                         let element_color = define_drawn_object_color(&gl_mode,
@@ -1003,9 +1047,9 @@ impl DrawnObject
                             lines_count as GLElementsNumbers);
                         lines_count += 1;
                     }
-                    else if element_stresses.stresses_components
+                    else if components
                         .iter()
-                        .all(|comp| comp == component)
+                        .all(|comp| comp.same(component))
                     {
                         let node_1_number = element.nodes_numbers[0] as GLElementsNumbers;
                         let node_1_coordinates =
@@ -1027,16 +1071,15 @@ impl DrawnObject
                                         return Err(e);
                                     }
                             };
-                        let stress_values_number = element_stresses.stresses_values.len();
-                        let stress_at_node_1 = element_stresses.stresses_values[0];
-                        let stress_at_node_2 =
-                            element_stresses.stresses_values[stress_values_number - 1];
-                        let color_value_at_node_1 = define_color_value(stress_at_node_1,
+                        let values_number = values.len();
+                        let value_at_node_1 = values[0];
+                        let value_at_node_2 = values[values_number - 1];
+                        let color_value_at_node_1 = define_color_value(value_at_node_1,
                             min_value, max_value);
-                        let color_value_at_node_2 = define_color_value(stress_at_node_2,
+                        let color_value_at_node_2 = define_color_value(value_at_node_2,
                             min_value, max_value);
                         let element_chunks =
-                            if stress_at_node_1 < stress_at_node_2
+                            if value_at_node_1 < value_at_node_2
                             {
                                 define_element_chunks(&[color_value_at_node_1,
                                     color_value_at_node_2], &[&node_1_coordinates,

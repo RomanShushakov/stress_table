@@ -2,6 +2,7 @@ use crate::fem::{StressStrainComponent, ForceComponent};
 use crate::extended_matrix::ExtendedMatrix;
 
 use crate::{ElementsNumbers, ElementsValues};
+use std::any::Any;
 
 
 #[derive(Debug, Clone, PartialEq)]
@@ -121,4 +122,11 @@ impl EARType
             EARType::Force => String::from("Force"),
         }
     }
+}
+
+
+pub trait EARComponentTrait: Any
+{
+    fn as_any(&self) -> &dyn Any;
+    fn same(&self, other: &Box<dyn EARComponentTrait>) -> bool;
 }

@@ -23,6 +23,7 @@ pub use crate::fem::global_analysis::fe_stiffness::StiffnessGroup;
 pub use crate::fem::global_analysis::fe_stiffness::StiffnessType;
 pub use crate::fem::global_analysis::fe_global_analysis_result::Displacements;
 
+pub use crate::fem::element_analysis::fe_element_analysis_result::EARComponentTrait;
 pub use crate::fem::global_analysis::fe_global_analysis_result::Reactions;
 pub use crate::fem::element_analysis::fe_element_analysis_result::ElementsAnalysisResult;
 pub use crate::fem::element_analysis::fe_element_analysis_result::EARType;

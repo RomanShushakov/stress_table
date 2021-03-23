@@ -17,7 +17,9 @@ use crate::auxiliary::gl_aux_structs::
         DRAWN_OBJECT_UNDER_CURSOR_COLOR, CANVAS_DRAWN_OBJECT_SELECTED_DENOTATION_COLOR,
         CANVAS_DRAWN_OBJECT_UNDER_CURSOR_DENOTATION_COLOR, DISPLACEMENT_SHIFT_X,
         DISPLACEMENT_HEADER_SHIFT_Y, MIN_DISPLACEMENT_SHIFT_Y, MAX_DISPLACEMENT_SHIFT_Y,
-        REACTION_SHIFT_X, REACTION_HEADER_SHIFT_Y,
+        REACTION_SHIFT_X, REACTION_HEADER_SHIFT_Y, STRESS_SHIFT_X, STRESS_HEADER_SHIFT_Y,
+        STRESS_COMPONENT_SHIFT_Y, COLOR_BAR_SHIFT_X, COLOR_BAR_Y_BOTTOM, COLOR_BAR_Y_TOP,
+        COLOR_BAR_WIDTH,
     };
 use crate::auxiliary::aux_functions::transform_u32_to_array_of_u8;
 use crate::fem::global_analysis::fe_global_analysis_result::Reactions;
@@ -262,6 +264,78 @@ pub fn add_reactions_hints(ctx: &CTX, canvas_width: f32, canvas_height: f32)
     ctx.fill_text(reaction_header, reaction_shift_x as f64,
         reaction_header_shift_y as f64).unwrap();
 }
+
+
+pub fn add_stresses_hints(ctx: &CTX, canvas_width: f32, canvas_height: f32,
+    stress_component: String)
+{
+    let stress_shift_x = canvas_width * STRESS_SHIFT_X;
+    let stress_header_shift_y = canvas_height * STRESS_HEADER_SHIFT_Y;
+    let stress_header = "STRESSES";
+    ctx.fill_text(stress_header, stress_shift_x as f64,
+        stress_header_shift_y as f64).unwrap();
+    let stress_component_shift_y = canvas_height * STRESS_COMPONENT_SHIFT_Y;
+    let stress_component = &format!("Component: {}", stress_component);
+    ctx.fill_text(stress_component, stress_shift_x as f64,
+        stress_component_shift_y as f64).unwrap();
+}
+
+
+pub fn add_color_bar(ctx: &CTX, canvas_width: f32, canvas_height: f32)
+{
+    ctx.begin_path();
+    let gradient: web_sys::CanvasGradient = ctx
+        .create_linear_gradient(
+            (canvas_width * COLOR_BAR_SHIFT_X) as f64,
+            (canvas_height * COLOR_BAR_Y_BOTTOM) as f64,
+            (canvas_width * COLOR_BAR_SHIFT_X) as f64,
+            (canvas_height * COLOR_BAR_Y_TOP) as f64,
+        );
+    gradient.add_color_stop(0f32, "rgb(0, 0, 255)").unwrap();
+    gradient.add_color_stop(0.25, "rgb(0, 255, 255)").unwrap();
+    gradient.add_color_stop(0.5, "rgb(0, 255, 0)").unwrap();
+    gradient.add_color_stop(0.75, "rgb(255, 255, 0)").unwrap();
+    gradient.add_color_stop(1f32, "rgb(255, 0, 0)").unwrap();
+    ctx.set_fill_style(&gradient.into());
+    ctx.fill_rect(
+        (canvas_width * COLOR_BAR_SHIFT_X) as f64,
+        (canvas_height * COLOR_BAR_Y_TOP) as f64,
+        (canvas_width * COLOR_BAR_WIDTH) as f64,
+        (canvas_height * (COLOR_BAR_Y_BOTTOM - COLOR_BAR_Y_TOP)) as f64,
+    );
+    ctx.stroke();
+
+    // context.begin_path();
+    // context.set_fill_style(&CANVAS_NODES_COLOR.into());
+    // context.set_font(&format!("{}px Serif", axis_line_length / 8f64));
+    // context.fill_text(
+    //     "Stress,",
+    //     x_origin,
+    //     self.props.canvas_height as f64 * 0.07)
+    //     .unwrap();
+    // context.fill_text(
+    //     "Component: XX",
+    //     x_origin,
+    //     self.props.canvas_height as f64 * 0.09)
+    //     .unwrap();
+    // context.stroke();
+    //
+    // context.begin_path();
+    // context.set_fill_style(&CANVAS_NODES_COLOR.into());
+    // context.set_font(&format!("{}px Serif", axis_line_length / 8f64));
+    // context.fill_text(
+    //     &format!("{:+.3e}", min_max_values.max_value),
+    //     x_origin + self.props.canvas_width as f64 * 0.025,
+    //     self.props.canvas_height as f64 * 0.1 + axis_line_length / 16f64)
+    //     .unwrap();
+    // context.fill_text(
+    //     &format!("{:+.3e}", min_max_values.min_value),
+    //     x_origin + self.props.canvas_width as f64 * 0.025,
+    //     self.props.canvas_height as f64 * 0.35 + axis_line_length / 16f64)
+    //     .unwrap();
+    // context.stroke();
+}
+
 
 
 pub fn extend_by_elements_analysis_result(

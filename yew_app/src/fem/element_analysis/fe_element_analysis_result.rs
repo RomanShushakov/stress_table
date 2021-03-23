@@ -60,6 +60,12 @@ impl<T, V> ElementAnalysisData<T, V>
     }
 
 
+    pub fn extract_element_number(&self) -> T
+    {
+        self.element_number
+    }
+
+
     pub fn extract_strains(&self) -> ElementStrains<V>
     {
         self.strains.to_owned()

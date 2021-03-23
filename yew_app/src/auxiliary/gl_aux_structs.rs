@@ -115,6 +115,16 @@ pub const REACTION_HEADER_SHIFT_Y: GLElementsValues = 0.1;
 
 pub const DRAWN_OBJECT_DEFAULT_RESULT_COLOR: [GLElementsValues; 4] = [0.0, 0.0, 1.0, 1.0]; // blue
 
+pub const STRESS_SHIFT_X: GLElementsValues = 0.05;
+pub const STRESS_HEADER_SHIFT_Y: GLElementsValues = 0.1;
+pub const STRESS_COMPONENT_SHIFT_Y: GLElementsValues = 0.15;
+
+pub const COLOR_BAR_SHIFT_X: GLElementsValues = 0.05;
+pub const COLOR_BAR_Y_BOTTOM: GLElementsValues = 0.45;
+pub const COLOR_BAR_Y_TOP: GLElementsValues = 0.2;
+pub const COLOR_BAR_WIDTH: GLElementsValues = 0.015;
+
+
 pub enum CSAxis
 {
     X, Y, Z,

@@ -28,7 +28,8 @@ use crate::auxiliary::gl_aux_functions::
     {
         add_denotation, initialize_shaders, normalize_nodes, add_hints,
         define_drawn_object_denotation_color, add_displacements_hints,
-        add_reactions_hints, extend_by_elements_analysis_result
+        add_reactions_hints, extend_by_elements_analysis_result, add_stresses_hints,
+        add_color_bar,
     };
 use crate::auxiliary::gl_aux_structs::{Buffers, ShadersVariables, DrawnObject};
 use crate::auxiliary::gl_aux_structs::{CSAxis, GLMode};
@@ -167,100 +168,6 @@ impl PostprocessorCanvas
     {
         let object_info =
             {
-                // else if let Some(position) = self.props.drawn_bcs
-                //     .iter()
-                //     .position(|bc|
-                //         transform_u32_to_array_of_u8(bc.uid) == self.state.selected_color)
-                // {
-                //     let bc_type = &self.props.drawn_bcs[position].bc_type;
-                //     let bc_number = &self.props.drawn_bcs[position].number;
-                //     let bc_node_number =
-                //         &self.props.drawn_bcs[position].node_number;
-                //     let x_value =
-                //         {
-                //             if self.props.drawn_bcs[position].x_direction_value.is_some()
-                //             {
-                //                 self.props.drawn_bcs[position].x_direction_value
-                //                     .unwrap()
-                //                     .to_string()
-                //             }
-                //             else
-                //             {
-                //                 "N/A".to_string()
-                //             }
-                //         };
-                //     let y_value =
-                //         {
-                //             if self.props.drawn_bcs[position].y_direction_value.is_some()
-                //             {
-                //                 self.props.drawn_bcs[position].y_direction_value
-                //                     .unwrap()
-                //                     .to_string()
-                //             }
-                //             else
-                //             {
-                //                 "N/A".to_string()
-                //             }
-                //         };
-                //     let z_value =
-                //         {
-                //             if self.props.drawn_bcs[position].z_direction_value.is_some()
-                //             {
-                //                 self.props.drawn_bcs[position].z_direction_value
-                //                     .unwrap()
-                //                     .to_string()
-                //             }
-                //             else
-                //             {
-                //                 "N/A".to_string()
-                //             }
-                //         };
-                //     let xy_value =
-                //         {
-                //             if self.props.drawn_bcs[position].xy_plane_value.is_some()
-                //             {
-                //                 self.props.drawn_bcs[position].xy_plane_value
-                //                     .unwrap()
-                //                     .to_string()
-                //             }
-                //             else
-                //             {
-                //                 "N/A".to_string()
-                //             }
-                //         };
-                //     let yz_value =
-                //         {
-                //             if self.props.drawn_bcs[position].yz_plane_value.is_some()
-                //             {
-                //                 self.props.drawn_bcs[position].yz_plane_value
-                //                     .unwrap()
-                //                     .to_string()
-                //             }
-                //             else
-                //             {
-                //                 "N/A".to_string()
-                //             }
-                //         };
-                //     let zx_value =
-                //         {
-                //             if self.props.drawn_bcs[position].zx_plane_value.is_some()
-                //             {
-                //                 self.props.drawn_bcs[position].zx_plane_value
-                //                     .unwrap()
-                //                     .to_string()
-                //             }
-                //             else
-                //             {
-                //                 "N/A".to_string()
-                //             }
-                //         };
-                //     let object_info = format!("BC: #{}, type: {:?}, node: {}, \
-                //         x value: {}, y value: {}, z value: {}, xy value {}, yz value: {} \
-                //         zx value: {}",
-                //         bc_number, bc_type, bc_node_number, x_value, y_value, z_value, xy_value,
-                //         yz_value, zx_value);
-                //     Some(object_info)
-                // }
                 if let Some(position) = self.props.drawn_analysis_results_for_nodes
                     .iter()
                     .position(|result|
@@ -301,46 +208,29 @@ impl PostprocessorCanvas
                             },
                     }
                 }
-                // else if let Some(position) = self.props.drawn_analysis_results_for_elements
-                //     .iter()
-                //     .position(|result|
-                //         transform_u32_to_array_of_u8(result.uid) == self.state.selected_color)
-                // {
-                //     let result_type =
-                //         &self.props.drawn_analysis_results_for_nodes[position].bc_type;
-                //     let node_number =
-                //         &self.props.drawn_analysis_results_for_nodes[position].node_number;
-                //     let x_value = value_to_string(
-                //         &self.props.drawn_analysis_results_for_nodes[position].x_direction_value);
-                //     let y_value = value_to_string(
-                //         &self.props.drawn_analysis_results_for_nodes[position].y_direction_value);
-                //     let z_value = value_to_string(
-                //         &self.props.drawn_analysis_results_for_nodes[position].z_direction_value);
-                //     let xy_value = value_to_string(
-                //         &self.props.drawn_analysis_results_for_nodes[position].xy_plane_value);
-                //     let yz_value = value_to_string(
-                //         &self.props.drawn_analysis_results_for_nodes[position].yz_plane_value);
-                //     let zx_value = value_to_string(
-                //         &self.props.drawn_analysis_results_for_nodes[position].zx_plane_value);
-                //     match result_type
-                //     {
-                //         BCType::Displacement =>
-                //             {
-                //                 let object_info = format!("Displacement at node: #{}, \
-                //                 Ux: {}, Uy: {}, Uz: {}, URx: {}, URy: {}, URz: {}", node_number,
-                //                 x_value, y_value, z_value,
-                //                 yz_value, zx_value, xy_value);
-                //                 Some(object_info)
-                //             },
-                //         BCType::Force =>
-                //             {
-                //                 let object_info = format!("Reaction at node: #{}, Rx: {}, \
-                //                 Ry: {}, Rz: {}, Mx: {}, My: {}, Mz: {}", node_number, x_value,
-                //                 y_value, z_value, yz_value, zx_value, xy_value);
-                //                 Some(object_info)
-                //             },
-                //     }
-                // }
+                else if let Some(position) = self.props.drawn_analysis_results_for_elements
+                    .iter()
+                    .position(|result|
+                        transform_u32_to_array_of_u8(result.uid) == self.state.selected_color)
+                {
+                    if self.props.stress_component_selected.is_some()
+                    {
+                        let element_number = self.props
+                            .drawn_analysis_results_for_elements[position]
+                            .element_analysis_data.extract_element_number();
+                        let stresses = self.props
+                            .drawn_analysis_results_for_elements[position]
+                            .element_analysis_data
+                            .extract_stresses();
+                        let object_info = format!("Stresses at element: #{}, \
+                                {:?}", element_number, stresses);
+                        Some(object_info)
+                    }
+                    else
+                    {
+                        None
+                    }
+                }
                 else
                 {
                     None
@@ -920,36 +810,6 @@ impl PostprocessorCanvas
             let mut matrix = mat4::new_identity();
             mat4::mul(&mut matrix, &projection_matrix, &model_view_matrix);
 
-            if !self.props.drawn_elements.is_empty()
-            {
-                for element in self.props.drawn_elements.as_ref()
-                {
-                    let denotation_color = define_drawn_object_denotation_color(element.uid,
-                        &self.state.selected_color, &self.state.under_cursor_color,
-                        CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR);
-                    match element.find_denotation_coordinates(&self.state.normalized_nodes)
-                    {
-                        Ok(coordinates) =>
-                            {
-                                ctx.set_fill_style(&denotation_color.into());
-                                add_denotation(&ctx,
-                                &[coordinates[0],
-                                    coordinates[1] +
-                                        DRAWN_ELEMENTS_DENOTATION_SHIFT / (1.0 + self.state.d_scale),
-                                    coordinates[2],
-                                    coordinates[3]],
-                                &matrix,
-                                self.props.canvas_width as f32,
-                                self.props.canvas_height as f32,
-                                &element.number.to_string());
-                                ctx.stroke();
-                            },
-                        Err(msg) =>
-                            yew::services::DialogService::alert(&format!("{:?}", msg)),
-                    }
-                }
-            }
-
             if self.props.is_plot_displacements_selected
             {
                 for node in self.state.normalized_nodes[..nodes_number / 2].iter()
@@ -1050,6 +910,36 @@ impl PostprocessorCanvas
                 add_displacements_hints(&ctx, self.props.canvas_width as f32,
                     self.props.canvas_height as f32, min_displacement, max_displacement);
                 ctx.stroke();
+
+                if !self.props.drawn_elements.is_empty()
+                {
+                    for element in self.props.drawn_elements.as_ref()
+                    {
+                        let denotation_color = define_drawn_object_denotation_color(element.uid,
+                            &self.state.selected_color, &self.state.under_cursor_color,
+                            CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR);
+                        match element.find_denotation_coordinates(&self.state.normalized_nodes)
+                        {
+                            Ok(coordinates) =>
+                                {
+                                    ctx.set_fill_style(&denotation_color.into());
+                                    add_denotation(&ctx,
+                                    &[coordinates[0],
+                                        coordinates[1] +
+                                            DRAWN_ELEMENTS_DENOTATION_SHIFT / (1.0 + self.state.d_scale),
+                                        coordinates[2],
+                                        coordinates[3]],
+                                    &matrix,
+                                    self.props.canvas_width as f32,
+                                    self.props.canvas_height as f32,
+                                    &element.number.to_string());
+                                    ctx.stroke();
+                                },
+                            Err(msg) =>
+                                yew::services::DialogService::alert(&format!("{:?}", msg)),
+                        }
+                    }
+                }
             }
             else if self.props.is_plot_reactions_selected
             {
@@ -1074,6 +964,110 @@ impl PostprocessorCanvas
                 add_reactions_hints(&ctx, self.props.canvas_width as f32,
                     self.props.canvas_height as f32);
                 ctx.stroke();
+
+                if !self.props.drawn_elements.is_empty()
+                {
+                    for element in self.props.drawn_elements.as_ref()
+                    {
+                        let denotation_color = define_drawn_object_denotation_color(element.uid,
+                            &self.state.selected_color, &self.state.under_cursor_color,
+                            CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR);
+                        match element.find_denotation_coordinates(&self.state.normalized_nodes)
+                        {
+                            Ok(coordinates) =>
+                                {
+                                    ctx.set_fill_style(&denotation_color.into());
+                                    add_denotation(&ctx,
+                                    &[coordinates[0],
+                                        coordinates[1] +
+                                            DRAWN_ELEMENTS_DENOTATION_SHIFT / (1.0 + self.state.d_scale),
+                                        coordinates[2],
+                                        coordinates[3]],
+                                    &matrix,
+                                    self.props.canvas_width as f32,
+                                    self.props.canvas_height as f32,
+                                    &element.number.to_string());
+                                    ctx.stroke();
+                                },
+                            Err(msg) =>
+                                yew::services::DialogService::alert(&format!("{:?}", msg)),
+                        }
+                    }
+                }
+            }
+            else if self.props.stress_component_selected.is_some()
+            {
+                for node in self.state.normalized_nodes.iter()
+                {
+                    let denotation_color = define_drawn_object_denotation_color(node.uid,
+                        &self.state.selected_color, &self.state.under_cursor_color,
+                        CANVAS_DRAWN_NODES_DENOTATION_COLOR);
+                    ctx.set_fill_style(&denotation_color.into());
+                    add_denotation(&ctx,
+                    &[node.x - DRAWN_NODES_DENOTATION_SHIFT / (1.0 + self.state.d_scale),
+                        node.y - DRAWN_NODES_DENOTATION_SHIFT / (1.0 + self.state.d_scale),
+                        node.z,
+                        1.0],
+                    &matrix,
+                    self.props.canvas_width as f32,
+                    self.props.canvas_height as f32,
+                    &node.number.to_string());
+                    ctx.stroke();
+                }
+                let stress_component = self.props.stress_component_selected.unwrap().as_str();
+                ctx.set_fill_style(&HINTS_COLOR.into());
+                add_stresses_hints(&ctx, self.props.canvas_width as f32,
+                    self.props.canvas_height as f32, stress_component);
+                ctx.stroke();
+
+                add_color_bar(&ctx, self.props.canvas_width as f32,
+                    self.props.canvas_height as f32);
+
+
+                if !self.props.drawn_elements.is_empty()
+                {
+                    for element in self.props.drawn_elements.as_ref()
+                    {
+                        let uid =
+                            {
+                                if let Some(position) =
+                                    self.props.drawn_analysis_results_for_elements
+                                        .iter()
+                                        .position(|data|
+                                            data.element_analysis_data.number_same(element.number))
+                                {
+                                    self.props.drawn_analysis_results_for_elements[position].uid
+                                }
+                                else
+                                {
+                                    element.uid
+                                }
+                            };
+                        let denotation_color = define_drawn_object_denotation_color(uid,
+                            &self.state.selected_color, &self.state.under_cursor_color,
+                            CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR);
+                        match element.find_denotation_coordinates(&self.state.normalized_nodes)
+                        {
+                            Ok(coordinates) =>
+                                {
+                                    ctx.set_fill_style(&denotation_color.into());
+                                    add_denotation(&ctx,
+                                    &[coordinates[0],
+                                        coordinates[1] +
+                                            DRAWN_ELEMENTS_DENOTATION_SHIFT / (1.0 + self.state.d_scale),
+                                        coordinates[2],
+                                        coordinates[3]],
+                                    &matrix,
+                                    self.props.canvas_width as f32,
+                                    self.props.canvas_height as f32,
+                                    &element.number.to_string());
+                                    ctx.stroke();
+                                },
+                            Err(msg) =>
+                                yew::services::DialogService::alert(&format!("{:?}", msg)),
+                        }
+                    }
+                }
             }
             else
             {
@@ -1093,6 +1087,35 @@ impl PostprocessorCanvas
                     self.props.canvas_height as f32,
                     &node.number.to_string());
                     ctx.stroke();
+                }
+                if !self.props.drawn_elements.is_empty()
+                {
+                    for element in self.props.drawn_elements.as_ref()
+                    {
+                        let denotation_color = define_drawn_object_denotation_color(element.uid,
+                            &self.state.selected_color, &self.state.under_cursor_color,
+                            CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR);
+                        match element.find_denotation_coordinates(&self.state.normalized_nodes)
+                        {
+                            Ok(coordinates) =>
+                                {
+                                    ctx.set_fill_style(&denotation_color.into());
+                                    add_denotation(&ctx,
+                                    &[coordinates[0],
+                                        coordinates[1] +
+                                            DRAWN_ELEMENTS_DENOTATION_SHIFT / (1.0 + self.state.d_scale),
+                                        coordinates[2],
+                                        coordinates[3]],
+                                    &matrix,
+                                    self.props.canvas_width as f32,
+                                    self.props.canvas_height as f32,
+                                    &element.number.to_string());
+                                    ctx.stroke();
+                                },
+                            Err(msg) =>
+                                yew::services::DialogService::alert(&format!("{:?}", msg)),
+                        }
+                    }
                 }
             }
 

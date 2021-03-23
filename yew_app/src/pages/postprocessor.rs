@@ -294,7 +294,7 @@ impl Postprocessor
             {
                 uid += 1;
 
-                let mut drawn_analysis_result_element_data = DrawnAnalysisResultElementData
+                let drawn_analysis_result_element_data = DrawnAnalysisResultElementData
                     {
                         uid, element_analysis_data: data.to_owned()
                     };

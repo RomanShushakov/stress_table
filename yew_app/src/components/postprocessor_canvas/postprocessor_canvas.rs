@@ -51,10 +51,9 @@ use crate::auxiliary::gl_aux_structs::
         DRAWN_DEFORMED_SHAPE_NODES_DENOTATION_SHIFT, DRAWN_ELEMENTS_DENOTATION_SHIFT,
     };
 
-use crate::fem::{FENode, GlobalAnalysisResult, Displacements};
-use crate::fem::{FEType, BCType, GlobalDOFParameter, StressStrainComponent};
-use crate::fem::global_analysis::fe_global_analysis_result::Reactions;
-use crate::fem::element_analysis::fe_element_analysis_result::ElementsAnalysisResult;
+use crate::fem::{FENode, GlobalAnalysisResult, Displacements, Reactions, ElementsAnalysisResult};
+use crate::fem::{FEType, BCType, GlobalDOFParameter, StressStrainComponent, EARType};
+
 
 use crate::{ElementsNumbers, ElementsValues, GLElementsNumbers, GLElementsValues, UIDNumbers};
 
@@ -599,6 +598,7 @@ impl Component for PostprocessorCanvas
         }
     }
 }
+
 
 impl PostprocessorCanvas
 {

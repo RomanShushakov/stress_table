@@ -1,8 +1,6 @@
 use crate::{GLElementsNumbers, GLElementsValues, UIDNumbers};
 use crate::{ElementsNumbers, ElementsValues};
 use crate::fem::{FEType, BCType, ElementAnalysisData};
-use crate::fem::element_analysis::fe_stress_strain_components::EARType;
-// use crate::components::preprocessor_canvas::gl::gl_aux_structs::DRAWN_ELEMENTS_DENOTATION_SHIFT;
 
 
 #[derive(Clone, PartialEq)]

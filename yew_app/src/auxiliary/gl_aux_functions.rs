@@ -343,7 +343,14 @@ pub fn define_drawn_object_denotation_color(uid: UIDNumbers, selected_color: &[u
 pub fn define_color_value(value: ElementsValues, min_value: ElementsValues,
     max_value: ElementsValues) -> ElementsValues
 {
-    (value - min_value) * 1020.0 / (max_value - min_value)
+    if (value - min_value) * 1020.0 / (max_value - min_value) > 1020.0
+    {
+        1020.0
+    }
+    else
+    {
+        (value - min_value) * 1020.0 / (max_value - min_value)
+    }
 }
 
 
@@ -370,4 +377,71 @@ pub fn define_color_array_by_value(color_value: ElementsValues) -> [GLElementsVa
     {
         [1.0, 0.0, 0.0, 1.0]
     }
+}
+
+
+fn proportion(elem_length: ElementsValues, elem_range: ElementsValues,
+    point_range: ElementsValues) -> ElementsValues
+{
+    elem_length * point_range / elem_range
+}
+
+
+fn define_element_chunks_in_length(a: ElementsValues, b: ElementsValues, elem_length: ElementsValues)
+    -> (Vec<ElementsValues>, Vec<ElementsValues>)
+{
+    let elem_range = b - a;
+    let transition_points = [0.0, 255.0, 510.0, 765.0, 1020.0];
+    let mut points_color = vec![a];
+    let mut points_dist = vec![0.0];
+    let mut point = a;
+    let mut point_range = 0.0;
+    for i in transition_points.iter()
+    {
+        if a < *i
+        {
+            point = *i;
+            point_range = point - a;
+            break;
+        }
+    }
+    while point < b
+    {
+        let point_dist = proportion(elem_length, elem_range, point_range);
+        points_color.push(point);
+        points_dist.push(point_dist);
+        point += 255.0;
+        point_range += 255.0;
+    }
+    points_color.push(b);
+    points_dist.push(elem_length);
+    (points_color, points_dist)
+}
+
+
+pub fn define_element_chunks(end_points_color: &[ElementsValues],
+    end_points_coord: &[&[GLElementsValues]])
+    -> (Vec<ElementsValues>, Vec<[GLElementsValues; 3]>)
+{
+    let a = end_points_color[0];
+    let b = end_points_color[1];
+    let x1 = end_points_coord[0][0];
+    let x2 = end_points_coord[1][0];
+    let y1 = end_points_coord[0][1];
+    let y2 = end_points_coord[1][1];
+    let z1 = end_points_coord[0][2];
+    let z2 = end_points_coord[1][2];
+    let elem_length =
+        ((x2 - x1).powi(2) + (y2 - y1).powi(2) + (z2 - z1).powi(2)).sqrt();
+    let (points_color, points_dist) =
+        define_element_chunks_in_length(a, b, elem_length as ElementsValues);
+    let mut point_coord = Vec::new();
+    for point in points_dist.iter()
+    {
+        let x = x1 + (x2 - x1) * *point as GLElementsValues / elem_length;
+        let y = y1 + (y2 - y1) * *point as GLElementsValues / elem_length;
+        let z = z1 + (z2 - z1) * *point as GLElementsValues / elem_length;
+        point_coord.push([x, y, z]);
+    }
+    (points_color, point_coord)
 }

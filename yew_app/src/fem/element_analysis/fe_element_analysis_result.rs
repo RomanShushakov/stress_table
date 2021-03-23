@@ -100,3 +100,25 @@ impl<T, V> ElementsAnalysisResult<T, V>
         self.elements_analysis_data.to_owned()
     }
 }
+
+
+pub enum EARType
+{
+    Stress,
+    Strain,
+    Force,
+}
+
+
+impl EARType
+{
+    pub fn as_str(&self) -> String
+    {
+        match self
+        {
+            EARType::Stress => String::from("Stress"),
+            EARType::Strain => String::from("Strain"),
+            EARType::Force => String::from("Force"),
+        }
+    }
+}

@@ -7,7 +7,7 @@ use crate::{GLElementsNumbers, GLElementsValues, TOLERANCE};
 use crate::auxiliary::gl_aux_functions::
     {
         find_node_coordinates, define_drawn_object_color, define_color_value,
-        define_color_array_by_value,
+        define_color_array_by_value, define_element_chunks,
     };
 
 use crate::{ElementsValues, ElementsNumbers};
@@ -984,7 +984,8 @@ impl DrawnObject
                             };
                         self.vertices_coordinates.extend(&node_1_coordinates);
                         self.colors_values.extend(&element_color);
-                        self.indexes_numbers.push(start_index + lines_count as GLElementsNumbers);
+                        self.indexes_numbers.push(start_index +
+                            lines_count as GLElementsNumbers);
                         lines_count += 1;
                         let node_2_number = element.nodes_numbers[1] as GLElementsNumbers;
                         let node_2_coordinates =
@@ -998,8 +999,78 @@ impl DrawnObject
                             };
                         self.vertices_coordinates.extend(&node_2_coordinates);
                         self.colors_values.extend(&element_color);
-                        self.indexes_numbers.push(start_index + lines_count as GLElementsNumbers);
+                        self.indexes_numbers.push(start_index +
+                            lines_count as GLElementsNumbers);
                         lines_count += 1;
+                    }
+                    else if element_stresses.stresses_components
+                        .iter()
+                        .all(|comp| comp == component)
+                    {
+                        let node_1_number = element.nodes_numbers[0] as GLElementsNumbers;
+                        let node_1_coordinates =
+                            match find_node_coordinates(node_1_number, normalized_nodes)
+                            {
+                                Ok(coordinates) => coordinates,
+                                Err(e) =>
+                                    {
+                                        return Err(e);
+                                    }
+                            };
+                        let node_2_number = element.nodes_numbers[1] as GLElementsNumbers;
+                        let node_2_coordinates =
+                            match find_node_coordinates(node_2_number, normalized_nodes)
+                            {
+                                Ok(coordinates) => coordinates,
+                                Err(e) =>
+                                    {
+                                        return Err(e);
+                                    }
+                            };
+                        let stress_values_number = element_stresses.stresses_values.len();
+                        let stress_at_node_1 = element_stresses.stresses_values[0];
+                        let stress_at_node_2 =
+                            element_stresses.stresses_values[stress_values_number - 1];
+                        let color_value_at_node_1 = define_color_value(stress_at_node_1,
+                            min_value, max_value);
+                        let color_value_at_node_2 = define_color_value(stress_at_node_2,
+                            min_value, max_value);
+                        let element_chunks =
+                            if stress_at_node_1 < stress_at_node_2
+                            {
+                                define_element_chunks(&[color_value_at_node_1,
+                                    color_value_at_node_2], &[&node_1_coordinates,
+                                    &node_2_coordinates])
+                            }
+                            else
+                            {
+                                define_element_chunks(&[color_value_at_node_2,
+                                    color_value_at_node_1], &[&node_2_coordinates,
+                                    &node_1_coordinates])
+                            };
+                        for i in 1..element_chunks.0.len()
+                        {
+                            let color_a = define_drawn_object_color(&gl_mode,
+                                uid, selected_color, under_cursor_color,
+                                &define_color_array_by_value(
+                                    element_chunks.0[i - 1]));
+                            let coordinates_a = element_chunks.1[i - 1];
+                            self.vertices_coordinates.extend(&coordinates_a);
+                            self.colors_values.extend(&color_a);
+                            self.indexes_numbers.push(start_index +
+                                lines_count as GLElementsNumbers);
+                            lines_count += 1;
+                            let color_b = define_drawn_object_color(&gl_mode,
+                                uid, selected_color, under_cursor_color,
+                                &define_color_array_by_value(
+                                    element_chunks.0[i]));
+                            let coordinates_b = element_chunks.1[i];
+                            self.vertices_coordinates.extend(&coordinates_b);
+                            self.colors_values.extend(&color_b);
+                            self.indexes_numbers.push(start_index +
+                                lines_count as GLElementsNumbers);
+                            lines_count += 1;
+                        }
                     }
                 }
             }
@@ -1008,7 +1079,6 @@ impl DrawnObject
         self.elements_numbers.push(lines_count as i32);
         let offset = self.define_offset();
         self.offsets.push(offset);
-
         Ok(())
     }
 

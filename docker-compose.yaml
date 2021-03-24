@@ -1,0 +1,18 @@
+version: "3.8"
+
+networks:
+  app_net:
+    driver: bridge
+
+services:
+  app:
+    build: .
+    container_name: fea_truss_demo
+    command: bash -c "cd yew_app &&
+                      wasm-pack build --target web --out-name wasm --out-dir ../app/web_layout/wasm &&
+                      cd ../app &&
+                      cargo run --release"
+    networks:
+      - app_net
+    ports:
+      - 8080:8080

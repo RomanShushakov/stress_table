@@ -653,6 +653,7 @@ impl Component for Postprocessor
                                         is_plot_displacements_selected=self.state.is_plot_displacements_selected.to_owned(),
                                         is_plot_reactions_selected=self.state.is_plot_reactions_selected.to_owned(),
                                         stress_component_selected=self.state.stress_component_selected.to_owned(),
+                                        strain_component_selected=self.state.strain_component_selected.to_owned(),
                                         min_selected_value=self.state.min_selected_value.to_owned(),
                                         max_selected_value=self.state.max_selected_value.to_owned(),
                                         add_object_info=handle_add_object_info.to_owned(),
@@ -732,6 +733,4 @@ impl Component for Postprocessor
             </>
         }
     }
-
-
 }

@@ -1,16 +1,8 @@
 use yew::prelude::*;
-use web_sys::
-    {
-        HtmlSelectElement, HtmlOptionElement, HtmlOptionsCollection,
-        DomTokenList, HtmlInputElement
-    };
+use web_sys::{DomTokenList, HtmlInputElement};
 use wasm_bindgen::JsCast;
-use std::rc::Rc;
-use std::cell::RefCell;
 
-use crate::fem::{FENode};
-use crate::auxiliary::FEDrawnNodeData;
-use crate::{ElementsNumbers, ElementsValues};
+use crate::{ElementsValues};
 use crate::pages::POSTPROCESSOR_BUTTON_CLASS;
 
 

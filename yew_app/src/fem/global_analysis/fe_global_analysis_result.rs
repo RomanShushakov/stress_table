@@ -1,5 +1,4 @@
 use crate::fem::{DOFParameterData};
-use crate::extended_matrix::ExtendedMatrix;
 
 use crate::{ElementsNumbers, ElementsValues};
 

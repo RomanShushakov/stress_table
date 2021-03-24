@@ -1,14 +1,11 @@
 use std::f32::consts::PI;
 use std::rc::Rc;
-use std::cell::RefCell;
 use mat4;
-use vec4;
 use wasm_bindgen::JsCast;
-use wasm_bindgen::prelude::*;
 use web_sys::
     {
         Document, HtmlCanvasElement, WebGlRenderingContext as GL,
-        WebGlUniformLocation, Window, CanvasRenderingContext2d as CTX
+        Window, CanvasRenderingContext2d as CTX
     };
 use yew::{Component, ComponentLink, html, Html, NodeRef, ShouldRender};
 use yew::prelude::*;
@@ -16,10 +13,9 @@ use yew::services::keyboard::{KeyboardService, KeyListenerHandle};
 use yew::services::render::RenderTask;
 use yew::services::RenderService;
 
-
 use crate::auxiliary::
     {
-        FEDrawnElementData, FEDrawnBCData, FEDrawnNodeData, FEDrawnAnalysisResultNodeData,
+        FEDrawnElementData, FEDrawnNodeData, FEDrawnAnalysisResultNodeData,
         DrawnAnalysisResultElementData, NormalizedNode
     };
 use crate::auxiliary::{View};
@@ -28,7 +24,7 @@ use crate::auxiliary::gl_aux_functions::
     {
         add_denotation, initialize_shaders, normalize_nodes, add_hints,
         define_drawn_object_denotation_color, add_displacements_hints,
-        add_reactions_hints, extend_by_elements_analysis_result, add_ear_hints,
+        add_reactions_hints, add_ear_hints,
         add_color_bar,
     };
 use crate::auxiliary::gl_aux_structs::{Buffers, ShadersVariables, DrawnObject};
@@ -41,22 +37,16 @@ use crate::auxiliary::gl_aux_structs::
         AXIS_Y_DENOTATION_SHIFT_Y, AXIS_Z_DENOTATION_SHIFT_X, AXIS_Z_DENOTATION_SHIFT_Y,
         AXIS_Z_DENOTATION_SHIFT_Z, CANVAS_AXES_DENOTATION_COLOR,
         CANVAS_DRAWN_NODES_DENOTATION_COLOR, DRAWN_NODES_DENOTATION_SHIFT,
-        CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR, DRAWN_DISPLACEMENTS_CAPS_BASE_POINTS_NUMBER,
-        DRAWN_DISPLACEMENTS_CAPS_HEIGHT, DRAWN_DISPLACEMENTS_CAPS_WIDTH,
-        CANVAS_DRAWN_DISPLACEMENTS_DENOTATION_COLOR, DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_X,
-        DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_Y, DRAWN_FORCES_LINE_LENGTH,
+        CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR, DRAWN_FORCES_LINE_LENGTH,
         DRAWN_FORCES_CAPS_HEIGHT, DRAWN_FORCES_CAPS_WIDTH, DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER,
-        CANVAS_DRAWN_FORCES_DENOTATION_COLOR, DRAWN_FORCES_DENOTATION_SHIFT_X,
-        DRAWN_FORCES_DENOTATION_SHIFT_Y, HINTS_COLOR, DRAWN_DEFORMED_SHAPE_NODES_COLOR,
-        CANVAS_DRAWN_DEFORMED_SHAPE_NODES_DENOTATION_COLOR,
+        HINTS_COLOR, CANVAS_DRAWN_DEFORMED_SHAPE_NODES_DENOTATION_COLOR,
         DRAWN_DEFORMED_SHAPE_NODES_DENOTATION_SHIFT, DRAWN_ELEMENTS_DENOTATION_SHIFT,
     };
 
-use crate::fem::{FENode, GlobalAnalysisResult, Displacements, Reactions, ElementsAnalysisResult, EARComponentTrait};
-use crate::fem::{FEType, BCType, GlobalDOFParameter, StressStrainComponent, EARType};
+use crate::fem::EARComponentTrait;
+use crate::fem::{BCType, StressStrainComponent, EARType, ForceComponent};
 
-
-use crate::{ElementsNumbers, ElementsValues, GLElementsNumbers, GLElementsValues, UIDNumbers};
+use crate::{ElementsNumbers, ElementsValues, GLElementsValues};
 
 
 const POSTPROCESSOR_CANVAS_CONTAINER_CLASS: &str = "postprocessor_canvas_container";
@@ -92,6 +82,7 @@ pub struct Props
     pub is_plot_reactions_selected: bool,
     pub stress_component_selected: Option<StressStrainComponent>,
     pub strain_component_selected: Option<StressStrainComponent>,
+    pub force_component_selected: Option<ForceComponent>,
     pub min_selected_value: Option<ElementsValues>,
     pub max_selected_value: Option<ElementsValues>,
     pub add_object_info: Callback<String>,
@@ -238,6 +229,19 @@ impl PostprocessorCanvas
                             .extract_strains();
                         let object_info = format!("Strains at element: #{}, \
                                 {:?}", element_number, strains);
+                        Some(object_info)
+                    }
+                    else if self.props.force_component_selected.is_some()
+                    {
+                        let element_number = self.props
+                            .drawn_analysis_results_for_elements[position]
+                            .element_analysis_data.extract_element_number();
+                        let forces = self.props
+                            .drawn_analysis_results_for_elements[position]
+                            .element_analysis_data
+                            .extract_forces();
+                        let object_info = format!("Forces at element: #{}, \
+                                {:?}", element_number, forces);
                         Some(object_info)
                     }
                     else
@@ -418,14 +422,17 @@ impl Component for PostprocessorCanvas
     {
         if (&self.props.view, &self.props.canvas_height, &self.props.canvas_width,
             &self.props.is_plot_displacements_selected, &self.props.is_plot_reactions_selected,
+            &self.props.stress_component_selected, &self.props.strain_component_selected,
             &self.props.drawn_nodes_extended, &self.props.drawn_analysis_results_for_nodes,
             &self.props.drawn_analysis_results_for_elements, &self.props.min_selected_value,
             &self.props.max_selected_value) !=
             (&props.view, &props.canvas_height, &props.canvas_width,
             &props.is_plot_displacements_selected, &props.is_plot_reactions_selected,
+            &props.stress_component_selected, &props.strain_component_selected,
             &props.drawn_nodes_extended, &props.drawn_analysis_results_for_nodes,
             &props.drawn_analysis_results_for_elements, &props.min_selected_value,
             &props.max_selected_value) ||
+            (&self.props.force_component_selected != &props.force_component_selected) ||
             !Rc::ptr_eq(&self.props.drawn_elements, &props.drawn_elements)
         {
             self.props = props;
@@ -604,7 +611,8 @@ impl PostprocessorCanvas
             }
 
             if self.props.stress_component_selected.is_some() ||
-                self.props.strain_component_selected.is_some()
+                self.props.strain_component_selected.is_some() ||
+                self.props.force_component_selected.is_some()
             {
                 if !self.props.drawn_elements.is_empty()
                 {
@@ -784,6 +792,32 @@ impl PostprocessorCanvas
                         &self.props.drawn_elements,
                         &self.props.drawn_analysis_results_for_elements,
                         &EARType::Strain,
+                        &boxed_component,
+                        &self.props.min_selected_value,
+                        &self.props.max_selected_value,
+                        GLMode::Visible, &self.state.under_cursor_color,
+                        &self.state.selected_color)
+                    {
+                        Err(msg) =>
+                            yew::services::DialogService::alert(&format!("{:?}", msg)),
+                        Ok(()) => (),
+                    }
+                }
+            }
+            else if let Some(component) = self.props.force_component_selected
+            {
+                drawn_object.add_nodes(&self.state.normalized_nodes.as_slice(),
+                    GLMode::Visible, &self.state.under_cursor_color,
+                    &self.state.selected_color);
+
+                if !self.props.drawn_elements.is_empty()
+                {
+                    let boxed_component: Box<dyn EARComponentTrait> = Box::new(component);
+                    match drawn_object.add_elements_with_results_for_visualization(
+                        &self.state.normalized_nodes.as_slice(),
+                        &self.props.drawn_elements,
+                        &self.props.drawn_analysis_results_for_elements,
+                        &EARType::Force,
                         &boxed_component,
                         &self.props.min_selected_value,
                         &self.props.max_selected_value,
@@ -1140,6 +1174,85 @@ impl PostprocessorCanvas
                     self.props.canvas_width as f32,
                     self.props.canvas_height as f32,
                     strain_component, self.props.min_selected_value, self.props.max_selected_value);
+                ctx.stroke();
+
+                if self.props.min_selected_value.is_some() &&
+                    self.props.max_selected_value.is_some()
+                {
+                    add_color_bar(&ctx, self.props.canvas_width as f32,
+                    self.props.canvas_height as f32);
+                }
+
+                if !self.props.drawn_elements.is_empty()
+                {
+                    for element in self.props.drawn_elements.as_ref()
+                    {
+                        let uid =
+                            {
+                                if let Some(position) =
+                                    self.props.drawn_analysis_results_for_elements
+                                        .iter()
+                                        .position(|data|
+                                            data.element_analysis_data.number_same(element.number))
+                                {
+                                    self.props.drawn_analysis_results_for_elements[position].uid
+                                }
+                                else
+                                {
+                                    element.uid
+                                }
+                            };
+                        let denotation_color = define_drawn_object_denotation_color(uid,
+                            &self.state.selected_color, &self.state.under_cursor_color,
+                            CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR);
+                        match element.find_denotation_coordinates(&self.state.normalized_nodes)
+                        {
+                            Ok(coordinates) =>
+                                {
+                                    ctx.set_fill_style(&denotation_color.into());
+                                    add_denotation(&ctx,
+                                    &[coordinates[0],
+                                        coordinates[1] +
+                                            DRAWN_ELEMENTS_DENOTATION_SHIFT / (1.0 + self.state.d_scale),
+                                        coordinates[2],
+                                        coordinates[3]],
+                                    &matrix,
+                                    self.props.canvas_width as f32,
+                                    self.props.canvas_height as f32,
+                                    &element.number.to_string());
+                                    ctx.stroke();
+                                },
+                            Err(msg) =>
+                                yew::services::DialogService::alert(&format!("{:?}", msg)),
+                        }
+                    }
+                }
+            }
+            else if self.props.force_component_selected.is_some()
+            {
+                for node in self.state.normalized_nodes.iter()
+                {
+                    let denotation_color = define_drawn_object_denotation_color(node.uid,
+                        &self.state.selected_color, &self.state.under_cursor_color,
+                        CANVAS_DRAWN_NODES_DENOTATION_COLOR);
+                    ctx.set_fill_style(&denotation_color.into());
+                    add_denotation(&ctx,
+                    &[node.x - DRAWN_NODES_DENOTATION_SHIFT / (1.0 + self.state.d_scale),
+                        node.y - DRAWN_NODES_DENOTATION_SHIFT / (1.0 + self.state.d_scale),
+                        node.z,
+                        1.0],
+                    &matrix,
+                    self.props.canvas_width as f32,
+                    self.props.canvas_height as f32,
+                    &node.number.to_string());
+                    ctx.stroke();
+                }
+                let force_component = self.props.force_component_selected.unwrap().as_str();
+                ctx.set_fill_style(&HINTS_COLOR.into());
+                add_ear_hints(&ctx, &EARType::Force,
+                    self.props.canvas_width as f32,
+                    self.props.canvas_height as f32,
+                    force_component, self.props.min_selected_value, self.props.max_selected_value);
                 ctx.stroke();
 
                 if self.props.min_selected_value.is_some() &&

@@ -2,11 +2,10 @@ use yew::prelude::*;
 use yew_router::prelude::{RouterButton};
 
 use std::rc::Rc;
-use std::cell::RefCell;
 
 use crate::auxiliary::{View, FEDrawnNodeData, FEDrawnElementData, FEDrawnBCData};
-use crate::fem::{FENode, GlobalAnalysisResult, Displacements};
-use crate::{ElementsNumbers, ElementsValues, UIDNumbers};
+use crate::fem::{Displacements};
+use crate::{ElementsNumbers, ElementsValues};
 
 use crate::components::
     {

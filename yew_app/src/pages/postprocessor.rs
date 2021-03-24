@@ -1,16 +1,17 @@
 use yew::prelude::*;
 use yew_router::prelude::RouterButton;
 use std::rc::Rc;
-use std::cell::RefCell;
 
 use crate::route::AppRoute;
-use crate::fem::{GlobalAnalysisResult, FENode, Displacements, BCType, GlobalDOFParameter, EARType, EARComponentTrait};
-use crate::fem::{StressStrainComponent};
+use crate::fem::EARComponentTrait;
+use crate::fem::{Displacements};
+use crate::fem::{GlobalDOFParameter, BCType, EARType, StressStrainComponent, ForceComponent};
 use crate::{ElementsNumbers, ElementsValues, UIDNumbers};
 
 use crate::components::
     {
         ViewMenu, PostprocessorCanvas, PlotDisplacementsMenu, PlotStressesMenu, PlotStrainsMenu,
+        PlotForcesMenu,
     };
 use crate::auxiliary::
     {
@@ -57,6 +58,7 @@ pub struct State
     pub is_plot_reactions_selected: bool,
     pub stress_component_selected: Option<StressStrainComponent>,
     pub strain_component_selected: Option<StressStrainComponent>,
+    pub force_component_selected: Option<ForceComponent>,
     pub min_selected_value: Option<ElementsValues>,
     pub max_selected_value: Option<ElementsValues>,
 }
@@ -450,6 +452,7 @@ pub enum Msg
     SelectPlotReactions,
     SelectStressComponent(StressStrainComponent),
     SelectStrainComponent(StressStrainComponent),
+    SelectForceComponent(ForceComponent),
 }
 
 
@@ -480,6 +483,7 @@ impl Component for Postprocessor
                 is_plot_reactions_selected: false,
                 stress_component_selected: None,
                 strain_component_selected: None,
+                force_component_selected: None,
                 min_selected_value: None,
                 max_selected_value: None,
             };
@@ -506,6 +510,7 @@ impl Component for Postprocessor
                     self.state.is_plot_reactions_selected = false;
                     self.state.stress_component_selected = None;
                     self.state.strain_component_selected = None;
+                    self.state.force_component_selected = None;
                     self.state.min_selected_value = None;
                     self.state.max_selected_value = None;
                 },
@@ -516,6 +521,7 @@ impl Component for Postprocessor
                     self.state.is_plot_reactions_selected = true;
                     self.state.stress_component_selected = None;
                     self.state.strain_component_selected = None;
+                    self.state.force_component_selected = None;
                     self.state.min_selected_value = None;
                     self.state.max_selected_value = None;
                 },
@@ -531,6 +537,7 @@ impl Component for Postprocessor
                         self.extract_min_max_values_for_component(&EARType::Stress,
                             &boxed_component);
                     self.state.strain_component_selected = None;
+                    self.state.force_component_selected = None;
                     self.state.min_selected_value = min_value;
                     self.state.max_selected_value = max_value;
                 },
@@ -546,6 +553,23 @@ impl Component for Postprocessor
                     let (min_value, max_value) =
                         self.extract_min_max_values_for_component(&EARType::Strain,
                             &boxed_component);
+                    self.state.force_component_selected = None;
+                    self.state.min_selected_value = min_value;
+                    self.state.max_selected_value = max_value;
+                },
+            Msg::SelectForceComponent(component) =>
+                {
+                    self.default_drawn_nodes_extended_and_analysis_results_for_nodes();
+                    self.extend_by_analysis_result_element_data();
+                    self.state.is_plot_displacements_selected = false;
+                    self.state.is_plot_reactions_selected = false;
+                    self.state.stress_component_selected = None;
+                    self.state.strain_component_selected = None;
+                    let boxed_component: Box<dyn EARComponentTrait> = Box::new(component);
+                    let (min_value, max_value) =
+                        self.extract_min_max_values_for_component(&EARType::Force,
+                            &boxed_component);
+                    self.state.force_component_selected = Some(component);
                     self.state.min_selected_value = min_value;
                     self.state.max_selected_value = max_value;
                 },
@@ -598,6 +622,10 @@ impl Component for Postprocessor
         let handle_select_strain_component =
             self.link.callback(|strain_component|
                 Msg::SelectStrainComponent(strain_component));
+
+        let handle_select_force_component =
+            self.link.callback(|force_component|
+                Msg::SelectForceComponent(force_component));
         html!
         {
             <>
@@ -639,6 +667,10 @@ impl Component for Postprocessor
                                         strain_component_selected=self.state.strain_component_selected.to_owned(),
                                         select_strain_component=handle_select_strain_component,
                                     />
+                                     <PlotForcesMenu
+                                        force_component_selected=self.state.force_component_selected.to_owned(),
+                                        select_force_component=handle_select_force_component,
+                                    />
                                 </div>
                                 <div class={ POSTPROCESSOR_CANVAS_CLASS }>
                                     <PostprocessorCanvas
@@ -654,6 +686,7 @@ impl Component for Postprocessor
                                         is_plot_reactions_selected=self.state.is_plot_reactions_selected.to_owned(),
                                         stress_component_selected=self.state.stress_component_selected.to_owned(),
                                         strain_component_selected=self.state.strain_component_selected.to_owned(),
+                                        force_component_selected=self.state.force_component_selected.to_owned(),
                                         min_selected_value=self.state.min_selected_value.to_owned(),
                                         max_selected_value=self.state.max_selected_value.to_owned(),
                                         add_object_info=handle_add_object_info.to_owned(),

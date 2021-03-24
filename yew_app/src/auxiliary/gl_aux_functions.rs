@@ -1,22 +1,17 @@
 use web_sys::{WebGlProgram, WebGlRenderingContext as GL, CanvasRenderingContext2d as CTX};
 use vec4;
 use std::rc::Rc;
-use std::cell::RefCell;
 
-use crate::fem::{FENode, GlobalAnalysisResult, GlobalDOFParameter, Displacements, BCType, EARType};
-use crate::{ElementsNumbers, ElementsValues, UIDNumbers};
+use crate::fem::{EARType};
+use crate::{ElementsValues, UIDNumbers};
 use crate::{GLElementsValues, GLElementsNumbers};
-use crate::auxiliary::
-    {
-        NormalizedNode, FEDrawnElementData, FEDrawnNodeData, FEDrawnAnalysisResultNodeData,
-        DrawnAnalysisResultElementData
-    };
+use crate::auxiliary::{NormalizedNode, FEDrawnNodeData,};
 
 use crate::auxiliary::gl_aux_structs::GLMode;
 use crate::auxiliary::gl_aux_structs::
     {
         DRAWN_OBJECT_TO_CANVAS_WIDTH_SCALE, DRAWN_OBJECT_TO_CANVAS_HEIGHT_SCALE,
-        CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR, HINT_SHIFT_X, ROTATION_HINT_SHIFT_Y,
+        HINT_SHIFT_X, ROTATION_HINT_SHIFT_Y,
         ZOOM_HINT_SHIFT_Y, PAN_HINT_SHIFT_Y, DRAWN_OBJECT_SELECTED_COLOR,
         DRAWN_OBJECT_UNDER_CURSOR_COLOR, CANVAS_DRAWN_OBJECT_SELECTED_DENOTATION_COLOR,
         CANVAS_DRAWN_OBJECT_UNDER_CURSOR_DENOTATION_COLOR, DISPLACEMENT_SHIFT_X,
@@ -26,8 +21,6 @@ use crate::auxiliary::gl_aux_structs::
         COLOR_BAR_WIDTH, EAR_MIN_MAX_VALUE_SHIFT_X
     };
 use crate::auxiliary::aux_functions::transform_u32_to_array_of_u8;
-use crate::fem::global_analysis::fe_global_analysis_result::Reactions;
-use crate::fem::element_analysis::fe_element_analysis_result::ElementsAnalysisResult;
 
 
 pub fn initialize_shaders(gl: &GL, vertex_shader_code: &str, fragment_shader_code: &str)
@@ -328,29 +321,6 @@ pub fn add_color_bar(ctx: &CTX, canvas_width: f32, canvas_height: f32)
         (canvas_height * (COLOR_BAR_Y_BOTTOM - COLOR_BAR_Y_TOP)) as f64,
     );
     ctx.stroke();
-}
-
-
-
-pub fn extend_by_elements_analysis_result(
-    elements_analysis_result: &ElementsAnalysisResult<ElementsNumbers, ElementsValues>,
-    uid_number: &mut UIDNumbers,
-    drawn_analysis_results_for_elements: &mut Vec<DrawnAnalysisResultElementData>)
-{
-    let mut uid = *uid_number;
-    let elements_analysis_data =
-        elements_analysis_result.extract_elements_analysis_data();
-    for i in 0..elements_analysis_data.len()
-    {
-        uid += 1;
-        let drawn_analysis_result_element_data = DrawnAnalysisResultElementData
-            {
-                uid,
-                element_analysis_data: elements_analysis_data[i].to_owned(),
-            };
-        drawn_analysis_results_for_elements.push(drawn_analysis_result_element_data);
-    }
-    *uid_number = uid;
 }
 
 

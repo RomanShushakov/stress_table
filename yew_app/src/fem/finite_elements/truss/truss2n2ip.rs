@@ -1,7 +1,7 @@
 use crate::fem::{FiniteElementTrait, Displacements, ForceComponent};
 use crate::fem::
     {
-        GlobalCoordinates, FENode, StiffnessGroup, FEData, DOFParameterData, ElementAnalysisData
+        FENode, StiffnessGroup, FEData, DOFParameterData, ElementAnalysisData
     };
 use crate::fem::{StiffnessType, GlobalDOFParameter, StressStrainComponent};
 use crate::fem::compare_with_tolerance;
@@ -13,7 +13,6 @@ use std::hash::Hash;
 use std::fmt::Debug;
 use std::ops::{Sub, Mul, Add, Div, Rem, SubAssign, AddAssign, MulAssign};
 use std::cell::RefCell;
-use crate::fem::element_analysis::fe_stress_strain_components::STRESS_STRAIN_COMPONENTS_NUMBER;
 
 
 const TRUSS_NODE_DOF: ElementsNumbers = 3;

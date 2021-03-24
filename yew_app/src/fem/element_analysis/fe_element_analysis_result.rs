@@ -1,7 +1,5 @@
 use crate::fem::{StressStrainComponent, ForceComponent};
-use crate::extended_matrix::ExtendedMatrix;
 
-use crate::{ElementsNumbers, ElementsValues};
 use std::any::Any;
 
 

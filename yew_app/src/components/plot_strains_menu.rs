@@ -10,7 +10,7 @@ const PLOT_STRAINS_MENU_CLASS: &str = "plot_strains_menu";
 const PLOT_STRAINS_MENU_INPUT_FIELDS_CONTAINER_CLASS: &str = "plot_strains_menu_input_fields_container";
 const PLOT_STRAINS_MENU_INPUT_FIELD_CONTAINER_CLASS: &str = "plot_strains_input_field_container";
 const PLOT_STRAINS_MENU_BUTTONS_CONTAINER_CLASS: &str = "plot_strains_menu_buttons";
-const PLOT_STRAINS_MENU_BUTTON_CLASS: &str = "plot_strain_menu_button";
+const PLOT_STRAINS_MENU_BUTTON_CLASS: &str = "plot_strains_menu_button";
 const HIDDEN: &str = "hidden";
 const PLOT_STRAINS_INPUT_NAME: &str = "plot_strains";
 const PLOT_STRAIN_XX_ID: &str = "plot_strain_xx";
@@ -54,7 +54,7 @@ pub enum Msg
 
 impl PlotStrainsMenu
 {
-    fn show_hide_plot_stresses_menu(&self)
+    fn show_hide_plot_strains_menu(&self)
     {
         let window = web_sys::window().unwrap();
         let document = window.document().unwrap();
@@ -88,7 +88,7 @@ impl Component for PlotStrainsMenu
     {
         match msg
         {
-            Msg::ShowHidePlotStrainsMenu => self.show_hide_plot_stresses_menu(),
+            Msg::ShowHidePlotStrainsMenu => self.show_hide_plot_strains_menu(),
             Msg::SelectStrainComponent(data) =>
                 {
                     match data
@@ -197,6 +197,7 @@ impl Component for PlotStrainsMenu
                                 type="radio", id={ PLOT_STRAIN_XY_ID },
                                 name={ PLOT_STRAINS_INPUT_NAME },
                                 value={ StressStrainComponent::XY.as_str() },
+                                disabled=true,
                                 checked=
                                 {
                                     if let Some(strain) = &self.props.strain_component_selected
@@ -227,6 +228,7 @@ impl Component for PlotStrainsMenu
                                 type="radio", id={ PLOT_STRAIN_XZ_ID },
                                 name={ PLOT_STRAINS_INPUT_NAME },
                                 value={ StressStrainComponent::XZ.as_str() },
+                                disabled=true,
                                 checked=
                                 {
                                     if let Some(strain) = &self.props.strain_component_selected
@@ -257,6 +259,7 @@ impl Component for PlotStrainsMenu
                                 type="radio", id={ PLOT_STRAIN_YY_ID },
                                 name={ PLOT_STRAINS_INPUT_NAME },
                                 value={ StressStrainComponent::YY.as_str() },
+                                disabled=true,
                                 checked=
                                 {
                                     if let Some(strain) = &self.props.strain_component_selected
@@ -287,6 +290,7 @@ impl Component for PlotStrainsMenu
                                 type="radio", id={ PLOT_STRAIN_YZ_ID },
                                 name={ PLOT_STRAINS_INPUT_NAME },
                                 value={ StressStrainComponent::YZ.as_str() },
+                                disabled=true,
                                 checked=
                                 {
                                     if let Some(strain) = &self.props.strain_component_selected
@@ -317,6 +321,7 @@ impl Component for PlotStrainsMenu
                                 type="radio", id={ PLOT_STRAIN_ZZ_ID },
                                 name={ PLOT_STRAINS_INPUT_NAME },
                                 value={ StressStrainComponent::ZZ.as_str() },
+                                disabled=true,
                                 checked=
                                 {
                                     if let Some(strain) = &self.props.strain_component_selected

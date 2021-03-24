@@ -390,11 +390,10 @@ impl Component for ForceMenu
                                 force value must be specified.".to_string());
                             return false;
                         }
-                        if let Some(position) = self.props.drawn_bcs
-                            .iter()
-                            .position(|bc|
+                        if self.props.drawn_bcs.iter().position(|bc|
                                 bc.number == self.state.selected_force.number &&
                                 bc.bc_type == self.state.selected_force.bc_type)
+                            .is_some()
                         {
 
                             self.props.update_bc.emit(self.state.selected_force.to_owned());

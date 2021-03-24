@@ -1,7 +1,5 @@
 use web_sys::{WebGlBuffer, WebGlUniformLocation, WebGlProgram, WebGlRenderingContext as GL};
 use std::f32::consts::PI;
-use std::cell::RefCell;
-use std::rc::Rc;
 
 use crate::{GLElementsNumbers, GLElementsValues, TOLERANCE};
 use crate::auxiliary::gl_aux_functions::
@@ -10,16 +8,13 @@ use crate::auxiliary::gl_aux_functions::
         define_color_array_by_value, define_element_chunks,
     };
 
-use crate::{ElementsValues, ElementsNumbers};
-use crate::fem::{FENode, FEType, GlobalDOFParameter, StressStrainComponent, EARType, EARComponentTrait};
+use crate::{ElementsValues};
+use crate::fem::{FEType, GlobalDOFParameter, EARType, EARComponentTrait};
 use crate::auxiliary::
     {
         NormalizedNode, FEDrawnElementData, FEDrawnBCData, FEDrawnAnalysisResultNodeData,
         DrawnAnalysisResultElementData
     };
-use crate::auxiliary::aux_functions::transform_u32_to_array_of_u8;
-use yew::Callback;
-use crate::fem::global_analysis::fe_global_analysis_result::Reactions;
 
 
 const CS_ORIGIN: [GLElementsValues; 3] = [0.0, 0.0, 0.0];

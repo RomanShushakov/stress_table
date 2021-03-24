@@ -29,10 +29,6 @@ const YOUNG_MODULUS: &str = "young_modulus";
 const AREA: &str = "area";
 const AREA_2: &str = "area_2";
 
-const MOMENT_OF_INERTIA_ABOUT_Z_AXIS: &str = "moment_of_inertia_about_z_axis";
-const MOMENT_OF_INERTIA_ABOUT_Y_AXIS: &str = "moment_of_inertia_about_y_axis";
-const TORSION_CONSTANT: &str = "torsion_constant";
-
 
 #[derive(Properties, Clone)]
 pub struct Props
@@ -356,13 +352,9 @@ impl Component for ElementMenu
                 },
             Msg::DeleteElement =>
                 {
-                    if let Some(position) = self.props.drawn_elements
-                        .iter()
-                        .position(|element|
-                            {
-                                element.number ==
-                                self.state.selected_element.number
-                            })
+                    if self.props.drawn_elements.iter().position(|element|
+                        element.number == self.state.selected_element.number)
+                        .is_some()
                     {
                         let element_number = self.state.selected_element.number;
                         self.props.delete_element.emit(element_number);

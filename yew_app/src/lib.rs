@@ -1,26 +1,15 @@
 #![recursion_limit="16384"]
-use std::collections::HashMap;
 use std::rc::Rc;
-use std::cell::RefCell;
 
 use wasm_bindgen::prelude::*;
 use yew::prelude::*;
 use std::f64;
-use wasm_bindgen::JsCast;
-use web_sys::Node;
-use yew::virtual_dom::VNode;
-use web_sys::
-    {
-        CanvasRenderingContext2d, HtmlSelectElement, HtmlOptionElement,
-        HtmlCanvasElement, HtmlOptionsCollection, DomTokenList,
-    };
 use yew::services::resize::{WindowDimensions, ResizeTask, ResizeService};
 use yew_router::prelude::*;
-use yew_router::agent::RouteRequest;
 
 mod fem;
-use crate::fem::{FEModel, FEData, GlobalAnalysisResult, Displacements};
-use crate::fem::{GlobalDOFParameter, BCType};
+use crate::fem::{FEModel, FEData, Displacements};
+use crate::fem::{GlobalDOFParameter};
 use crate::fem::GLOBAL_DOF;
 mod extended_matrix;
 
@@ -35,7 +24,6 @@ use route::AppRoute;
 
 mod pages;
 use pages::{Preprocessor, Postprocessor};
-use yew_router::router::Render;
 use crate::fem::global_analysis::fe_global_analysis_result::Reactions;
 use crate::fem::element_analysis::fe_element_analysis_result::ElementsAnalysisResult;
 
@@ -351,7 +339,7 @@ impl Component for Model
                 {
                     match self.submit()
                     {
-                        Ok(global_analysis_result) => (),
+                        Ok(_) => (),
                         Err(msg) => self.state.analysis_message = Some(msg),
                     }
                 },

@@ -1,14 +1,11 @@
 use std::f32::consts::PI;
 use std::rc::Rc;
-use std::cell::RefCell;
 use mat4;
-use vec4;
 use wasm_bindgen::JsCast;
-use wasm_bindgen::prelude::*;
 use web_sys::
     {
         Document, HtmlCanvasElement, WebGlRenderingContext as GL,
-        WebGlUniformLocation, Window, CanvasRenderingContext2d as CTX
+        Window, CanvasRenderingContext2d as CTX
     };
 use yew::{Component, ComponentLink, html, Html, NodeRef, ShouldRender};
 use yew::prelude::*;
@@ -39,12 +36,11 @@ use crate::auxiliary::gl_aux_structs::
         DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_Y, DRAWN_FORCES_LINE_LENGTH, DRAWN_FORCES_CAPS_HEIGHT,
         DRAWN_FORCES_CAPS_WIDTH, DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER,
         CANVAS_DRAWN_FORCES_DENOTATION_COLOR, DRAWN_FORCES_DENOTATION_SHIFT_X,
-        DRAWN_FORCES_DENOTATION_SHIFT_Y, HINTS_COLOR, CANVAS_DRAWN_OBJECT_SELECTED_DENOTATION_COLOR,
-        CANVAS_DRAWN_OBJECT_UNDER_CURSOR_DENOTATION_COLOR, DRAWN_ELEMENTS_DENOTATION_SHIFT
+        DRAWN_FORCES_DENOTATION_SHIFT_Y, HINTS_COLOR, DRAWN_ELEMENTS_DENOTATION_SHIFT
     };
 
-use crate::fem::{FENode, FEType, BCType};
-use crate::{ElementsNumbers, ElementsValues, GLElementsNumbers, GLElementsValues, UIDNumbers};
+use crate::fem::{BCType};
+use crate::{GLElementsValues};
 use crate::auxiliary::{View, FEDrawnElementData, FEDrawnBCData, FEDrawnNodeData, NormalizedNode};
 use crate::auxiliary::aux_functions::transform_u32_to_array_of_u8;
 

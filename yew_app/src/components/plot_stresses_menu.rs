@@ -197,6 +197,7 @@ impl Component for PlotStressesMenu
                                 type="radio", id={ PLOT_STRESS_XY_ID },
                                 name={ PLOT_STRESSES_INPUT_NAME },
                                 value={ StressStrainComponent::XY.as_str() },
+                                disabled=true,
                                 checked=
                                 {
                                     if let Some(stress) = &self.props.stress_component_selected
@@ -227,6 +228,7 @@ impl Component for PlotStressesMenu
                                 type="radio", id={ PLOT_STRESS_XZ_ID },
                                 name={ PLOT_STRESSES_INPUT_NAME },
                                 value={ StressStrainComponent::XZ.as_str() },
+                                disabled=true,
                                 checked=
                                 {
                                     if let Some(stress) = &self.props.stress_component_selected
@@ -257,6 +259,7 @@ impl Component for PlotStressesMenu
                                 type="radio", id={ PLOT_STRESS_YY_ID },
                                 name={ PLOT_STRESSES_INPUT_NAME },
                                 value={ StressStrainComponent::YY.as_str() },
+                                disabled=true,
                                 checked=
                                 {
                                     if let Some(stress) = &self.props.stress_component_selected
@@ -287,6 +290,7 @@ impl Component for PlotStressesMenu
                                 type="radio", id={ PLOT_STRESS_YZ_ID },
                                 name={ PLOT_STRESSES_INPUT_NAME },
                                 value={ StressStrainComponent::YZ.as_str() },
+                                disabled=true,
                                 checked=
                                 {
                                     if let Some(stress) = &self.props.stress_component_selected
@@ -317,6 +321,7 @@ impl Component for PlotStressesMenu
                                 type="radio", id={ PLOT_STRESS_ZZ_ID },
                                 name={ PLOT_STRESSES_INPUT_NAME },
                                 value={ StressStrainComponent::ZZ.as_str() },
+                                disabled=true,
                                 checked=
                                 {
                                     if let Some(stress) = &self.props.stress_component_selected

@@ -6,9 +6,7 @@ use web_sys::
     };
 use wasm_bindgen::JsCast;
 use std::rc::Rc;
-use std::cell::RefCell;
 
-use crate::fem::{FENode};
 use crate::auxiliary::FEDrawnNodeData;
 use crate::{ElementsNumbers, ElementsValues, UIDNumbers};
 use crate::pages::PREPROCESSOR_BUTTON_CLASS;

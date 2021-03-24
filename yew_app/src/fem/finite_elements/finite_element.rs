@@ -1,7 +1,7 @@
 use crate::fem::{FENode, Truss2n2ip, StiffnessGroup, ElementAnalysisData, Displacements};
 
 use crate::{ElementsNumbers, ElementsValues};
-use crate::extended_matrix::{ExtendedMatrix, MatrixElementPosition};
+use crate::extended_matrix::{ExtendedMatrix};
 
 use std::rc::Rc;
 use std::cell::RefCell;

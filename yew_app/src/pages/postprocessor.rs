@@ -713,48 +713,6 @@ impl Component for Postprocessor
                                         }
                                     }
                                 </div>
-                                // {
-                                //     if let Some(result_view) = &self.state.result_view
-                                //     {
-                                //         match result_view
-                                //         {
-                                //             ResultView::PrintAllResults =>
-                                //                 {
-                                //                     html!
-                                //                     {
-                                //                         <AllResultsTable
-                                //                             nodes=self.state.nodes.to_owned(),
-                                //                             aux_elements=self.state.aux_elements.to_owned(),
-                                //                             aux_displacements=self.state.aux_displacements.to_owned(),
-                                //                             analysis_result=analysis_result.to_owned(),
-                                //                             canvas_width=self.state.canvas_width,
-                                //                         />
-                                //                     }
-                                //                 },
-                                //             _ =>
-                                //                 {
-                                //                     html!
-                                //                     {
-                                //                         <div class={ POSTPROCESSOR_CANVAS_CLASS }>
-                                //                             <PostprocessorCanvas
-                                //                                 view=self.state.view.to_owned(),
-                                //                                 canvas_width=self.state.canvas_width,
-                                //                                 canvas_height=self.state.canvas_height,
-                                //                                 nodes=self.state.nodes.to_owned(),
-                                //                                 aux_elements=self.state.aux_elements.to_owned(),
-                                //                                 analysis_result=analysis_result,
-                                //                                 result_view=result_view,
-                                //                             />
-                                //                         </div>
-                                //                     }
-                                //                 }
-                                //         }
-                                //     }
-                                //     else
-                                //     {
-                                //         html! {  }
-                                //     }
-                                // }
                             </div>
                         }
                     }

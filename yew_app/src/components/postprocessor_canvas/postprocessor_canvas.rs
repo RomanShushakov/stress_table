@@ -28,7 +28,7 @@ use crate::auxiliary::gl_aux_functions::
     {
         add_denotation, initialize_shaders, normalize_nodes, add_hints,
         define_drawn_object_denotation_color, add_displacements_hints,
-        add_reactions_hints, extend_by_elements_analysis_result, add_stresses_hints,
+        add_reactions_hints, extend_by_elements_analysis_result, add_ear_hints,
         add_color_bar,
     };
 use crate::auxiliary::gl_aux_structs::{Buffers, ShadersVariables, DrawnObject};
@@ -1016,13 +1016,18 @@ impl PostprocessorCanvas
                 }
                 let stress_component = self.props.stress_component_selected.unwrap().as_str();
                 ctx.set_fill_style(&HINTS_COLOR.into());
-                add_stresses_hints(&ctx, self.props.canvas_width as f32,
-                    self.props.canvas_height as f32, stress_component);
+                add_ear_hints(&ctx, &EARType::Stress,
+                    self.props.canvas_width as f32,
+                    self.props.canvas_height as f32,
+                    stress_component, self.props.min_selected_value, self.props.max_selected_value);
                 ctx.stroke();
 
-                add_color_bar(&ctx, self.props.canvas_width as f32,
+                if self.props.min_selected_value.is_some() &&
+                    self.props.max_selected_value.is_some()
+                {
+                    add_color_bar(&ctx, self.props.canvas_width as f32,
                     self.props.canvas_height as f32);
-
+                }
 
                 if !self.props.drawn_elements.is_empty()
                 {

@@ -4,11 +4,14 @@ use std::rc::Rc;
 use std::cell::RefCell;
 
 use crate::route::AppRoute;
-use crate::fem::{GlobalAnalysisResult, FENode, Displacements, BCType, GlobalDOFParameter};
+use crate::fem::{GlobalAnalysisResult, FENode, Displacements, BCType, GlobalDOFParameter, EARType, EARComponentTrait};
 use crate::fem::{StressStrainComponent};
 use crate::{ElementsNumbers, ElementsValues, UIDNumbers};
 
-use crate::components::{ViewMenu, PostprocessorCanvas, PlotDisplacementsMenu, PlotStressesMenu};
+use crate::components::
+    {
+        ViewMenu, PostprocessorCanvas, PlotDisplacementsMenu, PlotStressesMenu, PlotStrainsMenu,
+    };
 use crate::auxiliary::
     {
         View, FEDrawnNodeData, FEDrawnElementData, FEDrawnAnalysisResultNodeData,
@@ -53,6 +56,7 @@ pub struct State
     pub is_plot_displacements_selected: bool,
     pub is_plot_reactions_selected: bool,
     pub stress_component_selected: Option<StressStrainComponent>,
+    pub strain_component_selected: Option<StressStrainComponent>,
     pub min_selected_value: Option<ElementsValues>,
     pub max_selected_value: Option<ElementsValues>,
 }
@@ -305,34 +309,115 @@ impl Postprocessor
     }
 
 
-    fn extract_min_max_stress_for_component(&self, component: StressStrainComponent)
+    fn extract_min_max_values_for_component(&self, ear_type: &EARType,
+        component: &Box<dyn EARComponentTrait>)
         -> (Option<ElementsValues>, Option<ElementsValues>)
     {
         let first_appropriate_value =
             {
-                if let Some(position) =
-                    self.state.drawn_analysis_results_for_elements[0].element_analysis_data
-                        .extract_stresses().stresses_components.iter()
-                        .position(|c| *c == component )
+                match ear_type
                 {
-                    Some(self.state.drawn_analysis_results_for_elements[0].element_analysis_data
-                        .extract_stresses().stresses_values[position])
-                }
-                else
-                {
-                    None
+                    EARType::Stress =>
+                        {
+                            if let Some(position) =
+                                self.state.drawn_analysis_results_for_elements[0]
+                                    .element_analysis_data
+                                    .extract_stresses().stresses_components.iter()
+                                    .position(|c| c.same(component))
+                            {
+                                Some(self.state.drawn_analysis_results_for_elements[0]
+                                    .element_analysis_data
+                                    .extract_stresses().stresses_values[position])
+                            }
+                            else
+                            {
+                                None
+                            }
+                        },
+                    EARType::Strain =>
+                        {
+                            if let Some(position) =
+                                self.state.drawn_analysis_results_for_elements[0]
+                                    .element_analysis_data
+                                    .extract_strains().strains_components.iter()
+                                    .position(|c| c.same(component) )
+                            {
+                                Some(self.state.drawn_analysis_results_for_elements[0]
+                                    .element_analysis_data
+                                    .extract_strains().strains_values[position])
+                            }
+                            else
+                            {
+                                None
+                            }
+                        },
+                    EARType::Force =>
+                        {
+                            if let Some(position) =
+                                self.state.drawn_analysis_results_for_elements[0]
+                                    .element_analysis_data
+                                    .extract_forces().forces_components.iter()
+                                    .position(|c| c.same(component) )
+                            {
+                                Some(self.state.drawn_analysis_results_for_elements[0]
+                                    .element_analysis_data
+                                    .extract_forces().forces_values[position])
+                            }
+                            else
+                            {
+                                None
+                            }
+                        }
                 }
             };
         let mut min_value = first_appropriate_value;
         let mut max_value = first_appropriate_value;
         for data in self.state.drawn_analysis_results_for_elements.iter()
         {
-            let element_stresses = data.element_analysis_data.extract_stresses();
-            for (c, value) in
-                element_stresses.stresses_components.iter()
-                    .zip(element_stresses.stresses_values)
+            let (values, components) =
+                {
+                    match ear_type
+                    {
+                        EARType::Stress =>
+                            {
+                                let mut boxed_components: Vec<Box<dyn EARComponentTrait>> = Vec::new();
+                                let element_stresses =
+                                    data.element_analysis_data.extract_stresses();
+                                for component in element_stresses.stresses_components.iter()
+                                {
+                                    boxed_components.push(Box::new(*component))
+                                }
+                                (element_stresses.stresses_values, boxed_components)
+                            },
+                        EARType::Strain =>
+                            {
+                                let mut boxed_components: Vec<Box<dyn EARComponentTrait>> = Vec::new();
+                                let element_strains =
+                                    data.element_analysis_data.extract_strains();
+                                for component in element_strains.strains_components.iter()
+                                {
+                                    boxed_components.push(Box::new(*component))
+                                }
+                                (element_strains.strains_values, boxed_components)
+                            },
+                        EARType::Force =>
+                            {
+                                let mut boxed_components: Vec<Box<dyn EARComponentTrait>> = Vec::new();
+                                let element_forces =
+                                    data.element_analysis_data.extract_forces();
+                                for component in element_forces.forces_components.iter()
+                                {
+                                    boxed_components.push(Box::new(*component))
+                                }
+                                (element_forces.forces_values, boxed_components)
+                            }
+                    }
+
+                };
+
+            for (c, value) in components.iter().zip(values)
             {
-                if *c == component
+                if c.same(component)
                 {
                     if min_value.is_some()
                     {
@@ -364,6 +449,7 @@ pub enum Msg
     SelectPlotDisplacements,
     SelectPlotReactions,
     SelectStressComponent(StressStrainComponent),
+    SelectStrainComponent(StressStrainComponent),
 }
 
 
@@ -393,6 +479,7 @@ impl Component for Postprocessor
                 is_plot_displacements_selected: false,
                 is_plot_reactions_selected: false,
                 stress_component_selected: None,
+                strain_component_selected: None,
                 min_selected_value: None,
                 max_selected_value: None,
             };
@@ -418,6 +505,7 @@ impl Component for Postprocessor
                     self.state.is_plot_displacements_selected = true;
                     self.state.is_plot_reactions_selected = false;
                     self.state.stress_component_selected = None;
+                    self.state.strain_component_selected = None;
                     self.state.min_selected_value = None;
                     self.state.max_selected_value = None;
                 },
@@ -427,6 +515,7 @@ impl Component for Postprocessor
                     self.state.is_plot_displacements_selected = false;
                     self.state.is_plot_reactions_selected = true;
                     self.state.stress_component_selected = None;
+                    self.state.strain_component_selected = None;
                     self.state.min_selected_value = None;
                     self.state.max_selected_value = None;
                 },
@@ -437,8 +526,26 @@ impl Component for Postprocessor
                     self.state.is_plot_displacements_selected = false;
                     self.state.is_plot_reactions_selected = false;
                     self.state.stress_component_selected = Some(component);
+                    let boxed_component: Box<dyn EARComponentTrait> = Box::new(component);
                     let (min_value, max_value) =
-                        self.extract_min_max_stress_for_component(component);
+                        self.extract_min_max_values_for_component(&EARType::Stress,
+                            &boxed_component);
+                    self.state.strain_component_selected = None;
+                    self.state.min_selected_value = min_value;
+                    self.state.max_selected_value = max_value;
+                },
+            Msg::SelectStrainComponent(component) =>
+                {
+                    self.default_drawn_nodes_extended_and_analysis_results_for_nodes();
+                    self.extend_by_analysis_result_element_data();
+                    self.state.is_plot_displacements_selected = false;
+                    self.state.is_plot_reactions_selected = false;
+                    self.state.stress_component_selected = None;
+                    self.state.strain_component_selected = Some(component);
+                    let boxed_component: Box<dyn EARComponentTrait> = Box::new(component);
+                    let (min_value, max_value) =
+                        self.extract_min_max_values_for_component(&EARType::Strain,
+                            &boxed_component);
                     self.state.min_selected_value = min_value;
                     self.state.max_selected_value = max_value;
                 },
@@ -487,6 +594,10 @@ impl Component for Postprocessor
         let handle_select_stress_component =
             self.link.callback(|stress_component|
                 Msg::SelectStressComponent(stress_component));
+
+        let handle_select_strain_component =
+            self.link.callback(|strain_component|
+                Msg::SelectStrainComponent(strain_component));
         html!
         {
             <>
@@ -523,6 +634,10 @@ impl Component for Postprocessor
                                     <PlotStressesMenu
                                         stress_component_selected=self.state.stress_component_selected.to_owned(),
                                         select_stress_component=handle_select_stress_component,
+                                    />
+                                    <PlotStrainsMenu
+                                        strain_component_selected=self.state.strain_component_selected.to_owned(),
+                                        select_strain_component=handle_select_strain_component,
                                     />
                                 </div>
                                 <div class={ POSTPROCESSOR_CANVAS_CLASS }>

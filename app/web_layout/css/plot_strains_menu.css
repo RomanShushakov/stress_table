@@ -1,5 +1,5 @@
 
-.result_view_menu {
+.plot_strains_menu {
     display: flex;
     align-items: center;
     box-sizing: content-box;
@@ -14,7 +14,7 @@
 }
 
 
-.result_view_menu_input_fields_container {
+.plot_strains_menu_input_fields_container {
     display: flex;
     align-items: center;
     align-self: start;
@@ -25,11 +25,11 @@
 }
 
 
-.result_view_menu_input_field {
+.plot_strains_menu_input_field {
     width: 2rem;
 }
 
-.result_view_menu_buttons {
+.plot_strains_menu_buttons {
     display: flex;
     align-items: center;
     align-self: center;
@@ -38,10 +38,12 @@
 }
 
 
-.result_view_menu_button {
-    width: 4.5rem;
+.plot_strains_menu_button {
+    /* width: 4.5rem; */
+    padding-left: 0rem;
+    padding-right: 0rem;
 }
 
-.result_view_input_field_container {
-    width: 8.5rem;
+.plot_strains_input_field_container {
+    width: 7rem;
 }

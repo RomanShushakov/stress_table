@@ -7,6 +7,7 @@ mod force_menu;
 pub mod postprocessor_canvas;
 pub mod plot_displacements_menu;
 pub mod plot_stresses_menu;
+pub mod plot_strains_menu;
 
 pub use view_menu::ViewMenu;
 pub use node_menu::NodeMenu;
@@ -17,3 +18,4 @@ pub use force_menu::ForceMenu;
 pub use postprocessor_canvas::postprocessor_canvas::PostprocessorCanvas;
 pub use plot_displacements_menu::PlotDisplacementsMenu;
 pub use plot_stresses_menu::PlotStressesMenu;
+pub use plot_strains_menu::PlotStrainsMenu;

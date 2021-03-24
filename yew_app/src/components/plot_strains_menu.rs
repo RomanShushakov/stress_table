@@ -5,38 +5,38 @@ use crate::pages::POSTPROCESSOR_BUTTON_CLASS;
 use crate::fem::StressStrainComponent;
 
 
-const PLOT_STRESSES_MENU_ID: &str = "plot_stresses_menu";
-const PLOT_STRESSES_MENU_CLASS: &str = "plot_stresses_menu";
-const PLOT_STRESSES_MENU_INPUT_FIELDS_CONTAINER_CLASS: &str = "plot_stresses_menu_input_fields_container";
-const PLOT_STRESSES_MENU_INPUT_FIELD_CONTAINER_CLASS: &str = "plot_stresses_input_field_container";
-const PLOT_STRESSES_MENU_BUTTONS_CONTAINER_CLASS: &str = "plot_stresses_menu_buttons";
-const PLOT_STRESSES_MENU_BUTTON_CLASS: &str = "plot_stresses_menu_button";
+const PLOT_STRAINS_MENU_ID: &str = "plot_strains_menu";
+const PLOT_STRAINS_MENU_CLASS: &str = "plot_strains_menu";
+const PLOT_STRAINS_MENU_INPUT_FIELDS_CONTAINER_CLASS: &str = "plot_strains_menu_input_fields_container";
+const PLOT_STRAINS_MENU_INPUT_FIELD_CONTAINER_CLASS: &str = "plot_strains_input_field_container";
+const PLOT_STRAINS_MENU_BUTTONS_CONTAINER_CLASS: &str = "plot_strains_menu_buttons";
+const PLOT_STRAINS_MENU_BUTTON_CLASS: &str = "plot_strain_menu_button";
 const HIDDEN: &str = "hidden";
-const PLOT_STRESSES_INPUT_NAME: &str = "plot_stresses";
-const PLOT_STRESS_XX_ID: &str = "plot_stress_xx";
-const PLOT_STRESS_XY_ID: &str = "plot_stress_xy";
-const PLOT_STRESS_XZ_ID: &str = "plot_stress_xz";
-const PLOT_STRESS_YY_ID: &str = "plot_stress_yy";
-const PLOT_STRESS_YZ_ID: &str = "plot_stress_yz";
-const PLOT_STRESS_ZZ_ID: &str = "plot_stress_zz";
-const PLOT_STRESSES_MENU_INPUT_FIELD_CLASS: &str = "plot_stresses_menu_input_field";
+const PLOT_STRAINS_INPUT_NAME: &str = "plot_strains";
+const PLOT_STRAIN_XX_ID: &str = "plot_strain_xx";
+const PLOT_STRAIN_XY_ID: &str = "plot_strain_xy";
+const PLOT_STRAIN_XZ_ID: &str = "plot_strain_xz";
+const PLOT_STRAIN_YY_ID: &str = "plot_strain_yy";
+const PLOT_STRAIN_YZ_ID: &str = "plot_strain_yz";
+const PLOT_STRAIN_ZZ_ID: &str = "plot_strain_zz";
+const PLOT_STRAINS_MENU_INPUT_FIELD_CLASS: &str = "plot_strains_menu_input_field";
 
 
 #[derive(Properties, PartialEq, Clone)]
 pub struct Props
 {
-    pub stress_component_selected: Option<StressStrainComponent>,
-    pub select_stress_component: Callback<StressStrainComponent>,
+    pub strain_component_selected: Option<StressStrainComponent>,
+    pub select_strain_component: Callback<StressStrainComponent>,
 }
 
 
 struct State
 {
-    stress_component_selected: StressStrainComponent,
+    strain_component_selected: StressStrainComponent,
 }
 
 
-pub struct PlotStressesMenu
+pub struct PlotStrainsMenu
 {
     link: ComponentLink<Self>,
     props: Props,
@@ -46,33 +46,33 @@ pub struct PlotStressesMenu
 
 pub enum Msg
 {
-    ShowHidePlotStressesMenu,
-    SelectStressComponent(ChangeData),
-    ApplyStressComponent,
+    ShowHidePlotStrainsMenu,
+    SelectStrainComponent(ChangeData),
+    ApplyStrainComponent,
 }
 
 
-impl PlotStressesMenu
+impl PlotStrainsMenu
 {
     fn show_hide_plot_stresses_menu(&self)
     {
         let window = web_sys::window().unwrap();
         let document = window.document().unwrap();
-        let element = document.get_element_by_id(PLOT_STRESSES_MENU_ID).unwrap();
+        let element = document.get_element_by_id(PLOT_STRAINS_MENU_ID).unwrap();
         let class_list: DomTokenList = element.class_list();
         if class_list.contains(HIDDEN)
         {
-            element.set_class_name(PLOT_STRESSES_MENU_CLASS);
+            element.set_class_name(PLOT_STRAINS_MENU_CLASS);
         }
         else
         {
-            element.set_class_name(&(PLOT_STRESSES_MENU_CLASS.to_owned() + " " + HIDDEN));
+            element.set_class_name(&(PLOT_STRAINS_MENU_CLASS.to_owned() + " " + HIDDEN));
         }
     }
 }
 
 
-impl Component for PlotStressesMenu
+impl Component for PlotStrainsMenu
 {
     type Message = Msg;
     type Properties = Props;
@@ -80,7 +80,7 @@ impl Component for PlotStressesMenu
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self
     {
-        Self { props, link, state: State { stress_component_selected: StressStrainComponent::XX } }
+        Self { props, link, state: State { strain_component_selected: StressStrainComponent::XX } }
     }
 
 
@@ -88,8 +88,8 @@ impl Component for PlotStressesMenu
     {
         match msg
         {
-            Msg::ShowHidePlotStressesMenu => self.show_hide_plot_stresses_menu(),
-            Msg::SelectStressComponent(data) =>
+            Msg::ShowHidePlotStrainsMenu => self.show_hide_plot_stresses_menu(),
+            Msg::SelectStrainComponent(data) =>
                 {
                     match data
                     {
@@ -97,36 +97,36 @@ impl Component for PlotStressesMenu
                             {
                                 if stress_select == StressStrainComponent::XX.as_str()
                                 {
-                                    self.state.stress_component_selected = StressStrainComponent::XX;
+                                    self.state.strain_component_selected = StressStrainComponent::XX;
                                 }
                                 if stress_select == StressStrainComponent::XY.as_str()
                                 {
-                                    self.state.stress_component_selected = StressStrainComponent::XY;
+                                    self.state.strain_component_selected = StressStrainComponent::XY;
                                 }
                                 if stress_select == StressStrainComponent::XZ.as_str()
                                 {
-                                    self.state.stress_component_selected = StressStrainComponent::XZ;
+                                    self.state.strain_component_selected = StressStrainComponent::XZ;
                                 }
                                 if stress_select == StressStrainComponent::YY.as_str()
                                 {
-                                    self.state.stress_component_selected = StressStrainComponent::YY;
+                                    self.state.strain_component_selected = StressStrainComponent::YY;
                                 }
                                 if stress_select == StressStrainComponent::YZ.as_str()
                                 {
-                                    self.state.stress_component_selected = StressStrainComponent::YZ;
+                                    self.state.strain_component_selected = StressStrainComponent::YZ;
                                 }
                                 if stress_select == StressStrainComponent::ZZ.as_str()
                                 {
-                                    self.state.stress_component_selected = StressStrainComponent::ZZ;
+                                    self.state.strain_component_selected = StressStrainComponent::ZZ;
                                 }
                                 return false;
                             }
                         _ => (),
                     }
                 },
-            Msg::ApplyStressComponent =>
+            Msg::ApplyStrainComponent =>
                 {
-                    self.props.select_stress_component.emit(self.state.stress_component_selected.to_owned());
+                    self.props.select_strain_component.emit(self.state.strain_component_selected.to_owned());
                 },
         }
         true
@@ -154,24 +154,24 @@ impl Component for PlotStressesMenu
             <>
                 <button
                     class={ POSTPROCESSOR_BUTTON_CLASS },
-                    onclick=self.link.callback(|_| Msg::ShowHidePlotStressesMenu),
+                    onclick=self.link.callback(|_| Msg::ShowHidePlotStrainsMenu),
                 >
-                    { "Plot stresses" }
+                    { "Plot strains" }
                 </button>
-                <div id = { PLOT_STRESSES_MENU_ID } class={ PLOT_STRESSES_MENU_CLASS.to_owned() + " " + HIDDEN }>
-                    <div class={ PLOT_STRESSES_MENU_INPUT_FIELDS_CONTAINER_CLASS }>
-                        <div class={ PLOT_STRESSES_MENU_INPUT_FIELD_CONTAINER_CLASS }>
+                <div id = { PLOT_STRAINS_MENU_ID } class={ PLOT_STRAINS_MENU_CLASS.to_owned() + " " + HIDDEN }>
+                    <div class={ PLOT_STRAINS_MENU_INPUT_FIELDS_CONTAINER_CLASS }>
+                        <div class={ PLOT_STRAINS_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                             <input
-                                class={ PLOT_STRESSES_MENU_INPUT_FIELD_CLASS },
-                                onchange=self.link.callback(|data: ChangeData| Msg::SelectStressComponent(data)),
-                                type="radio", id={ PLOT_STRESS_XX_ID },
-                                name={ PLOT_STRESSES_INPUT_NAME },
+                                class={ PLOT_STRAINS_MENU_INPUT_FIELD_CLASS },
+                                onchange=self.link.callback(|data: ChangeData| Msg::SelectStrainComponent(data)),
+                                type="radio", id={ PLOT_STRAIN_XX_ID },
+                                name={ PLOT_STRAINS_INPUT_NAME },
                                 value={ StressStrainComponent::XX.as_str() },
                                 checked=
                                 {
-                                    if let Some(stress) = &self.props.stress_component_selected
+                                    if let Some(strain) = &self.props.strain_component_selected
                                     {
-                                        if *stress == StressStrainComponent::XX
+                                        if *strain == StressStrainComponent::XX
                                         {
                                             true
                                         }
@@ -186,22 +186,22 @@ impl Component for PlotStressesMenu
                                     }
                                 },
                             />
-                            <label for={ PLOT_STRESS_XX_ID }>
+                            <label for={ PLOT_STRAIN_XX_ID }>
                                 { StressStrainComponent::XX.as_str() }
                             </label>
                         </div>
-                        <div class={ PLOT_STRESSES_MENU_INPUT_FIELD_CONTAINER_CLASS }>
+                        <div class={ PLOT_STRAINS_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                             <input
-                                class={ PLOT_STRESSES_MENU_INPUT_FIELD_CLASS },
-                                onchange=self.link.callback(|data: ChangeData| Msg::SelectStressComponent(data)),
-                                type="radio", id={ PLOT_STRESS_XY_ID },
-                                name={ PLOT_STRESSES_INPUT_NAME },
+                                class={ PLOT_STRAINS_MENU_INPUT_FIELD_CLASS },
+                                onchange=self.link.callback(|data: ChangeData| Msg::SelectStrainComponent(data)),
+                                type="radio", id={ PLOT_STRAIN_XY_ID },
+                                name={ PLOT_STRAINS_INPUT_NAME },
                                 value={ StressStrainComponent::XY.as_str() },
                                 checked=
                                 {
-                                    if let Some(stress) = &self.props.stress_component_selected
+                                    if let Some(strain) = &self.props.strain_component_selected
                                     {
-                                        if *stress == StressStrainComponent::XY
+                                        if *strain == StressStrainComponent::XY
                                         {
                                             true
                                         }
@@ -216,22 +216,22 @@ impl Component for PlotStressesMenu
                                     }
                                 },
                             />
-                            <label for={ PLOT_STRESS_XY_ID }>
+                            <label for={ PLOT_STRAIN_XY_ID }>
                                 { StressStrainComponent::XY.as_str() }
                             </label>
                         </div>
-                        <div class={ PLOT_STRESSES_MENU_INPUT_FIELD_CONTAINER_CLASS }>
+                        <div class={ PLOT_STRAINS_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                             <input
-                                class={ PLOT_STRESSES_MENU_INPUT_FIELD_CLASS },
-                                onchange=self.link.callback(|data: ChangeData| Msg::SelectStressComponent(data)),
-                                type="radio", id={ PLOT_STRESS_XZ_ID },
-                                name={ PLOT_STRESSES_INPUT_NAME },
+                                class={ PLOT_STRAINS_MENU_INPUT_FIELD_CLASS },
+                                onchange=self.link.callback(|data: ChangeData| Msg::SelectStrainComponent(data)),
+                                type="radio", id={ PLOT_STRAIN_XZ_ID },
+                                name={ PLOT_STRAINS_INPUT_NAME },
                                 value={ StressStrainComponent::XZ.as_str() },
                                 checked=
                                 {
-                                    if let Some(stress) = &self.props.stress_component_selected
+                                    if let Some(strain) = &self.props.strain_component_selected
                                     {
-                                        if *stress == StressStrainComponent::XZ
+                                        if *strain == StressStrainComponent::XZ
                                         {
                                             true
                                         }
@@ -246,22 +246,22 @@ impl Component for PlotStressesMenu
                                     }
                                 },
                             />
-                            <label for={ PLOT_STRESS_XZ_ID }>
+                            <label for={ PLOT_STRAIN_XZ_ID }>
                                 { StressStrainComponent::XZ.as_str() }
                             </label>
                         </div>
-                        <div class={ PLOT_STRESSES_MENU_INPUT_FIELD_CONTAINER_CLASS }>
+                        <div class={ PLOT_STRAINS_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                             <input
-                                class={ PLOT_STRESSES_MENU_INPUT_FIELD_CLASS },
-                                onchange=self.link.callback(|data: ChangeData| Msg::SelectStressComponent(data)),
-                                type="radio", id={ PLOT_STRESS_YY_ID },
-                                name={ PLOT_STRESSES_INPUT_NAME },
+                                class={ PLOT_STRAINS_MENU_INPUT_FIELD_CLASS },
+                                onchange=self.link.callback(|data: ChangeData| Msg::SelectStrainComponent(data)),
+                                type="radio", id={ PLOT_STRAIN_YY_ID },
+                                name={ PLOT_STRAINS_INPUT_NAME },
                                 value={ StressStrainComponent::YY.as_str() },
                                 checked=
                                 {
-                                    if let Some(stress) = &self.props.stress_component_selected
+                                    if let Some(strain) = &self.props.strain_component_selected
                                     {
-                                        if *stress == StressStrainComponent::YY
+                                        if *strain == StressStrainComponent::YY
                                         {
                                             true
                                         }
@@ -276,22 +276,22 @@ impl Component for PlotStressesMenu
                                     }
                                 },
                             />
-                            <label for={ PLOT_STRESS_YY_ID }>
+                            <label for={ PLOT_STRAIN_YY_ID }>
                                 { StressStrainComponent::YY.as_str() }
                             </label>
                         </div>
-                        <div class={ PLOT_STRESSES_MENU_INPUT_FIELD_CONTAINER_CLASS }>
+                        <div class={ PLOT_STRAINS_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                             <input
-                                class={ PLOT_STRESSES_MENU_INPUT_FIELD_CLASS },
-                                onchange=self.link.callback(|data: ChangeData| Msg::SelectStressComponent(data)),
-                                type="radio", id={ PLOT_STRESS_YZ_ID },
-                                name={ PLOT_STRESSES_INPUT_NAME },
+                                class={ PLOT_STRAINS_MENU_INPUT_FIELD_CLASS },
+                                onchange=self.link.callback(|data: ChangeData| Msg::SelectStrainComponent(data)),
+                                type="radio", id={ PLOT_STRAIN_YZ_ID },
+                                name={ PLOT_STRAINS_INPUT_NAME },
                                 value={ StressStrainComponent::YZ.as_str() },
                                 checked=
                                 {
-                                    if let Some(stress) = &self.props.stress_component_selected
+                                    if let Some(strain) = &self.props.strain_component_selected
                                     {
-                                        if *stress == StressStrainComponent::YZ
+                                        if *strain == StressStrainComponent::YZ
                                         {
                                             true
                                         }
@@ -306,22 +306,22 @@ impl Component for PlotStressesMenu
                                     }
                                 },
                             />
-                            <label for={ PLOT_STRESS_YZ_ID }>
+                            <label for={ PLOT_STRAIN_YZ_ID }>
                                 { StressStrainComponent::YZ.as_str() }
                             </label>
                         </div>
-                        <div class={ PLOT_STRESSES_MENU_INPUT_FIELD_CONTAINER_CLASS }>
+                        <div class={ PLOT_STRAINS_MENU_INPUT_FIELD_CONTAINER_CLASS }>
                             <input
-                                class={ PLOT_STRESSES_MENU_INPUT_FIELD_CLASS },
-                                onchange=self.link.callback(|data: ChangeData| Msg::SelectStressComponent(data)),
-                                type="radio", id={ PLOT_STRESS_ZZ_ID },
-                                name={ PLOT_STRESSES_INPUT_NAME },
+                                class={ PLOT_STRAINS_MENU_INPUT_FIELD_CLASS },
+                                onchange=self.link.callback(|data: ChangeData| Msg::SelectStrainComponent(data)),
+                                type="radio", id={ PLOT_STRAIN_ZZ_ID },
+                                name={ PLOT_STRAINS_INPUT_NAME },
                                 value={ StressStrainComponent::ZZ.as_str() },
                                 checked=
                                 {
-                                    if let Some(stress) = &self.props.stress_component_selected
+                                    if let Some(strain) = &self.props.strain_component_selected
                                     {
-                                        if *stress == StressStrainComponent::ZZ
+                                        if *strain == StressStrainComponent::ZZ
                                         {
                                             true
                                         }
@@ -336,15 +336,15 @@ impl Component for PlotStressesMenu
                                     }
                                 },
                             />
-                            <label for={ PLOT_STRESS_ZZ_ID }>
+                            <label for={ PLOT_STRAIN_ZZ_ID }>
                                 { StressStrainComponent::ZZ.as_str() }
                             </label>
                         </div>
                     </div>
-                    <div class={ PLOT_STRESSES_MENU_BUTTONS_CONTAINER_CLASS }>
+                    <div class={ PLOT_STRAINS_MENU_BUTTONS_CONTAINER_CLASS }>
                         <button
-                            class={ PLOT_STRESSES_MENU_BUTTON_CLASS },
-                            onclick=self.link.callback(|_| Msg::ApplyStressComponent),
+                            class={ PLOT_STRAINS_MENU_BUTTON_CLASS },
+                            onclick=self.link.callback(|_| Msg::ApplyStrainComponent),
                         >
                             { "Apply" }
                         </button>

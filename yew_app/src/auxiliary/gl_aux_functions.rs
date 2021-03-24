@@ -3,10 +3,14 @@ use vec4;
 use std::rc::Rc;
 use std::cell::RefCell;
 
-use crate::fem::{FENode, GlobalAnalysisResult, GlobalDOFParameter, Displacements, BCType};
+use crate::fem::{FENode, GlobalAnalysisResult, GlobalDOFParameter, Displacements, BCType, EARType};
 use crate::{ElementsNumbers, ElementsValues, UIDNumbers};
 use crate::{GLElementsValues, GLElementsNumbers};
-use crate::auxiliary::{NormalizedNode, FEDrawnElementData, FEDrawnNodeData, FEDrawnAnalysisResultNodeData, DrawnAnalysisResultElementData};
+use crate::auxiliary::
+    {
+        NormalizedNode, FEDrawnElementData, FEDrawnNodeData, FEDrawnAnalysisResultNodeData,
+        DrawnAnalysisResultElementData
+    };
 
 use crate::auxiliary::gl_aux_structs::GLMode;
 use crate::auxiliary::gl_aux_structs::
@@ -17,9 +21,9 @@ use crate::auxiliary::gl_aux_structs::
         DRAWN_OBJECT_UNDER_CURSOR_COLOR, CANVAS_DRAWN_OBJECT_SELECTED_DENOTATION_COLOR,
         CANVAS_DRAWN_OBJECT_UNDER_CURSOR_DENOTATION_COLOR, DISPLACEMENT_SHIFT_X,
         DISPLACEMENT_HEADER_SHIFT_Y, MIN_DISPLACEMENT_SHIFT_Y, MAX_DISPLACEMENT_SHIFT_Y,
-        REACTION_SHIFT_X, REACTION_HEADER_SHIFT_Y, STRESS_SHIFT_X, STRESS_HEADER_SHIFT_Y,
-        STRESS_COMPONENT_SHIFT_Y, COLOR_BAR_SHIFT_X, COLOR_BAR_Y_BOTTOM, COLOR_BAR_Y_TOP,
-        COLOR_BAR_WIDTH,
+        REACTION_SHIFT_X, REACTION_HEADER_SHIFT_Y, EAR_SHIFT_X, EAR_HEADER_SHIFT_Y,
+        EAR_COMPONENT_SHIFT_Y, COLOR_BAR_SHIFT_X, COLOR_BAR_Y_BOTTOM, COLOR_BAR_Y_TOP,
+        COLOR_BAR_WIDTH, EAR_MIN_MAX_VALUE_SHIFT_X
     };
 use crate::auxiliary::aux_functions::transform_u32_to_array_of_u8;
 use crate::fem::global_analysis::fe_global_analysis_result::Reactions;
@@ -266,18 +270,38 @@ pub fn add_reactions_hints(ctx: &CTX, canvas_width: f32, canvas_height: f32)
 }
 
 
-pub fn add_stresses_hints(ctx: &CTX, canvas_width: f32, canvas_height: f32,
-    stress_component: String)
+pub fn add_ear_hints(ctx: &CTX, ear_type: &EARType, canvas_width: f32, canvas_height: f32,
+    component: String, min_selected_value: Option<ElementsValues>,
+    max_selected_value: Option<ElementsValues>)
 {
-    let stress_shift_x = canvas_width * STRESS_SHIFT_X;
-    let stress_header_shift_y = canvas_height * STRESS_HEADER_SHIFT_Y;
-    let stress_header = "STRESSES";
-    ctx.fill_text(stress_header, stress_shift_x as f64,
-        stress_header_shift_y as f64).unwrap();
-    let stress_component_shift_y = canvas_height * STRESS_COMPONENT_SHIFT_Y;
-    let stress_component = &format!("Component: {}", stress_component);
-    ctx.fill_text(stress_component, stress_shift_x as f64,
-        stress_component_shift_y as f64).unwrap();
+    let ear_shift_x = canvas_width * EAR_SHIFT_X;
+    let ear_header_shift_y = canvas_height * EAR_HEADER_SHIFT_Y;
+    let ear_header = ear_type.as_str().to_uppercase();
+    ctx.fill_text(&ear_header, ear_shift_x as f64,
+                  ear_header_shift_y as f64).unwrap();
+    let ear_component_shift_y = canvas_height * EAR_COMPONENT_SHIFT_Y;
+    let ear_component = &format!("Component: {}", component);
+    ctx.fill_text(ear_component, ear_shift_x as f64,
+                  ear_component_shift_y as f64).unwrap();
+    if min_selected_value.is_some() && max_selected_value.is_some()
+    {
+        let ear_min_max_value_shift_x = canvas_width * EAR_MIN_MAX_VALUE_SHIFT_X;
+        let ear_max_value_shift_y = canvas_height * COLOR_BAR_Y_TOP;
+        let max_value = &format!("Max {:+.4e}", max_selected_value.unwrap());
+        ctx.fill_text(max_value, ear_min_max_value_shift_x as f64,
+                      ear_max_value_shift_y as f64).unwrap();
+        let ear_min_value_shift_y = canvas_height * COLOR_BAR_Y_BOTTOM;
+        let min_value = &format!("Min {:+.4e}", min_selected_value.unwrap());
+        ctx.fill_text(min_value, ear_min_max_value_shift_x as f64,
+                      ear_min_value_shift_y as f64).unwrap();
+    }
+    else
+    {
+        let n_a_shift_y = canvas_height * COLOR_BAR_Y_TOP;
+        let n_a = "N/A";
+        ctx.fill_text(n_a, ear_shift_x as f64,
+                      n_a_shift_y as f64).unwrap();
+    }
 }
 
 
@@ -304,36 +328,6 @@ pub fn add_color_bar(ctx: &CTX, canvas_width: f32, canvas_height: f32)
         (canvas_height * (COLOR_BAR_Y_BOTTOM - COLOR_BAR_Y_TOP)) as f64,
     );
     ctx.stroke();
-
-    // context.begin_path();
-    // context.set_fill_style(&CANVAS_NODES_COLOR.into());
-    // context.set_font(&format!("{}px Serif", axis_line_length / 8f64));
-    // context.fill_text(
-    //     "Stress,",
-    //     x_origin,
-    //     self.props.canvas_height as f64 * 0.07)
-    //     .unwrap();
-    // context.fill_text(
-    //     "Component: XX",
-    //     x_origin,
-    //     self.props.canvas_height as f64 * 0.09)
-    //     .unwrap();
-    // context.stroke();
-    //
-    // context.begin_path();
-    // context.set_fill_style(&CANVAS_NODES_COLOR.into());
-    // context.set_font(&format!("{}px Serif", axis_line_length / 8f64));
-    // context.fill_text(
-    //     &format!("{:+.3e}", min_max_values.max_value),
-    //     x_origin + self.props.canvas_width as f64 * 0.025,
-    //     self.props.canvas_height as f64 * 0.1 + axis_line_length / 16f64)
-    //     .unwrap();
-    // context.fill_text(
-    //     &format!("{:+.3e}", min_max_values.min_value),
-    //     x_origin + self.props.canvas_width as f64 * 0.025,
-    //     self.props.canvas_height as f64 * 0.35 + axis_line_length / 16f64)
-    //     .unwrap();
-    // context.stroke();
 }
 
 

@@ -28,8 +28,8 @@ use crate::fem::global_analysis::fe_global_analysis_result::Reactions;
 use crate::fem::element_analysis::fe_element_analysis_result::ElementsAnalysisResult;
 
 
-// #[global_allocator]
-// static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+#[global_allocator]
+static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 pub type ElementsNumbers = u16;
 pub type ElementsValues = f64;

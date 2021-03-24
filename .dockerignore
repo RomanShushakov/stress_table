@@ -1,0 +1,6 @@
+/app/target
+/app/.idea
+/app/web_layout/wasm/
+
+/yew_app/target
+/yew_app/.idea

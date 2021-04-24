@@ -18,6 +18,8 @@ extern "C"
 pub struct Renderer
 {
     canvas_gl: web_sys::HtmlCanvasElement,
+    canvas_width: f32,
+    canvas_height: f32,
     timestamp: f32,
 }
 
@@ -25,9 +27,10 @@ pub struct Renderer
 #[wasm_bindgen]
 impl Renderer
 {
-    pub fn create(canvas_gl: web_sys::HtmlCanvasElement) -> Renderer
+    pub fn create(canvas_gl: web_sys::HtmlCanvasElement, canvas_width: f32, canvas_height: f32)
+        -> Renderer
     {
-        Renderer { canvas_gl, timestamp: 0.0 }
+        Renderer { canvas_gl, canvas_width, canvas_height, timestamp: 0.0 }
     }
 
 
@@ -39,11 +42,21 @@ impl Renderer
     }
 
 
-    fn render(&self) -> Result<(), JsValue>
+    pub fn update_canvas_size(&mut self, canvas_width: f32, canvas_height: f32)
+    {
+        self.canvas_width = canvas_width;
+        self.canvas_height = canvas_height;
+    }
+
+
+    fn render(&mut self) -> Result<(), JsValue>
     {
         // let document = web_sys::window().unwrap().document().unwrap();
         // let canvas = document.get_element_by_id("canvas").unwrap();
         // let canvas: web_sys::HtmlCanvasElement = canvas.dyn_into::<web_sys::HtmlCanvasElement>()?;
+
+        self.canvas_gl.set_width(self.canvas_width as u32);
+        self.canvas_gl.set_height(self.canvas_height as u32);
 
         let gl = self.canvas_gl
             .get_context("webgl")?
@@ -80,6 +93,9 @@ impl Renderer
             }
         "#,
         )?;
+
+        gl.viewport(0, 0, self.canvas_width as i32, self.canvas_height as i32);
+
         let program = link_program(&gl, &vert_shader, &frag_shader)?;
         gl.use_program(Some(&program));
 

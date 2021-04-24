@@ -10,10 +10,7 @@ class PreprocessorCanvas extends HTMLElement {
         this.props = {};
 
         // our application level state is defined here, with initial values
-        this.state = {
-            // amount: 2, // the step amount to increment/decrement
-            // total: 0,  // the running total
-        };
+        this.state = {};
 
         // give this component a shadowDOM
         this.attachShadow({ mode: "open" });
@@ -31,7 +28,7 @@ class PreprocessorCanvas extends HTMLElement {
             <canvas class="preprocessor_canvas"></canvas>
         `;
 
-
+        window.addEventListener("resize", () => this.updateCanvasSize());
         // // add our event listeners for listening to state change requests
         // this.addEventListener('x-increment', (event) => this.onIncrement(event));
         // this.addEventListener('x-decrement', (event) => this.onDecrement(event));
@@ -40,14 +37,21 @@ class PreprocessorCanvas extends HTMLElement {
 
 
     async connectedCallback() {
-        let render = await initializeRenderer(this.shadowRoot.querySelector(".preprocessor_canvas"));
+        const playPauseButton = this.shadowRoot.querySelector(".play_pause_button");
+        const canvas = this.shadowRoot.querySelector(".preprocessor_canvas");
+        this.renderer = await initializeRenderer(canvas, window.innerWidth * 0.8, window.innerHeight * 0.8);
         let animationId = null;
 
         const renderLoop = () => {
-            render.tick();
+            this.renderer.tick();
             animationId = requestAnimationFrame(renderLoop);
         };
         renderLoop();
+    }
+
+
+    updateCanvasSize() {
+        this.renderer.update_canvas_size(window.innerWidth * 0.8, window.innerHeight * 0.8);
     }
 
     // connectedCallback() {

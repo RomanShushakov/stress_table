@@ -6,9 +6,6 @@ use web_sys::{WebGlProgram, WebGlRenderingContext, WebGlShader};
 #[wasm_bindgen]
 extern "C"
 {
-    // #[wasm_bindgen(js_namespace = console, js_name = log)]
-    // fn log_f32(value: f32);
-
     #[wasm_bindgen(js_namespace = console)]
     fn log(value: &str);
 }
@@ -18,8 +15,13 @@ extern "C"
 pub struct Renderer
 {
     canvas_gl: web_sys::HtmlCanvasElement,
-    canvas_width: f32,
-    canvas_height: f32,
+    cursor_coord_x: i32,
+    cursor_coord_y: i32,
+    theta: f32,
+    phi: f32,
+    dx: f32,
+    dy: f32,
+    d_scale: f32,
     timestamp: f32,
 }
 
@@ -30,7 +32,71 @@ impl Renderer
     pub fn create(canvas_gl: web_sys::HtmlCanvasElement, canvas_width: f32, canvas_height: f32)
         -> Renderer
     {
-        Renderer { canvas_gl, canvas_width, canvas_height, timestamp: 0.0 }
+        canvas_gl.set_width(canvas_width as u32);
+        canvas_gl.set_height(canvas_height as u32);
+        Renderer
+        {
+            canvas_gl,
+            cursor_coord_x: -1,
+            cursor_coord_y: -1,
+            theta: 0.0,
+            phi: 0.0,
+            dx: 0.0,
+            dy: 0.0,
+            d_scale: 0.0,
+            timestamp: 0.0
+        }
+    }
+
+
+    pub fn update_canvas_size(&mut self, canvas_width: f32, canvas_height: f32)
+    {
+        self.canvas_gl.set_width(canvas_width as u32);
+        self.canvas_gl.set_height(canvas_height as u32);
+    }
+
+
+    pub fn change_cursor_coordinates(&mut self, x: i32, y: i32)
+    {
+        self.cursor_coord_x = x;
+        self.cursor_coord_y = y;
+    }
+
+
+    pub fn increment_angle_theta(&mut self, d_theta: f32)
+    {
+        self.theta += d_theta;
+    }
+
+
+    pub fn increment_angle_phi(&mut self, d_phi: f32)
+    {
+        self.phi += d_phi;
+    }
+
+
+    pub fn increment_dx(&mut self, dx: f32)
+    {
+        self.dx += dx;
+    }
+
+
+    pub fn increment_dy(&mut self, dy: f32)
+    {
+        self.dy += dy;
+    }
+
+
+    pub fn extract_d_scale(&self) -> f32
+    {
+        self.d_scale
+    }
+
+
+    pub fn change_d_scale(&mut self, d_scale: f32)
+    {
+        self.d_scale = d_scale;
+        // log(&format!("{}", self.d_scale));
     }
 
 
@@ -42,21 +108,10 @@ impl Renderer
     }
 
 
-    pub fn update_canvas_size(&mut self, canvas_width: f32, canvas_height: f32)
-    {
-        self.canvas_width = canvas_width;
-        self.canvas_height = canvas_height;
-    }
-
-
     fn render(&mut self) -> Result<(), JsValue>
     {
-        // let document = web_sys::window().unwrap().document().unwrap();
-        // let canvas = document.get_element_by_id("canvas").unwrap();
-        // let canvas: web_sys::HtmlCanvasElement = canvas.dyn_into::<web_sys::HtmlCanvasElement>()?;
-
-        self.canvas_gl.set_width(self.canvas_width as u32);
-        self.canvas_gl.set_height(self.canvas_height as u32);
+        let width = self.canvas_gl.width();
+        let height = self.canvas_gl.height();
 
         let gl = self.canvas_gl
             .get_context("webgl")?
@@ -94,7 +149,7 @@ impl Renderer
         "#,
         )?;
 
-        gl.viewport(0, 0, self.canvas_width as i32, self.canvas_height as i32);
+        gl.viewport(0, 0, width as i32, height as i32);
 
         let program = link_program(&gl, &vert_shader, &frag_shader)?;
         gl.use_program(Some(&program));

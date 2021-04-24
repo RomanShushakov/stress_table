@@ -1,49 +1,56 @@
 import { initializeRenderer } from "../wasm_js_interface_modules/renderer_initialization.js";
 
-// Our app container, app-wide state is managed here
+const coefficient = 0.8;
+
 
 class PreprocessorCanvas extends HTMLElement {
     constructor() {
         super();
 
-        // any external prop can be defined here
         this.props = {};
 
-        // our application level state is defined here, with initial values
-        this.state = {};
+        this.state = {
+            canvasGL: null,
+            renderer: null,
+            canvasWidth: null,
+            canvasHeight: null,
+            rotate: false,
+            pan: false,
+            shiftPressed: false,
+        };
 
-        // give this component a shadowDOM
         this.attachShadow({ mode: "open" });
-
-        // add shadowDOM and slot in the lightDOM
-        // this.shadowRoot.innerHTML = feAnalysisTemplate;
 
         this.shadowRoot.innerHTML = `
             <style>
-            :host {
-                display: block;
-            }
+                :host {
+                    display: block;
+                }
             </style>
-            <p>Hello from preprocessor canvas</p>
-            <canvas class="preprocessor_canvas"></canvas>
+            <canvas class="preprocessor_canvas_gl"></canvas>
         `;
 
         window.addEventListener("resize", () => this.updateCanvasSize());
-        // // add our event listeners for listening to state change requests
-        // this.addEventListener('x-increment', (event) => this.onIncrement(event));
-        // this.addEventListener('x-decrement', (event) => this.onDecrement(event));
-        // this.addEventListener('x-update-amount', (event) => this.onUpdateAmount(event));
+        window.addEventListener("keydown", (event) => this.onKeyDown(event));
+        window.addEventListener("keyup", () => this.onKeyUp());
+        this.shadowRoot.querySelector(".preprocessor_canvas_gl").addEventListener("mousemove", (event) => this.onMouseMove(event));
+        this.shadowRoot.querySelector(".preprocessor_canvas_gl").addEventListener("mouseleave", () => this.onMouseLeave());
+        this.shadowRoot.querySelector(".preprocessor_canvas_gl").addEventListener("mousedown", () => this.onMouseDown());
+        this.shadowRoot.querySelector(".preprocessor_canvas_gl").addEventListener("mouseup", () => this.onMouseUp());
+        this.shadowRoot.querySelector(".preprocessor_canvas_gl").addEventListener("mousewheel", (event) => this.onMouseWheel(event));
     }
 
 
     async connectedCallback() {
-        const playPauseButton = this.shadowRoot.querySelector(".play_pause_button");
-        const canvas = this.shadowRoot.querySelector(".preprocessor_canvas");
-        this.renderer = await initializeRenderer(canvas, window.innerWidth * 0.8, window.innerHeight * 0.8);
+        this.state.canvasGL = this.shadowRoot.querySelector(".preprocessor_canvas_gl");
+        this.state.canvasWidth = window.innerWidth * coefficient;
+        this.state.canvasHeight = window.innerHeight * coefficient;
+        this.state.renderer = await initializeRenderer(
+            this.state.canvasGL, this.state.canvasWidth, this.state.canvasHeight);
         let animationId = null;
 
         const renderLoop = () => {
-            this.renderer.tick();
+            this.state.renderer.tick();
             animationId = requestAnimationFrame(renderLoop);
         };
         renderLoop();
@@ -51,8 +58,78 @@ class PreprocessorCanvas extends HTMLElement {
 
 
     updateCanvasSize() {
-        this.renderer.update_canvas_size(window.innerWidth * 0.8, window.innerHeight * 0.8);
+        this.state.canvasWidth = window.innerWidth * coefficient;
+        this.state.canvasHeight = window.innerHeight * coefficient;
+        this.state.renderer.update_canvas_size(this.state.canvasWidth, this.state.canvasHeight);
     }
+
+
+    onKeyDown(event) {
+        if (event.shiftKey === true) {
+            this.state.shiftPressed = true;
+        }
+    }
+
+
+    onKeyUp() {
+        this.state.shiftPressed = false;
+    }
+
+
+    onMouseMove(event) {
+        const mouseX = event.clientX;
+        const mouseY = event.clientY;
+        const boundingRect = this.state.canvasGL.getBoundingClientRect();
+        const x = mouseX - boundingRect.left;
+        const y = boundingRect.bottom - mouseY;
+        this.state.renderer.change_cursor_coordinates(x, y);
+        if (this.state.rotate === true) {
+            const dTheta = event.movementX * 2.0 * Math.PI / this.state.canvasWidth;
+            this.state.renderer.increment_angle_theta(dTheta);
+            const dPhi = event.movementY * 2.0 * Math.PI / this.state.canvasHeight;
+            this.state.renderer.increment_angle_phi(dPhi);
+        }
+        if (this.state.pan === true) {
+            const dx = event.movementX / this.state.canvasWidth;
+            this.state.renderer.increment_dx(dx);
+            const dy =  -event.movementY / this.state.canvasHeight;
+            this.state.renderer.increment_dy(dy);
+        }
+    }
+
+
+    onMouseLeave() {
+        this.state.rotate = false;
+        this.state.pan = false;
+    }
+
+
+    onMouseDown() {
+        if (this.state.shiftPressed === true) {
+            this.state.pan = true;
+        } else {
+            this.state.rotate = true;
+        }
+    }
+
+
+    onMouseUp() {
+        this.state.rotate = false;
+        this.state.pan = false;
+    }
+
+
+    onMouseWheel(event) {
+        let dScale = this.state.renderer.extract_d_scale() + event.deltaY / this.state.canvasHeight;
+        if (1.0 + dScale > 50.0) {
+            this.state.renderer.change_d_scale(48.95);
+        } else if (1.0 + dScale < 0.0) {
+            this.state.renderer.change_d_scale(-0.95);
+        } else {
+            this.state.renderer.change_d_scale(dScale);
+        }
+    }
+
 
     // connectedCallback() {
     //     // update the shadowDOM with the intitial props/state

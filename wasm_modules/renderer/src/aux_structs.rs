@@ -1,6 +1,8 @@
 use web_sys::{WebGlBuffer, WebGlUniformLocation, WebGlProgram, WebGlRenderingContext as GL};
 use std::f32::consts::PI;
 
+use crate::aux_functions::define_drawn_object_color;
+
 
 const TOLERANCE: f32 = 1e-6;
 
@@ -38,7 +40,10 @@ pub const DRAWN_OBJECT_TO_CANVAS_HEIGHT_SCALE: f32 = 0.9;
 pub const DRAWN_NODES_COLOR: [f32; 4] = [1.0, 1.0, 0.0, 1.0]; // yellow
 pub const CANVAS_DRAWN_NODES_DENOTATION_COLOR: &str = "yellow";
 
-pub const DRAWN_NODES_DENOTATION_SHIFT: f32 = 0.02;
+pub const DRAWN_POINTS_COLOR: [f32; 4] = [0.26, 0.81, 0.20, 1.0]; // apple
+pub const CANVAS_DRAWN_POINTS_DENOTATION_COLOR: &str = "rgb(67, 208, 52)";
+
+pub const DRAWN_POINT_OBJECT_DENOTATION_SHIFT: f32 = 0.02;
 
 pub const DRAWN_ELEMENTS_COLOR: [f32; 4] = [0.0, 1.0, 1.0, 1.0]; // cyan
 pub const CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR: &str = "cyan";
@@ -108,14 +113,33 @@ pub const COLOR_BAR_Y_TOP: f32 = 0.2;
 pub const COLOR_BAR_WIDTH: f32 = 0.015;
 
 
-
-pub struct Node
+#[derive(Debug, Copy, Clone)]
+pub enum PointObjectType
 {
-    pub uid: u32,
+    Point,
+    Node,
+}
+
+#[derive(Debug)]
+pub struct PointObject
+{
     pub number: u32,
     pub x: f32,
     pub y: f32,
     pub z: f32,
+    pub object_type: PointObjectType,
+}
+
+
+#[derive(Debug)]
+pub struct NormalizedPointObject
+{
+    pub number: u32,
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+    pub object_type: PointObjectType,
+    pub uid: u32,
 }
 
 
@@ -349,6 +373,34 @@ impl DrawnObject
         let offset = self.define_offset();
         self.modes.push(GLPrimitiveType::Triangles);
         self.elements_numbers.push(base_points_number as i32 * 3);
+        self.offsets.push(offset);
+    }
+
+
+    pub fn add_point_object(&mut self, normalized_point_objects: &[NormalizedPointObject],
+        gl_mode: GLMode, under_cursor_color: &[u8; 4], selected_color: &[u8; 4])
+    {
+        let start_index =
+            if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
+        for (i, point_object) in
+            normalized_point_objects.iter().enumerate()
+        {
+            let initial_color = match point_object.object_type
+                {
+                    PointObjectType::Point => DRAWN_POINTS_COLOR,
+                    PointObjectType::Node => DRAWN_NODES_COLOR,
+                };
+            self.vertices_coordinates.extend(
+                &[point_object.x, point_object.y, point_object.z]);
+            let node_color = define_drawn_object_color(
+                &gl_mode, point_object.uid,
+                selected_color, under_cursor_color, &initial_color);
+            self.colors_values.extend(&node_color);
+            self.indexes_numbers.push(start_index + i as u32);
+        }
+        self.modes.push(GLPrimitiveType::Points);
+        self.elements_numbers.push(normalized_point_objects.len() as i32);
+        let offset = self.define_offset();
         self.offsets.push(offset);
     }
 

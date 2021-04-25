@@ -10,6 +10,7 @@ class PreprocessorCanvas extends HTMLElement {
         this.props = {};
 
         this.state = {
+            canvasText: null,
             canvasGL: null,
             renderer: null,
             animationId: null,
@@ -29,29 +30,64 @@ class PreprocessorCanvas extends HTMLElement {
                 :host {
                     display: block;
                 }
+
+                .preprocessor_canvas {
+                    display: flex;
+                    flex-direction: column;
+                    border: 1px solid #000000;
+                    margin-top: 0.5rem;
+                }
+                
+                .preprocessor_canvas_container {
+                    position: relative;
+                }
+                
+                .preprocessor_canvas_text {
+                    background-color: transparent;
+                    position: absolute;
+                    left: 0px;
+                    top: 0px;
+                    z-index: 10;
+                }
+                
+                
+                .preprocessor_canvas_gl {
+                    vertical-align: top;
+                }
             </style>
-            <canvas class="preprocessor_canvas_gl"></canvas>
+            <div class="preprocessor_canvas_container">
+                <canvas class="preprocessor_canvas_text"></canvas>
+                <canvas class="preprocessor_canvas_gl"></canvas>
+                <button class="add_point">Add point</button>
+                <button class="add_node">Add node</button>
+            </div>
         `;
 
         window.addEventListener("resize", () => this.updateCanvasSize());
         window.addEventListener("keydown", (event) => this.onKeyDown(event));
         window.addEventListener("keyup", () => this.onKeyUp());
-        this.shadowRoot.querySelector(".preprocessor_canvas_gl").addEventListener("mousemove", (event) => this.onMouseMove(event));
-        this.shadowRoot.querySelector(".preprocessor_canvas_gl").addEventListener("mouseleave", () => this.onMouseLeave());
-        this.shadowRoot.querySelector(".preprocessor_canvas_gl").addEventListener("mousedown", () => this.onMouseDown());
-        this.shadowRoot.querySelector(".preprocessor_canvas_gl").addEventListener("mouseup", () => this.onMouseUp());
-        this.shadowRoot.querySelector(".preprocessor_canvas_gl").addEventListener("mousewheel", (event) => this.onMouseWheel(event));
-        this.shadowRoot.querySelector(".preprocessor_canvas_gl").addEventListener("click", () => this.onMouseClick());
+        this.shadowRoot.querySelector(".preprocessor_canvas_text").addEventListener("mousemove", (event) => this.onMouseMove(event));
+        this.shadowRoot.querySelector(".preprocessor_canvas_text").addEventListener("mouseleave", () => this.onMouseLeave());
+        this.shadowRoot.querySelector(".preprocessor_canvas_text").addEventListener("mousedown", () => this.onMouseDown());
+        this.shadowRoot.querySelector(".preprocessor_canvas_text").addEventListener("mouseup", () => this.onMouseUp());
+        this.shadowRoot.querySelector(".preprocessor_canvas_text").addEventListener("mousewheel", (event) => this.onMouseWheel(event));
+        this.shadowRoot.querySelector(".preprocessor_canvas_text").addEventListener("click", () => this.onMouseClick());
+
+        this.shadowRoot.querySelector(".add_point").addEventListener("click", () => this.addPoint());
+        this.shadowRoot.querySelector(".add_node").addEventListener("click", () => this.addNode());
     }
 
 
     async connectedCallback() {
+        this.state.canvasText = this.shadowRoot.querySelector(".preprocessor_canvas_text");
         this.state.canvasGL = this.shadowRoot.querySelector(".preprocessor_canvas_gl");
         this.state.canvasWidth = window.innerWidth * coefficient;
         this.state.canvasHeight = window.innerHeight * coefficient;
+        this.state.canvasText.width = this.state.canvasWidth;
+        this.state.canvasText.height = this.state.canvasHeight;
         this.state.canvasGL.width = this.state.canvasWidth;
         this.state.canvasGL.height = this.state.canvasHeight;
-        this.state.renderer = await initializeRenderer(this.state.canvasGL);
+        this.state.renderer = await initializeRenderer(this.state.canvasText, this.state.canvasGL);
         this.state.renderLoop = () => {
             this.state.renderer.tick();
             this.state.animationId = requestAnimationFrame(this.state.renderLoop);
@@ -155,6 +191,24 @@ class PreprocessorCanvas extends HTMLElement {
     onMouseClick() {
         const selectedObject = this.state.renderer.select_object();
         console.log(selectedObject);
+    }
+
+
+    addPoint() {
+        this.state.renderer.add_point(1, 1, 2, 3);
+        if (this.state.isPaused === true)
+        {
+            this.state.renderer.tick();
+        }
+    }
+
+
+    addNode() {
+        this.state.renderer.add_node(1, 1, 2, 3);
+        if (this.state.isPaused === true)
+        {
+            this.state.renderer.tick();
+        }
     }
 
 

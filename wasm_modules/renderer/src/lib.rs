@@ -1,6 +1,30 @@
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
-use web_sys::{WebGlProgram, WebGlRenderingContext, WebGlShader};
+use web_sys::{WebGlProgram, WebGlRenderingContext as GL, WebGlShader};
+use mat4;
+
+mod aux_structs;
+mod aux_functions;
+
+use aux_structs::{ShadersVariables, Buffers, DrawnObject};
+use aux_structs::{CSAxis};
+use aux_structs::
+    {
+        CS_AXES_Y_SHIFT, CS_AXES_X_SHIFT, CS_AXES_Z_SHIFT, CS_AXES_SCALE,
+        CS_AXES_CAPS_BASE_POINTS_NUMBER, CS_AXES_CAPS_WIDTH, CS_AXES_CAPS_HEIGHT,
+        AXIS_X_DENOTATION_SHIFT_X, AXIS_X_DENOTATION_SHIFT_Y, AXIS_Y_DENOTATION_SHIFT_X,
+        AXIS_Y_DENOTATION_SHIFT_Y, AXIS_Z_DENOTATION_SHIFT_X, AXIS_Z_DENOTATION_SHIFT_Y,
+        AXIS_Z_DENOTATION_SHIFT_Z, CANVAS_AXES_DENOTATION_COLOR,
+        CANVAS_DRAWN_NODES_DENOTATION_COLOR, DRAWN_NODES_DENOTATION_SHIFT,
+        CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR, DRAWN_DISPLACEMENTS_CAPS_BASE_POINTS_NUMBER,
+        DRAWN_DISPLACEMENTS_CAPS_HEIGHT, DRAWN_DISPLACEMENTS_CAPS_WIDTH,
+        CANVAS_DRAWN_DISPLACEMENTS_DENOTATION_COLOR, DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_X,
+        DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_Y, DRAWN_FORCES_LINE_LENGTH, DRAWN_FORCES_CAPS_HEIGHT,
+        DRAWN_FORCES_CAPS_WIDTH, DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER,
+        CANVAS_DRAWN_FORCES_DENOTATION_COLOR, DRAWN_FORCES_DENOTATION_SHIFT_X,
+        DRAWN_FORCES_DENOTATION_SHIFT_Y, HINTS_COLOR, DRAWN_ELEMENTS_DENOTATION_SHIFT
+    };
+use aux_functions::initialize_shaders;
 
 
 #[wasm_bindgen]
@@ -24,6 +48,12 @@ pub struct Renderer
     d_scale: f32,
     under_cursor_color: [u8; 4],
     selected_color: [u8; 4],
+    // nodes: Vec<Node>,
+    // drawn_elements: Rc<Vec<FEDrawnElementData>>,
+    // add_analysis_message: Callback<String>,
+    // drawn_bcs: Rc<Vec<FEDrawnBCData>>,
+    // add_object_info: Callback<String>,
+    // reset_object_info: Callback<()>,
     timestamp: f32,
 }
 
@@ -46,6 +76,7 @@ impl Renderer
             d_scale: 0.0,
             under_cursor_color: [0; 4],
             selected_color: [0; 4],
+            // nodes: Vec::new(),
             timestamp: 0.0
         }
     }
@@ -104,9 +135,9 @@ impl Renderer
 
     pub fn select_object(&mut self) -> Option<String>
     {
-        self.selected_color = self.under_cursor_color;
-        Some(format!("{:?}", self.selected_color))
-        // None
+        // self.selected_color = self.under_cursor_color;
+        // Some(format!("{:?}", self.selected_color))
+        None
     }
 
 
@@ -126,159 +157,95 @@ impl Renderer
         let gl = self.canvas_gl
             .get_context("webgl")?
             .unwrap()
-            .dyn_into::<WebGlRenderingContext>()?;
+            .dyn_into::<GL>()?;
 
         gl.clear_color(1.0, 1.0, 1.0, 1.0);
-        gl.enable(WebGlRenderingContext::DEPTH_TEST);
-        gl.clear(WebGlRenderingContext::COLOR_BUFFER_BIT);
-        gl.clear(WebGlRenderingContext::DEPTH_BUFFER_BIT);
+        gl.enable(GL::DEPTH_TEST);
+        gl.clear(GL::COLOR_BUFFER_BIT);
+        gl.clear(GL::DEPTH_BUFFER_BIT);
 
-        let vert_shader = compile_shader(
-            &gl,
-            WebGlRenderingContext::VERTEX_SHADER,
-            r#"
-            precision mediump float;
-            attribute vec2 a_position;
-            void main() {
-                gl_Position = vec4(a_position, 0.0, 1.0);
-            }
-        "#,
-        )?;
-        let frag_shader = compile_shader(
-            &gl,
-            WebGlRenderingContext::FRAGMENT_SHADER,
-            r#"
-            precision mediump float;
-            uniform float u_time;
-            void main() {
-                float r = sin(u_time * 0.003);
-                float g = sin(u_time * 0.005);
-                float b = sin(u_time * 0.007);
-                gl_FragColor = vec4(r, g, b, 1.0);
-            }
-        "#,
-        )?;
+        let vertex_shader_code = include_str!("shaders/main_vert_shader.vert");
+        let fragment_shader_code = include_str!("shaders/main_frag_shader.frag");
+
+        let shader_program = initialize_shaders(&gl, vertex_shader_code, fragment_shader_code);
+        let shaders_variables = ShadersVariables::initialize(&gl, &shader_program);
 
         gl.viewport(0, 0, width as i32, height as i32);
 
-        let program = link_program(&gl, &vert_shader, &frag_shader)?;
-        gl.use_program(Some(&program));
+        let aspect: f32 = width as f32 / height as f32;
+        let z_near = 1.0;
+        let z_far = 101.0;
 
-        let vertices: Vec<f32> = vec![
-                -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0,
-            ];
+        let cs_buffers = Buffers::initialize(&gl);
+        let mut cs_drawn_object = DrawnObject::create();
+        gl.line_width(2.5);
 
-        let buffer = gl.create_buffer().ok_or("failed to create buffer")?;
-        gl.bind_buffer(WebGlRenderingContext::ARRAY_BUFFER, Some(&buffer));
+        cs_drawn_object.add_cs_axis_line(CSAxis::X);
+        cs_drawn_object.add_cs_axis_line(CSAxis::Y);
+        cs_drawn_object.add_cs_axis_line(CSAxis::Z);
+        cs_drawn_object.add_cs_axis_cap(
+            CSAxis::X, CS_AXES_CAPS_BASE_POINTS_NUMBER,
+            CS_AXES_CAPS_HEIGHT, CS_AXES_CAPS_WIDTH);
+        cs_drawn_object.add_cs_axis_cap(
+            CSAxis::Y, CS_AXES_CAPS_BASE_POINTS_NUMBER,
+            CS_AXES_CAPS_HEIGHT, CS_AXES_CAPS_WIDTH);
+        cs_drawn_object.add_cs_axis_cap(
+            CSAxis::Z, CS_AXES_CAPS_BASE_POINTS_NUMBER,
+            CS_AXES_CAPS_HEIGHT, CS_AXES_CAPS_WIDTH);
 
-        let vert_array = js_sys::Float32Array::from(vertices.as_slice());
+        cs_buffers.render(&gl, &cs_drawn_object, &shaders_variables);
 
-        gl.buffer_data_with_array_buffer_view(
-            WebGlRenderingContext::ARRAY_BUFFER,
-            &vert_array,
-            WebGlRenderingContext::STATIC_DRAW,
-        );
+        let point_size = 5.0;
 
-        let position = gl.get_attrib_location(&program, "a_position") as u32;
-        gl.vertex_attrib_pointer_with_i32(position, 2, WebGlRenderingContext::FLOAT, false, 0, 0);
-        gl.enable_vertex_attrib_array(position);
+        let mut projection_matrix = mat4::new_zero();
+        mat4::orthographic(&mut projection_matrix,
+            &1.0, &1.0, &-1.0, &-1.0, &z_near, &z_far);
+        let mut model_view_matrix = mat4::new_identity();
+        let mat_to_translate = model_view_matrix;
+        let y_shift =
+            if CS_AXES_Y_SHIFT > 0.0 { 1.0 - (1.0 - CS_AXES_Y_SHIFT) * aspect }
+            else { - 1.0 + (1.0 + CS_AXES_Y_SHIFT) * aspect };
+        mat4::translate(&mut model_view_matrix, &mat_to_translate,
+            &[CS_AXES_X_SHIFT, y_shift, CS_AXES_Z_SHIFT]);
+        let mat_to_scale = model_view_matrix;
+        mat4::scale(&mut model_view_matrix, &mat_to_scale,
+            &[CS_AXES_SCALE, CS_AXES_SCALE * aspect, CS_AXES_SCALE * aspect]);
+        let mat_to_rotate = model_view_matrix;
+        mat4::rotate_x(&mut model_view_matrix,&mat_to_rotate,&self.phi);
+        let mat_to_rotate = model_view_matrix;
+        mat4::rotate_y(&mut model_view_matrix, &mat_to_rotate, &self.theta);
+        gl.uniform1f(Some(&shaders_variables.point_size), point_size);
+        gl.uniform_matrix4fv_with_f32_array(
+            Some(&shaders_variables.projection_matrix), false, &projection_matrix);
+        gl.uniform_matrix4fv_with_f32_array(
+            Some(&shaders_variables.model_view_matrix), false, &model_view_matrix);
 
-        let time = gl.get_uniform_location(&program, "u_time");
-        gl.uniform1f(time.as_ref(), self.timestamp);
+        cs_drawn_object.draw(&gl);
 
-        gl.draw_arrays(WebGlRenderingContext::TRIANGLES, 0, (vertices.len() / 2) as i32);
-
-        let mut pixels = [0u8; 4];
-        match gl.read_pixels_with_opt_u8_array(self.cursor_coord_x, self.cursor_coord_y, 1, 1,
-            WebGlRenderingContext::RGBA, WebGlRenderingContext::UNSIGNED_BYTE,
-            Some(&mut pixels))
-        {
-            Ok(_) => self.under_cursor_color = pixels,
-            Err(_) => (),
-        }
-
-        gl.clear(WebGlRenderingContext::COLOR_BUFFER_BIT);
-        gl.clear(WebGlRenderingContext::DEPTH_BUFFER_BIT);
-
-
-        let vertices: Vec<f32> = vec![
-                -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0,
-            ];
-
-        let buffer = gl.create_buffer().ok_or("failed to create buffer")?;
-        gl.bind_buffer(WebGlRenderingContext::ARRAY_BUFFER, Some(&buffer));
-
-        let vert_array = js_sys::Float32Array::from(vertices.as_slice());
-
-        gl.buffer_data_with_array_buffer_view(
-            WebGlRenderingContext::ARRAY_BUFFER,
-            &vert_array,
-            WebGlRenderingContext::STATIC_DRAW,
-        );
-
-        let position = gl.get_attrib_location(&program, "a_position") as u32;
-        gl.vertex_attrib_pointer_with_i32(position, 2, WebGlRenderingContext::FLOAT, false, 0, 0);
-        gl.enable_vertex_attrib_array(position);
-
-        let time = gl.get_uniform_location(&program, "u_time");
-        gl.uniform1f(time.as_ref(), self.timestamp);
-
-        gl.draw_arrays(WebGlRenderingContext::TRIANGLES, 0, (vertices.len() / 2) as i32);
-
+        // ctx.set_fill_style(&CANVAS_AXES_DENOTATION_COLOR.into());
+        // add_denotation(&ctx,
+        //     &[1.0 + AXIS_X_DENOTATION_SHIFT_X, 0.0 + AXIS_X_DENOTATION_SHIFT_Y, 0.0, 1.0],
+        //     &model_view_matrix,
+        //     self.props.canvas_width as f32,
+        //     self.props.canvas_height as f32, "X");
+        // add_denotation(&ctx,
+        //     &[0.0 + AXIS_Y_DENOTATION_SHIFT_X, 1.0 + AXIS_Y_DENOTATION_SHIFT_Y, 0.0, 1.0],
+        //     &model_view_matrix,
+        //     self.props.canvas_width as f32,
+        //     self.props.canvas_height as f32, "Y");
+        // add_denotation(&ctx,
+        //     &[0.0 + AXIS_Z_DENOTATION_SHIFT_X, 0.0 + AXIS_Z_DENOTATION_SHIFT_Y,
+        //         1.0 + AXIS_Z_DENOTATION_SHIFT_Z, 1.0],
+        //     &model_view_matrix,
+        //     self.props.canvas_width as f32,
+        //     self.props.canvas_height as f32, "Z");
+        // ctx.stroke();
+        //
+        // ctx.set_fill_style(&HINTS_COLOR.into());
+        // add_hints(&ctx, self.props.canvas_width as f32,
+        //     self.props.canvas_height as f32);
+        // ctx.stroke();
 
         Ok(())
     }
 }
-
-
-fn compile_shader(gl: &WebGlRenderingContext, shader_type: u32, source: &str)
-    -> Result<WebGlShader, String>
-{
-    let shader = gl
-        .create_shader(shader_type)
-        .ok_or_else(|| String::from("Unable to create shader object"))?;
-    gl.shader_source(&shader, source);
-    gl.compile_shader(&shader);
-
-    if gl
-        .get_shader_parameter(&shader, WebGlRenderingContext::COMPILE_STATUS)
-        .as_bool()
-        .unwrap_or(false)
-    {
-        Ok(shader)
-    }
-    else
-    {
-        Err(gl
-            .get_shader_info_log(&shader)
-            .unwrap_or_else(|| String::from("Unknown error creating shader")))
-    }
-}
-
-
-fn link_program(gl: &WebGlRenderingContext, vert_shader: &WebGlShader,
-                    frag_shader: &WebGlShader) -> Result<WebGlProgram, String>
-{
-    let program = gl
-        .create_program()
-        .ok_or_else(|| String::from("Unable to create shader object"))?;
-
-    gl.attach_shader(&program, vert_shader);
-    gl.attach_shader(&program, frag_shader);
-    gl.link_program(&program);
-
-    if gl
-        .get_program_parameter(&program, WebGlRenderingContext::LINK_STATUS)
-        .as_bool()
-        .unwrap_or(false)
-    {
-        Ok(program)
-    }
-    else
-    {
-        Err(gl
-            .get_program_info_log(&program)
-            .unwrap_or_else(|| String::from("Unknown error creating program object")))
-    }
-}
-

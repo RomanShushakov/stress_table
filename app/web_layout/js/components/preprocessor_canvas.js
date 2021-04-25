@@ -12,11 +12,14 @@ class PreprocessorCanvas extends HTMLElement {
         this.state = {
             canvasGL: null,
             renderer: null,
+            animationId: null,
+            renderLoop: null,
+            isPaused: true,
             canvasWidth: null,
             canvasHeight: null,
-            rotate: false,
-            pan: false,
-            shiftPressed: false,
+            isRotate: false,
+            isPan: false,
+            isShiftPressed: false,
         };
 
         this.attachShadow({ mode: "open" });
@@ -38,6 +41,7 @@ class PreprocessorCanvas extends HTMLElement {
         this.shadowRoot.querySelector(".preprocessor_canvas_gl").addEventListener("mousedown", () => this.onMouseDown());
         this.shadowRoot.querySelector(".preprocessor_canvas_gl").addEventListener("mouseup", () => this.onMouseUp());
         this.shadowRoot.querySelector(".preprocessor_canvas_gl").addEventListener("mousewheel", (event) => this.onMouseWheel(event));
+        this.shadowRoot.querySelector(".preprocessor_canvas_gl").addEventListener("click", () => this.onMouseClick());
     }
 
 
@@ -45,15 +49,24 @@ class PreprocessorCanvas extends HTMLElement {
         this.state.canvasGL = this.shadowRoot.querySelector(".preprocessor_canvas_gl");
         this.state.canvasWidth = window.innerWidth * coefficient;
         this.state.canvasHeight = window.innerHeight * coefficient;
-        this.state.renderer = await initializeRenderer(
-            this.state.canvasGL, this.state.canvasWidth, this.state.canvasHeight);
-        let animationId = null;
-
-        const renderLoop = () => {
+        this.state.canvasGL.width = this.state.canvasWidth;
+        this.state.canvasGL.height = this.state.canvasHeight;
+        this.state.renderer = await initializeRenderer(this.state.canvasGL);
+        this.state.renderLoop = () => {
             this.state.renderer.tick();
-            animationId = requestAnimationFrame(renderLoop);
+            this.state.animationId = requestAnimationFrame(this.state.renderLoop);
         };
-        renderLoop();
+    }
+
+
+    play() {
+        this.state.renderLoop();
+    }
+
+
+    pause() {
+        cancelAnimationFrame(this.state.animationId);
+        this.state.animationId = null;
     }
 
 
@@ -66,30 +79,34 @@ class PreprocessorCanvas extends HTMLElement {
 
     onKeyDown(event) {
         if (event.shiftKey === true) {
-            this.state.shiftPressed = true;
+            this.state.isShiftPressed = true;
         }
     }
 
 
     onKeyUp() {
-        this.state.shiftPressed = false;
+        this.state.isShiftPressed = false;
     }
 
 
     onMouseMove(event) {
+        if (this.state.isPaused === true) {
+            this.play();
+            this.state.isPaused = false;
+        }
         const mouseX = event.clientX;
         const mouseY = event.clientY;
         const boundingRect = this.state.canvasGL.getBoundingClientRect();
         const x = mouseX - boundingRect.left;
         const y = boundingRect.bottom - mouseY;
         this.state.renderer.change_cursor_coordinates(x, y);
-        if (this.state.rotate === true) {
+        if (this.state.isRotate === true) {
             const dTheta = event.movementX * 2.0 * Math.PI / this.state.canvasWidth;
             this.state.renderer.increment_angle_theta(dTheta);
             const dPhi = event.movementY * 2.0 * Math.PI / this.state.canvasHeight;
             this.state.renderer.increment_angle_phi(dPhi);
         }
-        if (this.state.pan === true) {
+        if (this.state.isPan === true) {
             const dx = event.movementX / this.state.canvasWidth;
             this.state.renderer.increment_dx(dx);
             const dy =  -event.movementY / this.state.canvasHeight;
@@ -99,28 +116,32 @@ class PreprocessorCanvas extends HTMLElement {
 
 
     onMouseLeave() {
-        this.state.rotate = false;
-        this.state.pan = false;
+        if (this.state.isPaused === false) {
+            this.pause();
+            this.state.isPaused = true;
+        }
+        this.state.isRotate = false;
+        this.state.isPan = false;
     }
 
 
     onMouseDown() {
-        if (this.state.shiftPressed === true) {
-            this.state.pan = true;
+        if (this.state.isShiftPressed === true) {
+            this.state.isPan = true;
         } else {
-            this.state.rotate = true;
+            this.state.isRotate = true;
         }
     }
 
 
     onMouseUp() {
-        this.state.rotate = false;
-        this.state.pan = false;
+        this.state.isRotate = false;
+        this.state.isPan = false;
     }
 
 
     onMouseWheel(event) {
-        let dScale = this.state.renderer.extract_d_scale() + event.deltaY / this.state.canvasHeight;
+        const dScale = this.state.renderer.extract_d_scale() + event.deltaY / this.state.canvasHeight;
         if (1.0 + dScale > 50.0) {
             this.state.renderer.change_d_scale(48.95);
         } else if (1.0 + dScale < 0.0) {
@@ -128,6 +149,12 @@ class PreprocessorCanvas extends HTMLElement {
         } else {
             this.state.renderer.change_d_scale(dScale);
         }
+    }
+
+
+    onMouseClick() {
+        const selectedObject = this.state.renderer.select_object();
+        console.log(selectedObject);
     }
 
 

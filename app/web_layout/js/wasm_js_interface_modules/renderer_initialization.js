@@ -1,8 +1,8 @@
 import init, { Renderer } from "../../wasm/renderer/renderer.js";
 
 
-export async function initializeRenderer(canvasElement, canvasWidth, canvasHeight) {
+export async function initializeRenderer(canvasElement) {
     await init();
-    const renderer = Renderer.create(canvasElement, canvasWidth, canvasHeight);
+    const renderer = Renderer.create(canvasElement);
     return renderer;    
 }

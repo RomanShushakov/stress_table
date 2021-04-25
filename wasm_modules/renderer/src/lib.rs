@@ -158,6 +158,7 @@ impl Renderer
             .get_context("webgl")?
             .unwrap()
             .dyn_into::<GL>()?;
+        gl.get_extension("OES_element_index_uint")?;
 
         gl.clear_color(1.0, 1.0, 1.0, 1.0);
         gl.enable(GL::DEPTH_TEST);

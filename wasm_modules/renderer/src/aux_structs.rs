@@ -16,7 +16,7 @@ const CS_AXIS_Z_COLOR: [f32; 4] = [0.0, 0.0, 1.0, 1.0]; // blue
 pub const CS_AXES_SCALE: f32 = 0.1;
 pub const CS_AXES_CAPS_HEIGHT: f32 = 0.15; // arrow length
 pub const CS_AXES_CAPS_WIDTH: f32 = 0.075; // half of arrow width
-pub const CS_AXES_CAPS_BASE_POINTS_NUMBER: u16 = 12; // the number of points in cone circular base
+pub const CS_AXES_CAPS_BASE_POINTS_NUMBER: u32 = 12; // the number of points in cone circular base
 
 pub const CS_AXES_X_SHIFT: f32 = 0.85; // shift of the cs in the x-direction
 pub const CS_AXES_Y_SHIFT: f32 = 0.85; // shift of the cs in the y-direction
@@ -171,7 +171,7 @@ impl Buffers
     {
         let vertices = js_sys::Float32Array::from(drawn_object.vertices_coordinates.as_slice());
         let colors = js_sys::Float32Array::from(drawn_object.colors_values.as_slice());
-        let indexes = js_sys::Uint16Array::from(drawn_object.indexes_numbers.as_slice());
+        let indexes = js_sys::Uint32Array::from(drawn_object.indexes_numbers.as_slice());
         gl.bind_buffer(GL::ARRAY_BUFFER, Some(&self.vertex));
         gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &vertices, GL::STATIC_DRAW);
         gl.vertex_attrib_pointer_with_i32(shaders_variables.vertex_position, 3, GL::FLOAT, false, 0, 0);
@@ -211,7 +211,7 @@ pub struct DrawnObject
 {
     vertices_coordinates: Vec<f32>,
     colors_values: Vec<f32>,
-    indexes_numbers: Vec<u16>,
+    indexes_numbers: Vec<u32>,
     modes: Vec<GLPrimitiveType>,
     elements_numbers: Vec<i32>,
     offsets: Vec<i32>,
@@ -244,11 +244,13 @@ impl DrawnObject
         if self.offsets.is_empty()
         {
             0
-        } else {
+        }
+        else
+        {
             let previous_index = &self.offsets.len() - 1;
             let previous_elements_number = self.elements_numbers[previous_index];
             let previous_offset = self.offsets[previous_index];
-            previous_offset + previous_elements_number * 2
+            previous_offset + previous_elements_number * 4
         }
     }
 
@@ -287,7 +289,7 @@ impl DrawnObject
     }
 
 
-    pub fn add_cs_axis_cap(&mut self, cs_axis: CSAxis, base_points_number: u16,
+    pub fn add_cs_axis_cap(&mut self, cs_axis: CSAxis, base_points_number: u32,
                            height: f32, base_radius: f32)
     {
         let start_index =
@@ -363,7 +365,7 @@ impl DrawnObject
                 GLPrimitiveType::Triangles => GL::TRIANGLES,
                 GLPrimitiveType::Points => GL::POINTS,
             };
-            gl.draw_elements_with_i32(mode, count, GL::UNSIGNED_SHORT, offset);
+            gl.draw_elements_with_i32(mode, count, GL::UNSIGNED_INT, offset);
         }
     }
 }

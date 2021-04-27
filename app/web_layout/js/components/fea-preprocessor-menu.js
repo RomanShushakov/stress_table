@@ -19,7 +19,7 @@ class FeaPreprocessorMenu extends HTMLElement {
                 <slot></slot>
                 <button>Submit</button>
                 <button>Edit Model</button>
-                <button>Result</button>
+                <input type="button" onclick="location.href='postprocessor';" value="Result" />
             </div>
         `;
     }

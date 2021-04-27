@@ -1,5 +1,6 @@
 use actix_web::{HttpServer, App, middleware};
-use actix_files::Files;
+use actix_files::{Files, NamedFile};
+use actix_web::dev::{ServiceRequest, ServiceResponse};
 
 
 #[actix_web::main]
@@ -15,8 +16,19 @@ async fn main() -> std::io::Result<()>
         {
             App::new()
                 .wrap(middleware::Logger::default())
-                .service(Files::new("", "./web_layout")
-                    .index_file("index.html"))
+                .service(Files::new("/", "./web_layout")
+                    .index_file("index.html")
+                    .default_handler(|req: ServiceRequest|
+                        {
+                            let (http_req, _payload) = req.into_parts();
+                            async {
+                                let response =
+                                    NamedFile::open("./web_layout/index.html")?
+                                    .into_response(&http_req)?;
+                                Ok(ServiceResponse::new(http_req, response))
+                            }
+                        }),
+                )
         })
     .bind(&bind)?
     .run()

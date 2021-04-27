@@ -1,4 +1,4 @@
-class FeaAppNavbar extends HTMLElement {
+class FeaAppTitleBar extends HTMLElement {
     constructor() {
         super();
 
@@ -15,7 +15,7 @@ class FeaAppNavbar extends HTMLElement {
                 }
             </style>
             <div>
-                <p>Hello from fea-app-navbar</p>
+                <p>Hello from fea-app-title-bar</p>
                 <nav>
                     <ul>
                         <li>
@@ -63,4 +63,4 @@ class FeaAppNavbar extends HTMLElement {
 
 }
 
-export default FeaAppNavbar;
+export default FeaAppTitleBar;

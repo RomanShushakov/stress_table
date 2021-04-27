@@ -16,7 +16,7 @@ class FeaPostprocessorMenu extends HTMLElement {
             </style>
             <div>
                 <p>Hello from fea-postprocessor-menu</p>
-                <button>FEM</button>
+                <input type="button" onclick="location.href='preprocessor';" value="FEM" />
                 <button>Plot Reactions</button>
                 <slot></slot>
             </div>

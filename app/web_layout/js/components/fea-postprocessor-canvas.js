@@ -1,4 +1,4 @@
-class FeaPreprocessorCanvas extends HTMLElement {
+class FeaPostprocessorCanvas extends HTMLElement {
     constructor() {
         super();
 
@@ -15,7 +15,7 @@ class FeaPreprocessorCanvas extends HTMLElement {
                 }
             </style>
             <div>
-                <p>Hello from fea-preprocessor-canvas</p>
+                <p>Hello from fea-postprocessor-canvas</p>
             </div>
         `;
     }
@@ -38,4 +38,4 @@ class FeaPreprocessorCanvas extends HTMLElement {
 
 }
 
-export default FeaPreprocessorCanvas;
+export default FeaPostprocessorCanvas;

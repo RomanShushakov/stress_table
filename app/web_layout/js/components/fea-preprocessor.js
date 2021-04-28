@@ -15,8 +15,12 @@ class FeaPreprocessor extends HTMLElement {
                 :host {
                     display: block;
                 }
+
+                .wrapper {
+                    background-color: #eee;
+                }
             </style>
-            <div>
+            <div class="wrapper">
                 <fea-preprocessor-menu>
                     <fea-geometry></fea-geometry>
                     <fea-properties></fea-properties>

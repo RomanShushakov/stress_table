@@ -7,9 +7,15 @@ class FeaGeometry extends HTMLElement {
         };
 
         this.state = {
+            isGeometryActive: false,
+            isPointActive: false,
             isAddPointActive: false,
             isUpdatePointActive: false,
             isDeletePointActive: false,
+            isLineActive: false,
+            isAddLineActive: false,
+            isUpdateLineActive: false,
+            isDeleteLineActive: false,
         };
 
         this.attachShadow({ mode: "open" });
@@ -22,6 +28,35 @@ class FeaGeometry extends HTMLElement {
 
                 .hidden {
                     display: none;
+                }
+
+                .wrapper {
+                    width: 200px;
+                    background-color: #eee;
+                    display: flex;
+                    align-items: center;
+                    box-sizing: content-box;
+                    flex-direction: column;
+                    margin-bottom: 0.5rem;
+                }
+
+                .geometry {
+                    margin-right: 0.5rem;
+                    width: 10.0rem;
+                    font-family: inherit;
+                    font-size: 100%;
+                    line-height: 1.15;
+                    margin: 0;
+                    border-radius: 5px;
+                    border: 2px solid #737373;
+                }
+
+                .geometry:hover {
+                    background: #d2d2d2;
+                }
+
+                .active {
+                    background: #adadad;
                 }
             </style>
             <div class="wrapper">
@@ -108,13 +143,13 @@ class FeaGeometry extends HTMLElement {
 
                 <div class="line-container hidden">
 
-                    <div class="actions-over-line">
+                    <div class="actions-over-line hidden">
                         <button class="select-add-action-over-line">Add</button>
                         <button class="select-update-action-over-line">Update</button>
                         <button class="select-delete-action-over-line">Delete</button>
                     </div>
 
-                    <div class="add-action-over-line">
+                    <div class="add-action-over-line hidden">
 
                         <ul class="add-action-over-line-fields">
                             <li>
@@ -138,7 +173,7 @@ class FeaGeometry extends HTMLElement {
 
                     </div>
 
-                    <div class="update-action-over-line">
+                    <div class="update-action-over-line hidden">
 
                         <ul class="update-action-over-line-fields">
                             <li>
@@ -148,6 +183,12 @@ class FeaGeometry extends HTMLElement {
                             </li>
                             <li>
                                 <p class="update-action-over-line-fields-description">Change line start point:</p>
+                                <select class="updated-line-number">
+                                    <option>#1</option>
+                                </select>
+                            </li>
+                            <li>
+                                <p class="update-action-over-line-fields-description">Change line end point:</p>
                                 <select class="selected-point-number">
                                     <option>#2</option>
                                 </select>
@@ -158,7 +199,7 @@ class FeaGeometry extends HTMLElement {
 
                     </div>
 
-                    <div class="delete-action-over-line">
+                    <div class="delete-action-over-line hidden">
 
                         <ul class="delete-action-over-line-fields">
                             <li>
@@ -175,8 +216,22 @@ class FeaGeometry extends HTMLElement {
             </div>
         `;
 
-        this.shadowRoot.querySelector(".geometry").addEventListener("click", () => this.toggleGeometry());
-        this.shadowRoot.querySelector(".point").addEventListener("click", () => this.togglePoint());
+        this.shadowRoot.querySelector(".geometry").addEventListener("click", () => {
+            this.toggleGeometry();
+            const geometryButton = this.shadowRoot.querySelector(".geometry");
+            this.changeButtonColor(geometryButton);
+        });
+
+        this.shadowRoot.querySelector(".point").addEventListener("click", () => {
+            if (this.state.isPointActive === false) {
+                this.state.isPointActive = true;
+                this.state.isLineActive = false;
+                this.activatePoint();
+            } else {
+                this.state.isPointActive = false;
+                this.deactivatePoint();
+            }
+        });
         this.shadowRoot.querySelector(".select-add-action-over-point").addEventListener("click", () => {
             if (this.state.isAddPointActive === false) {
                 this.state.isAddPointActive = true;
@@ -208,6 +263,49 @@ class FeaGeometry extends HTMLElement {
             } else {
                 this.state.isDeletePointActive = false;
                 this.deactivateDeletePoint();
+            }
+        });
+        this.shadowRoot.querySelector(".line").addEventListener("click", () => {
+            if (this.state.isLineActive === false) {
+                this.state.isPointActive = false;
+                this.state.isLineActive = true;
+                this.activateLine();
+            } else {
+                this.state.isLineActive = false;
+                this.deactivateLine();
+            }
+        });
+        this.shadowRoot.querySelector(".select-add-action-over-line").addEventListener("click", () => {
+            if (this.state.isAddLineActive === false) {
+                this.state.isAddLineActive = true;
+                this.state.isUpdateLineActive = false;
+                this.state.isDeleteLineActive = false;
+                this.activateAddLine();
+            } else {
+                this.state.isAddLineActive = false;
+                this.deactivateAddLine();
+            }
+        });
+        this.shadowRoot.querySelector(".select-update-action-over-line").addEventListener("click", () => {
+            if (this.state.isUpdateLineActive === false) {
+                this.state.isAddLineActive = false;
+                this.state.isUpdateLineActive = true;
+                this.state.isDeleteLineActive = false;
+                this.activateUpdateLine();
+            } else {
+                this.state.isUpdateLineActive = false;
+                this.deactivateUpdateLine();
+            }
+        });
+        this.shadowRoot.querySelector(".select-delete-action-over-line").addEventListener("click", () => {
+            if (this.state.isDeleteLineActive === false) {
+                this.state.isAddLineActive = false;
+                this.state.isUpdateLineActive = false;
+                this.state.isDeleteLineActive = true;
+                this.activateDeleteLine();
+            } else {
+                this.state.isDeleteLineActive = false;
+                this.deactivateDeleteLine();
             }
         });
     }
@@ -270,9 +368,33 @@ class FeaGeometry extends HTMLElement {
         if (lineContainer.classList.contains("hidden") === false) {
             lineContainer.classList.add("hidden");
         }
+        const actionsOverLine = this.shadowRoot.querySelector(".actions-over-line");
+        if (actionsOverLine.classList.contains("hidden") === false) {
+            actionsOverLine.classList.add("hidden");
+        }
+        const addActionOverLine = this.shadowRoot.querySelector(".add-action-over-line");
+        if (addActionOverLine.classList.contains("hidden") === false) {
+            addActionOverLine.classList.add("hidden");
+        }
+        const updateActionOverLine = this.shadowRoot.querySelector(".update-action-over-line");
+        if (updateActionOverLine.classList.contains("hidden") === false) {
+            updateActionOverLine.classList.add("hidden");
+        }
+        const deleteActionOverLine = this.shadowRoot.querySelector(".delete-action-over-line");
+        if (deleteActionOverLine.classList.contains("hidden") === false) {
+            deleteActionOverLine.classList.add("hidden");
+        }
+        this.state.isPointActive = false;
+        this.state.isAddPointActive = false;
+        this.state.isUpdatePointActive = false;
+        this.state.isDeletePointActive = false;
+        this.state.isLineActive = false;
+        this.state.isAddLineActive = false;
+        this.state.isUpdateLineActive = false;
+        this.state.isDeleteLineActive = false;
     }
 
-    togglePoint() {
+    activatePoint() {
         const pointContainer = this.shadowRoot.querySelector(".point-container");
         if (pointContainer.classList.contains("hidden") === true) {
             pointContainer.classList.remove("hidden");
@@ -281,6 +403,31 @@ class FeaGeometry extends HTMLElement {
         if (actionsOverPoint.classList.contains("hidden") === true) {
             actionsOverPoint.classList.remove("hidden");
         } else {
+            actionsOverPoint.classList.add("hidden");
+        }
+        const addActionOverPoint = this.shadowRoot.querySelector(".add-action-over-point");
+        if (addActionOverPoint.classList.contains("hidden") === false) {
+            addActionOverPoint.classList.add("hidden");
+        }
+        const updateActionOverPoint = this.shadowRoot.querySelector(".update-action-over-point");
+        if (updateActionOverPoint.classList.contains("hidden") === false) {
+            updateActionOverPoint.classList.add("hidden");
+        }
+        const deleteActionOverPoint = this.shadowRoot.querySelector(".delete-action-over-point");
+        if (deleteActionOverPoint.classList.contains("hidden") === false) {
+            deleteActionOverPoint.classList.add("hidden");
+        }
+        this.state.isLineActive = false;
+        this.deactivateLine();
+    }
+
+    deactivatePoint() {
+        const pointContainer = this.shadowRoot.querySelector(".point-container");
+        if (pointContainer.classList.contains("hidden") === false) {
+            pointContainer.classList.add("hidden");
+        } 
+        const actionsOverPoint = this.shadowRoot.querySelector(".actions-over-point");
+        if (actionsOverPoint.classList.contains("hidden") === false) {
             actionsOverPoint.classList.add("hidden");
         }
         const addActionOverPoint = this.shadowRoot.querySelector(".add-action-over-point");
@@ -361,6 +508,130 @@ class FeaGeometry extends HTMLElement {
         const deletePointContainer = this.shadowRoot.querySelector(".delete-action-over-point");
         if (deletePointContainer.classList.contains("hidden") === false) {
             deletePointContainer.classList.add("hidden");
+        }
+    }
+
+    activateLine() {
+        const lineContainer = this.shadowRoot.querySelector(".line-container");
+        if (lineContainer.classList.contains("hidden") === true) {
+            lineContainer.classList.remove("hidden");
+        } 
+        const actionsOverLine = this.shadowRoot.querySelector(".actions-over-line");
+        if (actionsOverLine.classList.contains("hidden") === true) {
+            actionsOverLine.classList.remove("hidden");
+        } else {
+            actionsOverLine.classList.add("hidden");
+        }
+        const addActionOverLine = this.shadowRoot.querySelector(".add-action-over-line");
+        if (addActionOverLine.classList.contains("hidden") === false) {
+            addActionOverLine.classList.add("hidden");
+        }
+        const updateActionOverLine = this.shadowRoot.querySelector(".update-action-over-line");
+        if (updateActionOverLine.classList.contains("hidden") === false) {
+            updateActionOverLine.classList.add("hidden");
+        }
+        const deleteActionOverLine = this.shadowRoot.querySelector(".delete-action-over-line");
+        if (deleteActionOverLine.classList.contains("hidden") === false) {
+            deleteActionOverLine.classList.add("hidden");
+        }
+        this.state.isPointActive = false;
+        this.deactivatePoint();
+    }
+
+    deactivateLine() {
+        const lineContainer = this.shadowRoot.querySelector(".line-container");
+        if (lineContainer.classList.contains("hidden") === false) {
+            lineContainer.classList.add("hidden");
+        } 
+        const actionsOverLine = this.shadowRoot.querySelector(".actions-over-line");
+        if (actionsOverLine.classList.contains("hidden") === false) {
+            actionsOverLine.classList.add("hidden");
+        }
+        const addActionOverLine = this.shadowRoot.querySelector(".add-action-over-line");
+        if (addActionOverLine.classList.contains("hidden") === false) {
+            addActionOverLine.classList.add("hidden");
+        }
+        const updateActionOverLine = this.shadowRoot.querySelector(".update-action-over-line");
+        if (updateActionOverLine.classList.contains("hidden") === false) {
+            updateActionOverLine.classList.add("hidden");
+        }
+        const deleteActionOverLine = this.shadowRoot.querySelector(".delete-action-over-line");
+        if (deleteActionOverLine.classList.contains("hidden") === false) {
+            deleteActionOverLine.classList.add("hidden");
+        }
+    }
+
+    activateAddLine() {
+        const addLineContainer = this.shadowRoot.querySelector(".add-action-over-line");
+        if (addLineContainer.classList.contains("hidden") === true) {
+            addLineContainer.classList.remove("hidden");
+        }
+        const updateLineContainer = this.shadowRoot.querySelector(".update-action-over-line");
+        if (updateLineContainer.classList.contains("hidden") === false) {
+            updateLineContainer.classList.add("hidden");
+        }
+        const deleteLineContainer = this.shadowRoot.querySelector(".delete-action-over-line");
+        if (deleteLineContainer.classList.contains("hidden") === false) {
+            deleteLineContainer.classList.add("hidden");
+        }
+    }
+
+    deactivateAddLine() {
+        const addLineContainer = this.shadowRoot.querySelector(".add-action-over-line");
+        if (addLineContainer.classList.contains("hidden") === false) {
+            addLineContainer.classList.add("hidden");
+        }
+    }
+
+    activateUpdateLine() {
+        const updateLineContainer = this.shadowRoot.querySelector(".update-action-over-line");
+        if (updateLineContainer.classList.contains("hidden") === true) {
+            updateLineContainer.classList.remove("hidden");
+        }
+        const addLineContainer = this.shadowRoot.querySelector(".add-action-over-line");
+        if (addLineContainer.classList.contains("hidden") === false) {
+            addLineContainer.classList.add("hidden");
+        }
+        const deleteLineContainer = this.shadowRoot.querySelector(".delete-action-over-line");
+        if (deleteLineContainer.classList.contains("hidden") === false) {
+            deleteLineContainer.classList.add("hidden");
+        }
+    }
+
+    deactivateUpdateLine() {
+        const updateLineContainer = this.shadowRoot.querySelector(".update-action-over-line");
+        if (updateLineContainer.classList.contains("hidden") === false) {
+            updateLineContainer.classList.add("hidden");
+        }
+    }
+
+    activateDeleteLine() {
+        const deleteLineContainer = this.shadowRoot.querySelector(".delete-action-over-line");
+        if (deleteLineContainer.classList.contains("hidden") === true) {
+            deleteLineContainer.classList.remove("hidden");
+        }
+        const addLineContainer = this.shadowRoot.querySelector(".add-action-over-line");
+        if (addLineContainer.classList.contains("hidden") === false) {
+            addLineContainer.classList.add("hidden");
+        }
+        const updateLineContainer = this.shadowRoot.querySelector(".update-action-over-line");
+        if (updateLineContainer.classList.contains("hidden") === false) {
+            updateLineContainer.classList.add("hidden");
+        }
+    }
+
+    deactivateDeleteLine() {
+        const deleteLineContainer = this.shadowRoot.querySelector(".delete-action-over-line");
+        if (deleteLineContainer.classList.contains("hidden") === false) {
+            deleteLineContainer.classList.add("hidden");
+        }
+    }
+
+    changeButtonColor(button) {
+        if (button.classList.contains("active") === true) {
+            button.classList.remove("active");
+        } else {
+            button.classList.add("active");
         }
     }
 }

@@ -26,10 +26,6 @@ class FeaGeometry extends HTMLElement {
                     display: block;
                 }
 
-                .hidden {
-                    display: none;
-                }
-
                 .wrapper {
                     width: 200px;
                     background-color: #eee;
@@ -40,13 +36,16 @@ class FeaGeometry extends HTMLElement {
                     margin-bottom: 0.5rem;
                 }
 
+                .geometry-container {
+                    margin: 0rem;
+                }
+
                 .geometry {
-                    margin-right: 0.5rem;
                     width: 10.0rem;
                     font-family: inherit;
                     font-size: 100%;
                     line-height: 1.15;
-                    margin: 0;
+                    margin-bottom: 0.25rem;
                     border-radius: 5px;
                     border: 2px solid #737373;
                 }
@@ -55,8 +54,124 @@ class FeaGeometry extends HTMLElement {
                     background: #d2d2d2;
                 }
 
+                .point {
+                    width: 4.85rem;
+                    font-family: inherit;
+                    font-size: 100%;
+                    line-height: 1.15;
+                    margin-bottom: 0.25rem;
+                    border-radius: 5px;
+                    border: 2px solid #737373;
+                }
+
+                .point:hover {
+                    background: #d2d2d2;
+                }
+
+                .select-add-action-over-point {
+                    width: 2.5rem;
+                    font-family: inherit;
+                    font-size: 85%;
+                    line-height: 1.15;
+                    margin-bottom: 0.25rem;
+                    border-radius: 5px;
+                    border: 2px solid #737373;
+                }
+
+                .select-add-action-over-point:hover {
+                    background: #d2d2d2;
+                }
+
+                .select-update-action-over-point {
+                    width: 3.5rem;
+                    font-family: inherit;
+                    font-size: 85%;
+                    line-height: 1.15;
+                    margin-bottom: 0.25rem;
+                    border-radius: 5px;
+                    border: 2px solid #737373;
+                }
+
+                .select-update-action-over-point:hover {
+                    background: #d2d2d2;
+                }
+
+                .select-delete-action-over-point {
+                    width: 3.5rem;
+                    font-family: inherit;
+                    font-size: 85%;
+                    line-height: 1.15;
+                    margin-bottom: 0.25rem;
+                    border-radius: 5px;
+                    border: 2px solid #737373;
+                }
+
+                .select-delete-action-over-point:hover {
+                    background: #d2d2d2;
+                }
+
+                .line {
+                    width: 4.85rem;
+                    font-family: inherit;
+                    font-size: 100%;
+                    line-height: 1.15;
+                    margin-bottom: 0.25rem;
+                    border-radius: 5px;
+                    border: 2px solid #737373;
+                }
+
+                .line:hover {
+                    background: #d2d2d2;
+                }
+
+                .select-add-action-over-line {
+                    width: 2.5rem;
+                    font-family: inherit;
+                    font-size: 85%;
+                    line-height: 1.15;
+                    margin-bottom: 0.25rem;
+                    border-radius: 5px;
+                    border: 2px solid #737373;
+                }
+
+                .select-add-action-over-line:hover {
+                    background: #d2d2d2;
+                }
+
+                .select-update-action-over-line {
+                    width: 3.5rem;
+                    font-family: inherit;
+                    font-size: 85%;
+                    line-height: 1.15;
+                    margin-bottom: 0.25rem;
+                    border-radius: 5px;
+                    border: 2px solid #737373;
+                }
+
+                .select-update-action-over-line:hover {
+                    background: #d2d2d2;
+                }
+
+                .select-delete-action-over-line {
+                    width: 3.5rem;
+                    font-family: inherit;
+                    font-size: 85%;
+                    line-height: 1.15;
+                    margin-bottom: 0.25rem;
+                    border-radius: 5px;
+                    border: 2px solid #737373;
+                }
+
+                .select-delete-action-over-line:hover {
+                    background: #d2d2d2;
+                }
+
                 .active {
                     background: #adadad;
+                }
+
+                .hidden {
+                    display: none;
                 }
             </style>
             <div class="wrapper">
@@ -218,93 +333,93 @@ class FeaGeometry extends HTMLElement {
 
         this.shadowRoot.querySelector(".geometry").addEventListener("click", () => {
             this.toggleGeometry();
-            const geometryButton = this.shadowRoot.querySelector(".geometry");
-            this.changeButtonColor(geometryButton);
         });
 
         this.shadowRoot.querySelector(".point").addEventListener("click", () => {
             if (this.state.isPointActive === false) {
-                this.state.isPointActive = true;
-                this.state.isLineActive = false;
+                this.isPointActive = true;
+                this.isLineActive = false;
                 this.activatePoint();
             } else {
-                this.state.isPointActive = false;
+                this.isPointActive = false;
                 this.deactivatePoint();
             }
+
+
         });
         this.shadowRoot.querySelector(".select-add-action-over-point").addEventListener("click", () => {
             if (this.state.isAddPointActive === false) {
-                this.state.isAddPointActive = true;
-                this.state.isUpdatePointActive = false;
-                this.state.isDeletePointActive = false;
+                this.isAddPointActive = true;
+                this.isUpdatePointActive = false;
+                this.isDeletePointActive = false;
                 this.activateAddPoint();
             } else {
-                this.state.isAddPointActive = false;
+                this.isAddPointActive = false;
                 this.deactivateAddPoint();
             }
         });
         this.shadowRoot.querySelector(".select-update-action-over-point").addEventListener("click", () => {
             if (this.state.isUpdatePointActive === false) {
-                this.state.isAddPointActive = false;
-                this.state.isUpdatePointActive = true;
-                this.state.isDeletePointActive = false;
+                this.isAddPointActive = false;
+                this.isUpdatePointActive = true;
+                this.isDeletePointActive = false;
                 this.activateUpdatePoint();
             } else {
-                this.state.isUpdatePointActive = false;
+                this.isUpdatePointActive = false;
                 this.deactivateUpdatePoint();
             }
         });
         this.shadowRoot.querySelector(".select-delete-action-over-point").addEventListener("click", () => {
             if (this.state.isDeletePointActive === false) {
-                this.state.isAddPointActive = false;
-                this.state.isUpdatePointActive = false;
-                this.state.isDeletePointActive = true;
+                this.isAddPointActive = false;
+                this.isUpdatePointActive = false;
+                this.isDeletePointActive = true;
                 this.activateDeletePoint();
             } else {
-                this.state.isDeletePointActive = false;
+                this.isDeletePointActive = false;
                 this.deactivateDeletePoint();
             }
         });
         this.shadowRoot.querySelector(".line").addEventListener("click", () => {
             if (this.state.isLineActive === false) {
-                this.state.isPointActive = false;
-                this.state.isLineActive = true;
+                this.isPointActive = false;
+                this.isLineActive = true;
                 this.activateLine();
             } else {
-                this.state.isLineActive = false;
+                this.isLineActive = false;
                 this.deactivateLine();
             }
         });
         this.shadowRoot.querySelector(".select-add-action-over-line").addEventListener("click", () => {
             if (this.state.isAddLineActive === false) {
-                this.state.isAddLineActive = true;
-                this.state.isUpdateLineActive = false;
-                this.state.isDeleteLineActive = false;
+                this.isAddLineActive = true;
+                this.isUpdateLineActive = false;
+                this.isDeleteLineActive = false;
                 this.activateAddLine();
             } else {
-                this.state.isAddLineActive = false;
+                this.isAddLineActive = false;
                 this.deactivateAddLine();
             }
         });
         this.shadowRoot.querySelector(".select-update-action-over-line").addEventListener("click", () => {
             if (this.state.isUpdateLineActive === false) {
-                this.state.isAddLineActive = false;
-                this.state.isUpdateLineActive = true;
-                this.state.isDeleteLineActive = false;
+                this.isAddLineActive = false;
+                this.isUpdateLineActive = true;
+                this.isDeleteLineActive = false;
                 this.activateUpdateLine();
             } else {
-                this.state.isUpdateLineActive = false;
+                this.isUpdateLineActive = false;
                 this.deactivateUpdateLine();
             }
         });
         this.shadowRoot.querySelector(".select-delete-action-over-line").addEventListener("click", () => {
             if (this.state.isDeleteLineActive === false) {
-                this.state.isAddLineActive = false;
-                this.state.isUpdateLineActive = false;
-                this.state.isDeleteLineActive = true;
+                this.isAddLineActive = false;
+                this.isUpdateLineActive = false;
+                this.isDeleteLineActive = true;
                 this.activateDeleteLine();
             } else {
-                this.state.isDeleteLineActive = false;
+                this.isDeleteLineActive = false;
                 this.deactivateDeleteLine();
             }
         });
@@ -312,6 +427,61 @@ class FeaGeometry extends HTMLElement {
 
     set actionId(value) {
         this.props.actionId = value;
+    }
+
+    set isGeometryActive(value) {
+        this.state.isGeometryActive = value;
+        const geometryButton = this.shadowRoot.querySelector(".geometry");
+        this.changeButtonColor(geometryButton, this.state.isGeometryActive);
+
+    }
+
+    set isPointActive(value) {
+        this.state.isPointActive = value;
+        const pointButton = this.shadowRoot.querySelector(".point");
+        this.changeButtonColor(pointButton, this.state.isPointActive);
+    }
+
+    set isAddPointActive(value) {
+        this.state.isAddPointActive = value;
+        const addPointButton = this.shadowRoot.querySelector(".select-add-action-over-point");
+        this.changeButtonColor(addPointButton, this.state.isAddPointActive);
+    }
+
+    set isUpdatePointActive(value) {
+        this.state.isUpdatePointActive = value;
+        const updatePointButton = this.shadowRoot.querySelector(".select-update-action-over-point");
+        this.changeButtonColor(updatePointButton, this.state.isUpdatePointActive);
+    }
+
+    set isDeletePointActive(value) {
+        this.state.isDeletePointActive = value;
+        const deletePointButton = this.shadowRoot.querySelector(".select-delete-action-over-point");
+        this.changeButtonColor(deletePointButton, this.state.isDeletePointActive);
+    }
+
+    set isLineActive(value) {
+        this.state.isLineActive = value;
+        const lineButton = this.shadowRoot.querySelector(".line");
+        this.changeButtonColor(lineButton, this.state.isLineActive);
+    }
+
+    set isAddLineActive(value) {
+        this.state.isAddLineActive = value;
+        const addLineButton = this.shadowRoot.querySelector(".select-add-action-over-line");
+        this.changeButtonColor(addLineButton, this.state.isAddLineActive);
+    }
+
+    set isUpdateLineActive(value) {
+        this.state.isUpdateLineActive = value;
+        const updateLineButton = this.shadowRoot.querySelector(".select-update-action-over-line");
+        this.changeButtonColor(updateLineButton, this.state.isUpdateLineActive);
+    }
+
+    set isDeleteLineActive(value) {
+        this.state.isDeleteLineActive = value;
+        const deleteLineButton = this.shadowRoot.querySelector(".select-delete-action-over-line");
+        this.changeButtonColor(deleteLineButton, this.state.isDeleteLineActive);
     }
 
     connectedCallback() {
@@ -341,9 +511,15 @@ class FeaGeometry extends HTMLElement {
         const geometryContainer = this.shadowRoot.querySelector(".geometry-container");
         if (geometryContainer.classList.contains("hidden") === true) {
             geometryContainer.classList.remove("hidden");
+            this.isGeometryActive = true;
         } else {
             geometryContainer.classList.add("hidden");
+            this.isGeometryActive = false;
         }
+        this.deactivateGeometry();
+    }
+
+    deactivateGeometry() {
         const pointContainer = this.shadowRoot.querySelector(".point-container");
         if (pointContainer.classList.contains("hidden") === false) {
             pointContainer.classList.add("hidden");
@@ -384,14 +560,14 @@ class FeaGeometry extends HTMLElement {
         if (deleteActionOverLine.classList.contains("hidden") === false) {
             deleteActionOverLine.classList.add("hidden");
         }
-        this.state.isPointActive = false;
-        this.state.isAddPointActive = false;
-        this.state.isUpdatePointActive = false;
-        this.state.isDeletePointActive = false;
-        this.state.isLineActive = false;
-        this.state.isAddLineActive = false;
-        this.state.isUpdateLineActive = false;
-        this.state.isDeleteLineActive = false;
+        this.isPointActive = false;
+        this.isAddPointActive = false;
+        this.isUpdatePointActive = false;
+        this.isDeletePointActive = false;
+        this.isLineActive = false;
+        this.isAddLineActive = false;
+        this.isUpdateLineActive = false;
+        this.isDeleteLineActive = false;
     }
 
     activatePoint() {
@@ -417,7 +593,10 @@ class FeaGeometry extends HTMLElement {
         if (deleteActionOverPoint.classList.contains("hidden") === false) {
             deleteActionOverPoint.classList.add("hidden");
         }
-        this.state.isLineActive = false;
+        this.isLineActive = false;
+        this.isAddLineActive = false;
+        this.isUpdateLineActive = false;
+        this.isDeleteLineActive = false;
         this.deactivateLine();
     }
 
@@ -534,7 +713,10 @@ class FeaGeometry extends HTMLElement {
         if (deleteActionOverLine.classList.contains("hidden") === false) {
             deleteActionOverLine.classList.add("hidden");
         }
-        this.state.isPointActive = false;
+        this.isPointActive = false;
+        this.isAddPointActive = false;
+        this.isUpdatePointActive = false;
+        this.isDeletePointActive = false;
         this.deactivatePoint();
     }
 
@@ -627,11 +809,15 @@ class FeaGeometry extends HTMLElement {
         }
     }
 
-    changeButtonColor(button) {
-        if (button.classList.contains("active") === true) {
-            button.classList.remove("active");
+    changeButtonColor(button, isActive) {
+        if (isActive === true) {
+            if (button.classList.contains("active") === false) {
+                button.classList.add("active");
+            }
         } else {
-            button.classList.add("active");
+            if (button.classList.contains("active") === true) {
+                button.classList.remove("active");
+            }
         }
     }
 }

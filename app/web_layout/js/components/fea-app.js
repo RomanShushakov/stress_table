@@ -4,7 +4,9 @@ class FeaApp extends HTMLElement {
 
         this.props = {};
 
-        this.state = {};
+        this.state = {
+            actionId: 1,
+        };
 
         this.attachShadow({ mode: "open" });
 
@@ -15,13 +17,18 @@ class FeaApp extends HTMLElement {
                 }
             </style>
             <div>
-                <p>Hello from fea-app</p>
+                <fea-app-title-bar></fea-app-title-bar>
                 <slot></slot>
             </div>
         `;
+
+        this.addEventListener("activate-postprocessor", () => this.activatePostprocessor());
+        this.addEventListener("activate-preprocessor", () => this.activatePreprocessor());
     }
 
-    connectedCallback() {
+    async connectedCallback() {
+        this.activatePreprocessor();
+        this.updatePreprocessor();
     }
 
     disconnectedCallback() {
@@ -35,6 +42,27 @@ class FeaApp extends HTMLElement {
     }
     
     adoptedCallback() {
+    }
+
+
+    activatePreprocessor() {
+        if (this.querySelector("fea-postprocessor") !== null) {
+            this.querySelector("fea-postprocessor").remove();
+        }
+        let feaPreprocessor = document.createElement("fea-preprocessor");
+        this.append(feaPreprocessor);
+        this.updatePreprocessor();
+    }
+
+
+    updatePreprocessor() {
+        this.querySelector("fea-preprocessor").actionId = this.state.actionId;
+    }
+
+    activatePostprocessor() {
+        this.querySelector("fea-preprocessor").remove();
+        let feaPostprocessor = document.createElement("fea-postprocessor");
+        this.append(feaPostprocessor);
     }
 
 }

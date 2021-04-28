@@ -19,9 +19,11 @@ class FeaPreprocessorMenu extends HTMLElement {
                 <slot></slot>
                 <button>Submit</button>
                 <button>Edit Model</button>
-                <input type="button" onclick="location.href='postprocessor';" value="Result" />
+                <button class="result">Result</button>
             </div>
         `;
+
+        this.shadowRoot.querySelector(".result").addEventListener("click", () => this.activatePostprocessor());
     }
 
     connectedCallback() {
@@ -38,6 +40,14 @@ class FeaPreprocessorMenu extends HTMLElement {
     }
     
     adoptedCallback() {
+    }
+
+    activatePostprocessor() {
+        this.dispatchEvent(new CustomEvent("activate-postprocessor", {
+            bubbles: true,
+            composed: true,
+        }));
+
     }
 
 }

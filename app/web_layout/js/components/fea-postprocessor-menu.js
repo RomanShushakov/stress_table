@@ -16,11 +16,13 @@ class FeaPostprocessorMenu extends HTMLElement {
             </style>
             <div>
                 <p>Hello from fea-postprocessor-menu</p>
-                <input type="button" onclick="location.href='preprocessor';" value="FEM" />
+                <button class="fem">FEM</button>
                 <button>Plot Reactions</button>
                 <slot></slot>
             </div>
         `;
+
+        this.shadowRoot.querySelector(".fem").addEventListener("click", () => this.activatePreprocessor());
     }
 
     connectedCallback() {
@@ -37,6 +39,14 @@ class FeaPostprocessorMenu extends HTMLElement {
     }
     
     adoptedCallback() {
+    }
+
+    activatePreprocessor() {
+        this.dispatchEvent(new CustomEvent("activate-preprocessor", {
+            bubbles: true,
+            composed: true,
+        }));
+
     }
 
 }

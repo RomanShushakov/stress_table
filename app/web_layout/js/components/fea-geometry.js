@@ -4,6 +4,13 @@ class FeaGeometry extends HTMLElement {
 
         this.props = {
             actionId: null,
+            points: [
+                { number: 1, x: 5.9, y: 0, z: 0, },
+                { number: 12, x: 100, y: 0, z: 0, },
+            ],
+            lines: [
+                { number: 1, startPoint: 1, endPoint: 2, },
+            ]
         };
 
         this.state = {
@@ -27,13 +34,15 @@ class FeaGeometry extends HTMLElement {
                 }
 
                 .wrapper {
-                    width: 200px;
+                    width: fit-content;
                     background-color: #eee;
                     display: flex;
                     align-items: center;
                     box-sizing: content-box;
                     flex-direction: column;
-                    margin-bottom: 0.5rem;
+                    border-right: 1px solid #9a9a9a;
+                    border-left: 1px solid #9a9a9a;
+
                 }
 
                 .geometry-container {
@@ -52,6 +61,34 @@ class FeaGeometry extends HTMLElement {
 
                 .geometry:hover {
                     background: #d2d2d2;
+                }
+
+                .point-container {
+                    margin: 0rem;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                }
+
+                .actions-over-point {
+                    margin: 0rem;
+                }
+
+                .add-action-over-point {
+                    margin: 0rem;
+                    background: #adadad;
+                    border: 2px solid #737373;
+                    border-radius: 5px;
+                    padding: 0.5rem;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                }
+
+                .add-action-over-point-fields {
+                    list-style-type: none;
+                    padding: 0rem;
+                    margin: 0rem;
                 }
 
                 .point {
@@ -108,6 +145,98 @@ class FeaGeometry extends HTMLElement {
 
                 .select-delete-action-over-point:hover {
                     background: #d2d2d2;
+                }
+
+                .add-action-over-point-fields-description {
+                    margin-top: 0rem;
+                    margin-bottom: 0.05rem;
+                    font-size: 0.85rem;
+                }
+
+                .add-point-number {
+                    width: 8rem;
+                    margin-bottom: 0.5rem;
+                }
+
+                .add-x-coord {
+                    width: 8rem;
+                    margin-bottom: 0.5rem;
+                }
+
+                .add-y-coord {
+                    width: 8rem;
+                    margin-bottom: 0.5rem;
+                }
+
+                .add-z-coord {
+                    width: 8rem;
+                    margin-bottom: 0.5rem;
+                }
+
+                .add-action-over-point-apply-cancel-buttons-container {
+                    margin: 0rem;
+                }
+
+                .point-add-action-apply {
+                    width: 4rem;
+                }
+
+                .point-add-action-cancel {
+                    width: 4rem;
+                }
+
+                .update-action-over-point {
+                    margin: 0rem;
+                    background: #adadad;
+                    border: 2px solid #737373;
+                    border-radius: 5px;
+                    padding: 0.5rem;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                }
+
+                .update-action-over-point-fields {
+                    list-style-type: none;
+                    padding: 0rem;
+                    margin: 0rem;
+                }
+
+                .update-action-over-point-fields-description {
+                    margin-top: 0rem;
+                    margin-bottom: 0.05rem;
+                    font-size: 0.85rem;
+                }
+
+                .updated-point-number {
+                    margin-bottom: 0.62rem;
+                }
+
+                .update-x-coord {
+                    width: 8rem;
+                    margin-bottom: 0.5rem;
+                }
+
+                .update-y-coord {
+                    width: 8rem;
+                    margin-bottom: 0.5rem;
+                }
+
+                .update-z-coord {
+                    width: 8rem;
+                    margin-bottom: 0.5rem;
+                }
+
+                .update-action-over-point-apply-cancel-buttons-container {
+                    margin: 0rem;
+                }
+
+                .point-update-action-apply {
+                    width: 4rem;
+                }
+
+                .point-update-action-cancel {
+                    width: 4rem;
                 }
 
                 .line {
@@ -195,23 +324,28 @@ class FeaGeometry extends HTMLElement {
 
                         <ul class="add-action-over-point-fields">
                             <li>
-                                <p class="added-point-number">#1 New</p>
+                                <p class="add-action-over-point-fields-description">New point number:</p>
+                                <input class="add-point-number" type="number" step="1"/>
                             </li>
                             <li>
                                 <p class="add-action-over-point-fields-description">X coordinate:</p>
-                                <input class="add-x-coord"/>
+                                <input class="add-x-coord" type="number" value="0.0"/>
                             </li>
                             <li>
                                 <p class="add-action-over-point-fields-description">Y coordinate:</p>
-                                <input class="add-y-coord"/>
+                                <input class="add-y-coord" type="number" value="0.0"/>
                             </li>
                             <li>
                                 <p class="add-action-over-point-fields-description">Z coordinate:</p>
-                                <input class="add-z-coord"/>
+                                <input class="add-z-coord" type="number" value="0.0"/>
                             </li>
                         </ul>
 
-                        <button class="point-add-action-apply">Apply</button>
+                        <div class="add-action-over-point-apply-cancel-buttons-container">
+                            <button class="point-add-action-apply">Apply</button>
+                            <button class="point-add-action-cancel">Cancel</button>
+                        </div> 
+                        
 
                     </div>
 
@@ -219,25 +353,27 @@ class FeaGeometry extends HTMLElement {
 
                         <ul class="update-action-over-point-fields">
                             <li>
-                                <select class="updated-point-number">
-                                    <option>#1</option>
-                                </select>
+                                <p class="update-action-over-point-fields-description">Select point number:</p>
+                                <select class="updated-point-number"></select>                          
                             </li>
                             <li>
                                 <p class="update-action-over-point-fields-description">X coordinate:</p>
-                                <input class="update-x-coord"/>
+                                <input class="update-x-coord" type="number"/>
                             </li>
                             <li>
                                 <p class="update-action-over-point-fields-description">Y coordinate:</p>
-                                <input class="update-y-coord"/>
+                                <input class="update-y-coord" type="number"/>
                             </li>
                             <li>
                                 <p class="update-action-over-point-fields-description">Z coordinate:</p>
-                                <input class="update-z-coord"/>
+                                <input class="update-z-coord" type="number"/>
                             </li>
                         </ul>
-                        
-                        <button class="point-update-action-apply">Apply</button>
+
+                        <div class="update-action-over-point-apply-cancel-buttons-container">
+                            <button class="point-update-action-apply">Apply</button>
+                            <button class="point-update-action-cancel">Cancel</button>
+                        </div> 
 
                     </div>
 
@@ -245,13 +381,14 @@ class FeaGeometry extends HTMLElement {
 
                         <ul class="delete-action-over-point-fields">
                             <li>
-                                <select class="deleted-point-number">
-                                    <option>#1</option>
-                                </select>
+                                <select class="deleted-point-number"></select>
                             </li>
                         </ul>
-                        
-                        <button class="point-delete-action-apply">Apply</button>
+
+                        <div class="delete-action-over-point-apply-cancel-buttons-container">
+                            <button class="point-delete-action-apply">Apply</button>
+                            <button class="point-delete-action-cancel">Cancel</button>
+                        </div>                       
 
                     </div>
                 </div>
@@ -284,7 +421,10 @@ class FeaGeometry extends HTMLElement {
                             </li>
                         </ul>
 
-                        <button class="line-add-action-apply">Apply</button>
+                        <div class="add-action-over-line-apply-cancel-buttons-container">
+                            <button class="line-add-action-apply">Apply</button>
+                            <button class="line-add-action-cancel">Cancel</button>
+                        </div> 
 
                     </div>
 
@@ -309,8 +449,11 @@ class FeaGeometry extends HTMLElement {
                                 </select>
                             </li>
                         </ul>
-                        
-                        <button class="line-update-action-apply">Apply</button>
+
+                        <div class="update-action-over-line-apply-cancel-buttons-containe"r>
+                            <button class="line-update-action-apply">Apply</button>
+                            <button class="line-update-action-cancel">Cancel</button>
+                        </div> 
 
                     </div>
 
@@ -323,8 +466,11 @@ class FeaGeometry extends HTMLElement {
                                 </select>
                             </li>
                         </ul>
-                        
-                        <button class="line-delete-action-apply">Apply</button>
+
+                        <div class="delete-action-over-line-apply-cancel-buttons-container">
+                            <button class="line-delete-action-apply">Apply</button>
+                            <button class="line-delete-action-cancel">Cancel</button>
+                        </div>
 
                     </div>
                 </div>
@@ -423,6 +569,8 @@ class FeaGeometry extends HTMLElement {
                 this.deactivateDeleteLine();
             }
         });
+        this.shadowRoot.querySelector(".updated-point-number").addEventListener("change", () => this.updatePointUpdateFields());
+        this.shadowRoot.querySelector(".point-update-action-apply").addEventListener("click", () => this.showInputtedFields());
     }
 
     set actionId(value) {
@@ -492,6 +640,10 @@ class FeaGeometry extends HTMLElement {
                 this[propName] = value;
             }
         });
+        this.defineNewPointNumber();
+        if (this.props.points.length !== 0) {
+            this.defineUpdateAndDeletePointNumbers();
+        } 
     }
 
     disconnectedCallback() {
@@ -819,6 +971,50 @@ class FeaGeometry extends HTMLElement {
                 button.classList.remove("active");
             }
         }
+    }
+
+    defineNewPointNumber() {
+        let newPointNumber = 0;
+        const isPointNumberInArray = (point) => point.number === newPointNumber;
+        do {
+            newPointNumber += 1;
+        } while (this.props.points.some(isPointNumberInArray));
+        this.shadowRoot.querySelector(".add-point-number").setAttribute("value", newPointNumber);
+        this.shadowRoot.querySelector(".add-point-number").setAttribute("min", newPointNumber);
+    }
+
+    defineUpdateAndDeletePointNumbers() {
+        const pointUpdateNumberSelect = this.shadowRoot.querySelector(".updated-point-number");
+        const pointDeleteNumberSelect = this.shadowRoot.querySelector(".deleted-point-number");
+        for (let i = 0; i < this.props.points.length; i++) {
+            let updateOption = document.createElement("option");
+            let deleteOption = document.createElement("option");
+            updateOption.value = this.props.points[i].number;
+            deleteOption.value = this.props.points[i].number;
+            updateOption.innerHTML = `#${this.props.points[i].number}`;
+            deleteOption.innerHTML = `#${this.props.points[i].number}`;
+            pointUpdateNumberSelect.appendChild(updateOption);
+            pointDeleteNumberSelect.appendChild(deleteOption);
+        }
+        this.shadowRoot.querySelector(".update-x-coord").value = this.props.points[0].x;
+        this.shadowRoot.querySelector(".update-y-coord").value = this.props.points[0].y;
+        this.shadowRoot.querySelector(".update-z-coord").value = this.props.points[0].z;
+    }
+
+    updatePointUpdateFields() {
+        const selectedPointNumber = this.shadowRoot.querySelector(".updated-point-number").value;
+        const pointInProps = this.props.points.find(point => point.number == selectedPointNumber);
+        this.shadowRoot.querySelector(".update-x-coord").value = pointInProps.x;
+        this.shadowRoot.querySelector(".update-y-coord").value = pointInProps.y;
+        this.shadowRoot.querySelector(".update-z-coord").value = pointInProps.z;
+    }
+
+    showInputtedFields() {
+        const selectedPointNumber = this.shadowRoot.querySelector(".updated-point-number").value;
+        const inputtedX = this.shadowRoot.querySelector(".update-x-coord").value;
+        const inputtedY = this.shadowRoot.querySelector(".update-y-coord").value;
+        const inputtedZ = this.shadowRoot.querySelector(".update-z-coord").value;
+        console.log(selectedPointNumber, inputtedX, inputtedY, inputtedZ);
     }
 }
 

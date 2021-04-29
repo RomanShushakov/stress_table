@@ -376,6 +376,16 @@ class FeaGeometry extends HTMLElement {
                     margin: 0rem;
                 }
 
+                .search-start-point-number-for-line-addition {
+                    width: 10rem;
+                    margin-bottom: 0.5rem;
+                }
+
+                .search-end-point-number-for-line-addition {
+                    width: 10rem;
+                    margin-bottom: 0.5rem;
+                }
+
                 .add-action-over-line-fields-description {
                     margin-top: 0rem;
                     margin-bottom: 0.05rem;
@@ -387,7 +397,16 @@ class FeaGeometry extends HTMLElement {
                     margin-bottom: 0.5rem;
                 }
 
-                .selected-point-number {
+                .search-line-number-for-update {
+                    width: 10rem;
+                    margin-bottom: 0.5rem;
+                }
+
+                .selected-start-point-number-for-line-addition {
+                    margin-bottom: 0.62rem;
+                }
+
+                .selected-end-point-number-for-line-addition {
                     margin-bottom: 0.62rem;
                 }
 
@@ -429,7 +448,25 @@ class FeaGeometry extends HTMLElement {
                     width: 10.5rem;
                 }
 
+                .search-start-point-number-for-line-update {
+                    width: 10rem;
+                    margin-bottom: 0.5rem;
+                }
+
+                .search-end-point-number-for-line-update {
+                    width: 10rem;
+                    margin-bottom: 0.5rem;
+                }
+
                 .updated-line-number {
+                    margin-bottom: 0.62rem;
+                }
+
+                .selected-start-point-number-for-line-update {
+                    margin-bottom: 0.62rem;
+                }
+
+                .selected-end-point-number-for-line-delete {
                     margin-bottom: 0.62rem;
                 }
 
@@ -606,12 +643,14 @@ class FeaGeometry extends HTMLElement {
                                 <input class="add-line-number" type="number" step="1"/>
                             </li>
                             <li>
+                                <input class="search-start-point-number-for-line-addition" type="number" placeholder="Search for start point..."/>
                                 <p class="add-action-over-line-fields-description">Select start point:</p>
-                                <select class="selected-point-number"></select>
+                                <select class="selected-start-point-number-for-line-addition" size="3"></select>
                             </li>
                             <li>
+                                <input class="search-end-point-number-for-line-addition" type="number" placeholder="Search for end point..."/>
                                 <p class="add-action-over-line-fields-description">Select end point:</p>
-                                <select class="selected-point-number"></select>
+                                <select class="selected-end-point-number-for-line-addition" size="3"></select>
                             </li>
                         </ul>
 
@@ -626,16 +665,19 @@ class FeaGeometry extends HTMLElement {
 
                         <ul class="update-action-over-line-fields">
                             <li>
+                                <input class="search-line-number-for-update" type="number" placeholder="Search for numbers..."/>
                                 <p class="update-action-over-line-fields-description">Select line number:</p>
-                                <select class="updated-line-number"></select>
+                                <select class="updated-line-number" size="3"></select>
                             </li>
                             <li>
+                                <input class="search-start-point-number-for-line-update" type="number" placeholder="Search for start point..."/>
                                 <p class="update-action-over-line-fields-description">Change line start point:</p>
-                                <select class="updated-line-number"></select>
+                                <select class="selected-start-point-number-for-line-update" size="3"></select>
                             </li>
                             <li>
+                                <input class="search-end-point-number-for-line-update" type="number" placeholder="Search for start point..."/>
                                 <p class="update-action-over-line-fields-description">Change line end point:</p>
-                                <select class="selected-point-number"></select>
+                                <select class="selected-end-point-number-for-line-update" size="3"></select>
                             </li>
                         </ul>
 
@@ -788,6 +830,18 @@ class FeaGeometry extends HTMLElement {
                 this.shadowRoot.querySelector(".search-point-number-for-delete").value,
                 this.shadowRoot.querySelector(".deleted-point-number"));
         });
+
+        this.shadowRoot.querySelector(".search-start-point-number-for-line-addition").addEventListener("keyup", () => {
+            this.filter(
+                this.shadowRoot.querySelector(".search-start-point-number-for-line-addition").value,
+                this.shadowRoot.querySelector(".selected-start-point-number-for-line-addition"));
+        });
+
+        this.shadowRoot.querySelector(".search-end-point-number-for-line-addition").addEventListener("keyup", () => {
+            this.filter(
+                this.shadowRoot.querySelector(".search-end-point-number-for-line-addition").value,
+                this.shadowRoot.querySelector(".selected-end-point-number-for-line-addition"));
+        });
     }
 
     set actionId(value) {
@@ -860,6 +914,20 @@ class FeaGeometry extends HTMLElement {
         this.defineNewPointNumber();
         if (this.props.points.length !== 0) {
             this.defineUpdateAndDeletePointNumbers();
+            if (this.props.points.length < 2) {
+                this.shadowRoot.querySelector(".line").disabled = true;
+            } else {
+                this.defineNewLineNumber();
+                const lineStartPointNumberForAddition = this.shadowRoot.querySelector(".selected-start-point-number-for-line-addition");
+                const lineEndPointNumberForAddition = this.shadowRoot.querySelector(".selected-end-point-number-for-line-addition");
+                this.definePointNumbersForLine(lineStartPointNumberForAddition, lineEndPointNumberForAddition);
+                if (this.props.lines.length !== 0) {
+                    this.defineUpdateAndDeleteLineNumbers();
+                } else {
+                    this.shadowRoot.querySelector(".select-update-action-over-line").disabled = true;
+                    this.shadowRoot.querySelector(".select-delete-action-over-line").disabled = true;
+                }
+            }
         } else {
             this.shadowRoot.querySelector(".select-update-action-over-point").disabled = true;
             this.shadowRoot.querySelector(".select-delete-action-over-point").disabled = true;
@@ -1209,10 +1277,10 @@ class FeaGeometry extends HTMLElement {
     defineUpdateAndDeletePointNumbers() {
         const pointUpdateNumberSelect = this.shadowRoot.querySelector(".updated-point-number");
         const pointDeleteNumberSelect = this.shadowRoot.querySelector(".deleted-point-number");
-        for (let i = pointUpdateNumberSelect.length-1; i >= 0; i--) {
+        for (let i = pointUpdateNumberSelect.length - 1; i >= 0; i--) {
             pointUpdateNumberSelect.options[i] = null;
         }
-        for (let i = pointDeleteNumberSelect.length-1; i >= 0; i--) {
+        for (let i = pointDeleteNumberSelect.length - 1; i >= 0; i--) {
             pointDeleteNumberSelect.options[i] = null;
         }
         for (let i = 0; i < this.props.points.length; i++) {
@@ -1276,6 +1344,59 @@ class FeaGeometry extends HTMLElement {
 
     cancelPointUpdateOrDelete() {
         this.defineUpdateAndDeletePointNumbers();
+    }
+
+    defineNewLineNumber() {
+        let newLineNumber = 0;
+        const isLineNumberInArray = (line) => line.number === newLineNumber;
+        do {
+            newLineNumber += 1;
+        } while (this.props.points.some(isLineNumberInArray));
+        this.shadowRoot.querySelector(".add-line-number").value = newLineNumber;
+        this.shadowRoot.querySelector(".add-line-number").min = newLineNumber;
+    }
+
+    definePointNumbersForLine(startPointNumberSelector, endPointNumberSelector) {
+        for (let i = startPointNumberSelector.length - 1; i >= 0; i--) {
+            startPointNumberSelector.options[i] = null;
+        }
+        for (let i = endPointNumberSelector.length - 1; i >= 0; i--) {
+            endPointNumberSelector.options[i] = null;
+        }
+        for (let i = 0; i < this.props.points.length; i++) {
+            let updateOption = document.createElement("option");
+            let deleteOption = document.createElement("option");
+            updateOption.value = this.props.points[i].number;
+            deleteOption.value = this.props.points[i].number;
+            updateOption.innerHTML = `#${this.props.points[i].number}`;
+            deleteOption.innerHTML = `#${this.props.points[i].number}`;
+            startPointNumberSelector.appendChild(updateOption);
+            endPointNumberSelector.appendChild(deleteOption);  
+        }
+    }
+
+    defineUpdateAndDeleteLineNumbers() {
+        const lineUpdateNumberSelect = this.shadowRoot.querySelector(".updated-line-number");
+        const lineDeleteNumberSelect = this.shadowRoot.querySelector(".deleted-line-number");
+        for (let i = lineUpdateNumberSelect.length - 1; i >= 0; i--) {
+            lineUpdateNumberSelect.options[i] = null;
+        }
+        for (let i = lineDeleteNumberSelect.length - 1; i >= 0; i--) {
+            lineDeleteNumberSelect.options[i] = null;
+        }
+        for (let i = 0; i < this.props.lines.length; i++) {
+            let updateOption = document.createElement("option");
+            let deleteOption = document.createElement("option");
+            updateOption.value = this.props.lines[i].number;
+            deleteOption.value = this.props.lines[i].number;
+            updateOption.innerHTML = `#${this.props.lines[i].number}`;
+            deleteOption.innerHTML = `#${this.props.lines[i].number}`;
+            lineUpdateNumberSelect.appendChild(updateOption);
+            lineDeleteNumberSelect.appendChild(deleteOption);  
+        }
+        // this.shadowRoot.querySelector(".update-x-coord").value = this.props.points[0].x;
+        // this.shadowRoot.querySelector(".update-y-coord").value = this.props.points[0].y;
+        // this.shadowRoot.querySelector(".update-z-coord").value = this.props.points[0].z;
     }
 }
 

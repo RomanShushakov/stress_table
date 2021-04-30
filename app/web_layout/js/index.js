@@ -1,3 +1,6 @@
+import HidingContentButton from "./common_components/hiding-content-button.js";
+customElements.define("hiding-content-button", HidingContentButton);
+
 import FeaApp from "./components/fea-app.js";
 import FeaAppTitleBar from "./components/fea-app-title-bar.js";
 import FeaPreprocessor from "./components/fea-preprocessor.js";
@@ -36,8 +39,6 @@ customElements.define("fea-plot-stresses", FeaPlotStresses);
 customElements.define("fea-plot-strains", FeaPlotStrains);
 customElements.define("fea-plot-forces", FeaPlotForces);
 customElements.define("fea-postprocessor-canvas", FeaPostprocessorCanvas);
-
-
 
 
 // import PreprocessorCanvas from "./components/preprocessor_canvas.js";

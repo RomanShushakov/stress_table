@@ -26,6 +26,7 @@ class HidingContentButton extends HTMLElement {
                     margin-bottom: 0.25rem;
                     border-radius: 5px;
                     border: 2px solid #737373;
+                    margin-right: ${this.getAttribute("button-margin-right")};
                 }
 
                 .hiding-content-button:hover {
@@ -34,10 +35,10 @@ class HidingContentButton extends HTMLElement {
 
                 .content {
                     margin: 0rem;
-                    background: #adadad;
-                    border: 2px solid #737373;
+                    background: ${this.getAttribute("content-background")};
+                    border: ${this.getAttribute("content-border")};
                     border-radius: 5px;
-                    padding: 0.5rem;
+                    padding: ${this.getAttribute("content-padding")};
                     align-items: center;
                     display: flex;
                     flex-direction: ${this.getAttribute("content-direction")};
@@ -97,6 +98,7 @@ class HidingContentButton extends HTMLElement {
             button.classList.add("active");
             this.hideSiblings(event);
         }
+        this.updateContentHeight(event);
     }
 
     hideSiblings(event) {
@@ -107,9 +109,17 @@ class HidingContentButton extends HTMLElement {
                 from: `${this.getAttribute("full-name")}`,
             },
         }));
-
     }
 
+    updateContentHeight(event) {
+        this.dispatchEvent(new CustomEvent("update content height", {
+            bubbles: true,
+            composed: true,
+            detail: {
+                height: this.offsetHeight,
+            },
+        }));
+    }
 }
 
 export default HidingContentButton;

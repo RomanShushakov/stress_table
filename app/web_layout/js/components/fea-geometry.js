@@ -44,7 +44,6 @@ class FeaGeometry extends HTMLElement {
                     flex-direction: column;
                     border-right: 1px solid #9a9a9a;
                     border-left: 1px solid #9a9a9a;
-
                 }
 
 
@@ -334,6 +333,7 @@ class FeaGeometry extends HTMLElement {
                         content-left=0rem
                         button-width=5.85rem
                         button-font-size=100%
+                        button-margin-right=0.25rem
                     >
                         <hiding-content-button 
                             class=point-add
@@ -344,6 +344,10 @@ class FeaGeometry extends HTMLElement {
                             content-left=0rem
                             button-width=3rem
                             button-font-size=85%
+                            button-margin-right=0.25rem
+                            content-background=#adadad
+                            content-border="2px solid #737373"
+                            content-padding=0.5rem
                         >
                             <ul class="add-action-over-point-fields">
                                 <li>
@@ -377,6 +381,10 @@ class FeaGeometry extends HTMLElement {
                             content-left=0rem
                             button-width=4.5rem
                             button-font-size=85%
+                            button-margin-right=0.25rem
+                            content-background=#adadad
+                            content-border="2px solid #737373"
+                            content-padding=0.5rem
                         >
                             <ul class="update-action-over-point-fields">
                                 <li>
@@ -411,6 +419,9 @@ class FeaGeometry extends HTMLElement {
                             content-left=0rem
                             button-width=4rem
                             button-font-size=85%
+                            content-background=#adadad
+                            content-border="2px solid #737373"
+                            content-padding=0.5rem
                         >
                             <ul class="delete-action-over-point-fields">
                                 <li>
@@ -444,6 +455,10 @@ class FeaGeometry extends HTMLElement {
                             content-left=0rem
                             button-width=3rem
                             button-font-size=85%
+                            button-margin-right=0.25rem
+                            content-background=#adadad
+                            content-border="2px solid #737373"
+                            content-padding=0.5rem
                         >
                             <ul class="add-action-over-line-fields">
                                 <li>
@@ -475,6 +490,10 @@ class FeaGeometry extends HTMLElement {
                             content-left=0rem
                             button-width=4.5rem
                             button-font-size=85%
+                            button-margin-right=0.25rem
+                            content-background=#adadad
+                            content-border="2px solid #737373"
+                            content-padding=0.5rem
                         >
                             <ul class="update-action-over-line-fields">
                                 <li>
@@ -507,6 +526,9 @@ class FeaGeometry extends HTMLElement {
                             content-left=0rem
                             button-width=4rem
                             button-font-size=85%
+                            content-background=#adadad
+                            content-border="2px solid #737373"
+                            content-padding=0.5rem
                         >
                             <ul class="delete-action-over-line-fields">
                                 <li>
@@ -524,6 +546,8 @@ class FeaGeometry extends HTMLElement {
             </div>
         `;
         this.addEventListener("hide siblings", (event) => this.hideSiblings(event));
+
+        this.addEventListener("update content height", (event) => this.updateContentHeight(event));
 
         this.shadowRoot.querySelector(".point-add-action-apply").addEventListener("click", () => this.addPoint());
 
@@ -663,6 +687,28 @@ class FeaGeometry extends HTMLElement {
         default:
             console.log("Sorry, we are out of button full names.");
         }
+    }
+
+    updateContentHeight(event) {
+        const contentTotalHeight = 
+            // event.detail.height + 
+            this.shadowRoot.querySelector(".geometry").offsetHeight +
+            this.shadowRoot.querySelector(".point-add").offsetHeight + 
+            this.shadowRoot.querySelector(".line-add").offsetHeight + 
+            this.shadowRoot.querySelector(".add-action-over-point-fields").offsetHeight + 
+            this.shadowRoot.querySelector(".add-action-over-point-apply-cancel-buttons-container").offsetHeight +
+            this.shadowRoot.querySelector(".update-action-over-point-fields").offsetHeight + 
+            this.shadowRoot.querySelector(".update-action-over-point-apply-cancel-buttons-container").offsetHeight +
+            this.shadowRoot.querySelector(".delete-action-over-point-fields").offsetHeight +
+            this.shadowRoot.querySelector(".delete-action-over-point-apply-cancel-buttons-container").offsetHeight +
+            this.shadowRoot.querySelector(".add-action-over-line-fields").offsetHeight + 
+            this.shadowRoot.querySelector(".add-action-over-line-apply-cancel-buttons-container").offsetHeight +
+            this.shadowRoot.querySelector(".update-action-over-line-fields").offsetHeight + 
+            this.shadowRoot.querySelector(".update-action-over-line-apply-cancel-buttons-container").offsetHeight +
+            this.shadowRoot.querySelector(".delete-action-over-line-fields").offsetHeight;
+            this.shadowRoot.querySelector(".delete-action-over-line-apply-cancel-buttons-container").offsetHeight +
+        // this.shadowRoot.querySelector(".wrapper").style.height = "0px";
+        this.shadowRoot.querySelector(".wrapper").setAttribute("style", `height: ${contentTotalHeight}px;`);
     }
 
     defineNewPointNumber() {

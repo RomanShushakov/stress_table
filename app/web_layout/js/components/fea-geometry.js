@@ -689,7 +689,21 @@ class FeaGeometry extends HTMLElement {
         }
     }
 
+    findAdditionalHeight(event) {
+        switch (event.detail.from) {
+            case "pointAdd":
+            case "pointUpdate":
+            case "pointDelete":
+            case "lineAdd":
+            case "lineUpdate":
+            case "lineDelete":
+                return 25;
+        }
+        return 0;
+    }
+
     updateContentHeight(event) {
+        const additionalHeight = this.findAdditionalHeight(event);
         const contentTotalHeight = 
             // event.detail.height + 
             this.shadowRoot.querySelector(".geometry").offsetHeight +
@@ -705,9 +719,9 @@ class FeaGeometry extends HTMLElement {
             this.shadowRoot.querySelector(".add-action-over-line-apply-cancel-buttons-container").offsetHeight +
             this.shadowRoot.querySelector(".update-action-over-line-fields").offsetHeight + 
             this.shadowRoot.querySelector(".update-action-over-line-apply-cancel-buttons-container").offsetHeight +
-            this.shadowRoot.querySelector(".delete-action-over-line-fields").offsetHeight;
-            this.shadowRoot.querySelector(".delete-action-over-line-apply-cancel-buttons-container").offsetHeight +
-        // this.shadowRoot.querySelector(".wrapper").style.height = "0px";
+            this.shadowRoot.querySelector(".delete-action-over-line-fields").offsetHeight +
+            this.shadowRoot.querySelector(".delete-action-over-line-apply-cancel-buttons-container").offsetHeight + 
+            additionalHeight;
         this.shadowRoot.querySelector(".wrapper").setAttribute("style", `height: ${contentTotalHeight}px;`);
     }
 

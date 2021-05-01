@@ -116,7 +116,7 @@ class HidingContentButton extends HTMLElement {
             bubbles: true,
             composed: true,
             detail: {
-                height: this.offsetHeight,
+                from: `${this.getAttribute("full-name")}`,
             },
         }));
     }

@@ -7,6 +7,7 @@
 /yew_app/target
 
 .vscode
+.idea
 
 /wasm_modules/renderer/.idea
 /wasm_modules/renderer/Cargo.lock

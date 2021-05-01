@@ -60,22 +60,22 @@ class FeaGeometry extends HTMLElement {
                 }
 
                 .add-point-number {
-                    width: 10rem;
+                    width: 9.65rem;
                     margin-bottom: 0.5rem;
                 }
 
                 .add-x-coord {
-                    width: 10rem;
+                    width: 9.65rem;
                     margin-bottom: 0.5rem;
                 }
 
                 .add-y-coord {
-                    width: 10rem;
+                    width: 9.65rem;
                     margin-bottom: 0.5rem;
                 }
 
                 .add-z-coord {
-                    width: 10rem;
+                    width: 9.65rem;
                     margin-bottom: 0.5rem;
                 }
 
@@ -105,27 +105,34 @@ class FeaGeometry extends HTMLElement {
                     font-size: 0.85rem;
                 }
 
+                .point-number-update {
+                    display: flex;
+                    flex-direction: row;
+                }
+
                 .search-point-number-for-update {
-                    width: 10rem;
+                    width: 5rem;
+                    height: 1rem;
                     margin-bottom: 0.5rem;
                 }
 
                 .updated-point-number {
                     margin-bottom: 0.62rem;
+                    margin-right: 0.5rem;
                 }
 
                 .update-x-coord {
-                    width: 10rem;
+                    width: 9.65rem;
                     margin-bottom: 0.5rem;
                 }
 
                 .update-y-coord {
-                    width: 10rem;
+                    width: 9.65rem;
                     margin-bottom: 0.5rem;
                 }
 
                 .update-z-coord {
-                    width: 10rem;
+                    width: 9.65rem;
                     margin-bottom: 0.5rem;
                 }
 
@@ -153,16 +160,23 @@ class FeaGeometry extends HTMLElement {
                     margin-top: 0rem;
                     margin-bottom: 0.05rem;
                     font-size: 0.85rem;
-                    width: 10.5rem;
+                    width: 10.15rem;
+                }
+
+                .point-number-delete {
+                    display: flex;
+                    flex-direction: row;
                 }
 
                 .search-point-number-for-delete {
-                    width: 10rem;
+                    width: 5rem;
+                    height: 1rem;
                     margin-bottom: 0.5rem;
                 }
 
                 .deleted-point-number {
                     margin-bottom: 0.62rem;
+                    margin-right: 0.5rem;
                 }
 
                 .delete-action-over-point-apply-cancel-buttons-container {
@@ -191,32 +205,46 @@ class FeaGeometry extends HTMLElement {
                     font-size: 0.85rem;
                 }
 
+                .line-number-add-start-point {
+                    display: flex;
+                    flex-direction: row;
+                }
+
                 .search-start-point-number-for-line-addition {
-                    width: 10rem;
+                    width: 5rem;
+                    height: 1rem;
                     margin-bottom: 0.5rem;
                 }
 
+                .line-number-add-end-point {
+                    display: flex;
+                    flex-direction: row;
+                }
+
                 .search-end-point-number-for-line-addition {
-                    width: 10rem;
+                    width: 5rem;
+                    height: 1rem;
                     margin-bottom: 0.5rem;
                 }
 
                 .add-line-number {
-                    width: 10rem;
+                    width: 9.65rem;
                     margin-bottom: 0.5rem;
                 }
 
                 .search-line-number-for-update {
-                    width: 10rem;
+                    width: 9.65rem;
                     margin-bottom: 0.5rem;
                 }
 
                 .selected-start-point-number-for-line-addition {
                     margin-bottom: 0.62rem;
+                    margin-right: 0.5rem;
                 }
 
                 .selected-end-point-number-for-line-addition {
                     margin-bottom: 0.62rem;
+                    margin-right: 0.5rem;
                 }
 
                 .add-action-over-line-apply-cancel-buttons-container {
@@ -243,16 +271,16 @@ class FeaGeometry extends HTMLElement {
                     margin-top: 0rem;
                     margin-bottom: 0.05rem;
                     font-size: 0.85rem;
-                    width: 10.5rem;
+                    width: 10.15rem;
                 }
 
                 .search-start-point-number-for-line-update {
-                    width: 10rem;
+                    width: 9.65rem;
                     margin-bottom: 0.5rem;
                 }
 
                 .search-end-point-number-for-line-update {
-                    width: 10rem;
+                    width: 9.65rem;
                     margin-bottom: 0.5rem;
                 }
 
@@ -292,7 +320,7 @@ class FeaGeometry extends HTMLElement {
                     margin-top: 0rem;
                     margin-bottom: 0.05rem;
                     font-size: 0.85rem;
-                    width: 10.5rem;
+                    width: 10.15rem;
                 }
 
                 .deleted-line-number {
@@ -333,7 +361,7 @@ class FeaGeometry extends HTMLElement {
                         content-left=0rem
                         button-width=5.85rem
                         button-font-size=100%
-                        button-margin-right=0.25rem
+                        button-margin-right=0.3rem
                     >
                         <hiding-content-button 
                             class=point-add
@@ -388,9 +416,11 @@ class FeaGeometry extends HTMLElement {
                         >
                             <ul class="update-action-over-point-fields">
                                 <li>
-                                    <input class="search-point-number-for-update" type="number" placeholder="Search for numbers..."/>
                                     <p class="update-action-over-point-fields-description">Select point number:</p>
-                                    <select class="updated-point-number" size="3"></select>                          
+                                    <div class="point-number-update">
+                                        <select class="updated-point-number" size="3"></select>  
+                                        <input class="search-point-number-for-update" type="number" placeholder="Search..."/>    
+                                    </div>                    
                                 </li>
                                 <li>
                                     <p class="update-action-over-point-fields-description">X coordinate:</p>
@@ -425,9 +455,11 @@ class FeaGeometry extends HTMLElement {
                         >
                             <ul class="delete-action-over-point-fields">
                                 <li>
-                                    <input class="search-point-number-for-delete" type="number" placeholder="Search for numbers..."/>
                                     <p class="delete-action-over-point-fields-description">Select point number:</p>
-                                    <select class="deleted-point-number" size="3"></select>
+                                    <div class="point-number-delete">
+                                        <select class="deleted-point-number" size="3"></select>
+                                        <input class="search-point-number-for-delete" type="number" placeholder="Search..."/>
+                                    </div>
                                 </li>
                             </ul>
                             <div class="delete-action-over-point-apply-cancel-buttons-container">
@@ -466,14 +498,18 @@ class FeaGeometry extends HTMLElement {
                                     <input class="add-line-number" type="number" step="1"/>
                                 </li>
                                 <li>
-                                    <input class="search-start-point-number-for-line-addition" type="number" placeholder="Search for start point..."/>
                                     <p class="add-action-over-line-fields-description">Select start point:</p>
-                                    <select class="selected-start-point-number-for-line-addition" size="3"></select>
+                                    <div class="line-number-add-start-point">
+                                        <select class="selected-start-point-number-for-line-addition" size="3"></select>
+                                        <input class="search-start-point-number-for-line-addition" type="number" placeholder="Search..."/>
+                                    </div>
                                 </li>
                                 <li>
-                                    <input class="search-end-point-number-for-line-addition" type="number" placeholder="Search for end point..."/>
                                     <p class="add-action-over-line-fields-description">Select end point:</p>
-                                    <select class="selected-end-point-number-for-line-addition" size="3"></select>
+                                    <div class="line-number-add-end-point">
+                                        <select class="selected-end-point-number-for-line-addition" size="3"></select>
+                                        <input class="search-end-point-number-for-line-addition" type="number" placeholder="Search..."/>
+                                    </div>
                                 </li>
                             </ul>
                             <div class="add-action-over-line-apply-cancel-buttons-container">

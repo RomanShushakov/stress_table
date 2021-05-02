@@ -126,14 +126,23 @@ class HidingContentButton extends HTMLElement {
     }
 
     updateContentHeight(event) {
+        const additionalHeight = this.findAdditionalHeight();
         this.dispatchEvent(new CustomEvent("update content height", {
             bubbles: true,
             composed: true,
             detail: {
                 from: this.getAttribute("full-name"),
-                height: this.offsetHeight,
+                height: additionalHeight,
             },
         }));
+    }
+
+    findAdditionalHeight() {
+        if (this.shadowRoot.querySelector(".content").classList.contains("hidden") === true) {
+            return 0;
+        } else {
+            return this.offsetHeight;
+        }
     }
 }
 

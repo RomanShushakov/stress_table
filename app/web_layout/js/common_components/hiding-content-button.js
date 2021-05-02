@@ -44,6 +44,7 @@ class HidingContentButton extends HTMLElement {
                     flex-direction: ${this.getAttribute("content-direction")};
                     left: ${this.getAttribute("content-left")};
                     position: ${this.getAttribute("content-position")};
+                    width: 10.75rem;
                 }
 
                 .hidden {
@@ -87,6 +88,19 @@ class HidingContentButton extends HTMLElement {
         }
     }
 
+    set disable(b) {
+        const content = this.shadowRoot.querySelector(".content");
+        const button = this.shadowRoot.querySelector(".hiding-content-button");
+        if (b === true) {
+            button.disabled = true;
+            if (content.classList.contains("hidden") === false) {
+                content.classList.add("hidden");
+            }
+        } else {
+            button.disabled = false;
+        }
+    }
+
     toggle(event) {
         const content = this.shadowRoot.querySelector(".content");
         const button = this.shadowRoot.querySelector(".hiding-content-button");
@@ -116,7 +130,8 @@ class HidingContentButton extends HTMLElement {
             bubbles: true,
             composed: true,
             detail: {
-                from: `${this.getAttribute("full-name")}`,
+                from: this.getAttribute("full-name"),
+                height: this.offsetHeight,
             },
         }));
     }

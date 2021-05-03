@@ -12,3 +12,11 @@
 /wasm_modules/renderer/.idea
 /wasm_modules/renderer/Cargo.lock
 /wasm_modules/renderer/target
+
+/wasm_modules/actions_router/.idea
+/wasm_modules/actions_router/Cargo.lock
+/wasm_modules/actions_router/target
+
+/wasm_modules/geometry/.idea
+/wasm_modules/geometry/Cargo.lock
+/wasm_modules/geometry/target

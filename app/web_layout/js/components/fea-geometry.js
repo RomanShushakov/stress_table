@@ -18,12 +18,12 @@ class FeaGeometry extends HTMLElement {
 
         this.state = {
             buttonNames: {
-                geometry: "Geometry", point:  "Point", line: "Line",
+                geometry: "Geometry", point: "Point", line: "Line",
                 pointAdd: "Add", pointUpdate: "Update", pointDelete: "Delete",
                 lineAdd: "Add", lineUpdate: "Update", lineDelete: "Delete",
             },
             buttonFullNames: {
-                geometry: "geometry", point:  "point", line: "line",
+                geometry: "geometry", point: "point", line: "line",
                 pointAdd: "pointAdd", pointUpdate: "pointUpdate", pointDelete: "pointDelete",
                 lineAdd: "lineAdd", lineUpdate: "lineUpdate", lineDelete: "lineDelete",
             }
@@ -850,7 +850,7 @@ class FeaGeometry extends HTMLElement {
 
         this.shadowRoot.querySelector(".point-delete-action-cancel").addEventListener("click", () => this.cancelPointUpdateOrDelete());
 
-        this.shadowRoot.querySelector(".selected-start-point-number-for-line-addition").addEventListener("change", 
+        this.shadowRoot.querySelector(".selected-start-point-number-for-line-addition").addEventListener("change",
             () => this.showSelectedStartPointNumberForLineAddition());
 
         this.shadowRoot.querySelector(".search-start-point-number-for-line-addition").addEventListener("keyup", () => {
@@ -859,7 +859,7 @@ class FeaGeometry extends HTMLElement {
                 this.shadowRoot.querySelector(".selected-start-point-number-for-line-addition"));
         });
 
-        this.shadowRoot.querySelector(".selected-end-point-number-for-line-addition").addEventListener("change", 
+        this.shadowRoot.querySelector(".selected-end-point-number-for-line-addition").addEventListener("change",
             () => this.showSelectedEndPointNumberForLineAddition());
 
         this.shadowRoot.querySelector(".search-end-point-number-for-line-addition").addEventListener("keyup", () => {
@@ -872,7 +872,7 @@ class FeaGeometry extends HTMLElement {
 
         this.shadowRoot.querySelector(".line-add-action-cancel").addEventListener("click", () => this.cancelLineAddition());
 
-        this.shadowRoot.querySelector(".updated-line-number").addEventListener("change", 
+        this.shadowRoot.querySelector(".updated-line-number").addEventListener("change",
             () => this.showSelectedLineNumberForUpdate());
 
         this.shadowRoot.querySelector(".search-line-number-for-update").addEventListener("keyup", () => {
@@ -881,7 +881,7 @@ class FeaGeometry extends HTMLElement {
                 this.shadowRoot.querySelector(".updated-line-number"));
         });
 
-        this.shadowRoot.querySelector(".selected-start-point-number-for-line-update").addEventListener("change", 
+        this.shadowRoot.querySelector(".selected-start-point-number-for-line-update").addEventListener("change",
             () => this.showSelectedStartPointNumberForLineUpdate());
 
         this.shadowRoot.querySelector(".search-start-point-number-for-line-update").addEventListener("keyup", () => {
@@ -890,7 +890,7 @@ class FeaGeometry extends HTMLElement {
                 this.shadowRoot.querySelector(".selected-start-point-number-for-line-update"));
         });
 
-        this.shadowRoot.querySelector(".selected-end-point-number-for-line-update").addEventListener("change", 
+        this.shadowRoot.querySelector(".selected-end-point-number-for-line-update").addEventListener("change",
             () => this.showSelectedEndPointNumberForLineUpdate());
 
         this.shadowRoot.querySelector(".search-end-point-number-for-line-update").addEventListener("keyup", () => {
@@ -903,7 +903,7 @@ class FeaGeometry extends HTMLElement {
 
         this.shadowRoot.querySelector(".line-update-action-cancel").addEventListener("click", () => this.cancelLineUpdate());
 
-        this.shadowRoot.querySelector(".deleted-line-number").addEventListener("change", 
+        this.shadowRoot.querySelector(".deleted-line-number").addEventListener("change",
             () => this.showSelectedLineNumberForDelete());
 
         this.shadowRoot.querySelector(".search-line-number-for-delete").addEventListener("keyup", () => {
@@ -920,7 +920,7 @@ class FeaGeometry extends HTMLElement {
             const highlightedElement = this.shadowRoot.querySelector(".add-point-number");
             this.dropHighlight(highlightedElement);
             this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight - 
+                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
                 this.shadowRoot.querySelector(".point-add-message").offsetHeight}px;`);
             this.shadowRoot.querySelector(".point-add-message").innerHTML = "";
         });
@@ -929,7 +929,7 @@ class FeaGeometry extends HTMLElement {
             const inputtedXField = this.shadowRoot.querySelector(".add-x-coord");
             this.dropHighlight(inputtedXField);
             this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight - 
+                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
                 this.shadowRoot.querySelector(".point-add-message").offsetHeight}px;`);
             this.shadowRoot.querySelector(".point-add-message").innerHTML = "";
         });
@@ -938,7 +938,7 @@ class FeaGeometry extends HTMLElement {
             const inputtedYField = this.shadowRoot.querySelector(".add-y-coord");
             this.dropHighlight(inputtedYField);
             this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight - 
+                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
                 this.shadowRoot.querySelector(".point-add-message").offsetHeight}px;`);
             this.shadowRoot.querySelector(".point-add-message").innerHTML = "";
         });
@@ -947,7 +947,7 @@ class FeaGeometry extends HTMLElement {
             const inputtedZField = this.shadowRoot.querySelector(".add-z-coord");
             this.dropHighlight(inputtedZField);
             this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight - 
+                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
                 this.shadowRoot.querySelector(".point-add-message").offsetHeight}px;`);
             this.shadowRoot.querySelector(".point-add-message").innerHTML = "";
         });
@@ -956,7 +956,7 @@ class FeaGeometry extends HTMLElement {
             const highlightedElement = this.shadowRoot.querySelector(".updated-point-number");
             this.dropHighlight(highlightedElement);
             this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight - 
+                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
                 this.shadowRoot.querySelector(".point-update-message").offsetHeight}px;`);
             this.shadowRoot.querySelector(".point-update-message").innerHTML = "";
         });
@@ -965,7 +965,7 @@ class FeaGeometry extends HTMLElement {
             const highlightedElement = this.shadowRoot.querySelector(".update-x-coord");
             this.dropHighlight(highlightedElement);
             this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight - 
+                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
                 this.shadowRoot.querySelector(".point-update-message").offsetHeight}px;`);
             this.shadowRoot.querySelector(".point-update-message").innerHTML = "";
         });
@@ -974,7 +974,7 @@ class FeaGeometry extends HTMLElement {
             const highlightedElement = this.shadowRoot.querySelector(".update-y-coord");
             this.dropHighlight(highlightedElement);
             this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight - 
+                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
                 this.shadowRoot.querySelector(".point-update-message").offsetHeight}px;`);
             this.shadowRoot.querySelector(".point-update-message").innerHTML = "";
         });
@@ -983,7 +983,7 @@ class FeaGeometry extends HTMLElement {
             const highlightedElement = this.shadowRoot.querySelector(".update-z-coord");
             this.dropHighlight(highlightedElement);
             this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight - 
+                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
                 this.shadowRoot.querySelector(".point-update-message").offsetHeight}px;`);
             this.shadowRoot.querySelector(".point-update-message").innerHTML = "";
         });
@@ -992,7 +992,7 @@ class FeaGeometry extends HTMLElement {
             const highlightedElement = this.shadowRoot.querySelector(".deleted-point-number");
             this.dropHighlight(highlightedElement);
             this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight - 
+                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
                 this.shadowRoot.querySelector(".point-delete-message").offsetHeight}px;`);
             this.shadowRoot.querySelector(".point-delete-message").innerHTML = "";
         });
@@ -1001,7 +1001,7 @@ class FeaGeometry extends HTMLElement {
             const highlightedElement = this.shadowRoot.querySelector(".add-line-number");
             this.dropHighlight(highlightedElement);
             this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight - 
+                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
                 this.shadowRoot.querySelector(".line-add-message").offsetHeight}px;`);
             this.shadowRoot.querySelector(".line-add-message").innerHTML = "";
         });
@@ -1010,7 +1010,7 @@ class FeaGeometry extends HTMLElement {
             const highlightedElement = this.shadowRoot.querySelector(".selected-start-point-number-for-line-addition");
             this.dropHighlight(highlightedElement);
             this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight - 
+                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
                 this.shadowRoot.querySelector(".line-add-message").offsetHeight}px;`);
             this.shadowRoot.querySelector(".line-add-message").innerHTML = "";
         });
@@ -1019,7 +1019,7 @@ class FeaGeometry extends HTMLElement {
             const highlightedElement = this.shadowRoot.querySelector(".selected-end-point-number-for-line-addition");
             this.dropHighlight(highlightedElement);
             this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight - 
+                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
                 this.shadowRoot.querySelector(".line-add-message").offsetHeight}px;`);
             this.shadowRoot.querySelector(".line-add-message").innerHTML = "";
         });
@@ -1028,7 +1028,7 @@ class FeaGeometry extends HTMLElement {
             const highlightedElement = this.shadowRoot.querySelector(".updated-line-number");
             this.dropHighlight(highlightedElement);
             this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight - 
+                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
                 this.shadowRoot.querySelector(".line-update-message").offsetHeight}px;`);
             this.shadowRoot.querySelector(".line-update-message").innerHTML = "";
         });
@@ -1037,7 +1037,7 @@ class FeaGeometry extends HTMLElement {
             const highlightedElement = this.shadowRoot.querySelector(".selected-start-point-number-for-line-update");
             this.dropHighlight(highlightedElement);
             this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight - 
+                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
                 this.shadowRoot.querySelector(".line-update-message").offsetHeight}px;`);
             this.shadowRoot.querySelector(".line-update-message").innerHTML = "";
         });
@@ -1046,7 +1046,7 @@ class FeaGeometry extends HTMLElement {
             const highlightedElement = this.shadowRoot.querySelector(".selected-end-point-number-for-line-update");
             this.dropHighlight(highlightedElement);
             this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight - 
+                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
                 this.shadowRoot.querySelector(".line-update-message").offsetHeight}px;`);
             this.shadowRoot.querySelector(".line-update-message").innerHTML = "";
         });
@@ -1055,7 +1055,7 @@ class FeaGeometry extends HTMLElement {
             const highlightedElement = this.shadowRoot.querySelector(".deleted-line-number");
             this.dropHighlight(highlightedElement);
             this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight - 
+                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
                 this.shadowRoot.querySelector(".line-delete-message").offsetHeight}px;`);
             this.shadowRoot.querySelector(".line-delete-message").innerHTML = "";
         });
@@ -1078,14 +1078,14 @@ class FeaGeometry extends HTMLElement {
 
     disconnectedCallback() {
     }
-    
+
     static get observedAttributes() {
         return [];
     }
-    
+
     attributeChangedCallback(name, oldValue, newValue) {
     }
-    
+
     adoptedCallback() {
     }
 
@@ -1124,54 +1124,63 @@ class FeaGeometry extends HTMLElement {
 
     hideSiblings(event) {
         switch (event.detail.from) {
-        case "geometry":
-            this.shadowRoot.querySelector(".point").deactivate = "_true";
-            this.shadowRoot.querySelector(".point-add").deactivate = "_true";
-            this.shadowRoot.querySelector(".point-update").deactivate = "_true";
-            this.shadowRoot.querySelector(".point-delete").deactivate = "_true";
-            this.shadowRoot.querySelector(".line").deactivate = "_true";
-            this.shadowRoot.querySelector(".line-add").deactivate = "_true";
-            this.shadowRoot.querySelector(".line-update").deactivate = "_true";
-            this.shadowRoot.querySelector(".line-delete").deactivate = "_true";
-            break;
-        case "point":
-            this.shadowRoot.querySelector(".line").deactivate = "_true";
-            this.shadowRoot.querySelector(".line-add").deactivate = "_true";
-            this.shadowRoot.querySelector(".line-update").deactivate = "_true";
-            this.shadowRoot.querySelector(".line-delete").deactivate = "_true";
-            break;
-        case "pointAdd":
-            this.shadowRoot.querySelector(".point-update").deactivate = "_true";
-            this.shadowRoot.querySelector(".point-delete").deactivate = "_true";
-            break;
-        case "pointUpdate":
-            this.shadowRoot.querySelector(".point-add").deactivate = "_true";
-            this.shadowRoot.querySelector(".point-delete").deactivate = "_true";
-            break;
-        case "pointDelete":
-            this.shadowRoot.querySelector(".point-add").deactivate = "_true";
-            this.shadowRoot.querySelector(".point-update").deactivate = "_true";
-            break;
-        case "line":
-            this.shadowRoot.querySelector(".point").deactivate = "_true";
-            this.shadowRoot.querySelector(".point-add").deactivate = "_true";
-            this.shadowRoot.querySelector(".point-update").deactivate = "_true";
-            this.shadowRoot.querySelector(".point-delete").deactivate = "_true";
-            break;
-        case "lineAdd":
-            this.shadowRoot.querySelector(".line-update").deactivate = "_true";
-            this.shadowRoot.querySelector(".line-delete").deactivate = "_true";
-            break;
-        case "lineUpdate":
-            this.shadowRoot.querySelector(".line-add").deactivate = "_true";
-            this.shadowRoot.querySelector(".line-delete").deactivate = "_true";
-            break;
-        case "lineDelete":
-            this.shadowRoot.querySelector(".line-add").deactivate = "_true";
-            this.shadowRoot.querySelector(".line-update").deactivate = "_true";
-            break;
-        default:
-            console.log("Sorry, we are out of button full names.");
+            case "geometry":
+                this.shadowRoot.querySelector(".point").deactivate = "_true";
+                this.shadowRoot.querySelector(".point-add").deactivate = "_true";
+                this.shadowRoot.querySelector(".point-update").deactivate = "_true";
+                this.shadowRoot.querySelector(".point-delete").deactivate = "_true";
+                this.shadowRoot.querySelector(".line").deactivate = "_true";
+                this.shadowRoot.querySelector(".line-add").deactivate = "_true";
+                this.shadowRoot.querySelector(".line-update").deactivate = "_true";
+                this.shadowRoot.querySelector(".line-delete").deactivate = "_true";
+                event.stopPropagation();
+                break;
+            case "point":
+                this.shadowRoot.querySelector(".line").deactivate = "_true";
+                this.shadowRoot.querySelector(".line-add").deactivate = "_true";
+                this.shadowRoot.querySelector(".line-update").deactivate = "_true";
+                this.shadowRoot.querySelector(".line-delete").deactivate = "_true";
+                event.stopPropagation();
+                break;
+            case "pointAdd":
+                this.shadowRoot.querySelector(".point-update").deactivate = "_true";
+                this.shadowRoot.querySelector(".point-delete").deactivate = "_true";
+                event.stopPropagation();
+                break;
+            case "pointUpdate":
+                this.shadowRoot.querySelector(".point-add").deactivate = "_true";
+                this.shadowRoot.querySelector(".point-delete").deactivate = "_true";
+                event.stopPropagation();
+                break;
+            case "pointDelete":
+                this.shadowRoot.querySelector(".point-add").deactivate = "_true";
+                this.shadowRoot.querySelector(".point-update").deactivate = "_true";
+                event.stopPropagation();
+                break;
+            case "line":
+                this.shadowRoot.querySelector(".point").deactivate = "_true";
+                this.shadowRoot.querySelector(".point-add").deactivate = "_true";
+                this.shadowRoot.querySelector(".point-update").deactivate = "_true";
+                this.shadowRoot.querySelector(".point-delete").deactivate = "_true";
+                event.stopPropagation();
+                break;
+            case "lineAdd":
+                this.shadowRoot.querySelector(".line-update").deactivate = "_true";
+                this.shadowRoot.querySelector(".line-delete").deactivate = "_true";
+                event.stopPropagation();
+                break;
+            case "lineUpdate":
+                this.shadowRoot.querySelector(".line-add").deactivate = "_true";
+                this.shadowRoot.querySelector(".line-delete").deactivate = "_true";
+                event.stopPropagation();
+                break;
+            case "lineDelete":
+                this.shadowRoot.querySelector(".line-add").deactivate = "_true";
+                this.shadowRoot.querySelector(".line-update").deactivate = "_true";
+                event.stopPropagation();
+                break;
+            default:
+                console.log("Sorry, we are out of button full names.");
         }
     }
 
@@ -1190,22 +1199,22 @@ class FeaGeometry extends HTMLElement {
 
     updateContentHeight(event) {
         const additionalHeight = this.findContentHeight(event);
-        const contentTotalHeight = 
+        const contentTotalHeight =
             this.shadowRoot.querySelector(".geometry").offsetHeight +
-            this.shadowRoot.querySelector(".point-add").offsetHeight + 
-            this.shadowRoot.querySelector(".line-add").offsetHeight + 
-            this.shadowRoot.querySelector(".add-action-over-point-fields").offsetHeight + 
+            this.shadowRoot.querySelector(".point-add").offsetHeight +
+            this.shadowRoot.querySelector(".line-add").offsetHeight +
+            this.shadowRoot.querySelector(".add-action-over-point-fields").offsetHeight +
             this.shadowRoot.querySelector(".add-action-over-point-apply-cancel-buttons-container").offsetHeight +
-            this.shadowRoot.querySelector(".update-action-over-point-fields").offsetHeight + 
+            this.shadowRoot.querySelector(".update-action-over-point-fields").offsetHeight +
             this.shadowRoot.querySelector(".update-action-over-point-apply-cancel-buttons-container").offsetHeight +
             this.shadowRoot.querySelector(".delete-action-over-point-fields").offsetHeight +
             this.shadowRoot.querySelector(".delete-action-over-point-apply-cancel-buttons-container").offsetHeight +
-            this.shadowRoot.querySelector(".add-action-over-line-fields").offsetHeight + 
+            this.shadowRoot.querySelector(".add-action-over-line-fields").offsetHeight +
             this.shadowRoot.querySelector(".add-action-over-line-apply-cancel-buttons-container").offsetHeight +
-            this.shadowRoot.querySelector(".update-action-over-line-fields").offsetHeight + 
+            this.shadowRoot.querySelector(".update-action-over-line-fields").offsetHeight +
             this.shadowRoot.querySelector(".update-action-over-line-apply-cancel-buttons-container").offsetHeight +
             this.shadowRoot.querySelector(".delete-action-over-line-fields").offsetHeight +
-            this.shadowRoot.querySelector(".delete-action-over-line-apply-cancel-buttons-container").offsetHeight + 
+            this.shadowRoot.querySelector(".delete-action-over-line-apply-cancel-buttons-container").offsetHeight +
             additionalHeight;
         this.shadowRoot.querySelector(".wrapper").setAttribute("style", `height: ${contentTotalHeight}px;`);
     }
@@ -1240,7 +1249,7 @@ class FeaGeometry extends HTMLElement {
             updateOption.innerHTML = `#${this.props.points[i].number}`;
             deleteOption.innerHTML = `#${this.props.points[i].number}`;
             pointUpdateNumberSelect.appendChild(updateOption);
-            pointDeleteNumberSelect.appendChild(deleteOption);  
+            pointDeleteNumberSelect.appendChild(deleteOption);
         }
         this.shadowRoot.querySelector(".update-x-coord").value = this.props.points[0].x;
         this.shadowRoot.querySelector(".update-y-coord").value = this.props.points[0].y;
@@ -1298,7 +1307,7 @@ class FeaGeometry extends HTMLElement {
         if (newPointNumberField.value === "" || inputtedXField.value === "" || inputtedYField.value === "" || inputtedZField.value === "") {
             this.shadowRoot.querySelector(".point-add-message").innerHTML = "The highlighted fields should be filled!";
             this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight + 
+                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
                 this.shadowRoot.querySelector(".point-add-message").offsetHeight}px;`);
             return;
         }
@@ -1306,26 +1315,37 @@ class FeaGeometry extends HTMLElement {
         if (pointNumberInProps != null) {
             this.shadowRoot.querySelector(".point-add-message").innerHTML = "The point with the same number does already exist!";
             this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight + 
+                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
                 this.shadowRoot.querySelector(".point-add-message").offsetHeight}px;`);
             return;
         }
-        const pointCoordinatesInProps = this.props.points.find(point => point.x == inputtedXField.value && point.y == inputtedYField.value && 
+        const pointCoordinatesInProps = this.props.points.find(point => point.x == inputtedXField.value && point.y == inputtedYField.value &&
             point.z == inputtedZField.value);
         if (pointCoordinatesInProps != null) {
             this.shadowRoot.querySelector(".point-add-message").innerHTML = "The point with the same coordinates does already exist!";
             this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight + 
+                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
                 this.shadowRoot.querySelector(".point-add-message").offsetHeight}px;`);
             return;
         }
-        console.log(newPointNumberField.value, inputtedXField.value, inputtedYField.value, inputtedZField.value);
+        const message = JSON.stringify({"add_point": {
+                "actionId": this.props.actionId,
+                "number": newPointNumberField.value, 
+                "x":  inputtedXField.value, "y":  inputtedYField.value, "z": inputtedZField.value
+            }});
+        this.dispatchEvent(new CustomEvent("client message", {
+            bubbles: true,
+            composed: true,
+            detail: {
+                message: message,
+            },
+        }));
     }
 
     cancelPointAddition() {
         this.defineNewPointNumber();
         this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-            `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight - 
+            `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
             this.shadowRoot.querySelector(".point-add-message").offsetHeight}px;`);
         const newPointNumberField = this.shadowRoot.querySelector(".add-point-number");
         this.dropHighlight(newPointNumberField);
@@ -1366,20 +1386,33 @@ class FeaGeometry extends HTMLElement {
         if (selectedPointNumberField.value === "" || inputtedXField.value === "" || inputtedYField.value === "" || inputtedZField.value === "") {
             this.shadowRoot.querySelector(".point-update-message").innerHTML = "The highlighted fields should be filled!";
             this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight + 
+                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
                 this.shadowRoot.querySelector(".point-update-message").offsetHeight}px;`);
             return;
         }
-        const pointCoordinatesInProps = this.props.points.find(point => point.x == inputtedXField.value && point.y == inputtedYField.value && 
+        const pointCoordinatesInProps = this.props.points.find(point => point.x == inputtedXField.value && point.y == inputtedYField.value &&
             point.z == inputtedZField.value);
         if (pointCoordinatesInProps != null) {
             this.shadowRoot.querySelector(".point-update-message").innerHTML = "The point with the same coordinates does already exist!";
             this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight + 
+                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
                 this.shadowRoot.querySelector(".point-update-message").offsetHeight}px;`);
             return;
         }
-        console.log(selectedPointNumberField.value, inputtedXField.value, inputtedYField.value, inputtedZField.value);
+        const oldPointValues = this.props.points.find(point => point.number == selectedPointNumberField.value);
+        const message = JSON.stringify({"update_point": {
+            "actionId": this.props.actionId,
+            "number": selectedPointNumberField.value, 
+            "old_point_values": { "x":  oldPointValues.x, "y": oldPointValues.y, "z": oldPointValues.z },
+            "new_point_values": { "x": inputtedXField.value, "y": inputtedYField.value, "z": inputtedZField.value }
+        }});
+        this.dispatchEvent(new CustomEvent("client message", {
+            bubbles: true,
+            composed: true,
+            detail: {
+                message: message,
+            },
+        }));
     }
 
     showSelectedPointNumberForDelete() {
@@ -1395,11 +1428,21 @@ class FeaGeometry extends HTMLElement {
             }
             this.shadowRoot.querySelector(".point-delete-message").innerHTML = "The highlighted fields should be filled!";
             this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight + 
+                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
                 this.shadowRoot.querySelector(".point-delete-message").offsetHeight}px;`);
             return;
         }
-        console.log(selectedPointNumberField.value);
+        const message = JSON.stringify({"delete_point": {
+            "actionId": this.props.actionId,
+            "number": selectedPointNumberField.value,
+        }});
+        this.dispatchEvent(new CustomEvent("client message", {
+            bubbles: true,
+            composed: true,
+            detail: {
+                message: message,
+            },
+        }));
     }
 
     cancelPointUpdateOrDelete() {
@@ -1419,11 +1462,11 @@ class FeaGeometry extends HTMLElement {
         this.shadowRoot.querySelector(".selected-point-number-for-update-info").innerHTML = "You select:";
         this.shadowRoot.querySelector(".selected-point-number-for-delete-info").innerHTML = "You select:";
         this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-            `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight - 
+            `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
             this.shadowRoot.querySelector(".point-update-message").offsetHeight}px;`);
         this.shadowRoot.querySelector(".point-update-message").innerHTML = "";
         this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-            `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight - 
+            `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
             this.shadowRoot.querySelector(".point-delete-message").offsetHeight}px;`);
         this.shadowRoot.querySelector(".point-delete-message").innerHTML = "";
     }
@@ -1453,7 +1496,7 @@ class FeaGeometry extends HTMLElement {
             updateOption.innerHTML = `#${this.props.points[i].number}`;
             deleteOption.innerHTML = `#${this.props.points[i].number}`;
             startPointNumberSelector.appendChild(updateOption);
-            endPointNumberSelector.appendChild(deleteOption);  
+            endPointNumberSelector.appendChild(deleteOption);
         }
     }
 
@@ -1474,7 +1517,7 @@ class FeaGeometry extends HTMLElement {
             updateOption.innerHTML = `#${this.props.lines[i].number}`;
             deleteOption.innerHTML = `#${this.props.lines[i].number}`;
             lineUpdateNumberSelect.appendChild(updateOption);
-            lineDeleteNumberSelect.appendChild(deleteOption);  
+            lineDeleteNumberSelect.appendChild(deleteOption);
         }
     }
 
@@ -1510,7 +1553,7 @@ class FeaGeometry extends HTMLElement {
         if (newLineNumberField.value == "" || startPointField.value == "" || endPointField.value == "") {
             this.shadowRoot.querySelector(".line-add-message").innerHTML = "The highlighted fields should be filled!";
             this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight + 
+                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
                 this.shadowRoot.querySelector(".line-add-message").offsetHeight}px;`);
             return;
         }
@@ -1518,28 +1561,39 @@ class FeaGeometry extends HTMLElement {
         if (lineNumberInProps != null) {
             this.shadowRoot.querySelector(".line-add-message").innerHTML = "The line with the same number does already exist!";
             this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight + 
+                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
                 this.shadowRoot.querySelector(".line-add-message").offsetHeight}px;`);
             return;
         }
-        const linePointNumbersInProps = this.props.lines.find(line => 
-            (line.startPoint == startPointField.value && line.endPoint == endPointField.value) || 
+        const linePointNumbersInProps = this.props.lines.find(line =>
+            (line.startPoint == startPointField.value && line.endPoint == endPointField.value) ||
             (line.startPoint == endPointField.value && line.endPoint == startPointField.value));
         if (linePointNumbersInProps != null) {
             this.shadowRoot.querySelector(".line-add-message").innerHTML = "The line with the same start and end points does already exist!";
             this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight + 
+                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
                 this.shadowRoot.querySelector(".line-add-message").offsetHeight}px;`);
             return;
         }
         if (startPointField.value === endPointField.value) {
             this.shadowRoot.querySelector(".line-add-message").innerHTML = "The start and the end point numbers should not be the same!";
             this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight + 
+                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
                 this.shadowRoot.querySelector(".line-add-message").offsetHeight}px;`);
             return;
         }
-        console.log(newLineNumberField.value, startPointField.value, endPointField.value);
+        const message = JSON.stringify({"add_line": {
+            "actionId": this.props.actionId,
+            "number": newLineNumberField.value, 
+            "start_point_number": startPointField.value, "end_point_number": endPointField.value
+        }});
+        this.dispatchEvent(new CustomEvent("client message", {
+            bubbles: true,
+            composed: true,
+            detail: {
+                message: message,
+            },
+        }));
     }
 
     cancelLineAddition() {
@@ -1558,7 +1612,7 @@ class FeaGeometry extends HTMLElement {
         const endPointField = this.shadowRoot.querySelector(".selected-end-point-number-for-line-addition");
         this.dropHighlight(endPointField);
         this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-            `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight - 
+            `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
             this.shadowRoot.querySelector(".line-add-message").offsetHeight}px;`);
         this.shadowRoot.querySelector(".line-add-message").innerHTML = "";
     }
@@ -1600,28 +1654,41 @@ class FeaGeometry extends HTMLElement {
         if (selectedLineNumberField.value == "" || startPointField.value == "" || endPointField.value == "") {
             this.shadowRoot.querySelector(".line-update-message").innerHTML = "The highlighted fields should be filled!";
             this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight + 
+                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
                 this.shadowRoot.querySelector(".line-update-message").offsetHeight}px;`);
             return;
         }
-        const linePointNumbersInProps = this.props.lines.find(line => 
-            (line.startPoint == startPointField.value && line.endPoint == endPointField.value) || 
+        const linePointNumbersInProps = this.props.lines.find(line =>
+            (line.startPoint == startPointField.value && line.endPoint == endPointField.value) ||
             (line.startPoint == endPointField.value && line.endPoint == startPointField.value));
         if (linePointNumbersInProps != null) {
             this.shadowRoot.querySelector(".line-update-message").innerHTML = "The line with the same start and end points does already exist!";
             this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight + 
+                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
                 this.shadowRoot.querySelector(".line-update-message").offsetHeight}px;`);
             return;
         }
         if (startPointField.value === endPointField.value) {
             this.shadowRoot.querySelector(".line-update-message").innerHTML = "The start and the end point numbers should not be the same!";
             this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight + 
+                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
                 this.shadowRoot.querySelector(".line-update-message").offsetHeight}px;`);
             return;
         }
-        console.log(selectedLineNumberField.value, startPointField.value, endPointField.value);
+        const oldLineValues = this.props.lines.find(line => line.number == selectedLineNumberField.value);
+        const message = JSON.stringify({"update_line": {
+            "actionId": this.props.actionId,
+            "number": selectedLineNumberField.value, 
+            "old_line_values": { "start_point":  oldLineValues.startPoint, "end_point": oldLineValues.endPoint },
+            "new_line_values": { "start_point":  startPointField.value, "end_point": endPointField.value }
+        }});
+        this.dispatchEvent(new CustomEvent("client message", {
+            bubbles: true,
+            composed: true,
+            detail: {
+                message: message,
+            },
+        }));
     }
 
     cancelLineUpdate() {
@@ -1642,7 +1709,7 @@ class FeaGeometry extends HTMLElement {
         const endPointField = this.shadowRoot.querySelector(".selected-end-point-number-for-line-update");
         this.dropHighlight(endPointField);
         this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-            `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight - 
+            `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
             this.shadowRoot.querySelector(".line-update-message").offsetHeight}px;`);
         this.shadowRoot.querySelector(".line-update-message").innerHTML = "";
     }
@@ -1660,11 +1727,21 @@ class FeaGeometry extends HTMLElement {
             }
             this.shadowRoot.querySelector(".line-delete-message").innerHTML = "The highlighted fields should be filled!";
             this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight + 
+                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
                 this.shadowRoot.querySelector(".line-delete-message").offsetHeight}px;`);
             return;
         }
-        console.log(selectedLineNumberField.value);
+        const message = JSON.stringify({"delete_line": {
+            "actionId": this.props.actionId,
+            "number": selectedLineNumberField.value, 
+        }});
+        this.dispatchEvent(new CustomEvent("client message", {
+            bubbles: true,
+            composed: true,
+            detail: {
+                message: message,
+            },
+        }));
     }
 
     cancelLineDelete() {
@@ -1674,7 +1751,7 @@ class FeaGeometry extends HTMLElement {
         const selectedLineNumberField = this.shadowRoot.querySelector(".deleted-line-number");
         this.dropHighlight(selectedLineNumberField);
         this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-            `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight - 
+            `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
             this.shadowRoot.querySelector(".line-delete-message").offsetHeight}px;`);
         this.shadowRoot.querySelector(".line-delete-message").innerHTML = "";
     }

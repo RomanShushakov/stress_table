@@ -1,11 +1,15 @@
+import { initializeActionsRouter } from "../wasm_js_interface_modules/actions_router_initialization.js";
+import { initializeGeometry } from "../wasm_js_interface_modules/geometry_initialization.js";
+
+
 class FeaApp extends HTMLElement {
     constructor() {
         super();
 
-        this.props = {};
+        this.props = { };
 
         this.state = {
-            actionId: 1,
+            actionsRouter: null,
         };
 
         this.attachShadow({ mode: "open" });
@@ -24,11 +28,13 @@ class FeaApp extends HTMLElement {
 
         this.addEventListener("activate-postprocessor", () => this.activatePostprocessor());
         this.addEventListener("activate-preprocessor", () => this.activatePreprocessor());
+        this.addEventListener("client message", (event) => this.handleMessage(event.detail.message));
+        this.addEventListener("add point", (event) => this.addPoint(event.detail.message));
     }
 
     async connectedCallback() {
+        this.state.actionsRouter = await initializeActionsRouter(this.greeting);
         this.activatePreprocessor();
-        this.updatePreprocessor();
     }
 
     disconnectedCallback() {
@@ -44,27 +50,33 @@ class FeaApp extends HTMLElement {
     adoptedCallback() {
     }
 
-
     activatePreprocessor() {
         if (this.querySelector("fea-postprocessor") !== null) {
             this.querySelector("fea-postprocessor").remove();
         }
-        let feaPreprocessor = document.createElement("fea-preprocessor");
+        const feaPreprocessor = document.createElement("fea-preprocessor");
         this.append(feaPreprocessor);
         this.updatePreprocessor();
     }
 
 
     updatePreprocessor() {
-        this.querySelector("fea-preprocessor").actionId = this.state.actionId;
+        this.querySelector("fea-preprocessor").actionId = this.state.actionsRouter.get_action_id();
     }
 
     activatePostprocessor() {
         this.querySelector("fea-preprocessor").remove();
-        let feaPostprocessor = document.createElement("fea-postprocessor");
+        const feaPostprocessor = document.createElement("fea-postprocessor");
         this.append(feaPostprocessor);
     }
 
+    handleMessage(message) {
+        this.state.actionsRouter.handle_message(message);
+    }
+
+    addPoint(message) {
+        console.log(message);
+    }
 }
 
 export default FeaApp;

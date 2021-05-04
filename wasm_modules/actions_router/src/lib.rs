@@ -3,6 +3,10 @@ use serde_json::{Value};
 use self::ActionType::*;
 
 
+#[global_allocator]
+static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+
+
 #[wasm_bindgen]
 extern "C"
 {
@@ -11,14 +15,15 @@ extern "C"
 }
 
 
-#[wasm_bindgen(module = "/js/actions_router_to_wasm_modules_communicator_interface.js")]
+#[wasm_bindgen(module = "/js/interface_to_communicate_with_geometry.js")]
 extern "C"
 {
-    #[wasm_bindgen(js_name = addPoint)]
-    fn add_point();
+    #[wasm_bindgen(js_name = addPointToGeometry)]
+    fn add_point_to_geometry(action_id: u32, number: u32, x: f64, y: f64, z: f64);
 }
 
 
+#[derive(Debug, Clone)]
 enum ObjectType
 {
     Point,
@@ -26,21 +31,51 @@ enum ObjectType
 }
 
 
-struct ObjectData
+#[derive(Debug, Clone)]
+pub struct ObjectData
 {
     number: u32,
-    point_numbers: Vec<u32>,
-    point_coordinates: Vec<f64>,
+    properties: Vec<f64>,
+    contained_objects_numbers: Vec<u32>,
+    contained_objects_properties: Vec<f64>,
 }
 
 
-trait ActionObjectTrait
+
+pub trait ActionObjectClone
+{
+    fn clone_box(&self) -> Box<dyn ActionObjectTrait>;
+}
+
+
+impl<T> ActionObjectClone for T
+    where T: ActionObjectTrait + Clone + 'static,
+{
+    fn clone_box(&self) -> Box<dyn ActionObjectTrait>
+    {
+        Box::new(self.clone())
+    }
+}
+
+
+impl Clone for Box<dyn ActionObjectTrait>
+{
+    fn clone(&self) -> Box<dyn ActionObjectTrait>
+    {
+        self.clone_box()
+    }
+}
+
+
+pub trait ActionObjectTrait: ActionObjectClone
 {
     fn update(&mut self, object_data: ObjectData);
+    fn extract_object_data(&self) -> ObjectData;
 }
 
 
-struct Point
+#[derive(Clone)]
+pub struct Point
 {
     number: u32,
     x: f64,
@@ -62,24 +97,25 @@ impl ActionObjectTrait for Point
 {
     fn update(&mut self, object_data: ObjectData)
     {
-        self.x = object_data.point_coordinates[0];
-        self.y = object_data.point_coordinates[1];
-        self.z = object_data.point_coordinates[2];
+        self.x = object_data.properties[0];
+        self.y = object_data.properties[1];
+        self.z = object_data.properties[2];
     }
-}
 
 
-impl ActionObjectTrait for Line
-{
-    fn update(&mut self, object_data: ObjectData)
+    fn extract_object_data(&self) -> ObjectData
     {
-        self.start_point = object_data.point_numbers[0];
-        self.end_point = object_data.point_numbers[1];
+        let number = self.number;
+        let properties = vec![self.x, self.y, self.z];
+        let contained_objects_numbers = Vec::new();
+        let contained_objects_properties = Vec::new();
+        ObjectData { number, properties, contained_objects_numbers, contained_objects_properties }
     }
 }
 
 
-struct Line
+#[derive(Clone)]
+pub struct Line
 {
     number: u32,
     start_point: u32,
@@ -92,6 +128,26 @@ impl Line
     fn create(number: u32, start_point: u32, end_point: u32) -> Line
     {
         Line { number, start_point, end_point }
+    }
+}
+
+
+impl ActionObjectTrait for Line
+{
+    fn update(&mut self, object_data: ObjectData)
+    {
+        self.start_point = object_data.contained_objects_numbers[0];
+        self.end_point = object_data.contained_objects_numbers[1];
+    }
+
+
+    fn extract_object_data(&self) -> ObjectData
+    {
+        let number = self.number;
+        let properties = Vec::new();
+        let contained_objects_numbers = vec![self.start_point, self.end_point];
+        let contained_objects_properties = Vec::new();
+        ObjectData { number, properties, contained_objects_numbers, contained_objects_properties }
     }
 }
 
@@ -109,17 +165,17 @@ impl ActionObjectCreator
                 {
                     let point = Point::create(
                         object_data.number,
-                        object_data.point_coordinates[0],
-                        object_data.point_coordinates[1],
-                        object_data.point_coordinates[2]);
+                        object_data.properties[0],
+                        object_data.properties[1],
+                        object_data.properties[2]);
                     Box::new(point)
                 },
             ObjectType::Line =>
                 {
                     let line = Line::create(
                         object_data.number,
-                        object_data.point_numbers[0],
-                        object_data.point_numbers[1]);
+                        object_data.contained_objects_numbers[0],
+                        object_data.contained_objects_numbers[1]);
                     Box::new(line)
                 },
         }
@@ -127,6 +183,7 @@ impl ActionObjectCreator
 }
 
 
+#[derive(Clone)]
 struct ActionObject
 {
     object_type: ObjectType,
@@ -140,9 +197,15 @@ impl ActionObject
         let object = ActionObjectCreator::create(&object_type, object_data);
         ActionObject { object_type, object }
     }
+
+
+    fn extract_object_data(&self) -> ObjectData
+    {
+        self.object.extract_object_data()
+    }
 }
 
-
+#[derive(Debug, Clone)]
 enum ActionType
 {
     AddPoint,
@@ -170,6 +233,7 @@ impl ActionType
 }
 
 
+#[derive(Clone)]
 struct Action
 {
     action_id: u32,
@@ -182,7 +246,7 @@ struct Action
 #[wasm_bindgen]
 pub struct ActionsRouter
 {
-    actions_id_counter: u32,
+    current_action: Option<Action>,
     active_actions: Vec<Action>,
     undo_actions: Vec<Action>,
 }
@@ -193,16 +257,82 @@ impl ActionsRouter
 {
     pub fn create() -> ActionsRouter
     {
-        let actions_id_counter = 1;
+        let current_action = None;
         let active_actions = Vec::new();
         let undo_actions = Vec::new();
-        ActionsRouter { actions_id_counter, active_actions, undo_actions }
+        ActionsRouter { current_action, active_actions, undo_actions }
     }
 
 
-    pub fn get_action_id(&self) -> u32
+    fn handle_add_point_message(&mut self, message: &str) -> Result<(), JsValue>
     {
-        self.actions_id_counter
+        let add_point_message: Value = serde_json::from_str(message)
+            .or(Err(JsValue::from("Actions router: Add point action: Message could not be parsed!")))?;
+        let action_id = add_point_message["add_point"]["actionId"].to_string()
+            .parse::<u32>()
+            .or(Err(JsValue::from(
+                "Actions router: Add point action: Action id could not be converted to u32!")))?;
+        let number = add_point_message["add_point"]["number"].as_str()
+            .ok_or(JsValue::from(
+                "Actions router: Add point action: Point number could not be extracted!"))?
+            .parse::<u32>()
+            .or(Err(JsValue::from(
+                "Actions router: Add point action: Point number could not be converted to u32!")))?;
+        let x = add_point_message["add_point"]["x"].as_str()
+            .ok_or(JsValue::from(
+                "Actions router: Add point action: Point x coordinate could not be extracted!"))?
+            .parse::<f64>()
+            .or(Err(JsValue::from(
+                "Actions router: Add point action: Point x coordinate could not be converted to f64!")))?;
+        let y = add_point_message["add_point"]["y"].as_str()
+            .ok_or(JsValue::from(
+                "Actions router: Add point action: Point y coordinate could not be extracted!"))?
+            .parse::<f64>()
+            .or(Err(JsValue::from(
+                "Actions router: Add point action: Point y coordinate could not be converted to f64!")))?;
+        let z = add_point_message["add_point"]["z"].as_str()
+            .ok_or(JsValue::from(
+                "Actions router: Add point action: Point z coordinate could not be extracted!"))?
+            .parse::<f64>()
+            .or(Err(JsValue::from(
+                "Actions router: Add point action: Point z coordinate could not be converted to f64!")))?;
+        let object_type = ObjectType::Point;
+        let action_type = ActionType::AddPoint;
+        let properties = vec![x, y, z];
+        let contained_objects_numbers = Vec::new();
+        let contained_objects_properties = Vec::new();
+        let object_data = ObjectData {
+            number, properties, contained_objects_numbers, contained_objects_properties };
+        let action_object = ActionObject::create(object_type, object_data);
+        let action = Action { action_id, action_type, action_object, previous_object: None };
+        self.active_actions.push(action.clone());
+        self.current_action = Some(action);
+        Ok(())
+    }
+
+
+    fn handle_current_action(&mut self)
+    {
+        if let Some(action) = &self.current_action
+        {
+            let action_id = action.action_id;
+            let action_type = &action.action_type;
+            match action_type
+            {
+                ActionType::AddPoint =>
+                    {
+                        let action_object_data =
+                            &action.action_object.extract_object_data();
+                        let number = action_object_data.number;
+                        let x = action_object_data.properties[0];
+                        let y = action_object_data.properties[1];
+                        let z = action_object_data.properties[2];
+                        add_point_to_geometry(action_id, number, x, y, z);
+                    },
+                _ => (),
+            }
+            self.current_action = None;
+        }
     }
 
 
@@ -210,47 +340,14 @@ impl ActionsRouter
     {
         if message.contains(&ActionType::AddPoint.as_str())
         {
-            let add_point_message: Value = serde_json::from_str(&message)
-                .or(Err(JsValue::from("Add point: Message could not be parsed!")))?;
-            let action_type = ActionType::AddPoint;
-            let action_id = add_point_message["add_point"]["actionId"].to_string()
-                .parse::<u32>()
-                .or(Err(JsValue::from(
-                    "Add point: Action id could not be converted to u32!")))?;
-            let number = add_point_message["add_point"]["number"].as_str()
-                .ok_or(JsValue::from(
-                    "Add point: Point number could not be extracted!"))?
-                .parse::<u32>()
-                .or(Err(JsValue::from(
-                    "Add point: Point number could not be converted to u32!")))?;
-            let x = add_point_message["add_point"]["x"].as_str()
-                .ok_or(JsValue::from(
-                    "Add point: Point x coordinate could not be extracted!"))?
-                .parse::<f64>()
-                .or(Err(JsValue::from(
-                    "Add point: Point x coordinate could not be converted to f64!")))?;
-            let y = add_point_message["add_point"]["y"].as_str()
-                .ok_or(JsValue::from(
-                    "Add point: Point y coordinate could not be extracted!"))?
-                .parse::<f64>()
-                .or(Err(JsValue::from(
-                    "Add point: Point y coordinate could not be converted to f64!")))?;
-            let z = add_point_message["add_point"]["z"].as_str()
-                .ok_or(JsValue::from(
-                    "Add point: Point z coordinate could not be extracted!"))?
-                .parse::<f64>()
-                .or(Err(JsValue::from(
-                    "Add point: Point z coordinate could not be converted to f64!")))?;
-            let point_coordinates = vec![x, y, z];
-            let object_data = ObjectData { number, point_numbers: Vec::new(), point_coordinates };
-            let action_object =
-                ActionObject::create(ObjectType::Point, object_data);
-            let action = Action { action_id, action_type, action_object, previous_object: None };
-            self.active_actions.push(action);
-            log(&format!("{:?}", self.active_actions.len()));
+            self.handle_add_point_message(&message)?;
         }
-        log(&format!("Hello from router: {}", message));
-        add_point();
+        else
+        {
+            let error_message = "Actions router: Message could not be handled!";
+            return Err(JsValue::from(error_message));
+        }
+        self.handle_current_action();
         Ok(())
     }
 }

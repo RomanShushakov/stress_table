@@ -4,16 +4,8 @@ class FeaGeometry extends HTMLElement {
 
         this.props = {
             actionId: null,
-            points: [
-                { number: 1, x: 5.9, y: 0, z: 0, },
-                { number: 3, x: 5.9, y: 8.4, z: 3.2, },
-                { number: 12, x: 100, y: 0, z: 0, },
-                { number: 15, x: 0, y: 0, z: 0, },
-            ],
-            lines: [
-                { number: 1, startPoint: 1, endPoint: 12, },
-                { number: 5, startPoint: 3, endPoint: 1, },
-            ]
+            points: [ ],
+            lines: [ ]
         };
 
         this.state = {
@@ -1073,6 +1065,11 @@ class FeaGeometry extends HTMLElement {
                 this[propName] = value;
             }
         });
+        this.refreshGeometryFields();
+    }
+
+    set addPointFromModule(point) {
+        this.props.points.push(point);
         this.refreshGeometryFields();
     }
 

@@ -40,6 +40,10 @@ class FeaPreprocessor extends HTMLElement {
         this.updateChildrenActionId();
     }
 
+    set addPointFromModule(point) {
+        this.shadowRoot.querySelector("fea-geometry").addPointFromModule = point;
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {

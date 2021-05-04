@@ -44,6 +44,10 @@ class FeaPreprocessor extends HTMLElement {
         this.shadowRoot.querySelector("fea-geometry").addPointFromModule = point;
     }
 
+    set updatePointFromModule(point) {
+        this.shadowRoot.querySelector("fea-geometry").updatePointFromModule = point;
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {

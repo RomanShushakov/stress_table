@@ -19,10 +19,14 @@ extern "C"
 extern "C"
 {
     #[wasm_bindgen(js_name = addPointToApp)]
-    fn add_point_to_app(number: u32, x: f64, y: f64, z: f64);
+    fn add_point_to_app(number: u32, x: f64, y: f64, z: f64, is_preprocessor_request: bool);
+
+    #[wasm_bindgen(js_name = updatePointToApp)]
+    fn update_point_to_app(number: u32, x: f64, y: f64, z: f64);
 }
 
 
+#[derive(Debug)]
 struct Point
 {
     action_id: u32,
@@ -33,6 +37,37 @@ struct Point
 }
 
 
+impl Point
+{
+    fn number_same(&self, number: u32) -> bool
+    {
+        self.number == number
+    }
+
+
+    fn coordinates_same(&self, x: f64, y: f64, z: f64) -> bool
+    {
+        self.x == x && self.y == y && self.z == z
+    }
+
+
+    fn update(&mut self, action_id: u32, x: f64, y: f64, z: f64)
+    {
+        self.action_id = action_id;
+        self.x = x;
+        self.y = y;
+        self.z = z;
+    }
+
+
+    fn extract_number_and_coordinates(&self) -> (u32, f64, f64, f64)
+    {
+        (self.number, self.x, self.y, self.z)
+    }
+}
+
+
+#[derive(Debug)]
 struct Line
 {
     action_id: u32,
@@ -65,10 +100,69 @@ impl Geometry
     }
 
 
-    pub fn add_point(&mut self, action_id: u32, number: u32, x: f64, y: f64, z: f64)
+    pub fn add_geometry_to_activated_preprocessor(&self)
     {
+        for point in &self.points
+        {
+            let (number, x, y, z) =
+                point.borrow().extract_number_and_coordinates();
+            add_point_to_app(number, x, y, z, true);
+        }
+    }
+
+
+    pub fn add_point(&mut self, action_id: u32, number: u32, x: f64, y: f64, z: f64)
+        -> Result<(), JsValue>
+    {
+        if self.points.iter()
+            .position(|point| point.borrow().number_same(number)).is_some()
+        {
+            let error_message = &format!("Geometry: Add point action: Point with \
+                number {} does already exist!", number);
+            return Err(JsValue::from(error_message));
+        }
+        if self.points.iter()
+            .position(|point| point.borrow().coordinates_same(x, y, z)).is_some()
+        {
+            let error_message = &format!("Geometry: Add point action: Point with \
+                coordinates {}, {}, {} does already exist!", x, y, z);
+            return Err(JsValue::from(error_message));
+        }
         let point = Point { action_id, number, x, y, z };
         self.points.push(Rc::new(RefCell::new(point)));
-        add_point_to_app(number, x, y, z);
+        add_point_to_app(number, x, y, z, false);
+        log(&format!("Geometry: Points: {:?}, lines: {:?}, deleted points: {:?}, \
+            deleted lines {:?}", self.points, self.lines, self.deleted_points, self.deleted_lines));
+        Ok(())
+    }
+
+
+    pub fn update_point(&mut self, action_id: u32, number: u32, x: f64, y: f64, z: f64)
+        -> Result<(), JsValue>
+    {
+        if self.points.iter()
+            .position(|point| point.borrow().coordinates_same(x, y, z)).is_some()
+        {
+            let error_message = &format!("Geometry: Update point action: Point with \
+                coordinates {}, {}, {} does already exist!", x, y, z);
+            return Err(JsValue::from(error_message));
+        }
+
+        if let Some(position) = self.points.iter()
+            .position(|point| point.borrow().number_same(number))
+        {
+            self.points[position].borrow_mut().update(action_id, x, y, z);
+            update_point_to_app(number, x, y, z);
+            log(&format!("Geometry: Points: {:?}, lines: {:?}, deleted points: {:?}, \
+                deleted lines {:?}", self.points, self.lines, self.deleted_points,
+                self.deleted_lines));
+            Ok(())
+        }
+        else
+        {
+            let error_message = format!("Geometry: Update point action: \
+                The point with number {} could not be updated because it does not exist!", number);
+            Err(JsValue::from(&error_message))
+        }
     }
 }

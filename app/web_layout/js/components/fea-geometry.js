@@ -1073,6 +1073,14 @@ class FeaGeometry extends HTMLElement {
         this.refreshGeometryFields();
     }
 
+    set updatePointFromModule(point) {
+        let pointInProps = this.props.points.find(existedPoint => existedPoint.number == point.number);
+        pointInProps.x = point.x;
+        pointInProps.y = point.y;
+        pointInProps.z = point.z;
+        this.refreshGeometryFields();
+    }
+
     disconnectedCallback() {
     }
 
@@ -1473,7 +1481,7 @@ class FeaGeometry extends HTMLElement {
         const isLineNumberInArray = (line) => line.number === newLineNumber;
         do {
             newLineNumber += 1;
-        } while (this.props.points.some(isLineNumberInArray));
+        } while (this.props.lines.some(isLineNumberInArray));
         this.shadowRoot.querySelector(".add-line-number").value = newLineNumber;
         this.shadowRoot.querySelector(".add-line-number").min = newLineNumber;
     }

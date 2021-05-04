@@ -30,6 +30,7 @@ class FeaApp extends HTMLElement {
         this.addEventListener("activate-preprocessor", () => this.activatePreprocessor());
         this.addEventListener("client message", (event) => this.handleMessage(event.detail.message));
         this.addEventListener("add point", (event) => this.addPoint(event.detail.pointData));
+        this.addEventListener("update point", (event) => this.updatePoint(event.detail.pointData));
     }
 
     async connectedCallback() {
@@ -57,6 +58,7 @@ class FeaApp extends HTMLElement {
         const feaPreprocessor = document.createElement("fea-preprocessor");
         this.append(feaPreprocessor);
         this.updatePreprocessorActionId();
+        this.state.actionsRouter.add_geometry_to_activated_preprocessor();
     }
 
 
@@ -75,10 +77,19 @@ class FeaApp extends HTMLElement {
     }
 
     addPoint(pointData) {
+        if (pointData[4] === false) {
+            this.state.actionId += 1;
+            this.updatePreprocessorActionId();
+        }
+        const point = { number: pointData[0], x: pointData[1], y: pointData[2], z: pointData[3] };
+        this.querySelector("fea-preprocessor").addPointFromModule = point;
+    }
+
+    updatePoint(pointData) {
         this.state.actionId += 1;
         this.updatePreprocessorActionId();
         const point = { number: pointData[0], x: pointData[1], y: pointData[2], z: pointData[3] };
-        this.querySelector("fea-preprocessor").addPointFromModule = point;
+        this.querySelector("fea-preprocessor").updatePointFromModule = point;
     }
 }
 

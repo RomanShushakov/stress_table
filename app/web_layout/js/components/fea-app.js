@@ -1,5 +1,4 @@
 import { initializeActionsRouter } from "../wasm_js_interface_modules/actions_router_initialization.js";
-import { initializeGeometry } from "../wasm_js_interface_modules/geometry_initialization.js";
 
 
 class FeaApp extends HTMLElement {
@@ -9,6 +8,7 @@ class FeaApp extends HTMLElement {
         this.props = { };
 
         this.state = {
+            actionId: 1,
             actionsRouter: null,
         };
 
@@ -29,7 +29,7 @@ class FeaApp extends HTMLElement {
         this.addEventListener("activate-postprocessor", () => this.activatePostprocessor());
         this.addEventListener("activate-preprocessor", () => this.activatePreprocessor());
         this.addEventListener("client message", (event) => this.handleMessage(event.detail.message));
-        this.addEventListener("add point", (event) => this.addPoint(event.detail.message));
+        this.addEventListener("add point", (event) => this.addPoint(event.detail.pointData));
     }
 
     async connectedCallback() {
@@ -56,12 +56,12 @@ class FeaApp extends HTMLElement {
         }
         const feaPreprocessor = document.createElement("fea-preprocessor");
         this.append(feaPreprocessor);
-        this.updatePreprocessor();
+        this.updatePreprocessorActionId();
     }
 
 
-    updatePreprocessor() {
-        this.querySelector("fea-preprocessor").actionId = this.state.actionsRouter.get_action_id();
+    updatePreprocessorActionId() {
+        this.querySelector("fea-preprocessor").actionId = this.state.actionId;
     }
 
     activatePostprocessor() {
@@ -74,8 +74,11 @@ class FeaApp extends HTMLElement {
         this.state.actionsRouter.handle_message(message);
     }
 
-    addPoint(message) {
-        console.log(message);
+    addPoint(pointData) {
+        this.state.actionId += 1;
+        this.updatePreprocessorActionId();
+        const point = { number: pointData[0], x: pointData[1], y: pointData[2], z: pointData[3] };
+        this.querySelector("fea-preprocessor").addPointFromModule = point;
     }
 }
 

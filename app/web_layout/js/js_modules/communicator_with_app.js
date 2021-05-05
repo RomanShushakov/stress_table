@@ -18,7 +18,7 @@ class CommunicatorWithApp
         }));
     }
 
-    set updatePointToApp(pointData) {
+    set updatePointInApp(pointData) {
         document.querySelector("fea-app").dispatchEvent(new CustomEvent("update point", {
             bubbles: true,
             composed: true,

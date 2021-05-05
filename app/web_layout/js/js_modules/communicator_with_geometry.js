@@ -29,8 +29,8 @@ class CommunicatorWithGeometry {
         }
     }
 
-    set addGeometryToActivatedPreprocessor(_empty) {
-        this.state.geometry.add_geometry_to_activated_preprocessor();
+    set addWholeGeometryToPreprocessor(_empty) {
+        this.state.geometry.add_whole_geometry_to_preprocessor();
     }
 }
 

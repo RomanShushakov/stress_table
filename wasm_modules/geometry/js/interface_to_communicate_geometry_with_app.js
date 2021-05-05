@@ -7,8 +7,8 @@ export function addPointToApp(number, x, y, z, isPreprocessorRequest)
     communicatorWithApp.addPointToApp = pointData;
 }
 
-export function updatePointToApp(number, x, y, z) 
+export function updatePointInApp(number, x, y, z) 
 {
     const pointData = [number, x, y, z];
-    communicatorWithApp.updatePointToApp = pointData;
+    communicatorWithApp.updatePointInApp = pointData;
 }

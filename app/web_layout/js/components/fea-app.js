@@ -29,8 +29,9 @@ class FeaApp extends HTMLElement {
         this.addEventListener("activate-postprocessor", () => this.activatePostprocessor());
         this.addEventListener("activate-preprocessor", () => this.activatePreprocessor());
         this.addEventListener("client message", (event) => this.handleMessage(event.detail.message));
-        this.addEventListener("add point", (event) => this.addPoint(event.detail.pointData));
+        this.addEventListener("add point", (event) => this.addPoint(event.detail));
         this.addEventListener("update point", (event) => this.updatePoint(event.detail.pointData));
+        this.addEventListener("hello", (event) => this.hello(event.detail.message));
     }
 
     async connectedCallback() {
@@ -51,6 +52,11 @@ class FeaApp extends HTMLElement {
     adoptedCallback() {
     }
 
+
+    hello(message) {
+        console.log(message);
+    }
+
     activatePreprocessor() {
         if (this.querySelector("fea-postprocessor") !== null) {
             this.querySelector("fea-postprocessor").remove();
@@ -58,7 +64,9 @@ class FeaApp extends HTMLElement {
         const feaPreprocessor = document.createElement("fea-preprocessor");
         this.append(feaPreprocessor);
         this.updatePreprocessorActionId();
-        this.state.actionsRouter.add_geometry_to_activated_preprocessor();
+        if (this.state.actionId !== 1) {
+            this.state.actionsRouter.add_whole_geometry_to_preprocessor();
+        }
     }
 
 
@@ -76,12 +84,20 @@ class FeaApp extends HTMLElement {
         this.state.actionsRouter.handle_message(message);
     }
 
-    addPoint(pointData) {
-        if (pointData[4] === false) {
+    // addPoint(pointData) {
+    //     if (pointData[4] === false) {
+    //         this.state.actionId += 1;
+    //         this.updatePreprocessorActionId();
+    //     }
+    //     const point = { number: pointData[0], x: pointData[1], y: pointData[2], z: pointData[3] };
+    //     this.querySelector("fea-preprocessor").addPointFromModule = point;
+    // }
+    addPoint(detail) {
+        if (detail.is_preprocessor_request === false) {
             this.state.actionId += 1;
             this.updatePreprocessorActionId();
         }
-        const point = { number: pointData[0], x: pointData[1], y: pointData[2], z: pointData[3] };
+        const point = { number: detail.number, x: detail.x, y: detail.y, z: detail.z };
         this.querySelector("fea-preprocessor").addPointFromModule = point;
     }
 

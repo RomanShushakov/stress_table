@@ -23,7 +23,7 @@ export function updatePointToGeometry(actionId, number, x, y, z)
 }
 
 
-export function addGeometryToActivatedPreprocessor() 
+export function addWholeGeometryToPreprocessor() 
 {
-    communicatorWithGeometry.addGeometryToActivatedPreprocessor = "_empty";
+    communicatorWithGeometry.addWholeGeometryToPreprocessor = "_empty";
 }

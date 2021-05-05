@@ -26,8 +26,8 @@ extern "C"
     fn update_point_to_geometry(action_id: u32, number: u32, x: f64, y: f64, z: f64)
         -> Result<(), JsValue>;
 
-    #[wasm_bindgen(js_name = addGeometryToActivatedPreprocessor)]
-    fn add_geometry_to_activated_preprocessor();
+    #[wasm_bindgen(js_name = addWholeGeometryToPreprocessor)]
+    fn add_whole_geometry_to_preprocessor();
 }
 
 
@@ -502,8 +502,8 @@ impl ActionsRouter
     }
 
 
-    pub fn add_geometry_to_activated_preprocessor(&self)
+    pub fn add_whole_geometry_to_preprocessor(&self)
     {
-        add_geometry_to_activated_preprocessor();
+        add_whole_geometry_to_preprocessor();
     }
 }

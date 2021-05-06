@@ -19,19 +19,28 @@ class FeaApp extends HTMLElement {
                 :host {
                     display: block;
                 }
+
+                .wrapper {
+                    display: flex;
+                    align-items: start;
+                    flex-direction: row;
+                    box-sizing: content-box;
+                }
             </style>
-            <div>
+            <div class="main-window">
                 <fea-app-title-bar></fea-app-title-bar>
-                <slot></slot>
+                <div class="wrapper">
+                    <!-- <preprocessor-canvas></preprocessor-canvas>  -->
+                    <slot></slot>
+                </div>
             </div>
         `;
 
         this.addEventListener("activate-postprocessor", () => this.activatePostprocessor());
         this.addEventListener("activate-preprocessor", () => this.activatePreprocessor());
-        this.addEventListener("client message", (event) => this.handleMessage(event.detail.message));
-        this.addEventListener("add point", (event) => this.addPoint(event.detail));
-        this.addEventListener("update point", (event) => this.updatePoint(event.detail.pointData));
-        this.addEventListener("hello", (event) => this.hello(event.detail.message));
+        this.addEventListener("client message", (event) => this.handleClientMessage(event));
+        this.addEventListener("add point server message", (event) => this.handleAddPointServerMessage(event));
+        this.addEventListener("update point server message", (event) => this.handleUpdatePointServerMessage(event));
     }
 
     async connectedCallback() {
@@ -52,11 +61,6 @@ class FeaApp extends HTMLElement {
     adoptedCallback() {
     }
 
-
-    hello(message) {
-        console.log(message);
-    }
-
     activatePreprocessor() {
         if (this.querySelector("fea-postprocessor") !== null) {
             this.querySelector("fea-postprocessor").remove();
@@ -69,7 +73,6 @@ class FeaApp extends HTMLElement {
         }
     }
 
-
     updatePreprocessorActionId() {
         this.querySelector("fea-preprocessor").actionId = this.state.actionId;
     }
@@ -80,32 +83,30 @@ class FeaApp extends HTMLElement {
         this.append(feaPostprocessor);
     }
 
-    handleMessage(message) {
-        this.state.actionsRouter.handle_message(message);
+    handleClientMessage(event) {
+        this.state.actionsRouter.handle_message(event.detail.message);
+        event.stopPropagation();
     }
 
-    // addPoint(pointData) {
-    //     if (pointData[4] === false) {
-    //         this.state.actionId += 1;
-    //         this.updatePreprocessorActionId();
-    //     }
-    //     const point = { number: pointData[0], x: pointData[1], y: pointData[2], z: pointData[3] };
-    //     this.querySelector("fea-preprocessor").addPointFromModule = point;
-    // }
-    addPoint(detail) {
-        if (detail.is_preprocessor_request === false) {
+    handleAddPointServerMessage(event) {
+        if (event.detail.is_preprocessor_request === false) {
             this.state.actionId += 1;
             this.updatePreprocessorActionId();
         }
-        const point = { number: detail.number, x: detail.x, y: detail.y, z: detail.z };
-        this.querySelector("fea-preprocessor").addPointFromModule = point;
+        const point = { 
+            number: event.detail.point_data.number, x: event.detail.point_data.x,
+            y: event.detail.point_data.y, z: event.detail.point_data.z };
+        this.querySelector("fea-preprocessor").addPointFromServer = point;
+        event.stopPropagation();
     }
 
-    updatePoint(pointData) {
+    handleUpdatePointServerMessage(event) {
         this.state.actionId += 1;
         this.updatePreprocessorActionId();
-        const point = { number: pointData[0], x: pointData[1], y: pointData[2], z: pointData[3] };
-        this.querySelector("fea-preprocessor").updatePointFromModule = point;
+        const point = { number: event.detail.point_data.number, x: event.detail.point_data.x,
+            y: event.detail.point_data.y, z: event.detail.point_data.z };
+        this.querySelector("fea-preprocessor").updatePointFromServer = point;
+        event.stopPropagation();
     }
 }
 

@@ -17,17 +17,6 @@ extern "C"
 }
 
 
-#[wasm_bindgen(module = "/js/interface_to_communicate_geometry_with_app.js")]
-extern "C"
-{
-    #[wasm_bindgen(js_name = addPointToApp)]
-    fn add_point_to_app(number: u32, x: f64, y: f64, z: f64, is_preprocessor_request: bool);
-
-    #[wasm_bindgen(js_name = updatePointInApp)]
-    fn update_point_in_app(number: u32, x: f64, y: f64, z: f64);
-}
-
-
 fn dispatch_custom_event(detail: serde_json::Value, event_type: &str, query_selector: &str)
     -> Result<(), JsValue>
 {
@@ -125,14 +114,19 @@ impl Geometry
     }
 
 
-    pub fn add_whole_geometry_to_preprocessor(&self)
+    pub fn add_whole_geometry_to_preprocessor(&self) -> Result<(), JsValue>
     {
         for point in &self.points
         {
             let (number, x, y, z) =
                 point.borrow().extract_number_and_coordinates();
-            add_point_to_app(number, x, y, z, true);
+            let detail = json!({ "point_data": { "number": number, "x": x, "y": y, "z": z },
+                "is_preprocessor_request": true });
+            let event_type = "add point server message";
+            let query_selector = "fea-app";
+            dispatch_custom_event(detail, event_type, query_selector)?;
         }
+        Ok(())
     }
 
 
@@ -155,10 +149,9 @@ impl Geometry
         }
         let point = Point { action_id, number, x, y, z };
         self.points.push(Rc::new(RefCell::new(point)));
-        // add_point_to_app(number, x, y, z, false);
-        let detail =
-            json!({"number": number, "x": x, "y": y, "z": z, "is_preprocessor_request": false});
-        let event_type = "add point";
+        let detail = json!({ "point_data": { "number": number, "x": x, "y": y, "z": z },
+                "is_preprocessor_request": false });
+        let event_type = "add point server message";
         let query_selector = "fea-app";
         dispatch_custom_event(detail, event_type, query_selector)?;
         log(&format!("Geometry: Points: {:?}, lines: {:?}, deleted points: {:?}, \
@@ -182,7 +175,10 @@ impl Geometry
             .position(|point| point.borrow().number_same(number))
         {
             self.points[position].borrow_mut().update(action_id, x, y, z);
-            update_point_in_app(number, x, y, z);
+            let detail = json!({ "point_data": { "number": number, "x": x, "y": y, "z": z } });
+            let event_type = "update point server message";
+            let query_selector = "fea-app";
+            dispatch_custom_event(detail, event_type, query_selector)?;
             log(&format!("Geometry: Points: {:?}, lines: {:?}, deleted points: {:?}, \
                 deleted lines {:?}", self.points, self.lines, self.deleted_points,
                 self.deleted_lines));

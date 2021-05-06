@@ -1068,12 +1068,12 @@ class FeaGeometry extends HTMLElement {
         this.refreshGeometryFields();
     }
 
-    set addPointFromModule(point) {
+    set addPointFromServer(point) {
         this.props.points.push(point);
         this.refreshGeometryFields();
     }
 
-    set updatePointFromModule(point) {
+    set updatePointFromServer(point) {
         let pointInProps = this.props.points.find(existedPoint => existedPoint.number == point.number);
         pointInProps.x = point.x;
         pointInProps.y = point.y;

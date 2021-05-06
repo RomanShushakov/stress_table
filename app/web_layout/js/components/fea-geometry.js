@@ -1068,16 +1068,23 @@ class FeaGeometry extends HTMLElement {
         this.refreshGeometryFields();
     }
 
-    set addPointFromServer(point) {
+    set addPointToClient(point) {
         this.props.points.push(point);
         this.refreshGeometryFields();
     }
 
-    set updatePointFromServer(point) {
+    set updatePointOnClient(point) {
         let pointInProps = this.props.points.find(existedPoint => existedPoint.number == point.number);
         pointInProps.x = point.x;
         pointInProps.y = point.y;
         pointInProps.z = point.z;
+        this.refreshGeometryFields();
+    }
+
+    set deletePointFromClient(point) {
+        let pointIndexInProps = this.props.points.findIndex(existedPoint => existedPoint.number == point.number && 
+            existedPoint.x == point.x && existedPoint.y == point.y && existedPoint.z == point.z);
+        this.props.points.splice(pointIndexInProps, 1)
         this.refreshGeometryFields();
     }
 
@@ -1437,9 +1444,11 @@ class FeaGeometry extends HTMLElement {
                 this.shadowRoot.querySelector(".point-delete-message").offsetHeight}px;`);
             return;
         }
+        const deletedPointValues = this.props.points.find(point => point.number == selectedPointNumberField.value);
         const message = JSON.stringify({"delete_point": {
             "actionId": this.props.actionId,
-            "number": selectedPointNumberField.value,
+            "number": deletedPointValues.number, 
+            "x":  deletedPointValues.x, "y": deletedPointValues.y, "z": deletedPointValues.z,
         }});
         this.dispatchEvent(new CustomEvent("client message", {
             bubbles: true,

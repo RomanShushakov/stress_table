@@ -13,17 +13,17 @@ class CommunicatorWithGeometry {
         this.state.geometry = await initializeGeometry();
     }
 
-    set addPointToGeometry(data) {
+    set addPointToGeometry(pointData) {
         try {
-            this.state.geometry.add_point(data[0], data[1], data[2], data[3], data[4]);
+            this.state.geometry.add_point(pointData.actionId, pointData.number, pointData.x, pointData.y, pointData.z);
         } catch (error) {
             throw error;
         }
     }
 
-    set updatePointToGeometry(data) {
+    set updatePointInGeometry(pointData) {
         try {
-            this.state.geometry.update_point(data[0], data[1], data[2], data[3], data[4]);
+            this.state.geometry.update_point(pointData.actionId, pointData.number, pointData.x, pointData.y, pointData.z);
         } catch (error) {
             throw error;
         }
@@ -31,6 +31,15 @@ class CommunicatorWithGeometry {
 
     set addWholeGeometryToPreprocessor(_empty) {
         this.state.geometry.add_whole_geometry_to_preprocessor();
+    }
+
+
+    set deletePointFromGeometry(pointData) {
+        try {
+            this.state.geometry.delete_point(pointData.actionId, pointData.number, pointData.x, pointData.y, pointData.z);
+        } catch (error) {
+            throw error;
+        }
     }
 }
 

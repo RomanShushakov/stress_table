@@ -40,12 +40,16 @@ class FeaPreprocessor extends HTMLElement {
         this.updateChildrenActionId();
     }
 
-    set addPointFromServer(point) {
-        this.shadowRoot.querySelector("fea-geometry").addPointFromServer = point;
+    set addPointToClient(point) {
+        this.shadowRoot.querySelector("fea-geometry").addPointToClient = point;
     }
 
-    set updatePointFromServer(point) {
-        this.shadowRoot.querySelector("fea-geometry").updatePointFromServer = point;
+    set updatePointOnClient(point) {
+        this.shadowRoot.querySelector("fea-geometry").updatePointOnClient = point;
+    }
+
+    set deletePointFromClient(point) {
+        this.shadowRoot.querySelector("fea-geometry").deletePointFromClient = point;
     }
 
     connectedCallback() {

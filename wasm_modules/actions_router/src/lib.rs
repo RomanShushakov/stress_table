@@ -22,12 +22,16 @@ extern "C"
     fn add_point_to_geometry(action_id: u32, number: u32, x: f64, y: f64, z: f64)
         -> Result<(), JsValue>;
 
-    #[wasm_bindgen(js_name = updatePointToGeometry, catch)]
-    fn update_point_to_geometry(action_id: u32, number: u32, x: f64, y: f64, z: f64)
+    #[wasm_bindgen(js_name = updatePointInGeometry, catch)]
+    fn update_point_in_geometry(action_id: u32, number: u32, x: f64, y: f64, z: f64)
         -> Result<(), JsValue>;
 
     #[wasm_bindgen(js_name = addWholeGeometryToPreprocessor)]
     fn add_whole_geometry_to_preprocessor();
+
+    #[wasm_bindgen(js_name = deletePointFromGeometry, catch)]
+    fn delete_point_from_geometry(action_id: u32, number: u32, x: f64, y: f64, z: f64)
+        -> Result<(), JsValue>;
 }
 
 
@@ -43,9 +47,18 @@ enum ObjectType
 pub struct ObjectData
 {
     number: u32,
-    properties: Vec<f64>,
-    contained_objects_numbers: Vec<u32>,
-    contained_objects_properties: Vec<f64>,
+    properties: Option<Vec<f64>>,
+    contained_objects_numbers: Option<Vec<u32>>,
+}
+
+
+impl ObjectData
+{
+    fn create(number: u32, properties: Option<Vec<f64>>,
+        contained_objects_numbers: Option<Vec<u32>>) -> ObjectData
+    {
+        ObjectData { number, properties, contained_objects_numbers }
+    }
 }
 
 
@@ -77,7 +90,7 @@ impl Clone for Box<dyn ActionObjectTrait>
 
 pub trait ActionObjectTrait: ActionObjectClone
 {
-    fn update(&mut self, object_data: ObjectData);
+    fn update(&mut self, object_data: ObjectData) -> Result<(), JsValue>;
     fn extract_object_data(&self) -> ObjectData;
 }
 
@@ -103,21 +116,35 @@ impl Point
 
 impl ActionObjectTrait for Point
 {
-    fn update(&mut self, object_data: ObjectData)
+    fn update(&mut self, object_data: ObjectData) -> Result<(), JsValue>
     {
-        self.x = object_data.properties[0];
-        self.y = object_data.properties[1];
-        self.z = object_data.properties[2];
+        if let Some(properties) = object_data.properties
+        {
+            if properties.len() < 3
+            {
+                let error_message = "Actions router: Update point action: Incorrect number \
+                    of properties fields!";
+                return Err(JsValue::from(error_message));
+            }
+            self.x = properties[0];
+            self.y = properties[1];
+            self.z = properties[2];
+        }
+        else
+        {
+            let error_message = "Actions router: Update point action: Properties \
+                    does not exist!";
+            return Err(JsValue::from(error_message));
+        }
+        Ok(())
     }
 
 
     fn extract_object_data(&self) -> ObjectData
     {
         let number = self.number;
-        let properties = vec![self.x, self.y, self.z];
-        let contained_objects_numbers = Vec::new();
-        let contained_objects_properties = Vec::new();
-        ObjectData { number, properties, contained_objects_numbers, contained_objects_properties }
+        let properties = Some(vec![self.x, self.y, self.z]);
+        ObjectData { number, properties, contained_objects_numbers: None }
     }
 }
 
@@ -142,20 +169,34 @@ impl Line
 
 impl ActionObjectTrait for Line
 {
-    fn update(&mut self, object_data: ObjectData)
+    fn update(&mut self, object_data: ObjectData) -> Result<(), JsValue>
     {
-        self.start_point = object_data.contained_objects_numbers[0];
-        self.end_point = object_data.contained_objects_numbers[1];
+        if let Some(contained_objects_numbers) = object_data.contained_objects_numbers
+        {
+            if contained_objects_numbers.len() < 2
+            {
+                let error_message = "Actions router: Update line action: Incorrect number \
+                    of contained objects numbers!";
+                return Err(JsValue::from(error_message));
+            }
+            self.start_point = contained_objects_numbers[0];
+            self.end_point = contained_objects_numbers[1];
+        }
+        else
+        {
+            let error_message = "Actions router: Update line action: Contained objects \
+                numbers does not exist!";
+            return Err(JsValue::from(error_message));
+        }
+        Ok(())
     }
 
 
     fn extract_object_data(&self) -> ObjectData
     {
         let number = self.number;
-        let properties = Vec::new();
-        let contained_objects_numbers = vec![self.start_point, self.end_point];
-        let contained_objects_properties = Vec::new();
-        ObjectData { number, properties, contained_objects_numbers, contained_objects_properties }
+        let contained_objects_numbers = Some(vec![self.start_point, self.end_point]);
+        ObjectData { number, properties: None, contained_objects_numbers }
     }
 }
 
@@ -165,26 +206,47 @@ struct ActionObjectCreator;
 
 impl ActionObjectCreator
 {
-    fn create(object_type: &ObjectType, object_data: ObjectData) -> Box<dyn ActionObjectTrait>
+    fn create(object_type: &ObjectType, object_data: ObjectData) ->
+        Result<Box<dyn ActionObjectTrait>, JsValue>
     {
         match object_type
         {
             ObjectType::Point =>
                 {
-                    let point = Point::create(
-                        object_data.number,
-                        object_data.properties[0],
-                        object_data.properties[1],
-                        object_data.properties[2]);
-                    Box::new(point)
+                    if let Some(properties) = &object_data.properties
+                    {
+                        let point = Point::create(
+                            object_data.number,
+                            properties[0],
+                            properties[1],
+                            properties[2]);
+                        Ok(Box::new(point))
+                    }
+                    else
+                    {
+                        let error_message = "Actions router: ActionObjectCreator: Point could \
+                            not be created because properties for it creation does not exist!";
+                        return Err(JsValue::from(error_message));
+                    }
                 },
             ObjectType::Line =>
                 {
-                    let line = Line::create(
-                        object_data.number,
-                        object_data.contained_objects_numbers[0],
-                        object_data.contained_objects_numbers[1]);
-                    Box::new(line)
+                    if let Some(contained_objects_numbers) =
+                        &object_data.contained_objects_numbers
+                    {
+                        let line = Line::create(
+                            object_data.number,
+                            contained_objects_numbers[0],
+                            contained_objects_numbers[1]);
+                        Ok(Box::new(line))
+                    }
+                    else
+                    {
+                        let error_message = "Actions router: ActionObjectCreator: Line could \
+                            not be created because contained objects numbers for it creation does \
+                            not exist!";
+                        return Err(JsValue::from(error_message));
+                    }
                 },
         }
     }
@@ -200,10 +262,10 @@ struct ActionObject
 
 impl ActionObject
 {
-    fn create(object_type: ObjectType, object_data: ObjectData) -> ActionObject
+    fn create(object_type: ObjectType, object_data: ObjectData) -> Result<ActionObject, JsValue>
     {
-        let object = ActionObjectCreator::create(&object_type, object_data);
-        ActionObject { object_type, object }
+        let object = ActionObjectCreator::create(&object_type, object_data)?;
+        Ok(ActionObject { object_type, object })
     }
 
 
@@ -313,11 +375,9 @@ impl ActionsRouter
         let object_type = ObjectType::Point;
         let action_type = ActionType::AddPoint;
         let properties = vec![x, y, z];
-        let contained_objects_numbers = Vec::new();
-        let contained_objects_properties = Vec::new();
-        let object_data = ObjectData {
-            number, properties, contained_objects_numbers, contained_objects_properties };
-        let action_object = ActionObject::create(object_type, object_data);
+        let object_data =
+            ObjectData::create(number, Some(properties), None);
+        let action_object = ActionObject::create(object_type, object_data)?;
         let action = Action { action_id, action_type, action_object, previous_object: None };
         self.current_action = Some(action);
         Ok(())
@@ -395,22 +455,57 @@ impl ActionsRouter
         let object_type = ObjectType::Point;
         let action_type = ActionType::UpdatePoint;
         let old_properties = vec![old_x_value, old_y_value, old_z_value];
-        let old_contained_objects_numbers = Vec::new();
-        let old_contained_objects_properties = Vec::new();
-        let previous_object_data = ObjectData {
-            number, properties: old_properties,
-            contained_objects_numbers: old_contained_objects_numbers,
-            contained_objects_properties: old_contained_objects_properties };
+        let previous_object_data =
+            ObjectData::create(number, Some(old_properties), None);
         let previous_action_object =
-            ActionObject::create(object_type.clone(), previous_object_data);
+            ActionObject::create(object_type.clone(), previous_object_data)?;
         let properties = vec![new_x_value, new_y_value, new_z_value];
-        let contained_objects_numbers = Vec::new();
-        let contained_objects_properties = Vec::new();
-        let object_data = ObjectData { number, properties,
-            contained_objects_numbers, contained_objects_properties };
-        let action_object = ActionObject::create(object_type, object_data);
+        let object_data =
+            ObjectData::create(number, Some(properties), None);
+        let action_object = ActionObject::create(object_type, object_data)?;
         let action = Action { action_id, action_type, action_object,
             previous_object: Some(previous_action_object) };
+        self.current_action = Some(action);
+        Ok(())
+    }
+
+
+    fn handle_delete_point_message(&mut self, message: &str) -> Result<(), JsValue>
+    {
+        let delete_point_message: Value = serde_json::from_str(message)
+            .or(Err(JsValue::from("Actions router: \
+            Delete point action: Message could not be parsed!")))?;
+        let action_id = delete_point_message["delete_point"]["actionId"].to_string()
+            .parse::<u32>()
+            .or(Err(JsValue::from("Actions router: Delete point action: \
+                Action id could not be converted to u32!")))?;
+        let number = delete_point_message["delete_point"]["number"].to_string()
+            .parse::<u32>()
+            .or(Err(JsValue::from(
+                "Actions router: Delete point action: \
+                Point number could not be converted to u32!")))?;
+        let x = delete_point_message["delete_point"]["x"].to_string()
+            .parse::<f64>()
+            .or(Err(JsValue::from(
+                "Actions router: Delete point action: \
+                Point x coordinate could not be converted to f64!")))?;
+        let y = delete_point_message["delete_point"]["y"].to_string()
+            .parse::<f64>()
+            .or(Err(JsValue::from(
+                "Actions router: Delete point action: \
+                Point y coordinate could not be converted to f64!")))?;
+        let z = delete_point_message["delete_point"]["z"].to_string()
+            .parse::<f64>()
+            .or(Err(JsValue::from(
+                "Actions router: Delete point action: \
+                Point z coordinate could not be converted to f64!")))?;
+        let object_type = ObjectType::Point;
+        let action_type = ActionType::DeletePoint;
+        let properties = vec![x, y, z];
+        let object_data =
+            ObjectData::create(number, Some(properties), None);
+        let action_object = ActionObject::create(object_type, object_data)?;
+        let action = Action { action_id, action_type, action_object, previous_object: None };
         self.current_action = Some(action);
         Ok(())
     }
@@ -428,23 +523,61 @@ impl ActionsRouter
                     {
                         let action_object_data =
                             &action.action_object.extract_object_data();
-                        let number = action_object_data.number;
-                        let x = action_object_data.properties[0];
-                        let y = action_object_data.properties[1];
-                        let z = action_object_data.properties[2];
-                        add_point_to_geometry(action_id, number, x, y, z)?;
-                        self.active_actions.push(action.clone());
+                        if let Some(properties) = &action_object_data.properties
+                        {
+                            let number = action_object_data.number;
+                            let x = properties[0];
+                            let y = properties[1];
+                            let z = properties[2];
+                            add_point_to_geometry(action_id, number, x, y, z)?;
+                            self.active_actions.push(action.clone());
+                        }
+                        else
+                        {
+                            let error_message = "Actions router: Add point action: \
+                                Properties does not exist!";
+                            return Err(JsValue::from(error_message));
+                        }
                     },
                 ActionType::UpdatePoint =>
                     {
                         let action_object_data =
                             &action.action_object.extract_object_data();
-                        let number = action_object_data.number;
-                        let x = action_object_data.properties[0];
-                        let y = action_object_data.properties[1];
-                        let z = action_object_data.properties[2];
-                        update_point_to_geometry(action_id, number, x, y, z)?;
-                        self.active_actions.push(action.clone());
+                        if let Some(properties) = &action_object_data.properties
+                        {
+                            let number = action_object_data.number;
+                            let x = properties[0];
+                            let y = properties[1];
+                            let z = properties[2];
+                            update_point_in_geometry(action_id, number, x, y, z)?;
+                            self.active_actions.push(action.clone());
+                        }
+                        else
+                        {
+                            let error_message = "Actions router: Update point action: \
+                                Properties does not exist!";
+                            return Err(JsValue::from(error_message));
+                        }
+                    },
+                ActionType::DeletePoint =>
+                    {
+                        let action_object_data =
+                            &action.action_object.extract_object_data();
+                        if let Some(properties) = &action_object_data.properties
+                        {
+                            let number = action_object_data.number;
+                            let x = properties[0];
+                            let y = properties[1];
+                            let z = properties[2];
+                            delete_point_from_geometry(action_id, number, x, y, z)?;
+                            self.active_actions.push(action.clone());
+                        }
+                        else
+                        {
+                            let error_message = "Actions router: Delete point action: \
+                                Properties does not exist!";
+                            return Err(JsValue::from(error_message));
+                        }
                     },
                 _ => (),
             }
@@ -463,6 +596,10 @@ impl ActionsRouter
         else if message.contains(&ActionType::UpdatePoint.as_str())
         {
             self.handle_update_point_message(&message)?;
+        }
+        else if message.contains(&ActionType::DeletePoint.as_str())
+        {
+            self.handle_delete_point_message(&message)?;
         }
         else
         {

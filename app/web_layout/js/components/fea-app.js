@@ -38,9 +38,12 @@ class FeaApp extends HTMLElement {
 
         this.addEventListener("activate-postprocessor", () => this.activatePostprocessor());
         this.addEventListener("activate-preprocessor", () => this.activatePreprocessor());
+
         this.addEventListener("client message", (event) => this.handleClientMessage(event));
+
         this.addEventListener("add point server message", (event) => this.handleAddPointServerMessage(event));
         this.addEventListener("update point server message", (event) => this.handleUpdatePointServerMessage(event));
+        this.addEventListener("delete point server message", (event) => this.handleDeletePointServerMessage(event));
     }
 
     async connectedCallback() {
@@ -96,7 +99,7 @@ class FeaApp extends HTMLElement {
         const point = { 
             number: event.detail.point_data.number, x: event.detail.point_data.x,
             y: event.detail.point_data.y, z: event.detail.point_data.z };
-        this.querySelector("fea-preprocessor").addPointFromServer = point;
+        this.querySelector("fea-preprocessor").addPointToClient = point;
         event.stopPropagation();
     }
 
@@ -105,7 +108,16 @@ class FeaApp extends HTMLElement {
         this.updatePreprocessorActionId();
         const point = { number: event.detail.point_data.number, x: event.detail.point_data.x,
             y: event.detail.point_data.y, z: event.detail.point_data.z };
-        this.querySelector("fea-preprocessor").updatePointFromServer = point;
+        this.querySelector("fea-preprocessor").updatePointOnClient = point;
+        event.stopPropagation();
+    }
+
+    handleDeletePointServerMessage(event) {
+        this.state.actionId += 1;
+        this.updatePreprocessorActionId();
+        const point = { number: event.detail.point_data.number, x: event.detail.point_data.x,
+            y: event.detail.point_data.y, z: event.detail.point_data.z };
+        this.querySelector("fea-preprocessor").deletePointFromClient = point;
         event.stopPropagation();
     }
 }

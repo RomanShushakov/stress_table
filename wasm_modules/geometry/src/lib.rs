@@ -8,6 +8,11 @@ use serde_json::json;
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
+const EVENTS_TARGET: &str = "fea-app";
+const ADD_POINT: &str = "add point server message";
+const UPDATE_POINT: &str = "update point server message";
+const DELETE_POINT: &str = "delete point server message";
+
 
 #[wasm_bindgen]
 extern "C"
@@ -78,6 +83,12 @@ impl Point
     {
         (self.number, self.x, self.y, self.z)
     }
+
+
+    fn update_action_id(&mut self, action_id: u32)
+    {
+        self.action_id = action_id;
+    }
 }
 
 
@@ -122,9 +133,7 @@ impl Geometry
                 point.borrow().extract_number_and_coordinates();
             let detail = json!({ "point_data": { "number": number, "x": x, "y": y, "z": z },
                 "is_preprocessor_request": true });
-            let event_type = "add point server message";
-            let query_selector = "fea-app";
-            dispatch_custom_event(detail, event_type, query_selector)?;
+            dispatch_custom_event(detail, ADD_POINT, EVENTS_TARGET)?;
         }
         Ok(())
     }
@@ -151,9 +160,7 @@ impl Geometry
         self.points.push(Rc::new(RefCell::new(point)));
         let detail = json!({ "point_data": { "number": number, "x": x, "y": y, "z": z },
                 "is_preprocessor_request": false });
-        let event_type = "add point server message";
-        let query_selector = "fea-app";
-        dispatch_custom_event(detail, event_type, query_selector)?;
+        dispatch_custom_event(detail, ADD_POINT, EVENTS_TARGET)?;
         log(&format!("Geometry: Points: {:?}, lines: {:?}, deleted points: {:?}, \
             deleted lines {:?}", self.points, self.lines, self.deleted_points, self.deleted_lines));
         Ok(())
@@ -176,9 +183,7 @@ impl Geometry
         {
             self.points[position].borrow_mut().update(action_id, x, y, z);
             let detail = json!({ "point_data": { "number": number, "x": x, "y": y, "z": z } });
-            let event_type = "update point server message";
-            let query_selector = "fea-app";
-            dispatch_custom_event(detail, event_type, query_selector)?;
+            dispatch_custom_event(detail, UPDATE_POINT, EVENTS_TARGET)?;
             log(&format!("Geometry: Points: {:?}, lines: {:?}, deleted points: {:?}, \
                 deleted lines {:?}", self.points, self.lines, self.deleted_points,
                 self.deleted_lines));
@@ -189,6 +194,32 @@ impl Geometry
             let error_message = format!("Geometry: Update point action: \
                 The point with number {} could not be updated because it does not exist!", number);
             Err(JsValue::from(&error_message))
+        }
+    }
+
+
+    pub fn delete_point(&mut self, action_id: u32, number: u32, x: f64, y: f64, z: f64)
+        -> Result<(), JsValue>
+    {
+        if let Some(position) = self.points.iter()
+            .position(|point| point.borrow().coordinates_same(x, y, z) &&
+                point.borrow().number_same(number))
+        {
+            let deleted_point = self.points.remove(position);
+            deleted_point.borrow_mut().update_action_id(action_id);
+            self.deleted_points.push(deleted_point);
+            let detail = json!({ "point_data": { "number": number, "x": x, "y": y, "z": z } });
+            dispatch_custom_event(detail, DELETE_POINT, EVENTS_TARGET)?;
+            log(&format!("Geometry: Points: {:?}, lines: {:?}, deleted points: {:?}, \
+                deleted lines {:?}", self.points, self.lines, self.deleted_points,
+                self.deleted_lines));
+            Ok(())
+        }
+        else
+        {
+            let error_message = &format!("Geometry: Delete point action: Point with \
+                number {} and coordinates {}, {}, {} does not exist!", number, x, y, z);
+            return Err(JsValue::from(error_message));
         }
     }
 }

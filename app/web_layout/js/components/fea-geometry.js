@@ -1092,6 +1092,19 @@ class FeaGeometry extends HTMLElement {
         this.refreshGeometryFields();
     }
 
+    set updateLineOnClient(line) {
+        let lineInProps = this.props.lines.find(existedLine => existedLine.number == line.number);
+        lineInProps.startPointNumber = line.startPointNumber;
+        lineInProps.endPointNumber = line.endPointNumber;
+        this.refreshGeometryFields();
+    }
+
+    set deleteLineFromClient(line) {
+        let lineIndexInProps = this.props.lines.findIndex(existedLine => existedLine.number == line.number);
+        this.props.lines.splice(lineIndexInProps, 1)
+        this.refreshGeometryFields();
+    }
+
     disconnectedCallback() {
     }
 
@@ -1449,11 +1462,7 @@ class FeaGeometry extends HTMLElement {
             return;
         }
         const deletedPointValues = this.props.points.find(point => point.number == selectedPointNumberField.value);
-        const message = JSON.stringify({"delete_point": {
-            "actionId": this.props.actionId,
-            "number": deletedPointValues.number, 
-            "x":  deletedPointValues.x, "y": deletedPointValues.y, "z": deletedPointValues.z,
-        }});
+        const message = JSON.stringify({"delete_point": { "actionId": this.props.actionId, "number": deletedPointValues.number }});
         this.dispatchEvent(new CustomEvent("client message", {
             bubbles: true,
             composed: true,
@@ -1584,8 +1593,8 @@ class FeaGeometry extends HTMLElement {
             return;
         }
         const linePointNumbersInProps = this.props.lines.find(line =>
-            (line.startPoint == startPointField.value && line.endPoint == endPointField.value) ||
-            (line.startPoint == endPointField.value && line.endPoint == startPointField.value));
+            (line.startPointNumber == startPointField.value && line.endPointNumber == endPointField.value) ||
+            (line.startPointNumber == endPointField.value && line.endPointNumber == startPointField.value));
         if (linePointNumbersInProps != null) {
             this.shadowRoot.querySelector(".line-add-message").innerHTML = "The line with the same start and end points does already exist!";
             this.shadowRoot.querySelector(".wrapper").setAttribute("style",
@@ -1616,9 +1625,9 @@ class FeaGeometry extends HTMLElement {
 
     cancelLineAddition() {
         this.defineNewLineNumber();
-        const startPoint = this.shadowRoot.querySelector(".selected-start-point-number-for-line-addition");
-        const endPoint = this.shadowRoot.querySelector(".selected-end-point-number-for-line-addition");
-        this.definePointNumbersForLine(startPoint, endPoint);
+        const startPointNumber = this.shadowRoot.querySelector(".selected-start-point-number-for-line-addition");
+        const endPointNumber = this.shadowRoot.querySelector(".selected-end-point-number-for-line-addition");
+        this.definePointNumbersForLine(startPointNumber, endPointNumber);
         this.shadowRoot.querySelector(".search-start-point-number-for-line-addition").value = null;
         this.shadowRoot.querySelector(".search-end-point-number-for-line-addition").value = null;
         this.shadowRoot.querySelector(".selected-start-point-number-for-line-addition-info").innerHTML = "You select:"
@@ -1677,8 +1686,8 @@ class FeaGeometry extends HTMLElement {
             return;
         }
         const linePointNumbersInProps = this.props.lines.find(line =>
-            (line.startPoint == startPointField.value && line.endPoint == endPointField.value) ||
-            (line.startPoint == endPointField.value && line.endPoint == startPointField.value));
+            (line.startPointNumber == startPointField.value && line.endPointNumber == endPointField.value) ||
+            (line.startPointNumber == endPointField.value && line.endPointNumber == startPointField.value));
         if (linePointNumbersInProps != null) {
             this.shadowRoot.querySelector(".line-update-message").innerHTML = "The line with the same start and end points does already exist!";
             this.shadowRoot.querySelector(".wrapper").setAttribute("style",
@@ -1697,7 +1706,7 @@ class FeaGeometry extends HTMLElement {
         const message = JSON.stringify({"update_line": {
             "actionId": this.props.actionId,
             "number": selectedLineNumberField.value, 
-            "old_line_values": { "start_point":  oldLineValues.startPoint, "end_point": oldLineValues.endPoint },
+            "old_line_values": { "start_point":  oldLineValues.startPointNumber, "end_point": oldLineValues.endPointNumber },
             "new_line_values": { "start_point":  startPointField.value, "end_point": endPointField.value }
         }});
         this.dispatchEvent(new CustomEvent("client message", {
@@ -1712,9 +1721,9 @@ class FeaGeometry extends HTMLElement {
     cancelLineUpdate() {
         this.defineUpdateAndDeleteLineNumbers();
         this.shadowRoot.querySelector(".search-line-number-for-update").value = null;
-        const startPoint = this.shadowRoot.querySelector(".selected-start-point-number-for-line-update");
-        const endPoint = this.shadowRoot.querySelector(".selected-end-point-number-for-line-update");
-        this.definePointNumbersForLine(startPoint, endPoint);
+        const startPointNumber = this.shadowRoot.querySelector(".selected-start-point-number-for-line-update");
+        const endPointNumber = this.shadowRoot.querySelector(".selected-end-point-number-for-line-update");
+        this.definePointNumbersForLine(startPointNumber, endPointNumber);
         this.shadowRoot.querySelector(".search-start-point-number-for-line-update").value = null;
         this.shadowRoot.querySelector(".search-end-point-number-for-line-update").value = null;
         this.shadowRoot.querySelector(".selected-line-number-for-update-info").innerHTML = "You select:";

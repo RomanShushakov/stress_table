@@ -46,6 +46,8 @@ class FeaApp extends HTMLElement {
         this.addEventListener("delete point server message", (event) => this.handleDeletePointServerMessage(event));
 
         this.addEventListener("add line server message", (event) => this.handleAddLineServerMessage(event));
+        this.addEventListener("update line server message", (event) => this.handleUpdateLineServerMessage(event));
+        this.addEventListener("delete line server message", (event) => this.handleDeleteLineServerMessage(event));
     }
 
     async connectedCallback() {
@@ -129,10 +131,28 @@ class FeaApp extends HTMLElement {
         }
         const line = { 
             number: event.detail.line_data.number,
-            start_point_number: event.detail.line_data.start_point_number,
-            end_point_number: event.detail.line_data.end_point_number };
+            startPointNumber: event.detail.line_data.start_point_number,
+            endPointNumber: event.detail.line_data.end_point_number };
         this.querySelector("fea-preprocessor").addLineToClient = line;
-        console.log(line);
+        event.stopPropagation();
+    }
+
+    handleUpdateLineServerMessage(event) {
+        this.state.actionId += 1;
+        this.updatePreprocessorActionId();
+        const line = { 
+            number: event.detail.line_data.number,
+            startPointNumber: event.detail.line_data.start_point_number,
+            endPointNumber: event.detail.line_data.end_point_number };
+        this.querySelector("fea-preprocessor").updateLineOnClient = line;
+        event.stopPropagation();
+    }
+
+    handleDeleteLineServerMessage(event) {
+        this.state.actionId += 1;
+        this.updatePreprocessorActionId();
+        const line = { number: event.detail.line_data.number };
+        this.querySelector("fea-preprocessor").deleteLineFromClient = line;
         event.stopPropagation();
     }
 }

@@ -46,8 +46,24 @@ class CommunicatorWithGeometry {
         }
     }
 
+    set updateLineInGeometry(lineData) {
+        try {
+            this.state.geometry.update_line(lineData.actionId, lineData.number, lineData.startPointNumber, lineData.endPointNumber);
+        } catch (error) {
+            throw error;
+        }
+    }
+
     set addWholeGeometryToPreprocessor(_empty) {
         this.state.geometry.add_whole_geometry_to_preprocessor();
+    }
+
+    set deleteLineFromGeometry(lineData) {
+        try {
+            this.state.geometry.delete_line(lineData.actionId, lineData.number);
+        } catch (error) {
+            throw error;
+        }
     }
 }
 

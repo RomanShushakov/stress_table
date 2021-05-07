@@ -44,6 +44,14 @@ extern "C"
     #[wasm_bindgen(js_name = addLineToGeometry, catch)]
     fn add_line_to_geometry(action_id: u32, number: u32, start_point_number: u32,
         end_point_number: u32) -> Result<(), JsValue>;
+
+    #[wasm_bindgen(js_name = updateLineInGeometry, catch)]
+    fn update_line_in_geometry(action_id: u32, number: u32, start_point_number: u32,
+        end_point_number: u32) -> Result<(), JsValue>;
+
+    #[wasm_bindgen(js_name = deleteLineFromGeometry, catch)]
+    fn delete_line_from_geometry(action_id: u32, number: u32)
+        -> Result<(), JsValue>;
 }
 
 
@@ -109,8 +117,8 @@ enum ActionType
     UpdatePoint(ObjectNumber, Coordinates, Coordinates),
     DeletePoint(ObjectNumber),
     AddLine(ObjectNumber, ObjectNumber, ObjectNumber),
-    UpdateLine,
-    DeleteLine,
+    UpdateLine(ObjectNumber, ObjectNumber, ObjectNumber, ObjectNumber, ObjectNumber),
+    DeleteLine(ObjectNumber),
 }
 
 
@@ -293,21 +301,6 @@ impl ActionsRouter
             .or(Err(JsValue::from(
                 "Actions router: Delete point action: \
                 Point number could not be converted to u32!")))?;
-        let x = delete_point_message["delete_point"]["x"].to_string()
-            .parse::<f64>()
-            .or(Err(JsValue::from(
-                "Actions router: Delete point action: \
-                Point x coordinate could not be converted to f64!")))?;
-        let y = delete_point_message["delete_point"]["y"].to_string()
-            .parse::<f64>()
-            .or(Err(JsValue::from(
-                "Actions router: Delete point action: \
-                Point y coordinate could not be converted to f64!")))?;
-        let z = delete_point_message["delete_point"]["z"].to_string()
-            .parse::<f64>()
-            .or(Err(JsValue::from(
-                "Actions router: Delete point action: \
-                Point z coordinate could not be converted to f64!")))?;
         let point_number = ObjectNumber::create(number);
         let action_type = ActionType::DeletePoint(point_number);
         let action = Action::create(action_id, action_type);
@@ -356,6 +349,98 @@ impl ActionsRouter
     }
 
 
+    fn handle_update_line_message(&mut self, message: &str) -> Result<(), JsValue>
+    {
+        let update_line_message: Value = serde_json::from_str(message)
+            .or(Err(JsValue::from("Actions router: Update line action: \
+            Message could not be parsed!")))?;
+        let action_id = update_line_message["update_line"]["actionId"].to_string()
+            .parse::<u32>()
+            .or(Err(JsValue::from(
+                "Actions router: Update line action: \
+                Action id could not be converted to u32!")))?;
+        let number = update_line_message["update_line"]["number"].as_str()
+            .ok_or(JsValue::from(
+                "Actions router: Update line action: Line number could not be extracted!"))?
+            .parse::<u32>()
+            .or(Err(JsValue::from(
+                "Actions router: Update line action: \
+                Line number could not be converted to u32!")))?;
+        let old_line_values: Value =
+            serde_json::from_str(&update_line_message["update_line"]["old_line_values"]
+                .to_string())
+                .or(Err(JsValue::from(
+                    "Actions router: Update line action: \
+                    Line old values could not be extracted!")))?;
+        let old_start_point_number = old_line_values["start_point"].to_string()
+            .parse::<u32>()
+            .or(Err(JsValue::from(
+                "Actions router: Update line action: \
+                Line old start point number could not be converted to u32!")))?;
+        let old_end_point_number = old_line_values["end_point"].to_string()
+            .parse::<u32>()
+            .or(Err(JsValue::from(
+                "Actions router: Update line action: \
+                Line old end point number could not be converted to u32!")))?;
+        let new_line_values: Value =
+            serde_json::from_str(&update_line_message["update_line"]["new_line_values"]
+                .to_string())
+                .or(Err(JsValue::from(
+                    "Actions router: Update line action: \
+                    Line new values could not be extracted!")))?;
+        let new_start_point_number = new_line_values["start_point"].as_str()
+            .ok_or(JsValue::from(
+                "Actions router: Update line action: \
+                Line new start point number could not be extracted!"))?
+            .parse::<u32>()
+            .or(Err(JsValue::from(
+                "Actions router: Update line action: \
+                Line new start point number could not be converted to u32!")))?;
+        let new_end_point_number = new_line_values["end_point"].as_str()
+            .ok_or(JsValue::from(
+                "Actions router: Update line action: \
+                Line new end point number could not be extracted!"))?
+            .parse::<u32>()
+            .or(Err(JsValue::from(
+                "Actions router: Update line action: \
+                Line new end point number could not be converted to u32!")))?;
+        let line_number = ObjectNumber::create(number);
+        let old_start_point_number = ObjectNumber::create(old_start_point_number);
+        let old_end_point_number = ObjectNumber::create(old_end_point_number);
+        let new_start_point_number = ObjectNumber::create(new_start_point_number);
+        let new_end_point_number = ObjectNumber::create(new_end_point_number);
+        let action_type = ActionType::UpdateLine(line_number, old_start_point_number,
+            old_end_point_number, new_start_point_number, new_end_point_number);
+        let action = Action::create(action_id, action_type);
+        self.current_action = Some(action);
+        Ok(())
+    }
+
+
+    fn handle_delete_line_message(&mut self, message: &str) -> Result<(), JsValue>
+    {
+        let delete_line_message: Value = serde_json::from_str(message)
+            .or(Err(JsValue::from("Actions router: \
+            Delete line action: Message could not be parsed!")))?;
+        let action_id = delete_line_message["delete_line"]["actionId"].to_string()
+            .parse::<u32>()
+            .or(Err(JsValue::from("Actions router: Delete line action: \
+                Action id could not be converted to u32!")))?;
+        let number = delete_line_message["delete_line"]["number"].as_str()
+            .ok_or(JsValue::from("Actions router: Delete line action: \
+                Line number could not be extracted!"))?
+            .parse::<u32>()
+            .or(Err(JsValue::from(
+                "Actions router: Delete line action: \
+                Line number could not be converted to u32!")))?;
+        let line_number = ObjectNumber::create(number);
+        let action_type = ActionType::DeleteLine(line_number);
+        let action = Action::create(action_id, action_type);
+        self.current_action = Some(action);
+        Ok(())
+    }
+
+
     fn handle_current_action(&mut self) -> Result<(), JsValue>
     {
         if let Some(action) = &self.current_action
@@ -398,6 +483,22 @@ impl ActionsRouter
                             end_point_number)?;
                         self.active_actions.push(action.clone());
                     }
+                ActionType::UpdateLine(line_number, _, _,
+                    start_point_number, end_point_number) =>
+                    {
+                        let number = line_number.get_number();
+                        let start_point_number = start_point_number.get_number();
+                        let end_point_number = end_point_number.get_number();
+                        update_line_in_geometry(action_id, number, start_point_number,
+                            end_point_number)?;
+                        self.active_actions.push(action.clone());
+                    },
+                ActionType::DeleteLine(line_number) =>
+                    {
+                        let number = line_number.get_number();
+                        delete_line_from_geometry(action_id, number)?;
+                        self.active_actions.push(action.clone());
+                    },
                 _ => (),
             }
             self.current_action = None;
@@ -423,6 +524,14 @@ impl ActionsRouter
         else if message.contains(ADD_LINE_EVENT)
         {
             self.handle_add_line_message(&message)?;
+        }
+        else if message.contains(UPDATE_LINE_EVENT)
+        {
+            self.handle_update_line_message(&message)?;
+        }
+        else if message.contains(DELETE_LINE_EVENT)
+        {
+            self.handle_delete_line_message(&message)?;
         }
         else
         {

@@ -13,6 +13,8 @@ const ADD_POINT: &str = "add point server message";
 const UPDATE_POINT: &str = "update point server message";
 const DELETE_POINT: &str = "delete point server message";
 const ADD_LINE: &str = "add line server message";
+const UPDATE_LINE: &str = "update line server message";
+const DELETE_LINE: &str = "delete line server message";
 
 
 #[wasm_bindgen]
@@ -85,6 +87,11 @@ impl Point
         self.z = z;
     }
 
+    fn extract_number(&self) -> u32
+    {
+        self.number
+    }
+
 
     fn extract_number_and_coordinates(&self) -> (u32, f64, f64, f64)
     {
@@ -121,6 +128,36 @@ impl Line
     {
         self.number == number
     }
+
+
+    fn start_and_end_points_same(&self, start_point_number: u32, end_point_number: u32) -> bool
+    {
+        (self.start_point.borrow().number_same(start_point_number) &&
+        self.end_point.borrow().number_same(end_point_number)) ||
+        (self.start_point.borrow().number_same(end_point_number) &&
+        self.end_point.borrow().number_same(start_point_number))
+    }
+
+
+    fn update(&mut self, action_id: u32, start_point: Rc<RefCell<Point>>,
+        end_point: Rc<RefCell<Point>>)
+    {
+        self.action_id = action_id;
+        self.start_point = start_point;
+        self.end_point = end_point;
+    }
+
+    fn update_action_id(&mut self, action_id: u32)
+    {
+        self.action_id = action_id;
+    }
+
+
+    fn extract_number_and_points_numbers(&self) -> (u32, u32, u32)
+    {
+        (self.number, self.start_point.borrow().extract_number(),
+         self.end_point.borrow().extract_number())
+    }
 }
 
 
@@ -145,20 +182,6 @@ impl Geometry
         let deleted_points = Vec::new();
         let deleted_lines = Vec::new();
         Geometry { points, lines, deleted_points, deleted_lines }
-    }
-
-
-    pub fn add_whole_geometry_to_preprocessor(&self) -> Result<(), JsValue>
-    {
-        for point in &self.points
-        {
-            let (number, x, y, z) =
-                point.borrow().extract_number_and_coordinates();
-            let detail = json!({ "point_data": { "number": number, "x": x, "y": y, "z": z },
-                "is_preprocessor_request": true });
-            dispatch_custom_event(detail, ADD_POINT, EVENTS_TARGET)?;
-        }
-        Ok(())
     }
 
 
@@ -221,8 +244,7 @@ impl Geometry
     }
 
 
-    pub fn delete_point(&mut self, action_id: u32, number: u32)
-        -> Result<(), JsValue>
+    pub fn delete_point(&mut self, action_id: u32, number: u32) -> Result<(), JsValue>
     {
         if let Some(position) = self.points.iter()
             .position(|point| point.borrow().number_same(number))
@@ -256,6 +278,14 @@ impl Geometry
                 number {} does already exist!", number);
             return Err(JsValue::from(error_message));
         }
+        if self.lines.iter()
+            .position(|line|
+                line.start_and_end_points_same(start_point_number, end_point_number)).is_some()
+        {
+            let error_message = &format!("Geometry: Add line action: Line with \
+                point number {} and {} does already exist!", start_point_number, end_point_number);
+            return Err(JsValue::from(error_message));
+        }
         let start_point =
             {
                 if let Some(position) = self.points.iter().position(|point|
@@ -280,7 +310,7 @@ impl Geometry
                 else
                 {
                      let error_message = &format!("Geometry: Add line action: Point with \
-                        number {} does not exist!", start_point_number);
+                        number {} does not exist!", end_point_number);
                     Err(JsValue::from(error_message))
                 }
             }?;
@@ -292,6 +322,111 @@ impl Geometry
         dispatch_custom_event(detail, ADD_LINE, EVENTS_TARGET)?;
         log(&format!("Geometry: Points: {:?}, lines: {:?}, deleted points: {:?}, \
             deleted lines {:?}", self.points, self.lines, self.deleted_points, self.deleted_lines));
+        Ok(())
+    }
+
+
+    pub fn update_line(&mut self, action_id: u32, number: u32, start_point_number: u32,
+        end_point_number: u32) -> Result<(), JsValue>
+    {
+        if self.lines.iter()
+            .position(|line|
+                line.start_and_end_points_same(start_point_number, end_point_number)).is_some()
+        {
+            let error_message = &format!("Geometry: Update line action: Line with \
+                point number {} and {} does already exist!", start_point_number, end_point_number);
+            return Err(JsValue::from(error_message));
+        }
+        let start_point =
+            {
+                if let Some(position) = self.points.iter().position(|point|
+                    point.borrow().number_same(start_point_number))
+                {
+                    Ok(Rc::clone(&self.points[position]))
+                }
+                else
+                {
+                     let error_message = &format!("Geometry: Update line action: Point with \
+                        number {} does not exist!", start_point_number);
+                    Err(JsValue::from(error_message))
+                }
+            }?;
+        let end_point =
+            {
+                if let Some(position) = self.points.iter().position(|point|
+                    point.borrow().number_same(end_point_number))
+                {
+                    Ok(Rc::clone(&self.points[position]))
+                }
+                else
+                {
+                     let error_message = &format!("Geometry: Update line action: Point with \
+                        number {} does not exist!", end_point_number);
+                    Err(JsValue::from(error_message))
+                }
+            }?;
+        if let Some(position) = self.lines.iter().position(|line|
+            line.number_same(number))
+        {
+            self.lines[position].update(action_id, start_point, end_point);
+            let detail = json!({ "line_data": { "number": number,
+                "start_point_number": start_point_number, "end_point_number": end_point_number } });
+            dispatch_custom_event(detail, UPDATE_LINE, EVENTS_TARGET)?;
+            log(&format!("Geometry: Points: {:?}, lines: {:?}, deleted points: {:?}, deleted \
+                lines {:?}", self.points, self.lines, self.deleted_points, self.deleted_lines));
+        }
+        else
+        {
+            let error_message = &format!("Geometry: Update line action: Line with \
+                number {} does not exist!", number);
+            return Err(JsValue::from(error_message));
+        }
+        Ok(())
+    }
+
+    pub fn delete_line(&mut self, action_id: u32, number: u32) -> Result<(), JsValue>
+    {
+        if let Some(position) = self.lines.iter()
+            .position(|line| line.number_same(number))
+        {
+            let mut deleted_line = self.lines.remove(position);
+            deleted_line.update_action_id(action_id);
+            self.deleted_lines.push(deleted_line);
+            let detail = json!({ "line_data": { "number": number } });
+            dispatch_custom_event(detail, DELETE_LINE, EVENTS_TARGET)?;
+            log(&format!("Geometry: Points: {:?}, lines: {:?}, deleted points: {:?}, \
+                deleted lines {:?}", self.points, self.lines, self.deleted_points,
+                self.deleted_lines));
+            Ok(())
+        }
+        else
+        {
+            let error_message = &format!("Geometry: Delete line action: Line with \
+                number {} does not exist!", number);
+            return Err(JsValue::from(error_message));
+        }
+    }
+
+
+    pub fn add_whole_geometry_to_preprocessor(&self) -> Result<(), JsValue>
+    {
+        for point in &self.points
+        {
+            let (number, x, y, z) =
+                point.borrow().extract_number_and_coordinates();
+            let detail = json!({ "point_data": { "number": number, "x": x, "y": y, "z": z },
+                "is_preprocessor_request": true });
+            dispatch_custom_event(detail, ADD_POINT, EVENTS_TARGET)?;
+        }
+        for line in &self.lines
+        {
+             let (number, start_point_number, end_point_number) =
+                line.extract_number_and_points_numbers();
+            let detail = json!({ "line_data": { "number": number,
+            "start_point_number": start_point_number, "end_point_number": end_point_number },
+            "is_preprocessor_request": true });
+            dispatch_custom_event(detail, ADD_LINE, EVENTS_TARGET)?;
+        }
         Ok(())
     }
 }

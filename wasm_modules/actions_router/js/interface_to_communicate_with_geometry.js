@@ -21,13 +21,6 @@ export function updatePointInGeometry(actionId, number, x, y, z)
     }
 }
 
-
-export function addWholeGeometryToPreprocessor() 
-{
-    communicatorWithGeometry.addWholeGeometryToPreprocessor = "_empty";
-}
-
-
 export function deletePointFromGeometry(actionId, number) 
 {
     const pointData = { "actionId": actionId, "number": number };
@@ -48,4 +41,31 @@ export function addLineToGeometry(actionId, number, startPointNumber, endPointNu
     } catch (error) {
         throw error;
     }
+}
+
+export function updateLineInGeometry(actionId, number, startPointNumber, endPointNumber) 
+{
+    const lineData = { 
+        "actionId": actionId, "number": number,
+        "startPointNumber": startPointNumber, "endPointNumber": endPointNumber };
+    try {
+        communicatorWithGeometry.updateLineInGeometry = lineData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function deleteLineFromGeometry(actionId, number) 
+{
+    const lineData = { "actionId": actionId, "number": number };
+    try {
+        communicatorWithGeometry.deleteLineFromGeometry = lineData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function addWholeGeometryToPreprocessor() 
+{
+    communicatorWithGeometry.addWholeGeometryToPreprocessor = "_empty";
 }

@@ -1,4 +1,4 @@
-import { initializeGeometry } from "../wasm_js_interface_modules/geometry_initialization.js";
+import { initializeGeometry } from "../wasm_modules_initialization/geometry_initialization.js";
 
 class CommunicatorWithGeometry {
     constructor() {
@@ -29,17 +29,25 @@ class CommunicatorWithGeometry {
         }
     }
 
-    set addWholeGeometryToPreprocessor(_empty) {
-        this.state.geometry.add_whole_geometry_to_preprocessor();
-    }
-
 
     set deletePointFromGeometry(pointData) {
         try {
-            this.state.geometry.delete_point(pointData.actionId, pointData.number, pointData.x, pointData.y, pointData.z);
+            this.state.geometry.delete_point(pointData.actionId, pointData.number);
         } catch (error) {
             throw error;
         }
+    }
+
+    set addLineToGeometry(lineData) {
+        try {
+            this.state.geometry.add_line(lineData.actionId, lineData.number, lineData.startPointNumber, lineData.endPointNumber);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    set addWholeGeometryToPreprocessor(_empty) {
+        this.state.geometry.add_whole_geometry_to_preprocessor();
     }
 }
 

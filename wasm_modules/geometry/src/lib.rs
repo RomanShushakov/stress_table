@@ -12,6 +12,7 @@ const EVENTS_TARGET: &str = "fea-app";
 const ADD_POINT: &str = "add point server message";
 const UPDATE_POINT: &str = "update point server message";
 const DELETE_POINT: &str = "delete point server message";
+const ADD_LINE: &str = "add line server message";
 
 
 #[wasm_bindgen]
@@ -58,6 +59,12 @@ struct Point
 
 impl Point
 {
+    fn create(action_id: u32, number: u32, x: f64, y: f64, z: f64) -> Point
+    {
+        Point { action_id, number, x, y, z }
+    }
+
+
     fn number_same(&self, number: u32) -> bool
     {
         self.number == number
@@ -100,6 +107,22 @@ struct Line
     start_point: Rc<RefCell<Point>>,
     end_point: Rc<RefCell<Point>>,
 }
+
+
+impl Line
+{
+    fn create(action_id: u32, number: u32, start_point: Rc<RefCell<Point>>,
+        end_point: Rc<RefCell<Point>>) -> Line
+    {
+        Line { action_id, number, start_point, end_point }
+    }
+
+    fn number_same(&self, number: u32) -> bool
+    {
+        self.number == number
+    }
+}
+
 
 
 #[wasm_bindgen]
@@ -156,7 +179,7 @@ impl Geometry
                 coordinates {}, {}, {} does already exist!", x, y, z);
             return Err(JsValue::from(error_message));
         }
-        let point = Point { action_id, number, x, y, z };
+        let point = Point::create(action_id, number, x, y, z);
         self.points.push(Rc::new(RefCell::new(point)));
         let detail = json!({ "point_data": { "number": number, "x": x, "y": y, "z": z },
                 "is_preprocessor_request": false });
@@ -198,17 +221,16 @@ impl Geometry
     }
 
 
-    pub fn delete_point(&mut self, action_id: u32, number: u32, x: f64, y: f64, z: f64)
+    pub fn delete_point(&mut self, action_id: u32, number: u32)
         -> Result<(), JsValue>
     {
         if let Some(position) = self.points.iter()
-            .position(|point| point.borrow().coordinates_same(x, y, z) &&
-                point.borrow().number_same(number))
+            .position(|point| point.borrow().number_same(number))
         {
             let deleted_point = self.points.remove(position);
             deleted_point.borrow_mut().update_action_id(action_id);
             self.deleted_points.push(deleted_point);
-            let detail = json!({ "point_data": { "number": number, "x": x, "y": y, "z": z } });
+            let detail = json!({ "point_data": { "number": number } });
             dispatch_custom_event(detail, DELETE_POINT, EVENTS_TARGET)?;
             log(&format!("Geometry: Points: {:?}, lines: {:?}, deleted points: {:?}, \
                 deleted lines {:?}", self.points, self.lines, self.deleted_points,
@@ -218,8 +240,58 @@ impl Geometry
         else
         {
             let error_message = &format!("Geometry: Delete point action: Point with \
-                number {} and coordinates {}, {}, {} does not exist!", number, x, y, z);
+                number {} does not exist!", number);
             return Err(JsValue::from(error_message));
         }
+    }
+
+
+    pub fn add_line(&mut self, action_id: u32, number: u32, start_point_number: u32,
+        end_point_number: u32) -> Result<(), JsValue>
+    {
+        if self.lines.iter()
+            .position(|line| line.number_same(number)).is_some()
+        {
+            let error_message = &format!("Geometry: Add line action: Line with \
+                number {} does already exist!", number);
+            return Err(JsValue::from(error_message));
+        }
+        let start_point =
+            {
+                if let Some(position) = self.points.iter().position(|point|
+                    point.borrow().number_same(start_point_number))
+                {
+                    Ok(Rc::clone(&self.points[position]))
+                }
+                else
+                {
+                     let error_message = &format!("Geometry: Add line action: Point with \
+                        number {} does not exist!", start_point_number);
+                    Err(JsValue::from(error_message))
+                }
+            }?;
+        let end_point =
+            {
+                if let Some(position) = self.points.iter().position(|point|
+                    point.borrow().number_same(end_point_number))
+                {
+                    Ok(Rc::clone(&self.points[position]))
+                }
+                else
+                {
+                     let error_message = &format!("Geometry: Add line action: Point with \
+                        number {} does not exist!", start_point_number);
+                    Err(JsValue::from(error_message))
+                }
+            }?;
+        let line = Line::create(action_id, number, start_point, end_point);
+        self.lines.push(line);
+        let detail = json!({ "line_data": { "number": number,
+            "start_point_number": start_point_number, "end_point_number": end_point_number },
+            "is_preprocessor_request": false });
+        dispatch_custom_event(detail, ADD_LINE, EVENTS_TARGET)?;
+        log(&format!("Geometry: Points: {:?}, lines: {:?}, deleted points: {:?}, \
+            deleted lines {:?}", self.points, self.lines, self.deleted_points, self.deleted_lines));
+        Ok(())
     }
 }

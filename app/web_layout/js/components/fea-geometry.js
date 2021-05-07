@@ -1082,9 +1082,13 @@ class FeaGeometry extends HTMLElement {
     }
 
     set deletePointFromClient(point) {
-        let pointIndexInProps = this.props.points.findIndex(existedPoint => existedPoint.number == point.number && 
-            existedPoint.x == point.x && existedPoint.y == point.y && existedPoint.z == point.z);
+        let pointIndexInProps = this.props.points.findIndex(existedPoint => existedPoint.number == point.number);
         this.props.points.splice(pointIndexInProps, 1)
+        this.refreshGeometryFields();
+    }
+
+    set addLineToClient(line) {
+        this.props.lines.push(line);
         this.refreshGeometryFields();
     }
 

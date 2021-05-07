@@ -52,6 +52,10 @@ class FeaPreprocessor extends HTMLElement {
         this.shadowRoot.querySelector("fea-geometry").deletePointFromClient = point;
     }
 
+    set addLineToClient(line) {
+        this.shadowRoot.querySelector("fea-geometry").addLineToClient = line;
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {

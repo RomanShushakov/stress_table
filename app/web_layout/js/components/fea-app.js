@@ -1,4 +1,4 @@
-import { initializeActionsRouter } from "../wasm_js_interface_modules/actions_router_initialization.js";
+import { initializeActionsRouter } from "../wasm_modules_initialization/actions_router_initialization.js";
 
 
 class FeaApp extends HTMLElement {
@@ -44,6 +44,8 @@ class FeaApp extends HTMLElement {
         this.addEventListener("add point server message", (event) => this.handleAddPointServerMessage(event));
         this.addEventListener("update point server message", (event) => this.handleUpdatePointServerMessage(event));
         this.addEventListener("delete point server message", (event) => this.handleDeletePointServerMessage(event));
+
+        this.addEventListener("add line server message", (event) => this.handleAddLineServerMessage(event));
     }
 
     async connectedCallback() {
@@ -115,9 +117,22 @@ class FeaApp extends HTMLElement {
     handleDeletePointServerMessage(event) {
         this.state.actionId += 1;
         this.updatePreprocessorActionId();
-        const point = { number: event.detail.point_data.number, x: event.detail.point_data.x,
-            y: event.detail.point_data.y, z: event.detail.point_data.z };
+        const point = { number: event.detail.point_data.number };
         this.querySelector("fea-preprocessor").deletePointFromClient = point;
+        event.stopPropagation();
+    }
+
+    handleAddLineServerMessage(event) {
+        if (event.detail.is_preprocessor_request === false) {
+            this.state.actionId += 1;
+            this.updatePreprocessorActionId();
+        }
+        const line = { 
+            number: event.detail.line_data.number,
+            start_point_number: event.detail.line_data.start_point_number,
+            end_point_number: event.detail.line_data.end_point_number };
+        this.querySelector("fea-preprocessor").addLineToClient = line;
+        console.log(line);
         event.stopPropagation();
     }
 }

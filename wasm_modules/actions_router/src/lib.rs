@@ -1,6 +1,5 @@
 use wasm_bindgen::prelude::*;
 use serde_json::{Value};
-use self::ActionType::*;
 
 
 #[global_allocator]
@@ -13,6 +12,8 @@ const DELETE_POINT_EVENT: &str = "delete_point";
 const ADD_LINE_EVENT: &str = "add_line";
 const UPDATE_LINE_EVENT: &str = "update_line";
 const DELETE_LINE_EVENT: &str = "delete_line";
+const UNDO: &str = "undo";
+const REDO: &str = "redo";
 
 
 #[wasm_bindgen]
@@ -27,31 +28,39 @@ extern "C"
 extern "C"
 {
     #[wasm_bindgen(js_name = addPointToGeometry, catch)]
-    fn add_point_to_geometry(action_id: u32, number: u32, x: f64, y: f64, z: f64)
-        -> Result<(), JsValue>;
+    fn add_point_to_geometry(action_id: u32, number: u32, x: f64, y: f64, z: f64,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
     #[wasm_bindgen(js_name = updatePointInGeometry, catch)]
-    fn update_point_in_geometry(action_id: u32, number: u32, x: f64, y: f64, z: f64)
-        -> Result<(), JsValue>;
+    fn update_point_in_geometry(action_id: u32, number: u32, x: f64, y: f64, z: f64,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
     #[wasm_bindgen(js_name = addWholeGeometryToPreprocessor)]
-    fn add_whole_geometry_to_preprocessor();
+    fn add_whole_geometry_to_preprocessor(is_action_id_should_be_increased: bool);
 
     #[wasm_bindgen(js_name = deletePointFromGeometry, catch)]
-    fn delete_point_from_geometry(action_id: u32, number: u32)
-        -> Result<(), JsValue>;
+    fn delete_point_from_geometry(action_id: u32, number: u32,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
+
+    #[wasm_bindgen(js_name = undoDeletePointFromGeometry, catch)]
+    fn undo_delete_point_from_geometry(action_id: u32, number: u32,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
     #[wasm_bindgen(js_name = addLineToGeometry, catch)]
     fn add_line_to_geometry(action_id: u32, number: u32, start_point_number: u32,
-        end_point_number: u32) -> Result<(), JsValue>;
+        end_point_number: u32, is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
     #[wasm_bindgen(js_name = updateLineInGeometry, catch)]
     fn update_line_in_geometry(action_id: u32, number: u32, start_point_number: u32,
-        end_point_number: u32) -> Result<(), JsValue>;
+        end_point_number: u32, is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
     #[wasm_bindgen(js_name = deleteLineFromGeometry, catch)]
-    fn delete_line_from_geometry(action_id: u32, number: u32)
-        -> Result<(), JsValue>;
+    fn delete_line_from_geometry(action_id: u32, number: u32,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
+
+    #[wasm_bindgen(js_name = undoDeleteLineFromGeometry, catch)]
+    fn undo_delete_line_from_geometry(action_id: u32, number: u32,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 }
 
 
@@ -113,12 +122,14 @@ impl Coordinates
 #[derive(Debug, Clone)]
 enum ActionType
 {
-    AddPoint(ObjectNumber, Coordinates),
-    UpdatePoint(ObjectNumber, Coordinates, Coordinates),
-    DeletePoint(ObjectNumber),
-    AddLine(ObjectNumber, ObjectNumber, ObjectNumber),
-    UpdateLine(ObjectNumber, ObjectNumber, ObjectNumber, ObjectNumber, ObjectNumber),
-    DeleteLine(ObjectNumber),
+    AddPoint(ObjectNumber, Coordinates, bool),
+    UpdatePoint(ObjectNumber, Coordinates, Coordinates, bool),
+    DeletePoint(ObjectNumber, bool),
+    UndoDeletePoint(ObjectNumber, bool),
+    AddLine(ObjectNumber, ObjectNumber, ObjectNumber, bool),
+    UpdateLine(ObjectNumber, ObjectNumber, ObjectNumber, ObjectNumber, ObjectNumber, bool),
+    DeleteLine(ObjectNumber, bool),
+    UndoDeleteLine(ObjectNumber, bool),
 }
 
 
@@ -136,13 +147,19 @@ impl Action
     {
         Action { action_id, action_type }
     }
+
+
+    fn action_id_same(&self, action_id: u32) -> bool
+    {
+        self.action_id == action_id
+    }
 }
 
 
 #[wasm_bindgen]
 pub struct ActionsRouter
 {
-    current_action: Option<Action>,
+    current_action: Option<(Action, bool)>,
     active_actions: Vec<Action>,
     undo_actions: Vec<Action>,
 }
@@ -198,11 +215,15 @@ impl ActionsRouter
             .or(Err(JsValue::from(
                 "Actions router: Add point action: \
                 Point z coordinate could not be converted to f64!")))?;
+        self.undo_actions.clear();
         let point_number = ObjectNumber::create(number);
         let coordinates = Coordinates::create(x, y, z);
-        let action_type = ActionType::AddPoint(point_number, coordinates);
+        let is_action_id_should_be_increased = true;
+        let action_type = ActionType::AddPoint(point_number, coordinates,
+            is_action_id_should_be_increased);
         let action = Action::create(action_id, action_type);
-        self.current_action = Some(action);
+        let add_to_active_actions = true;
+        self.current_action = Some((action, add_to_active_actions));
         Ok(())
     }
 
@@ -275,14 +296,18 @@ impl ActionsRouter
             .or(Err(JsValue::from(
                 "Actions router: Update point action: \
                 Point new z value could not be converted to f64!")))?;
+        self.undo_actions.clear();
         let point_number = ObjectNumber::create(number);
         let old_coordinates =
             Coordinates::create(old_x_value, old_y_value, old_z_value);
         let new_coordinates =
             Coordinates::create(new_x_value, new_y_value, new_z_value);
-        let action_type = ActionType::UpdatePoint(point_number, old_coordinates, new_coordinates);
+        let is_action_id_should_be_increased = true;
+        let action_type = ActionType::UpdatePoint(point_number, old_coordinates,
+            new_coordinates, is_action_id_should_be_increased);
         let action = Action::create(action_id, action_type);
-        self.current_action = Some(action);
+        let add_to_active_actions = true;
+        self.current_action = Some((action, add_to_active_actions));
         Ok(())
     }
 
@@ -301,10 +326,13 @@ impl ActionsRouter
             .or(Err(JsValue::from(
                 "Actions router: Delete point action: \
                 Point number could not be converted to u32!")))?;
+        self.undo_actions.clear();
         let point_number = ObjectNumber::create(number);
-        let action_type = ActionType::DeletePoint(point_number);
+        let is_action_id_should_be_increased = true;
+        let action_type = ActionType::DeletePoint(point_number, is_action_id_should_be_increased);
         let action = Action::create(action_id, action_type);
-        self.current_action = Some(action);
+        let add_to_active_actions = true;
+        self.current_action = Some((action, add_to_active_actions));
         Ok(())
     }
 
@@ -342,9 +370,12 @@ impl ActionsRouter
         let line_number = ObjectNumber::create(number);
         let start_point_number = ObjectNumber::create(start_point_number);
         let end_point_number = ObjectNumber::create(end_point_number);
-        let action_type = ActionType::AddLine(line_number, start_point_number, end_point_number);
+        let is_action_id_should_be_increased = true;
+        let action_type = ActionType::AddLine(line_number, start_point_number, end_point_number,
+            is_action_id_should_be_increased);
         let action = Action::create(action_id, action_type);
-        self.current_action = Some(action);
+        let add_to_active_actions = true;
+        self.current_action = Some((action, add_to_active_actions));
         Ok(())
     }
 
@@ -409,10 +440,13 @@ impl ActionsRouter
         let old_end_point_number = ObjectNumber::create(old_end_point_number);
         let new_start_point_number = ObjectNumber::create(new_start_point_number);
         let new_end_point_number = ObjectNumber::create(new_end_point_number);
+        let is_action_id_should_be_increased = true;
         let action_type = ActionType::UpdateLine(line_number, old_start_point_number,
-            old_end_point_number, new_start_point_number, new_end_point_number);
+            old_end_point_number, new_start_point_number, new_end_point_number,
+            is_action_id_should_be_increased);
         let action = Action::create(action_id, action_type);
-        self.current_action = Some(action);
+        let add_to_active_actions = true;
+        self.current_action = Some((action, add_to_active_actions));
         Ok(())
     }
 
@@ -434,72 +468,224 @@ impl ActionsRouter
                 "Actions router: Delete line action: \
                 Line number could not be converted to u32!")))?;
         let line_number = ObjectNumber::create(number);
-        let action_type = ActionType::DeleteLine(line_number);
+        let is_action_id_should_be_increased = true;
+        let action_type = ActionType::DeleteLine(line_number, is_action_id_should_be_increased);
         let action = Action::create(action_id, action_type);
-        self.current_action = Some(action);
+        let add_to_active_actions = true;
+        self.current_action = Some((action, add_to_active_actions));
+        Ok(())
+    }
+
+    fn handle_undo_message(&mut self, message: &str) -> Result<(), JsValue>
+    {
+        let undo_message: Value = serde_json::from_str(message)
+            .or(Err(JsValue::from("Actions router: \
+            Undo action: Message could not be parsed!")))?;
+        let action_id = undo_message["undo"]["actionId"].to_string()
+            .parse::<u32>()
+            .or(Err(JsValue::from("Actions router: Redo action: \
+                Action id could not be converted to u32!")))?;
+        if let Some(position) = self.active_actions.iter().position(|action|
+            action.action_id_same(action_id))
+        {
+            let undo_action = self.active_actions.remove(position);
+            match &undo_action.action_type
+            {
+                ActionType::AddPoint(point_number, _, _) =>
+                    {
+                        let is_action_id_should_be_increased = false;
+                        let action_type = ActionType::DeletePoint(point_number.clone(),
+                            is_action_id_should_be_increased);
+                        let action = Action::create(action_id, action_type);
+                        let add_to_active_actions = false;
+                        self.current_action = Some((action, add_to_active_actions));
+                    },
+                ActionType::UpdatePoint(point_number, old_coordinates,
+                    new_coordinates, _) =>
+                    {
+                        let is_action_id_should_be_increased = false;
+                        let action_type = ActionType::UpdatePoint(point_number.clone(),
+                            new_coordinates.clone(), old_coordinates.clone(),
+                            is_action_id_should_be_increased);
+                        let action = Action::create(action_id, action_type);
+                        let add_to_active_actions = false;
+                        self.current_action = Some((action, add_to_active_actions));
+                    },
+                ActionType::DeletePoint(point_number, _) =>
+                    {
+                        let is_action_id_should_be_increased = false;
+                        let action_type = ActionType::UndoDeletePoint(point_number.clone(),
+                            is_action_id_should_be_increased);
+                        let action = Action::create(action_id, action_type);
+                        let add_to_active_actions = false;
+                        self.current_action = Some((action, add_to_active_actions));
+                    },
+                ActionType::AddLine(line_number, _, _, _) =>
+                    {
+                        let is_action_id_should_be_increased = false;
+                        let action_type = ActionType::DeleteLine(line_number.clone(),
+                            is_action_id_should_be_increased);
+                        let action = Action::create(action_id, action_type);
+                        let add_to_active_actions = false;
+                        self.current_action = Some((action, add_to_active_actions));
+                    },
+                ActionType::UpdateLine(line_number,
+                    old_start_point_number, old_end_point_number,
+                    new_start_point_number, new_end_point_number, _) =>
+                    {
+                        let is_action_id_should_be_increased = false;
+                        let action_type = ActionType::UpdateLine(line_number.clone(),
+                            new_start_point_number.clone(), new_end_point_number.clone(),
+                            old_start_point_number.clone(), old_end_point_number.clone(),
+                            is_action_id_should_be_increased);
+                        let action = Action::create(action_id, action_type);
+                        let add_to_active_actions = false;
+                        self.current_action = Some((action, add_to_active_actions));
+                    },
+                ActionType::DeleteLine(line_number, _) =>
+                    {
+                        let is_action_id_should_be_increased = false;
+                        let action_type = ActionType::UndoDeleteLine(line_number.clone(),
+                            is_action_id_should_be_increased);
+                        let action = Action::create(action_id, action_type);
+                        let add_to_active_actions = false;
+                        self.current_action = Some((action, add_to_active_actions));
+                    },
+                _ => ()
+            }
+            self.undo_actions.push(undo_action);
+        }
+        Ok(())
+    }
+
+
+    fn handle_redo_message(&mut self, message: &str) -> Result<(), JsValue>
+    {
+        let redo_message: Value = serde_json::from_str(message)
+            .or(Err(JsValue::from("Actions router: \
+            Redo action: Message could not be parsed!")))?;
+        let action_id = redo_message["redo"]["actionId"].to_string()
+            .parse::<u32>()
+            .or(Err(JsValue::from("Actions router: Redo action: \
+                Action id could not be converted to u32!")))?;
+        if let Some(position) = self.undo_actions.iter().position(|action|
+            action.action_id_same(action_id))
+        {
+            let redo_action = self.undo_actions.remove(position);
+            let add_to_active_actions = true;
+            self.current_action = Some((redo_action, add_to_active_actions));
+        }
         Ok(())
     }
 
 
     fn handle_current_action(&mut self) -> Result<(), JsValue>
     {
-        if let Some(action) = &self.current_action
+        if let Some((action, add_to_active_actions)) = &self.current_action
         {
             let action_id = action.action_id;
             let action_type = &action.action_type;
             match action_type
             {
-                ActionType::AddPoint(point_number, coordinates) =>
+                ActionType::AddPoint(point_number, coordinates,
+                    is_action_id_should_be_increased) =>
                     {
                         let number = point_number.get_number();
                         let x = coordinates.get_x();
                         let y = coordinates.get_y();
                         let z = coordinates.get_z();
-                        add_point_to_geometry(action_id, number, x, y, z)?;
-                        self.active_actions.push(action.clone());
+                        add_point_to_geometry(action_id, number, x, y, z,
+                            *is_action_id_should_be_increased)?;
+                        if *add_to_active_actions == true
+                        {
+                            self.active_actions.push(action.clone());
+                        }
                     },
-                ActionType::UpdatePoint(point_number, _, new_coordinates) =>
+                ActionType::UpdatePoint(point_number, _, new_coordinates,
+                    is_action_id_should_be_increased) =>
                     {
                         let number = point_number.get_number();
                         let x = new_coordinates.get_x();
                         let y = new_coordinates.get_y();
                         let z = new_coordinates.get_z();
-                        update_point_in_geometry(action_id, number, x, y, z)?;
-                        self.active_actions.push(action.clone());
+                        update_point_in_geometry(action_id, number, x, y, z,
+                            *is_action_id_should_be_increased)?;
+                        if *add_to_active_actions == true
+                        {
+                            self.active_actions.push(action.clone());
+                        }
                     },
-                ActionType::DeletePoint(point_number) =>
+                ActionType::DeletePoint(point_number,
+                    is_action_id_should_be_increased) =>
                     {
                         let number = point_number.get_number();
-                        delete_point_from_geometry(action_id, number)?;
-                        self.active_actions.push(action.clone());
+                        delete_point_from_geometry(action_id, number,
+                            *is_action_id_should_be_increased)?;
+                        if *add_to_active_actions == true
+                        {
+                            self.active_actions.push(action.clone());
+                        }
+                    },
+                ActionType::UndoDeletePoint(point_number,
+                    is_action_id_should_be_increased) =>
+                    {
+                        let number = point_number.get_number();
+                        undo_delete_point_from_geometry(action_id, number,
+                            *is_action_id_should_be_increased)?;
+                        if *add_to_active_actions == true
+                        {
+                            self.active_actions.push(action.clone());
+                        }
                     },
                 ActionType::AddLine(line_number, start_point_number,
-                    end_point_number) =>
+                    end_point_number, is_action_id_should_be_increased) =>
                     {
                         let number = line_number.get_number();
                         let start_point_number = start_point_number.get_number();
                         let end_point_number = end_point_number.get_number();
                         add_line_to_geometry(action_id, number, start_point_number,
-                            end_point_number)?;
-                        self.active_actions.push(action.clone());
+                            end_point_number, *is_action_id_should_be_increased)?;
+                        if *add_to_active_actions == true
+                        {
+                            self.active_actions.push(action.clone());
+                        }
                     }
                 ActionType::UpdateLine(line_number, _, _,
-                    start_point_number, end_point_number) =>
+                    start_point_number, end_point_number,
+                    is_action_id_should_be_increased) =>
                     {
                         let number = line_number.get_number();
                         let start_point_number = start_point_number.get_number();
                         let end_point_number = end_point_number.get_number();
                         update_line_in_geometry(action_id, number, start_point_number,
-                            end_point_number)?;
-                        self.active_actions.push(action.clone());
+                            end_point_number, *is_action_id_should_be_increased)?;
+                        if *add_to_active_actions == true
+                        {
+                            self.active_actions.push(action.clone());
+                        }
                     },
-                ActionType::DeleteLine(line_number) =>
+                ActionType::DeleteLine(line_number,
+                    is_action_id_should_be_increased) =>
                     {
                         let number = line_number.get_number();
-                        delete_line_from_geometry(action_id, number)?;
-                        self.active_actions.push(action.clone());
+                        delete_line_from_geometry(action_id, number,
+                            *is_action_id_should_be_increased)?;
+                        if *add_to_active_actions == true
+                        {
+                            self.active_actions.push(action.clone());
+                        }
                     },
-                _ => (),
+                ActionType::UndoDeleteLine(line_number,
+                    is_action_id_should_be_increased) =>
+                    {
+                        let number = line_number.get_number();
+                        undo_delete_line_from_geometry(action_id, number,
+                            *is_action_id_should_be_increased)?;
+                        if *add_to_active_actions == true
+                        {
+                            self.active_actions.push(action.clone());
+                        }
+                    }
             }
             self.current_action = None;
         }
@@ -533,6 +719,14 @@ impl ActionsRouter
         {
             self.handle_delete_line_message(&message)?;
         }
+        else if message.contains(UNDO)
+        {
+            self.handle_undo_message(&message)?;
+        }
+        else if message.contains(REDO)
+        {
+            self.handle_redo_message(&message)?;
+        }
         else
         {
             let error_message = "Actions router: Message could not be handled!";
@@ -544,11 +738,20 @@ impl ActionsRouter
         {
             let action_id = &action.action_id;
             let action_type = &action.action_type;
-            log(&format!("Actions router: Action id: {:?}, action type: {:?}",
+            log(&format!("Actions router active actions: Action id: {:?}, action type: {:?}",
                 action_id, action_type));
         }
         log(&format!("Actions router: The number of active actions: {}",
             self.active_actions.len()));
+        for action in &self.undo_actions
+        {
+            let action_id = &action.action_id;
+            let action_type = &action.action_type;
+            log(&format!("Actions router undo actions: Action id: {:?}, action type: {:?}",
+                action_id, action_type));
+        }
+        log(&format!("Actions router: The number of undo actions: {}",
+            self.undo_actions.len()));
 
         Ok(())
     }
@@ -556,6 +759,7 @@ impl ActionsRouter
 
     pub fn add_whole_geometry_to_preprocessor(&self)
     {
-        add_whole_geometry_to_preprocessor();
+        let is_action_id_should_be_increased = false;
+        add_whole_geometry_to_preprocessor(is_action_id_should_be_increased);
     }
 }

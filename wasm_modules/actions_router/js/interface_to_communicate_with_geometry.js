@@ -1,9 +1,10 @@
 import { communicatorWithGeometry } from "/app/web_layout/js/js_modules/communicator_with_geometry.js";
 
 
-export function addPointToGeometry(actionId, number, x, y, z) 
+export function addPointToGeometry(actionId, number, x, y, z, isActionIdShouldBeIncreased) 
 {
-    const pointData = { "actionId": actionId, "number": number, "x": x, "y": y, "z": z };
+    const pointData = { "actionId": actionId, "number": number, "x": x, "y": y, "z": z, 
+        "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
     try {
         communicatorWithGeometry.addPointToGeometry = pointData;
     } catch (error) {
@@ -11,9 +12,10 @@ export function addPointToGeometry(actionId, number, x, y, z)
     }
 }
 
-export function updatePointInGeometry(actionId, number, x, y, z) 
+export function updatePointInGeometry(actionId, number, x, y, z, isActionIdShouldBeIncreased) 
 {
-    const pointData = { "actionId": actionId, "number": number, "x": x, "y": y, "z": z };
+    const pointData = { "actionId": actionId, "number": number, "x": x, "y": y, "z": z,
+        "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
     try {
         communicatorWithGeometry.updatePointInGeometry = pointData;
     } catch (error) {
@@ -21,9 +23,9 @@ export function updatePointInGeometry(actionId, number, x, y, z)
     }
 }
 
-export function deletePointFromGeometry(actionId, number) 
+export function deletePointFromGeometry(actionId, number, isActionIdShouldBeIncreased) 
 {
-    const pointData = { "actionId": actionId, "number": number };
+    const pointData = { "actionId": actionId, "number": number, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
     try {
         communicatorWithGeometry.deletePointFromGeometry = pointData;
     } catch (error) {
@@ -31,11 +33,22 @@ export function deletePointFromGeometry(actionId, number)
     }
 }
 
-export function addLineToGeometry(actionId, number, startPointNumber, endPointNumber) 
+export function undoDeletePointFromGeometry(actionId, number, isActionIdShouldBeIncreased) 
+{
+    const pointData = { "actionId": actionId, "number": number, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
+    try {
+        communicatorWithGeometry.undoDeletePointFromGeometry = pointData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function addLineToGeometry(actionId, number, startPointNumber, endPointNumber, isActionIdShouldBeIncreased) 
 {
     const lineData = { 
         "actionId": actionId, "number": number,
-        "startPointNumber": startPointNumber, "endPointNumber": endPointNumber };
+        "startPointNumber": startPointNumber, "endPointNumber": endPointNumber,
+        "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
     try {
         communicatorWithGeometry.addLineToGeometry = lineData;
     } catch (error) {
@@ -43,11 +56,12 @@ export function addLineToGeometry(actionId, number, startPointNumber, endPointNu
     }
 }
 
-export function updateLineInGeometry(actionId, number, startPointNumber, endPointNumber) 
+export function updateLineInGeometry(actionId, number, startPointNumber, endPointNumber, isActionIdShouldBeIncreased) 
 {
     const lineData = { 
         "actionId": actionId, "number": number,
-        "startPointNumber": startPointNumber, "endPointNumber": endPointNumber };
+        "startPointNumber": startPointNumber, "endPointNumber": endPointNumber,
+        "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
     try {
         communicatorWithGeometry.updateLineInGeometry = lineData;
     } catch (error) {
@@ -55,9 +69,9 @@ export function updateLineInGeometry(actionId, number, startPointNumber, endPoin
     }
 }
 
-export function deleteLineFromGeometry(actionId, number) 
+export function deleteLineFromGeometry(actionId, number, isActionIdShouldBeIncreased) 
 {
-    const lineData = { "actionId": actionId, "number": number };
+    const lineData = { "actionId": actionId, "number": number, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
     try {
         communicatorWithGeometry.deleteLineFromGeometry = lineData;
     } catch (error) {
@@ -65,7 +79,17 @@ export function deleteLineFromGeometry(actionId, number)
     }
 }
 
-export function addWholeGeometryToPreprocessor() 
+export function undoDeleteLineFromGeometry(actionId, number, isActionIdShouldBeIncreased) 
 {
-    communicatorWithGeometry.addWholeGeometryToPreprocessor = "_empty";
+    const lineData = { "actionId": actionId, "number": number, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
+    try {
+        communicatorWithGeometry.undoDeleteLineFromGeometry = lineData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function addWholeGeometryToPreprocessor(isActionIdShouldBeIncreased) 
+{
+    communicatorWithGeometry.addWholeGeometryToPreprocessor = isActionIdShouldBeIncreased;
 }

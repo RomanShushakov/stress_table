@@ -48,11 +48,14 @@ class FeaApp extends HTMLElement {
         this.addEventListener("add line server message", (event) => this.handleAddLineServerMessage(event));
         this.addEventListener("update line server message", (event) => this.handleUpdateLineServerMessage(event));
         this.addEventListener("delete line server message", (event) => this.handleDeleteLineServerMessage(event));
+
+        this.addEventListener("decrease action id", (event) => this.handleDecreaseActionIdMessage(event));
     }
 
     async connectedCallback() {
         this.state.actionsRouter = await initializeActionsRouter(this.greeting);
         this.activatePreprocessor();
+        this.updateTitleBarActionId();
     }
 
     disconnectedCallback() {
@@ -84,6 +87,10 @@ class FeaApp extends HTMLElement {
         this.querySelector("fea-preprocessor").actionId = this.state.actionId;
     }
 
+    updateTitleBarActionId() {
+        this.shadowRoot.querySelector("fea-app-title-bar").actionId = this.state.actionId;
+    }
+
     activatePostprocessor() {
         this.querySelector("fea-preprocessor").remove();
         const feaPostprocessor = document.createElement("fea-postprocessor");
@@ -96,9 +103,10 @@ class FeaApp extends HTMLElement {
     }
 
     handleAddPointServerMessage(event) {
-        if (event.detail.is_preprocessor_request === false) {
+        if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
             this.updatePreprocessorActionId();
+            this.updateTitleBarActionId();
         }
         const point = { 
             number: event.detail.point_data.number, x: event.detail.point_data.x,
@@ -108,8 +116,11 @@ class FeaApp extends HTMLElement {
     }
 
     handleUpdatePointServerMessage(event) {
-        this.state.actionId += 1;
-        this.updatePreprocessorActionId();
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;
+            this.updatePreprocessorActionId();
+            this.updateTitleBarActionId();
+        }
         const point = { number: event.detail.point_data.number, x: event.detail.point_data.x,
             y: event.detail.point_data.y, z: event.detail.point_data.z };
         this.querySelector("fea-preprocessor").updatePointOnClient = point;
@@ -117,17 +128,21 @@ class FeaApp extends HTMLElement {
     }
 
     handleDeletePointServerMessage(event) {
-        this.state.actionId += 1;
-        this.updatePreprocessorActionId();
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;
+            this.updatePreprocessorActionId();
+            this.updateTitleBarActionId();
+        }
         const point = { number: event.detail.point_data.number };
         this.querySelector("fea-preprocessor").deletePointFromClient = point;
         event.stopPropagation();
     }
 
     handleAddLineServerMessage(event) {
-        if (event.detail.is_preprocessor_request === false) {
+        if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
             this.updatePreprocessorActionId();
+            this.updateTitleBarActionId();
         }
         const line = { 
             number: event.detail.line_data.number,
@@ -138,8 +153,11 @@ class FeaApp extends HTMLElement {
     }
 
     handleUpdateLineServerMessage(event) {
-        this.state.actionId += 1;
-        this.updatePreprocessorActionId();
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;
+            this.updatePreprocessorActionId();
+            this.updateTitleBarActionId();
+        }
         const line = { 
             number: event.detail.line_data.number,
             startPointNumber: event.detail.line_data.start_point_number,
@@ -149,11 +167,22 @@ class FeaApp extends HTMLElement {
     }
 
     handleDeleteLineServerMessage(event) {
-        this.state.actionId += 1;
-        this.updatePreprocessorActionId();
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;
+            this.updatePreprocessorActionId();
+            this.updateTitleBarActionId();
+        }
         const line = { number: event.detail.line_data.number };
         this.querySelector("fea-preprocessor").deleteLineFromClient = line;
         event.stopPropagation();
+    }
+
+    handleDecreaseActionIdMessage() {
+        this.state.actionId -= 1;
+        if (this.querySelector("fea-preprocessor") !== null) {
+            this.updatePreprocessorActionId();
+        }
+        this.updateTitleBarActionId();
     }
 }
 

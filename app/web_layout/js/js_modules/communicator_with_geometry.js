@@ -15,7 +15,8 @@ class CommunicatorWithGeometry {
 
     set addPointToGeometry(pointData) {
         try {
-            this.state.geometry.add_point(pointData.actionId, pointData.number, pointData.x, pointData.y, pointData.z);
+            this.state.geometry.add_point(pointData.actionId, pointData.number, pointData.x, pointData.y, pointData.z,
+                pointData.isActionIdShouldBeIncreased);
         } catch (error) {
             throw error;
         }
@@ -23,7 +24,8 @@ class CommunicatorWithGeometry {
 
     set updatePointInGeometry(pointData) {
         try {
-            this.state.geometry.update_point(pointData.actionId, pointData.number, pointData.x, pointData.y, pointData.z);
+            this.state.geometry.update_point(pointData.actionId, pointData.number, pointData.x, pointData.y, pointData.z,
+                pointData.isActionIdShouldBeIncreased);
         } catch (error) {
             throw error;
         }
@@ -32,7 +34,15 @@ class CommunicatorWithGeometry {
 
     set deletePointFromGeometry(pointData) {
         try {
-            this.state.geometry.delete_point(pointData.actionId, pointData.number);
+            this.state.geometry.delete_point(pointData.actionId, pointData.number, pointData.isActionIdShouldBeIncreased);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    set undoDeletePointFromGeometry(pointData) {
+        try {
+            this.state.geometry.undo_delete_point(pointData.actionId, pointData.number, pointData.isActionIdShouldBeIncreased);
         } catch (error) {
             throw error;
         }
@@ -40,7 +50,8 @@ class CommunicatorWithGeometry {
 
     set addLineToGeometry(lineData) {
         try {
-            this.state.geometry.add_line(lineData.actionId, lineData.number, lineData.startPointNumber, lineData.endPointNumber);
+            this.state.geometry.add_line(lineData.actionId, lineData.number, lineData.startPointNumber, lineData.endPointNumber,
+                lineData.isActionIdShouldBeIncreased);
         } catch (error) {
             throw error;
         }
@@ -48,22 +59,31 @@ class CommunicatorWithGeometry {
 
     set updateLineInGeometry(lineData) {
         try {
-            this.state.geometry.update_line(lineData.actionId, lineData.number, lineData.startPointNumber, lineData.endPointNumber);
+            this.state.geometry.update_line(lineData.actionId, lineData.number, lineData.startPointNumber, lineData.endPointNumber,
+                lineData.isActionIdShouldBeIncreased);
         } catch (error) {
             throw error;
         }
-    }
-
-    set addWholeGeometryToPreprocessor(_empty) {
-        this.state.geometry.add_whole_geometry_to_preprocessor();
     }
 
     set deleteLineFromGeometry(lineData) {
         try {
-            this.state.geometry.delete_line(lineData.actionId, lineData.number);
+            this.state.geometry.delete_line(lineData.actionId, lineData.number, lineData.isActionIdShouldBeIncreased);
         } catch (error) {
             throw error;
         }
+    }
+
+    set undoDeleteLineFromGeometry(lineData) {
+        try {
+            this.state.geometry.undo_delete_line(lineData.actionId, lineData.number, lineData.isActionIdShouldBeIncreased);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    set addWholeGeometryToPreprocessor(isActionIdShouldBeIncreased) {
+        this.state.geometry.add_whole_geometry_to_preprocessor(isActionIdShouldBeIncreased);
     }
 }
 

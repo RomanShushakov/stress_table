@@ -82,6 +82,14 @@ class CommunicatorWithGeometry {
         }
     }
 
+    set showPointInfo(number) {
+        try {
+            this.state.geometry.show_point_info(number);
+        } catch (error) {
+            throw error;
+        }
+    }
+
     set addWholeGeometryToPreprocessor(isActionIdShouldBeIncreased) {
         this.state.geometry.add_whole_geometry_to_preprocessor(isActionIdShouldBeIncreased);
     }

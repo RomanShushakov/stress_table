@@ -95,13 +95,15 @@ class HidingContentButton extends HTMLElement {
             button.disabled = true;
             if (content.classList.contains("hidden") === false) {
                 content.classList.add("hidden");
+                button.classList.remove("active");
+                this.updateContentHeight();
             }
         } else {
             button.disabled = false;
         }
     }
 
-    toggle(event) {
+    toggle() {
         const content = this.shadowRoot.querySelector(".content");
         const button = this.shadowRoot.querySelector(".hiding-content-button");
         if (content.classList.contains("hidden") === false) {
@@ -110,12 +112,12 @@ class HidingContentButton extends HTMLElement {
         } else {
             content.classList.remove("hidden");
             button.classList.add("active");
-            this.hideSiblings(event);
+            this.hideSiblings();
         }
-        this.updateContentHeight(event);
+        this.updateContentHeight();
     }
 
-    hideSiblings(event) {
+    hideSiblings() {
         this.dispatchEvent(new CustomEvent("hide siblings", {
             bubbles: true,
             composed: true,
@@ -125,7 +127,7 @@ class HidingContentButton extends HTMLElement {
         }));
     }
 
-    updateContentHeight(event) {
+    updateContentHeight() {
         const additionalHeight = this.findAdditionalHeight();
         this.dispatchEvent(new CustomEvent("update content height", {
             bubbles: true,

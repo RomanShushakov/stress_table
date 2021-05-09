@@ -89,6 +89,15 @@ export function undoDeleteLineFromGeometry(actionId, number, isActionIdShouldBeI
     }
 }
 
+export function showPointInfo(number) 
+{
+    try {
+        communicatorWithGeometry.showPointInfo = number;
+    } catch (error) {
+        throw error;
+    }
+}
+
 export function addWholeGeometryToPreprocessor(isActionIdShouldBeIncreased) 
 {
     communicatorWithGeometry.addWholeGeometryToPreprocessor = isActionIdShouldBeIncreased;

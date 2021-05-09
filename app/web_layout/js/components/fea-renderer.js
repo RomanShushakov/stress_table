@@ -1,9 +1,9 @@
-import { initializeRenderer } from "../wasm_js_interface_modules/renderer_initialization.js";
+import { initializeRenderer } from "../wasm_modules_initialization/renderer_initialization.js";
 
 const coefficient = 0.8;
 
 
-class PreprocessorCanvas extends HTMLElement {
+class FeaRenderer extends HTMLElement {
     constructor() {
         super();
 
@@ -38,11 +38,11 @@ class PreprocessorCanvas extends HTMLElement {
                     margin-top: 0.5rem;
                 }
                 
-                .preprocessor_canvas_container {
+                .renderer-container {
                     position: relative;
                 }
                 
-                .preprocessor_canvas_text {
+                .renderer-canvas-text {
                     background-color: transparent;
                     position: absolute;
                     left: 0px;
@@ -51,36 +51,38 @@ class PreprocessorCanvas extends HTMLElement {
                 }
                 
                 
-                .preprocessor_canvas_gl {
+                .renderer-canvas-gl {
                     vertical-align: top;
                 }
             </style>
-            <div class="preprocessor_canvas_container">
-                <canvas class="preprocessor_canvas_text"></canvas>
-                <canvas class="preprocessor_canvas_gl"></canvas>
-                <button class="add_point">Add point</button>
-                <button class="add_node">Add node</button>
+            <div class="renderer-container">
+                <canvas class="renderer-canvas-text"></canvas>
+                <canvas class="renderer-canvas-gl"></canvas>
             </div>
         `;
 
         window.addEventListener("resize", () => this.updateCanvasSize());
         window.addEventListener("keydown", (event) => this.onKeyDown(event));
         window.addEventListener("keyup", () => this.onKeyUp());
-        this.shadowRoot.querySelector(".preprocessor_canvas_text").addEventListener("mousemove", (event) => this.onMouseMove(event));
-        this.shadowRoot.querySelector(".preprocessor_canvas_text").addEventListener("mouseleave", () => this.onMouseLeave());
-        this.shadowRoot.querySelector(".preprocessor_canvas_text").addEventListener("mousedown", () => this.onMouseDown());
-        this.shadowRoot.querySelector(".preprocessor_canvas_text").addEventListener("mouseup", () => this.onMouseUp());
-        this.shadowRoot.querySelector(".preprocessor_canvas_text").addEventListener("mousewheel", (event) => this.onMouseWheel(event));
-        this.shadowRoot.querySelector(".preprocessor_canvas_text").addEventListener("click", () => this.onMouseClick());
-
-        this.shadowRoot.querySelector(".add_point").addEventListener("click", () => this.addPoint());
-        this.shadowRoot.querySelector(".add_node").addEventListener("click", () => this.addNode());
+        this.shadowRoot.querySelector(".renderer-canvas-text").addEventListener("mousemove", (event) => this.onMouseMove(event));
+        this.shadowRoot.querySelector(".renderer-canvas-text").addEventListener("mouseleave", () => this.onMouseLeave());
+        this.shadowRoot.querySelector(".renderer-canvas-text").addEventListener("mousedown", () => this.onMouseDown());
+        this.shadowRoot.querySelector(".renderer-canvas-text").addEventListener("mouseup", () => this.onMouseUp());
+        this.shadowRoot.querySelector(".renderer-canvas-text").addEventListener("mousewheel", (event) => this.onMouseWheel(event));
+        this.shadowRoot.querySelector(".renderer-canvas-text").addEventListener("click", () => this.onMouseClick());
     }
 
+    set addPointToRenderer(point) {
+        this.state.renderer.add_point(point.number, point.x, point.y, point.z);
+        if (this.state.isPaused === true)
+        {
+            this.state.renderer.tick();
+        }
+    }
 
     async connectedCallback() {
-        this.state.canvasText = this.shadowRoot.querySelector(".preprocessor_canvas_text");
-        this.state.canvasGL = this.shadowRoot.querySelector(".preprocessor_canvas_gl");
+        this.state.canvasText = this.shadowRoot.querySelector(".renderer-canvas-text");
+        this.state.canvasGL = this.shadowRoot.querySelector(".renderer-canvas-gl");
         this.state.canvasWidth = window.innerWidth * coefficient;
         this.state.canvasHeight = window.innerHeight * coefficient;
         this.state.canvasText.width = this.state.canvasWidth;
@@ -189,26 +191,7 @@ class PreprocessorCanvas extends HTMLElement {
 
 
     onMouseClick() {
-        const selectedObject = this.state.renderer.select_object();
-        console.log(selectedObject);
-    }
-
-
-    addPoint() {
-        this.state.renderer.add_point(1, 1, 2, 3);
-        if (this.state.isPaused === true)
-        {
-            this.state.renderer.tick();
-        }
-    }
-
-
-    addNode() {
-        this.state.renderer.add_node(1, 1, 2, 3);
-        if (this.state.isPaused === true)
-        {
-            this.state.renderer.tick();
-        }
+        this.state.renderer.select_object();
     }
 
 
@@ -248,4 +231,4 @@ class PreprocessorCanvas extends HTMLElement {
     // }
 }
 
-export default PreprocessorCanvas;
+export default FeaRenderer;

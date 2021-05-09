@@ -20,7 +20,7 @@ class FeaPreprocessor extends HTMLElement {
                     background-color: #eee;
                 }
             </style>
-            <div class="wrapper">
+            <div class=wrapper>
                 <fea-preprocessor-menu>
                     <fea-geometry></fea-geometry>
                     <fea-properties></fea-properties>
@@ -29,7 +29,6 @@ class FeaPreprocessor extends HTMLElement {
                     <fea-displacement></fea-displacement>
                     <fea-load></fea-load>
                 </fea-preprocessor-menu>
-                <fea-preprocessor-canvas></fea-preprocessor-canvas>
             </div>
         `;
     }

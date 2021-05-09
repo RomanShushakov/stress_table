@@ -5,6 +5,7 @@ use web_sys::
     WebGlProgram, WebGlRenderingContext as GL, WebGlShader, CanvasRenderingContext2d as CTX
 };
 use mat4;
+use serde_json::json;
 
 mod aux_structs;
 mod aux_functions;
@@ -34,8 +35,16 @@ use aux_structs::
 use aux_functions::
 {
     initialize_shaders, add_denotation, add_hints, normalize_point_objects,
-    define_drawn_object_denotation_color
+    define_drawn_object_denotation_color, transform_u32_to_array_of_u8,
+    dispatch_custom_event
 };
+
+const EVENTS_TARGET: &str = "fea-app";
+const CLIENT_MESSAGE: &str = "client message";
+
+
+#[global_allocator]
+static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 
 #[wasm_bindgen]
@@ -183,11 +192,29 @@ impl Renderer
     }
 
 
-    pub fn select_object(&mut self) -> Option<String>
+    pub fn select_object(&mut self) -> Result<(), JsValue>
     {
         self.state.selected_color = self.state.under_cursor_color;
-
-        None
+        if let Some(position) = self.state.normalized_point_objects.iter()
+            .position(|point_object|
+                transform_u32_to_array_of_u8(point_object.uid) == self.state.selected_color)
+        {
+            let selected_point_object =
+                &self.state.normalized_point_objects[position];
+            match selected_point_object.object_type
+            {
+                PointObjectType::Point =>
+                    {
+                        let selected_point_number = selected_point_object.number;
+                        let detail =
+                            json!({ "message": { "selected_point_number": selected_point_number } });
+                        dispatch_custom_event(detail, CLIENT_MESSAGE,
+                            EVENTS_TARGET)?;
+                    },
+                PointObjectType::Node => (),
+            }
+        }
+        Ok(())
     }
 
 

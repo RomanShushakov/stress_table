@@ -16,6 +16,7 @@ const ADD_LINE: &str = "add line server message";
 const UPDATE_LINE: &str = "update line server message";
 const DELETE_LINE: &str = "delete line server message";
 
+const SELECTED_POINT_INFO: &str = "selected point server message";
 
 #[wasm_bindgen]
 extern "C"
@@ -547,9 +548,9 @@ impl Geometry
             .position(|line| line.action_id_same(&action_id) && line.number_same(number))
         {
             let returned_line = self.deleted_lines.remove(position);
-            let (number, start_point_number, end_point_number) = returned_line
+            let (line_number, start_point_number, end_point_number) = returned_line
                 .extract_number_and_points_numbers();
-            let detail = json!({ "line_data": { "number": number,
+            let detail = json!({ "line_data": { "number": line_number,
                 "start_point_number": start_point_number, "end_point_number": end_point_number },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, ADD_LINE, EVENTS_TARGET)?;
@@ -565,22 +566,61 @@ impl Geometry
     }
 
 
+    pub fn show_point_info(&mut self, number: u32)
+        -> Result<(), JsValue>
+    {
+        if let Some(position) = self.points.iter()
+            .position(|point| point.borrow().number_same(number))
+        {
+            let (number, x, y, z) =
+                self.points[position].borrow().extract_number_and_coordinates();
+            log(&format!("You selected point with number: {}, x: {}, y: {}, z: {}", number, x, y, z));
+        }
+        else
+        {
+            let error_message = &format!("Geometry: Show point info action: Point with \
+                number {} does not exist!", number);
+            return Err(JsValue::from(error_message));
+        }
+
+        Ok(())
+
+        // if self.points.iter().position(|point|
+        //     point.borrow().coordinates_same(x, y, z)).is_some()
+        // {
+        //     let error_message = &format!("Geometry: Add point action: Point with \
+        //         coordinates {}, {}, {} does already exist!", x, y, z);
+        //     return Err(JsValue::from(error_message));
+        // }
+        // let point = Point::create(action_id, number, x, y, z);
+        // self.points.push(Rc::new(RefCell::new(point)));
+        // let detail = json!({ "point_data": { "number": number, "x": x, "y": y, "z": z },
+        //         "is_action_id_should_be_increased": is_action_id_should_be_increased });
+        // dispatch_custom_event(detail, ADD_POINT, EVENTS_TARGET)?;
+        // log(&format!("Geometry: Points: {:?}, lines: {:?}, deleted points: {:?}, \
+        //     deleted lines {:?}", self.points, self.lines, self.deleted_points,
+        //     self.deleted_lines));
+        // Ok(())
+    }
+
+
     pub fn add_whole_geometry_to_preprocessor(&self, is_action_id_should_be_increased: bool)
         -> Result<(), JsValue>
     {
         for point in &self.points
         {
-            let (number, x, y, z) =
+            let (point_number, x, y, z) =
                 point.borrow().extract_number_and_coordinates();
-            let detail = json!({ "point_data": { "number": number, "x": x, "y": y, "z": z },
+            let detail = json!({ "point_data":
+                { "number": point_number, "x": x, "y": y, "z": z },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, ADD_POINT, EVENTS_TARGET)?;
         }
         for line in &self.lines
         {
-             let (number, start_point_number, end_point_number) =
+             let (line_number, start_point_number, end_point_number) =
                 line.extract_number_and_points_numbers();
-            let detail = json!({ "line_data": { "number": number,
+            let detail = json!({ "line_data": { "number": line_number,
                 "start_point_number": start_point_number, "end_point_number": end_point_number },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, ADD_LINE, EVENTS_TARGET)?;

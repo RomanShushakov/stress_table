@@ -15,6 +15,8 @@ const DELETE_LINE_EVENT: &str = "delete_line";
 const UNDO: &str = "undo";
 const REDO: &str = "redo";
 
+const SELECTED_POINT_NUMBER_EVENT: &str = "selected_point_number";
+
 
 #[wasm_bindgen]
 extern "C"
@@ -61,6 +63,9 @@ extern "C"
     #[wasm_bindgen(js_name = undoDeleteLineFromGeometry, catch)]
     fn undo_delete_line_from_geometry(action_id: u32, number: u32,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
+
+    #[wasm_bindgen(js_name = showPointInfo, catch)]
+    fn show_point_info(number: u32) -> Result<(), JsValue>;
 }
 
 
@@ -130,6 +135,8 @@ enum ActionType
     UpdateLine(ObjectNumber, ObjectNumber, ObjectNumber, ObjectNumber, ObjectNumber, bool),
     DeleteLine(ObjectNumber, bool),
     UndoDeleteLine(ObjectNumber, bool),
+
+    ShowPointInfo(ObjectNumber),
 }
 
 
@@ -579,6 +586,25 @@ impl ActionsRouter
     }
 
 
+    fn handle_selected_point_number_message(&mut self, message: &str) -> Result<(), JsValue>
+    {
+        let selected_point_number_message: Value = serde_json::from_str(message)
+            .or(Err(JsValue::from("Actions router: \
+            Show point info action: Message could not be parsed!")))?;
+        let point_number = selected_point_number_message["selected_point_number"].to_string()
+            .parse::<u32>()
+            .or(Err(JsValue::from(
+                "Actions router: Show point info action: \
+                Line number could not be converted to u32!")))?;
+        let action_id = 0;
+        let action_type = ActionType::ShowPointInfo(ObjectNumber::create(point_number));
+        let action = Action::create(action_id, action_type);
+        let add_to_active_actions = false;
+        self.current_action = Some((action, add_to_active_actions));
+        Ok(())
+    }
+
+
     fn handle_current_action(&mut self) -> Result<(), JsValue>
     {
         if let Some((action, add_to_active_actions)) = &self.current_action
@@ -686,6 +712,11 @@ impl ActionsRouter
                             self.active_actions.push(action.clone());
                         }
                     }
+                ActionType::ShowPointInfo(point_number) =>
+                    {
+                        let number = point_number.get_number();
+                        show_point_info(number)?;
+                    }
             }
             self.current_action = None;
         }
@@ -726,6 +757,10 @@ impl ActionsRouter
         else if message.contains(REDO)
         {
             self.handle_redo_message(&message)?;
+        }
+        else if message.contains(SELECTED_POINT_NUMBER_EVENT)
+        {
+            self.handle_selected_point_number_message(&message)?;
         }
         else
         {

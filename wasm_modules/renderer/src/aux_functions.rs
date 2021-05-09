@@ -1,3 +1,5 @@
+use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsCast;
 use web_sys::{WebGlProgram, WebGlRenderingContext as GL, CanvasRenderingContext2d as CTX};
 use vec4;
 
@@ -266,4 +268,27 @@ pub fn add_hints(ctx: &CTX, canvas_width: f32, canvas_height: f32)
     let pan_hint_y = canvas_height * PAN_HINT_SHIFT_Y;
     let pan_hint = "Pan - Shift + Left Mouse Button";
     ctx.fill_text(pan_hint, hint_x as f64, pan_hint_y as f64).unwrap();
+}
+
+
+pub fn dispatch_custom_event(detail: serde_json::Value, event_type: &str, query_selector: &str)
+    -> Result<(), JsValue>
+{
+    let custom_event = web_sys::CustomEvent::new_with_event_init_dict(
+        event_type,
+        web_sys::CustomEventInit::new()
+            .bubbles(true)
+            .composed(true)
+            .detail(&JsValue::from_serde(&detail)
+                .or(Err("Renderer: Dispatch event: detail could not be \
+                converted into JsValue!"))?))
+                    .or(Err(JsValue::from("Renderer: Dispatch event: \
+                    custom event could not be constructed!")))?;
+    web_sys::window().expect("no global `window` exists")
+        .document().expect("should have a document on window")
+        .query_selector(query_selector).or(Err(JsValue::from("Renderer: Dispatch event: No \
+            element find by current selector!")))?.unwrap()
+        .dyn_into::<web_sys::EventTarget>().unwrap()
+        .dispatch_event(&custom_event)?;
+    Ok(())
 }

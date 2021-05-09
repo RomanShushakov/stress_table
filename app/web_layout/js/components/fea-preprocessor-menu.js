@@ -14,8 +14,7 @@ class FeaPreprocessorMenu extends HTMLElement {
                     display: block;
                 }
             </style>
-            <div>
-                <p>Hello from fea-preprocessor-menu</p>
+            <div class="wrapper">
                 <slot></slot>
                 <button>Submit</button>
                 <button>Edit Model</button>

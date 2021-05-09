@@ -520,7 +520,7 @@ class FeaGeometry extends HTMLElement {
                 }
             </style>
 
-            <div class="wrapper">
+            <div class=wrapper>
                 <hiding-content-button 
                     class=geometry
                     name=${this.state.buttonNames.geometry}

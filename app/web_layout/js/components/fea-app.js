@@ -17,20 +17,20 @@ class FeaApp extends HTMLElement {
         this.shadowRoot.innerHTML = `
             <style>
                 :host {
-                    display: block;
+                    display: flex;
                 }
 
                 .wrapper {
                     display: flex;
                     align-items: start;
-                    flex-direction: row;
+                    flex-direction: row-reverse;
                     box-sizing: content-box;
                 }
             </style>
             <div class="main-window">
                 <fea-app-title-bar></fea-app-title-bar>
                 <div class="wrapper">
-                    <!-- <preprocessor-canvas></preprocessor-canvas>  -->
+                    <fea-renderer></fea-renderer>
                     <slot></slot>
                 </div>
             </div>
@@ -98,7 +98,11 @@ class FeaApp extends HTMLElement {
     }
 
     handleClientMessage(event) {
-        this.state.actionsRouter.handle_message(event.detail.message);
+        if (event.detail.message.hasOwnProperty("selected_point_number")) {
+            this.state.actionsRouter.handle_message(JSON.stringify(event.detail.message));
+        } else {
+            this.state.actionsRouter.handle_message(event.detail.message);
+        }
         event.stopPropagation();
     }
 
@@ -112,6 +116,7 @@ class FeaApp extends HTMLElement {
             number: event.detail.point_data.number, x: event.detail.point_data.x,
             y: event.detail.point_data.y, z: event.detail.point_data.z };
         this.querySelector("fea-preprocessor").addPointToClient = point;
+        this.shadowRoot.querySelector("fea-renderer").addPointToRenderer = point;
         event.stopPropagation();
     }
 

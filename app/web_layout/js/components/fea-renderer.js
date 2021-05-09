@@ -55,9 +55,11 @@ class FeaRenderer extends HTMLElement {
                     vertical-align: top;
                 }
             </style>
-            <div class="renderer-container">
-                <canvas class="renderer-canvas-text"></canvas>
-                <canvas class="renderer-canvas-gl"></canvas>
+            <div class="wrapper">
+                <div class="renderer-container">
+                    <canvas class="renderer-canvas-text"></canvas>
+                    <canvas class="renderer-canvas-gl"></canvas>
+                </div>
             </div>
         `;
 
@@ -112,6 +114,7 @@ class FeaRenderer extends HTMLElement {
         this.state.canvasWidth = window.innerWidth * coefficient;
         this.state.canvasHeight = window.innerHeight * coefficient;
         this.state.renderer.update_canvas_size(this.state.canvasWidth, this.state.canvasHeight);
+        this.state.renderer.tick();
     }
 
 

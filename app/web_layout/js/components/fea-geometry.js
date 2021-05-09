@@ -1357,11 +1357,12 @@ class FeaGeometry extends HTMLElement {
                 this.shadowRoot.querySelector(".point-add-message").offsetHeight}px;`);
             return;
         }
-        const message = JSON.stringify({"add_point": {
-                "actionId": this.props.actionId,
-                "number": newPointNumberField.value, 
-                "x":  inputtedXField.value, "y":  inputtedYField.value, "z": inputtedZField.value
-            }});
+        const message = {"add_point": {
+            "actionId": this.props.actionId,
+            "number": newPointNumberField.value, 
+            "x":  inputtedXField.value, "y":  inputtedYField.value, "z": inputtedZField.value
+        }};
+
         this.dispatchEvent(new CustomEvent("client message", {
             bubbles: true,
             composed: true,
@@ -1429,12 +1430,12 @@ class FeaGeometry extends HTMLElement {
             return;
         }
         const oldPointValues = this.props.points.find(point => point.number == selectedPointNumberField.value);
-        const message = JSON.stringify({"update_point": {
+        const message = {"update_point": {
             "actionId": this.props.actionId,
             "number": selectedPointNumberField.value, 
             "old_point_values": { "x":  oldPointValues.x, "y": oldPointValues.y, "z": oldPointValues.z },
             "new_point_values": { "x": inputtedXField.value, "y": inputtedYField.value, "z": inputtedZField.value }
-        }});
+        }};
         this.dispatchEvent(new CustomEvent("client message", {
             bubbles: true,
             composed: true,
@@ -1462,7 +1463,7 @@ class FeaGeometry extends HTMLElement {
             return;
         }
         const deletedPointValues = this.props.points.find(point => point.number == selectedPointNumberField.value);
-        const message = JSON.stringify({"delete_point": { "actionId": this.props.actionId, "number": deletedPointValues.number }});
+        const message = {"delete_point": { "actionId": this.props.actionId, "number": deletedPointValues.number }};
         this.dispatchEvent(new CustomEvent("client message", {
             bubbles: true,
             composed: true,
@@ -1609,11 +1610,11 @@ class FeaGeometry extends HTMLElement {
                 this.shadowRoot.querySelector(".line-add-message").offsetHeight}px;`);
             return;
         }
-        const message = JSON.stringify({"add_line": {
+        const message = {"add_line": {
             "actionId": this.props.actionId,
             "number": newLineNumberField.value, 
             "start_point_number": startPointField.value, "end_point_number": endPointField.value
-        }});
+        }};
         this.dispatchEvent(new CustomEvent("client message", {
             bubbles: true,
             composed: true,
@@ -1703,12 +1704,12 @@ class FeaGeometry extends HTMLElement {
             return;
         }
         const oldLineValues = this.props.lines.find(line => line.number == selectedLineNumberField.value);
-        const message = JSON.stringify({"update_line": {
+        const message = {"update_line": {
             "actionId": this.props.actionId,
             "number": selectedLineNumberField.value, 
             "old_line_values": { "start_point":  oldLineValues.startPointNumber, "end_point": oldLineValues.endPointNumber },
             "new_line_values": { "start_point":  startPointField.value, "end_point": endPointField.value }
-        }});
+        }};
         this.dispatchEvent(new CustomEvent("client message", {
             bubbles: true,
             composed: true,
@@ -1758,10 +1759,10 @@ class FeaGeometry extends HTMLElement {
                 this.shadowRoot.querySelector(".line-delete-message").offsetHeight}px;`);
             return;
         }
-        const message = JSON.stringify({"delete_line": {
+        const message = {"delete_line": {
             "actionId": this.props.actionId,
             "number": selectedLineNumberField.value, 
-        }});
+        }};
         this.dispatchEvent(new CustomEvent("client message", {
             bubbles: true,
             composed: true,

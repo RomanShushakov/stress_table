@@ -184,23 +184,20 @@ impl ActionsRouter
     }
 
 
-    fn handle_add_point_message(&mut self, message: &str) -> Result<(), JsValue>
+    fn handle_add_point_message(&mut self, point_data: &Value) -> Result<(), JsValue>
     {
-        let add_point_message: Value = serde_json::from_str(message)
-            .or(Err(JsValue::from("Actions router: \
-            Add point action: Message could not be parsed!")))?;
-        let action_id = add_point_message["add_point"]["actionId"].to_string()
+        let action_id = point_data["actionId"].to_string()
             .parse::<u32>()
             .or(Err(JsValue::from(
                 "Actions router: Add point action: Action id could not be converted to u32!")))?;
-        let number = add_point_message["add_point"]["number"].as_str()
+        let number = point_data["number"].as_str()
             .ok_or(JsValue::from(
                 "Actions router: Add point action: Point number could not be extracted!"))?
             .parse::<u32>()
             .or(Err(JsValue::from(
                 "Actions router: Add point action: \
                 Point number could not be converted to u32!")))?;
-        let x = add_point_message["add_point"]["x"].as_str()
+        let x = point_data["x"].as_str()
             .ok_or(JsValue::from(
                 "Actions router: Add point action: \
                 Point x coordinate could not be extracted!"))?
@@ -208,14 +205,14 @@ impl ActionsRouter
             .or(Err(JsValue::from(
                 "Actions router: Add point action: \
                 Point x coordinate could not be converted to f64!")))?;
-        let y = add_point_message["add_point"]["y"].as_str()
+        let y = point_data["y"].as_str()
             .ok_or(JsValue::from(
                 "Actions router: Add point action: Point y coordinate could not be extracted!"))?
             .parse::<f64>()
             .or(Err(JsValue::from(
                 "Actions router: Add point action: \
                 Point y coordinate could not be converted to f64!")))?;
-        let z = add_point_message["add_point"]["z"].as_str()
+        let z = point_data["z"].as_str()
             .ok_or(JsValue::from(
                 "Actions router: Add point action: Point z coordinate could not be extracted!"))?
             .parse::<f64>()
@@ -235,51 +232,36 @@ impl ActionsRouter
     }
 
 
-    fn handle_update_point_message(&mut self, message: &str) -> Result<(), JsValue>
+    fn handle_update_point_message(&mut self, point_data: &Value) -> Result<(), JsValue>
     {
-        let update_point_message: Value = serde_json::from_str(message)
-            .or(Err(JsValue::from("Actions router: Update point action: \
-            Message could not be parsed!")))?;
-        let action_id = update_point_message["update_point"]["actionId"].to_string()
+        let action_id = point_data["actionId"].to_string()
             .parse::<u32>()
             .or(Err(JsValue::from(
                 "Actions router: Update point action: \
                 Action id could not be converted to u32!")))?;
-        let number = update_point_message["update_point"]["number"].as_str()
+        let number = point_data["number"].as_str()
             .ok_or(JsValue::from(
                 "Actions router: Update point action: Point number could not be extracted!"))?
             .parse::<u32>()
             .or(Err(JsValue::from(
                 "Actions router: Update point action: \
                 Point number could not be converted to u32!")))?;
-        let old_point_coordinate_values: Value =
-            serde_json::from_str(&update_point_message["update_point"]["old_point_values"]
-                .to_string())
-                .or(Err(JsValue::from(
-                    "Actions router: Update point action: \
-                    Point old coordinates could not be extracted!")))?;
-        let old_x_value = old_point_coordinate_values["x"].to_string()
+        let old_x_value = point_data["old_point_values"]["x"].to_string()
             .parse::<f64>()
             .or(Err(JsValue::from(
                 "Actions router: Update point action: \
                 Point old x coordinate could not be converted to f64!")))?;
-        let old_y_value = old_point_coordinate_values["y"].to_string()
+        let old_y_value = point_data["old_point_values"]["y"].to_string()
             .parse::<f64>()
             .or(Err(JsValue::from(
                 "Actions router: Update point action: \
                 Point old y coordinate could not be converted to f64!")))?;
-        let old_z_value = old_point_coordinate_values["z"].to_string()
+        let old_z_value = point_data["old_point_values"]["z"].to_string()
             .parse::<f64>()
             .or(Err(JsValue::from(
                 "Actions router: Update point action: \
                 Point old z coordinate could not be converted to f64!")))?;
-        let new_point_coordinate_values: Value =
-            serde_json::from_str(&update_point_message["update_point"]["new_point_values"]
-                .to_string())
-                .or(Err(JsValue::from(
-                    "Actions router: Update point action: \
-                    Point new coordinates could not be extracted!")))?;
-        let new_x_value = new_point_coordinate_values["x"].as_str()
+        let new_x_value = point_data["new_point_values"]["x"].as_str()
             .ok_or(JsValue::from(
                 "Actions router: Update point action: \
                 Point new x coordinate could not be extracted!"))?
@@ -287,7 +269,7 @@ impl ActionsRouter
             .or(Err(JsValue::from(
                 "Actions router: Update point action: \
                 Point new x value could not be converted to f64!")))?;
-        let new_y_value = new_point_coordinate_values["y"].as_str()
+        let new_y_value = point_data["new_point_values"]["y"].as_str()
             .ok_or(JsValue::from(
                 "Actions router: Update point action: \
                 Point new y coordinate could not be extracted!"))?
@@ -295,7 +277,7 @@ impl ActionsRouter
             .or(Err(JsValue::from(
                 "Actions router: Update point action: \
                 Point new y value could not be converted to f64!")))?;
-        let new_z_value = new_point_coordinate_values["z"].as_str()
+        let new_z_value = point_data["new_point_values"]["z"].as_str()
             .ok_or(JsValue::from(
                 "Actions router: Update point action: \
                 Point new z coordinate could not be extracted!"))?
@@ -319,16 +301,13 @@ impl ActionsRouter
     }
 
 
-    fn handle_delete_point_message(&mut self, message: &str) -> Result<(), JsValue>
+    fn handle_delete_point_message(&mut self, point_data: &Value) -> Result<(), JsValue>
     {
-        let delete_point_message: Value = serde_json::from_str(message)
-            .or(Err(JsValue::from("Actions router: \
-            Delete point action: Message could not be parsed!")))?;
-        let action_id = delete_point_message["delete_point"]["actionId"].to_string()
+        let action_id = point_data["actionId"].to_string()
             .parse::<u32>()
             .or(Err(JsValue::from("Actions router: Delete point action: \
                 Action id could not be converted to u32!")))?;
-        let number = delete_point_message["delete_point"]["number"].to_string()
+        let number = point_data["number"].to_string()
             .parse::<u32>()
             .or(Err(JsValue::from(
                 "Actions router: Delete point action: \
@@ -344,30 +323,27 @@ impl ActionsRouter
     }
 
 
-    fn handle_add_line_message(&mut self, message: &str) -> Result<(), JsValue>
+    fn handle_add_line_message(&mut self, line_data: &Value) -> Result<(), JsValue>
     {
-        let add_line_message: Value = serde_json::from_str(message)
-            .or(Err(JsValue::from("Actions router: \
-            Add line action: Message could not be parsed!")))?;
-        let action_id = add_line_message["add_line"]["actionId"].to_string()
+        let action_id = line_data["actionId"].to_string()
             .parse::<u32>()
             .or(Err(JsValue::from(
                 "Actions router: Add point action: Action id could not be converted to u32!")))?;
-        let number = add_line_message["add_line"]["number"].as_str()
+        let number = line_data["number"].as_str()
             .ok_or(JsValue::from(
                 "Actions router: Add line action: Line number could not be extracted!"))?
             .parse::<u32>()
             .or(Err(JsValue::from(
                 "Actions router: Add line action: \
                 Line number could not be converted to u32!")))?;
-        let start_point_number = add_line_message["add_line"]["start_point_number"]
+        let start_point_number = line_data["start_point_number"]
             .as_str().ok_or(JsValue::from("Actions router: Add line action: \
                 Line start point number could not be extracted!"))?
             .parse::<u32>()
             .or(Err(JsValue::from(
                 "Actions router: Add line action: \
                 Line start point number could not be converted to u32!")))?;
-        let end_point_number = add_line_message["add_line"]["end_point_number"]
+        let end_point_number = line_data["end_point_number"]
             .as_str().ok_or(JsValue::from("Actions router: Add line action: \
                 Line end point number could not be extracted!"))?
             .parse::<u32>()
@@ -387,46 +363,31 @@ impl ActionsRouter
     }
 
 
-    fn handle_update_line_message(&mut self, message: &str) -> Result<(), JsValue>
+    fn handle_update_line_message(&mut self, line_data: &Value) -> Result<(), JsValue>
     {
-        let update_line_message: Value = serde_json::from_str(message)
-            .or(Err(JsValue::from("Actions router: Update line action: \
-            Message could not be parsed!")))?;
-        let action_id = update_line_message["update_line"]["actionId"].to_string()
+        let action_id = line_data["actionId"].to_string()
             .parse::<u32>()
             .or(Err(JsValue::from(
                 "Actions router: Update line action: \
                 Action id could not be converted to u32!")))?;
-        let number = update_line_message["update_line"]["number"].as_str()
+        let number = line_data["number"].as_str()
             .ok_or(JsValue::from(
                 "Actions router: Update line action: Line number could not be extracted!"))?
             .parse::<u32>()
             .or(Err(JsValue::from(
                 "Actions router: Update line action: \
                 Line number could not be converted to u32!")))?;
-        let old_line_values: Value =
-            serde_json::from_str(&update_line_message["update_line"]["old_line_values"]
-                .to_string())
-                .or(Err(JsValue::from(
-                    "Actions router: Update line action: \
-                    Line old values could not be extracted!")))?;
-        let old_start_point_number = old_line_values["start_point"].to_string()
+        let old_start_point_number = line_data["old_line_values"]["start_point"].to_string()
             .parse::<u32>()
             .or(Err(JsValue::from(
                 "Actions router: Update line action: \
                 Line old start point number could not be converted to u32!")))?;
-        let old_end_point_number = old_line_values["end_point"].to_string()
+        let old_end_point_number = line_data["old_line_values"]["end_point"].to_string()
             .parse::<u32>()
             .or(Err(JsValue::from(
                 "Actions router: Update line action: \
                 Line old end point number could not be converted to u32!")))?;
-        let new_line_values: Value =
-            serde_json::from_str(&update_line_message["update_line"]["new_line_values"]
-                .to_string())
-                .or(Err(JsValue::from(
-                    "Actions router: Update line action: \
-                    Line new values could not be extracted!")))?;
-        let new_start_point_number = new_line_values["start_point"].as_str()
+        let new_start_point_number = line_data["new_line_values"]["start_point"].as_str()
             .ok_or(JsValue::from(
                 "Actions router: Update line action: \
                 Line new start point number could not be extracted!"))?
@@ -434,7 +395,7 @@ impl ActionsRouter
             .or(Err(JsValue::from(
                 "Actions router: Update line action: \
                 Line new start point number could not be converted to u32!")))?;
-        let new_end_point_number = new_line_values["end_point"].as_str()
+        let new_end_point_number = line_data["new_line_values"]["end_point"].as_str()
             .ok_or(JsValue::from(
                 "Actions router: Update line action: \
                 Line new end point number could not be extracted!"))?
@@ -458,16 +419,13 @@ impl ActionsRouter
     }
 
 
-    fn handle_delete_line_message(&mut self, message: &str) -> Result<(), JsValue>
+    fn handle_delete_line_message(&mut self, line_data: &Value) -> Result<(), JsValue>
     {
-        let delete_line_message: Value = serde_json::from_str(message)
-            .or(Err(JsValue::from("Actions router: \
-            Delete line action: Message could not be parsed!")))?;
-        let action_id = delete_line_message["delete_line"]["actionId"].to_string()
+        let action_id = line_data["actionId"].to_string()
             .parse::<u32>()
             .or(Err(JsValue::from("Actions router: Delete line action: \
                 Action id could not be converted to u32!")))?;
-        let number = delete_line_message["delete_line"]["number"].as_str()
+        let number = line_data["number"].as_str()
             .ok_or(JsValue::from("Actions router: Delete line action: \
                 Line number could not be extracted!"))?
             .parse::<u32>()
@@ -483,12 +441,9 @@ impl ActionsRouter
         Ok(())
     }
 
-    fn handle_undo_message(&mut self, message: &str) -> Result<(), JsValue>
+    fn handle_undo_message(&mut self, undo_data: &Value) -> Result<(), JsValue>
     {
-        let undo_message: Value = serde_json::from_str(message)
-            .or(Err(JsValue::from("Actions router: \
-            Undo action: Message could not be parsed!")))?;
-        let action_id = undo_message["undo"]["actionId"].to_string()
+        let action_id = undo_data["actionId"].to_string()
             .parse::<u32>()
             .or(Err(JsValue::from("Actions router: Redo action: \
                 Action id could not be converted to u32!")))?;
@@ -566,12 +521,9 @@ impl ActionsRouter
     }
 
 
-    fn handle_redo_message(&mut self, message: &str) -> Result<(), JsValue>
+    fn handle_redo_message(&mut self, redo_data: &Value) -> Result<(), JsValue>
     {
-        let redo_message: Value = serde_json::from_str(message)
-            .or(Err(JsValue::from("Actions router: \
-            Redo action: Message could not be parsed!")))?;
-        let action_id = redo_message["redo"]["actionId"].to_string()
+        let action_id = redo_data["actionId"].to_string()
             .parse::<u32>()
             .or(Err(JsValue::from("Actions router: Redo action: \
                 Action id could not be converted to u32!")))?;
@@ -586,12 +538,9 @@ impl ActionsRouter
     }
 
 
-    fn handle_selected_point_number_message(&mut self, message: &str) -> Result<(), JsValue>
+    fn handle_selected_point_number_message(&mut self, selected_point_number: &Value) -> Result<(), JsValue>
     {
-        let selected_point_number_message: Value = serde_json::from_str(message)
-            .or(Err(JsValue::from("Actions router: \
-            Show point info action: Message could not be parsed!")))?;
-        let point_number = selected_point_number_message["selected_point_number"].to_string()
+        let point_number = selected_point_number.to_string()
             .parse::<u32>()
             .or(Err(JsValue::from(
                 "Actions router: Show point info action: \
@@ -724,43 +673,45 @@ impl ActionsRouter
     }
 
 
-    pub fn handle_message(&mut self, message: String) -> Result<(), JsValue>
+    pub fn handle_message(&mut self, message: JsValue) -> Result<(), JsValue>
     {
-        if message.contains(ADD_POINT_EVENT)
+        let serialized_message: Value = message.into_serde()
+            .or(Err(JsValue::from("Actions router: Message could not be serialized!")))?;
+        if let Some(point_data) = serialized_message.get(ADD_POINT_EVENT)
         {
-            self.handle_add_point_message(&message)?;
+            self.handle_add_point_message(&point_data)?;
         }
-        else if message.contains(UPDATE_POINT_EVENT)
+        else if let Some(point_data) = serialized_message.get(UPDATE_POINT_EVENT)
         {
-            self.handle_update_point_message(&message)?;
+            self.handle_update_point_message(&point_data)?;
         }
-        else if message.contains(DELETE_POINT_EVENT)
+        else if let Some(point_data) = serialized_message.get(DELETE_POINT_EVENT)
         {
-            self.handle_delete_point_message(&message)?;
+            self.handle_delete_point_message(&point_data)?;
         }
-        else if message.contains(ADD_LINE_EVENT)
+        else if let Some(line_data) = serialized_message.get(ADD_LINE_EVENT)
         {
-            self.handle_add_line_message(&message)?;
+            self.handle_add_line_message(&line_data)?;
         }
-        else if message.contains(UPDATE_LINE_EVENT)
+        else if let Some(line_data) = serialized_message.get(UPDATE_LINE_EVENT)
         {
-            self.handle_update_line_message(&message)?;
+            self.handle_update_line_message(&line_data)?;
         }
-        else if message.contains(DELETE_LINE_EVENT)
+        else if let Some(line_data) = serialized_message.get(DELETE_LINE_EVENT)
         {
-            self.handle_delete_line_message(&message)?;
+            self.handle_delete_line_message(&line_data)?;
         }
-        else if message.contains(UNDO)
+        else if let Some(undo_data) = serialized_message.get(UNDO)
         {
-            self.handle_undo_message(&message)?;
+            self.handle_undo_message(&undo_data)?;
         }
-        else if message.contains(REDO)
+        else if let Some(redo_data) = serialized_message.get(REDO)
         {
-            self.handle_redo_message(&message)?;
+            self.handle_redo_message(&redo_data)?;
         }
-        else if message.contains(SELECTED_POINT_NUMBER_EVENT)
+        else if let Some(selected_point_number) = serialized_message.get(SELECTED_POINT_NUMBER_EVENT)
         {
-            self.handle_selected_point_number_message(&message)?;
+            self.handle_selected_point_number_message(&selected_point_number)?;
         }
         else
         {

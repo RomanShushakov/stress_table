@@ -177,7 +177,7 @@ class FeaAppTitleBar extends HTMLElement {
                 bubbles: true,
                 composed: true,
             }));
-            const message = JSON.stringify({"undo": { "actionId": this.props.actionId } });
+            const message = {"undo": { "actionId": this.props.actionId } };
             this.dispatchEvent(new CustomEvent("client message", {
                 bubbles: true,
                 composed: true,
@@ -189,7 +189,7 @@ class FeaAppTitleBar extends HTMLElement {
     }
 
     redo() {
-        const message = JSON.stringify({"redo": { "actionId": this.props.actionId } });
+        const message = {"redo": { "actionId": this.props.actionId } };
         this.dispatchEvent(new CustomEvent("client message", {
             bubbles: true,
             composed: true,

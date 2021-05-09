@@ -98,11 +98,7 @@ class FeaApp extends HTMLElement {
     }
 
     handleClientMessage(event) {
-        if (event.detail.message.hasOwnProperty("selected_point_number")) {
-            this.state.actionsRouter.handle_message(JSON.stringify(event.detail.message));
-        } else {
-            this.state.actionsRouter.handle_message(event.detail.message);
-        }
+        this.state.actionsRouter.handle_message(event.detail.message);
         event.stopPropagation();
     }
 

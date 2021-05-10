@@ -1,8 +1,9 @@
-use std::f32::consts::PI;
 use wasm_bindgen::prelude::*;
-use web_sys::{WebGlBuffer, WebGlProgram, WebGlRenderingContext as GL, WebGlUniformLocation};
+use web_sys::{WebGlBuffer, WebGlUniformLocation, WebGlProgram, WebGlRenderingContext as GL};
+use std::f32::consts::PI;
 
 use crate::aux_functions::define_drawn_object_color;
+
 
 const TOLERANCE: f32 = 1e-6;
 
@@ -61,6 +62,7 @@ pub const DRAWN_DISPLACEMENTS_CAPS_BASE_POINTS_NUMBER: u16 = 12; // the number o
 pub const DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_X: f32 = 0.01;
 pub const DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_Y: f32 = 0.015;
 
+
 pub const DRAWN_FORCES_COLOR: [f32; 4] = [1.0, 0.0, 1.0, 1.0]; // magenta
 pub const CANVAS_DRAWN_FORCES_DENOTATION_COLOR: &str = "magenta";
 
@@ -87,7 +89,8 @@ pub const DRAWN_DEFORMED_SHAPE_NODES_DENOTATION_SHIFT: f32 = 0.02;
 
 pub const DRAWN_OBJECT_SELECTED_COLOR: [f32; 4] = [1.0, 0.0, 0.0, 1.0]; // red
 pub const CANVAS_DRAWN_OBJECT_SELECTED_DENOTATION_COLOR: &str = "red";
-pub const DRAWN_OBJECT_UNDER_CURSOR_COLOR: [f32; 4] = [0.752941, 0.752941, 0.752941, 1.0]; // grey
+pub const DRAWN_OBJECT_UNDER_CURSOR_COLOR: [f32; 4] =
+    [0.752941, 0.752941, 0.752941, 1.0]; // grey
 pub const CANVAS_DRAWN_OBJECT_UNDER_CURSOR_DENOTATION_COLOR: &str = "grey";
 
 pub const DISPLACEMENT_SHIFT_X: f32 = 0.05;
@@ -110,25 +113,33 @@ pub const COLOR_BAR_Y_BOTTOM: f32 = 0.45;
 pub const COLOR_BAR_Y_TOP: f32 = 0.2;
 pub const COLOR_BAR_WIDTH: f32 = 0.015;
 
+
 #[wasm_bindgen]
 #[repr(u8)]
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub enum PointObjectType {
+pub enum PointObjectType
+{
     Point,
     Node,
 }
 
-impl PointObjectType {
-    pub fn as_str(&self) -> String {
-        match self {
+
+impl PointObjectType
+{
+    pub fn as_str(&self) -> String
+    {
+        match self
+        {
             PointObjectType::Point => String::from("Point"),
             PointObjectType::Node => String::from("Node"),
         }
     }
 }
 
+
 #[derive(Debug)]
-pub struct PointObject {
+pub struct PointObject
+{
     pub number: u32,
     pub x: f32,
     pub y: f32,
@@ -136,24 +147,33 @@ pub struct PointObject {
     pub object_type: PointObjectType,
 }
 
-impl PointObject {
-    pub fn number_same(&self, number: u32) -> bool {
+
+impl PointObject
+{
+    pub fn number_same(&self, number: u32) -> bool
+    {
         self.number == number
     }
 
-    pub fn point_object_type_same(&self, point_object_type: PointObjectType) -> bool {
+
+    pub fn point_object_type_same(&self, point_object_type: PointObjectType) -> bool
+    {
         self.object_type == point_object_type
     }
 
-    pub fn update_coordinates(&mut self, x: f32, y: f32, z: f32) {
+
+    pub fn update_coordinates(&mut self, x: f32, y: f32, z: f32)
+    {
         self.x = x;
         self.y = y;
         self.z = z;
     }
 }
 
+
 #[derive(Debug)]
-pub struct NormalizedPointObject {
+pub struct NormalizedPointObject
+{
     pub number: u32,
     pub x: f32,
     pub y: f32,
@@ -162,24 +182,33 @@ pub struct NormalizedPointObject {
     pub uid: u32,
 }
 
-impl NormalizedPointObject {
-    pub fn number_same(&self, number: u32) -> bool {
+
+impl NormalizedPointObject
+{
+    pub fn number_same(&self, number: u32) -> bool
+    {
         self.number == number
     }
 
-    pub fn point_object_type_same(&self, point_object_type: PointObjectType) -> bool {
+
+    pub fn point_object_type_same(&self, point_object_type: PointObjectType) -> bool
+    {
         self.object_type == point_object_type
     }
 }
 
+
 #[wasm_bindgen]
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub enum LineObjectType {
+pub enum LineObjectType
+{
     Line,
     Element,
 }
 
-pub struct ShadersVariables {
+
+pub struct ShadersVariables
+{
     vertex_position: u32,
     vertex_color: u32,
     pub point_size: WebGlUniformLocation,
@@ -187,13 +216,14 @@ pub struct ShadersVariables {
     pub model_view_matrix: WebGlUniformLocation,
 }
 
-impl ShadersVariables {
-    pub fn initialize(gl: &GL, shader_program: &WebGlProgram) -> Self {
+
+impl ShadersVariables
+{
+    pub fn initialize(gl: &GL, shader_program: &WebGlProgram) -> Self
+    {
         let vertex_position = gl.get_attrib_location(&shader_program, "aVertexPosition") as u32;
         let vertex_color = gl.get_attrib_location(&shader_program, "aVertexColor") as u32;
-        let point_size = gl
-            .get_uniform_location(&shader_program, "uPointSize")
-            .unwrap();
+        let point_size = gl.get_uniform_location(&shader_program, "uPointSize").unwrap();
         let projection_matrix = gl
             .get_uniform_location(&shader_program, "uProjectionMatrix")
             .unwrap();
@@ -201,87 +231,72 @@ impl ShadersVariables {
             .get_uniform_location(&shader_program, "uModelViewMatrix")
             .unwrap();
         ShadersVariables {
-            vertex_position,
-            vertex_color,
-            point_size,
-            projection_matrix,
-            model_view_matrix,
-        }
+            vertex_position, vertex_color, point_size, projection_matrix, model_view_matrix }
     }
 }
 
-pub struct Buffers {
+
+pub struct Buffers
+{
     vertex: WebGlBuffer,
     color: WebGlBuffer,
     index: WebGlBuffer,
 }
 
-impl Buffers {
-    pub fn initialize(gl: &GL) -> Self {
+
+impl Buffers
+{
+    pub fn initialize(gl: &GL) -> Self
+    {
         let vertex = gl.create_buffer().unwrap();
         let color = gl.create_buffer().unwrap();
         let index = gl.create_buffer().unwrap();
-        Buffers {
-            vertex,
-            color,
-            index,
-        }
+        Buffers { vertex, color, index }
     }
 
-    pub fn render(
-        &self,
-        gl: &GL,
-        drawn_object: &DrawnObject,
-        shaders_variables: &ShadersVariables,
-    ) {
+
+    pub fn render(&self, gl: &GL, drawn_object: &DrawnObject, shaders_variables: &ShadersVariables)
+    {
         let vertices = js_sys::Float32Array::from(drawn_object.vertices_coordinates.as_slice());
         let colors = js_sys::Float32Array::from(drawn_object.colors_values.as_slice());
         let indexes = js_sys::Uint32Array::from(drawn_object.indexes_numbers.as_slice());
         gl.bind_buffer(GL::ARRAY_BUFFER, Some(&self.vertex));
         gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &vertices, GL::STATIC_DRAW);
-        gl.vertex_attrib_pointer_with_i32(
-            shaders_variables.vertex_position,
-            3,
-            GL::FLOAT,
-            false,
-            0,
-            0,
-        );
+        gl.vertex_attrib_pointer_with_i32(shaders_variables.vertex_position, 3, GL::FLOAT, false, 0, 0);
         gl.enable_vertex_attrib_array(shaders_variables.vertex_position);
         gl.bind_buffer(GL::ARRAY_BUFFER, Some(&self.color));
         gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &colors, GL::STATIC_DRAW);
-        gl.vertex_attrib_pointer_with_i32(
-            shaders_variables.vertex_color,
-            4,
-            GL::FLOAT,
-            false,
-            0,
-            0,
-        );
+        gl.vertex_attrib_pointer_with_i32(shaders_variables.vertex_color, 4, GL::FLOAT, false, 0, 0);
         gl.enable_vertex_attrib_array(shaders_variables.vertex_color);
         gl.bind_buffer(GL::ELEMENT_ARRAY_BUFFER, Some(&self.index));
         gl.buffer_data_with_array_buffer_view(GL::ELEMENT_ARRAY_BUFFER, &indexes, GL::STATIC_DRAW);
     }
 }
 
-pub enum CSAxis {
-    X,
-    Y,
-    Z,
+
+pub enum CSAxis
+{
+    X, Y, Z,
 }
 
-pub enum GLPrimitiveType {
+
+pub enum GLPrimitiveType
+{
     Points,
     Lines,
     Triangles,
 }
 
-pub enum GLMode {
+
+pub enum GLMode
+{
     Selection,
     Visible,
 }
 
-pub struct DrawnObject {
+
+pub struct DrawnObject
+{
     vertices_coordinates: Vec<f32>,
     colors_values: Vec<f32>,
     indexes_numbers: Vec<u32>,
@@ -290,8 +305,11 @@ pub struct DrawnObject {
     offsets: Vec<i32>,
 }
 
-impl DrawnObject {
-    pub fn create() -> Self {
+
+impl DrawnObject
+{
+    pub fn create() -> Self
+    {
         let vertices_coordinates = Vec::new();
         let colors_values = Vec::new();
         let indexes_numbers = Vec::new();
@@ -304,14 +322,19 @@ impl DrawnObject {
             indexes_numbers,
             modes,
             elements_numbers,
-            offsets,
+            offsets
         }
     }
 
-    fn define_offset(&self) -> i32 {
-        if self.offsets.is_empty() {
+
+    fn define_offset(&self) -> i32
+    {
+        if self.offsets.is_empty()
+        {
             0
-        } else {
+        }
+        else
+        {
             let previous_index = &self.offsets.len() - 1;
             let previous_elements_number = self.elements_numbers[previous_index];
             let previous_offset = self.offsets[previous_index];
@@ -319,29 +342,32 @@ impl DrawnObject {
         }
     }
 
-    pub fn add_cs_axis_line(&mut self, cs_axis: CSAxis) {
-        let start_index = if let Some(index) = self.indexes_numbers.iter().max() {
-            *index + 1
-        } else {
-            0
-        };
+
+    pub fn add_cs_axis_line(&mut self, cs_axis: CSAxis)
+    {
+        let start_index =
+            if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
         self.vertices_coordinates.extend(&CS_ORIGIN);
-        match cs_axis {
-            CSAxis::X => {
-                self.vertices_coordinates.extend(&CS_AXIS_X);
-                self.colors_values.extend(&CS_AXIS_X_COLOR);
-                self.colors_values.extend(&CS_AXIS_X_COLOR);
-            }
-            CSAxis::Y => {
-                self.vertices_coordinates.extend(&CS_AXIS_Y);
-                self.colors_values.extend(&CS_AXIS_Y_COLOR);
-                self.colors_values.extend(&CS_AXIS_Y_COLOR);
-            }
-            CSAxis::Z => {
-                self.vertices_coordinates.extend(&CS_AXIS_Z);
-                self.colors_values.extend(&CS_AXIS_Z_COLOR);
-                self.colors_values.extend(&CS_AXIS_Z_COLOR);
-            }
+        match cs_axis
+        {
+            CSAxis::X =>
+                {
+                    self.vertices_coordinates.extend(&CS_AXIS_X);
+                    self.colors_values.extend(&CS_AXIS_X_COLOR);
+                    self.colors_values.extend(&CS_AXIS_X_COLOR);
+                },
+            CSAxis::Y =>
+                {
+                    self.vertices_coordinates.extend(&CS_AXIS_Y);
+                    self.colors_values.extend(&CS_AXIS_Y_COLOR);
+                    self.colors_values.extend(&CS_AXIS_Y_COLOR);
+                },
+            CSAxis::Z =>
+                {
+                    self.vertices_coordinates.extend(&CS_AXIS_Z);
+                    self.colors_values.extend(&CS_AXIS_Z_COLOR);
+                    self.colors_values.extend(&CS_AXIS_Z_COLOR);
+                },
         }
         self.indexes_numbers.extend(&[start_index, start_index + 1]);
         self.modes.push(GLPrimitiveType::Lines);
@@ -350,45 +376,35 @@ impl DrawnObject {
         self.offsets.push(offset);
     }
 
-    pub fn add_cs_axis_cap(
-        &mut self,
-        cs_axis: CSAxis,
-        base_points_number: u32,
-        height: f32,
-        base_radius: f32,
-    ) {
-        let start_index = if let Some(index) = self.indexes_numbers.iter().max() {
-            *index + 1
-        } else {
-            0
-        };
+
+    pub fn add_cs_axis_cap(&mut self, cs_axis: CSAxis, base_points_number: u32,
+        height: f32, base_radius: f32)
+    {
+        let start_index =
+            if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
         let tolerance = TOLERANCE;
-        match cs_axis {
+        match cs_axis
+        {
             CSAxis::X => self.vertices_coordinates.extend(&CS_AXIS_X),
             CSAxis::Y => self.vertices_coordinates.extend(&CS_AXIS_Y),
             CSAxis::Z => self.vertices_coordinates.extend(&CS_AXIS_Z),
         }
 
         let angle = 2.0 * PI / base_points_number as f32;
-        for point_number in 0..base_points_number {
+        for point_number in 0..base_points_number
+        {
             let angle = angle * point_number as f32;
             let local_x = {
                 let value = base_radius * angle.cos();
-                if value.abs() < tolerance {
-                    0.0
-                } else {
-                    value
-                }
+                if value.abs() < tolerance { 0.0 } else { value }
             };
-            let local_y = {
-                let value = base_radius * angle.sin();
-                if value.abs() < tolerance {
-                    0.0
-                } else {
-                    value
-                }
-            };
-            let coordinates = match cs_axis {
+            let local_y =
+                {
+                    let value = base_radius * angle.sin();
+                    if value.abs() < tolerance { 0.0 } else { value }
+                };
+            let coordinates = match cs_axis
+            {
                 CSAxis::X => [1.0 - height, local_y, local_x],
                 CSAxis::Y => [local_y, 1.0 - height, local_x],
                 CSAxis::Z => [local_x, local_y, 1.0 - height],
@@ -396,78 +412,71 @@ impl DrawnObject {
             self.vertices_coordinates.extend(&coordinates);
         }
 
-        let local_color_value = match cs_axis {
+        let local_color_value = match cs_axis
+        {
             CSAxis::X => CS_AXIS_X_COLOR,
             CSAxis::Y => CS_AXIS_Y_COLOR,
             CSAxis::Z => CS_AXIS_Z_COLOR,
         };
 
-        for point_number in 1..base_points_number {
-            if point_number == 1 {
+        for point_number in 1..base_points_number
+        {
+            if point_number == 1
+            {
                 self.colors_values.extend(&local_color_value);
                 self.colors_values.extend(&local_color_value);
                 self.colors_values.extend(&local_color_value);
             } else {
                 self.colors_values.extend(&local_color_value);
             }
-            self.indexes_numbers.extend(&[
-                start_index,
-                start_index + point_number,
-                start_index + point_number + 1,
-            ]);
+            self.indexes_numbers.extend(
+                &[start_index, start_index + point_number, start_index + point_number + 1]);
         }
-        self.indexes_numbers.extend(&[
-            start_index,
-            start_index + 1,
-            start_index + base_points_number,
-        ]);
+        self.indexes_numbers.extend(
+            &[start_index, start_index + 1, start_index + base_points_number]);
         let offset = self.define_offset();
         self.modes.push(GLPrimitiveType::Triangles);
         self.elements_numbers.push(base_points_number as i32 * 3);
         self.offsets.push(offset);
     }
 
-    pub fn add_point_object(
-        &mut self,
-        normalized_point_objects: &[NormalizedPointObject],
-        gl_mode: GLMode,
-        under_cursor_color: &[u8; 4],
-        selected_color: &[u8; 4],
-    ) {
-        let start_index = if let Some(index) = self.indexes_numbers.iter().max() {
-            *index + 1
-        } else {
-            0
-        };
-        for (i, point_object) in normalized_point_objects.iter().enumerate() {
-            let initial_color = match point_object.object_type {
-                PointObjectType::Point => DRAWN_POINTS_COLOR,
-                PointObjectType::Node => DRAWN_NODES_COLOR,
-            };
-            self.vertices_coordinates
-                .extend(&[point_object.x, point_object.y, point_object.z]);
+
+    pub fn add_point_object(&mut self, normalized_point_objects: &[NormalizedPointObject],
+        gl_mode: GLMode, under_cursor_color: &[u8; 4], selected_color: &[u8; 4])
+    {
+        let start_index =
+            if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
+        for (i, point_object) in
+            normalized_point_objects.iter().enumerate()
+        {
+            let initial_color = match point_object.object_type
+                {
+                    PointObjectType::Point => DRAWN_POINTS_COLOR,
+                    PointObjectType::Node => DRAWN_NODES_COLOR,
+                };
+            self.vertices_coordinates.extend(
+                &[point_object.x, point_object.y, point_object.z]);
             let node_color = define_drawn_object_color(
-                &gl_mode,
-                point_object.uid,
-                selected_color,
-                under_cursor_color,
-                &initial_color,
-            );
+                &gl_mode, point_object.uid,
+                selected_color, under_cursor_color, &initial_color);
             self.colors_values.extend(&node_color);
             self.indexes_numbers.push(start_index + i as u32);
         }
         self.modes.push(GLPrimitiveType::Points);
-        self.elements_numbers
-            .push(normalized_point_objects.len() as i32);
+        self.elements_numbers.push(normalized_point_objects.len() as i32);
         let offset = self.define_offset();
         self.offsets.push(offset);
     }
 
-    pub fn draw(&self, gl: &GL) {
-        for index in 0..self.modes.len() {
+
+    pub fn draw(&self, gl: &GL)
+    {
+        for index in 0..self.modes.len()
+        {
             let count = self.elements_numbers[index];
             let offset = self.offsets[index];
-            let mode = match self.modes[index] {
+            let mode = match self.modes[index]
+            {
                 GLPrimitiveType::Lines => GL::LINES,
                 GLPrimitiveType::Triangles => GL::TRIANGLES,
                 GLPrimitiveType::Points => GL::POINTS,

@@ -1,6 +1,8 @@
 use wasm_bindgen::prelude::*;
 use web_sys::{WebGlBuffer, WebGlUniformLocation, WebGlProgram, WebGlRenderingContext as GL};
 use std::f32::consts::PI;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 use crate::aux_functions::define_drawn_object_color;
 
@@ -48,6 +50,10 @@ pub const DRAWN_POINT_OBJECT_DENOTATION_SHIFT: f32 = 0.02;
 
 pub const DRAWN_ELEMENTS_COLOR: [f32; 4] = [0.0, 1.0, 1.0, 1.0]; // cyan
 pub const CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR: &str = "cyan";
+
+pub const DRAWN_LINES_COLOR: [f32; 4] = [0.6, 0.2, 1.0, 1.0]; // purple
+pub const CANVAS_DRAWN_LINES_DENOTATION_COLOR: &str = "rgb(153, 51, 255)";
+
 pub const DRAWN_ELEMENTS_DENOTATION_SHIFT: f32 = 0.01;
 
 // pub const CANVAS_BACKGROUND_COLOR: &str = "black";
@@ -116,7 +122,7 @@ pub const COLOR_BAR_WIDTH: f32 = 0.015;
 
 #[wasm_bindgen]
 #[repr(u8)]
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum PointObjectType
 {
     Point,
@@ -138,18 +144,97 @@ impl PointObjectType
 
 
 #[derive(Debug)]
+pub struct Coordinates
+{
+    x: f32,
+    y: f32,
+    z: f32,
+}
+
+
+impl Coordinates
+{
+    pub fn create(x: f32, y: f32, z: f32) -> Coordinates
+    {
+        Coordinates { x, y, z }
+    }
+
+
+    fn get_x(&self) -> f32
+    {
+        self.x
+    }
+
+
+    fn get_y(&self) -> f32
+    {
+        self.y
+    }
+
+
+    fn get_z(&self) -> f32
+    {
+        self.z
+    }
+
+
+    fn update(&mut self, x: f32, y: f32, z: f32)
+    {
+        self.x = x;
+        self.y = y;
+        self.z = z;
+    }
+}
+
+
+#[derive(Debug)]
 pub struct PointObject
 {
-    pub number: u32,
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
-    pub object_type: PointObjectType,
+    number: u32,
+    coordinates: Coordinates,
+    object_type: PointObjectType,
 }
 
 
 impl PointObject
 {
+    pub fn create(number: u32, coordinates: Coordinates, object_type: PointObjectType)
+        -> PointObject
+    {
+        PointObject { number, coordinates, object_type }
+    }
+
+
+    pub fn get_number(&self) -> u32
+    {
+        self.number
+    }
+
+
+    pub fn get_x(&self) -> f32
+    {
+        self.coordinates.get_x()
+    }
+
+
+    pub fn get_y(&self) -> f32
+    {
+        self.coordinates.get_y()
+    }
+
+
+    pub fn get_z(&self) -> f32
+    {
+        self.coordinates.get_z()
+    }
+
+
+    pub fn get_object_type(&self) -> PointObjectType
+    {
+        self.object_type
+    }
+
+
     pub fn number_same(&self, number: u32) -> bool
     {
         self.number == number
@@ -164,9 +249,7 @@ impl PointObject
 
     pub fn update_coordinates(&mut self, x: f32, y: f32, z: f32)
     {
-        self.x = x;
-        self.y = y;
-        self.z = z;
+       self.coordinates.update(x, y, z);
     }
 }
 
@@ -174,17 +257,76 @@ impl PointObject
 #[derive(Debug)]
 pub struct NormalizedPointObject
 {
-    pub number: u32,
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
-    pub object_type: PointObjectType,
-    pub uid: u32,
+    number: u32,
+    coordinates: Rc<RefCell<Coordinates>>,
+    object_type: PointObjectType,
+    uid: u32,
 }
 
 
 impl NormalizedPointObject
 {
+    pub fn create(number: u32, coordinates: Rc<RefCell<Coordinates>>,
+        object_type: PointObjectType, uid: u32) -> NormalizedPointObject
+    {
+        NormalizedPointObject { number, coordinates, object_type, uid }
+    }
+
+
+    pub fn get_number(&self) -> u32
+    {
+        self.number
+    }
+
+
+    pub fn get_object_type(&self) -> PointObjectType
+    {
+        self.object_type
+    }
+
+
+    pub fn get_uid(&self) -> u32
+    {
+        self.uid
+    }
+
+
+    pub fn uid_same(&self, uid: u32) -> bool
+    {
+        self.uid == uid
+    }
+
+
+    pub fn get_x(&self) -> f32
+    {
+        self.coordinates.borrow().get_x()
+    }
+
+
+    pub fn get_y(&self) -> f32
+    {
+        self.coordinates.borrow().get_y()
+    }
+
+
+    pub fn get_z(&self) -> f32
+    {
+        self.coordinates.borrow().get_z()
+    }
+
+
+    pub fn update_coordinates(&mut self, x: f32, y: f32, z: f32)
+    {
+        self.coordinates.borrow_mut().update(x, y, z);
+    }
+
+
+    pub fn clone_coordinates(&self) -> Rc<RefCell<Coordinates>>
+    {
+        Rc::clone(&self.coordinates)
+    }
+
+
     pub fn number_same(&self, number: u32) -> bool
     {
         self.number == number
@@ -199,11 +341,81 @@ impl NormalizedPointObject
 
 
 #[wasm_bindgen]
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[repr(u8)]
+#[derive(Debug, Copy, Clone)]
 pub enum LineObjectType
 {
     Line,
     Element,
+}
+
+
+impl LineObjectType
+{
+    pub fn as_str(&self) -> String
+    {
+        match self
+        {
+            LineObjectType::Line => String::from("Line"),
+            LineObjectType::Element => String::from("Element"),
+        }
+    }
+}
+
+
+pub struct NormalizedLineObject
+{
+    number: u32,
+    start_point_object_coordinates: Rc<RefCell<Coordinates>>,
+    end_point_object_coordinates: Rc<RefCell<Coordinates>>,
+    object_type: LineObjectType,
+    uid: u32,
+}
+
+
+impl NormalizedLineObject
+{
+    pub fn create(number: u32, start_point_object_coordinates: Rc<RefCell<Coordinates>>,
+        end_point_object_coordinates: Rc<RefCell<Coordinates>>,
+        object_type: LineObjectType, uid: u32) -> NormalizedLineObject
+    {
+        NormalizedLineObject { number, start_point_object_coordinates, end_point_object_coordinates,
+            object_type, uid }
+    }
+
+
+    pub fn uid_same(&self, uid: u32) -> bool
+    {
+        self.uid == uid
+    }
+
+
+    pub fn get_object_type(&self) -> LineObjectType
+    {
+        self.object_type
+    }
+
+
+    pub fn get_uid(&self) -> u32
+    {
+        self.uid
+    }
+
+
+    pub fn get_start_point_object_coordinates(&self) -> [f32; 3]
+    {
+        [self.start_point_object_coordinates.borrow().get_x(),
+        self.start_point_object_coordinates.borrow().get_y(),
+        self.start_point_object_coordinates.borrow().get_z()]
+    }
+
+
+    pub fn get_end_point_object_coordinates(&self) -> [f32; 3]
+    {
+        [self.end_point_object_coordinates.borrow().get_x(),
+        self.end_point_object_coordinates.borrow().get_y(),
+        self.end_point_object_coordinates.borrow().get_z()]
+    }
 }
 
 
@@ -449,21 +661,57 @@ impl DrawnObject
         for (i, point_object) in
             normalized_point_objects.iter().enumerate()
         {
-            let initial_color = match point_object.object_type
+            let initial_color = match point_object.get_object_type()
                 {
                     PointObjectType::Point => DRAWN_POINTS_COLOR,
                     PointObjectType::Node => DRAWN_NODES_COLOR,
                 };
             self.vertices_coordinates.extend(
-                &[point_object.x, point_object.y, point_object.z]);
-            let node_color = define_drawn_object_color(
-                &gl_mode, point_object.uid,
+                &[point_object.get_x(), point_object.get_y(), point_object.get_z()]);
+            let point_object_color = define_drawn_object_color(
+                &gl_mode, point_object.get_uid(),
                 selected_color, under_cursor_color, &initial_color);
-            self.colors_values.extend(&node_color);
+            self.colors_values.extend(&point_object_color);
             self.indexes_numbers.push(start_index + i as u32);
         }
         self.modes.push(GLPrimitiveType::Points);
         self.elements_numbers.push(normalized_point_objects.len() as i32);
+        let offset = self.define_offset();
+        self.offsets.push(offset);
+    }
+
+
+    pub fn add_line_objects(&mut self, normalized_line_objects: &[NormalizedLineObject],
+        gl_mode: GLMode, under_cursor_color: &[u8; 4], selected_color: &[u8; 4])
+    {
+        let start_index =
+            if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
+        let mut count = 0;
+        for normalized_line_object in normalized_line_objects
+        {
+            let initial_color = match normalized_line_object.get_object_type()
+                {
+                    LineObjectType::Line => DRAWN_LINES_COLOR,
+                    LineObjectType::Element => DRAWN_ELEMENTS_COLOR,
+                };
+            let line_object_color = define_drawn_object_color(&gl_mode,
+                normalized_line_object.get_uid(), selected_color, under_cursor_color,
+                &initial_color);
+            let start_point_object_coordinates =
+                normalized_line_object.get_start_point_object_coordinates();
+            self.vertices_coordinates.extend(&start_point_object_coordinates);
+            self.colors_values.extend(&line_object_color);
+            self.indexes_numbers.push(start_index + count);
+            count += 1;
+            let end_point_object_coordinates =
+                normalized_line_object.get_end_point_object_coordinates();
+            self.vertices_coordinates.extend(&end_point_object_coordinates);
+            self.colors_values.extend(&line_object_color);
+            self.indexes_numbers.push(start_index + count);
+            count += 1;
+        }
+        self.modes.push(GLPrimitiveType::Lines);
+        self.elements_numbers.push(normalized_line_objects.len() as i32 * 2);
         let offset = self.define_offset();
         self.offsets.push(offset);
     }

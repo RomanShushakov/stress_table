@@ -2,11 +2,10 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{WebGlProgram, WebGlRenderingContext as GL, CanvasRenderingContext2d as CTX};
 use vec4;
+use std::cell::RefCell;
+use std::rc::Rc;
 
-use crate::aux_structs::
-{
-    PointObject, NormalizedPointObject
-};
+use crate::aux_structs::{PointObject, NormalizedPointObject, Coordinates, NormalizedLineObject};
 use crate::aux_structs::{GLMode};
 use crate::aux_structs::
 {
@@ -38,17 +37,17 @@ pub fn initialize_shaders(gl: &GL, vertex_shader_code: &str, fragment_shader_cod
 fn find_object_min_max_coordinates(point_objects: &Vec<PointObject>,)
     -> (f32, f32, f32, f32, f32, f32)
 {
-    let mut x_min = point_objects[0].x;
-    let mut x_max = point_objects[0].x;
-    let mut y_min = point_objects[0].y;
-    let mut y_max = point_objects[0].y;
-    let mut z_min = point_objects[0].z;
-    let mut z_max = point_objects[0].z;
+    let mut x_min = point_objects[0].get_x();
+    let mut x_max = point_objects[0].get_x();
+    let mut y_min = point_objects[0].get_y();
+    let mut y_max = point_objects[0].get_y();
+    let mut z_min = point_objects[0].get_z();
+    let mut z_max = point_objects[0].get_z();
     for i in 1..point_objects.len()
     {
-        let x = point_objects[i].x;
-        let y = point_objects[i].y;
-        let z = point_objects[i].z;
+        let x = point_objects[i].get_x();
+        let y = point_objects[i].get_y();
+        let z = point_objects[i].get_z();
         if x < x_min
         {
             x_min = x;
@@ -133,11 +132,12 @@ fn find_max_object_side(x_min: f32, x_max: f32, y_min: f32,
 }
 
 
-pub fn normalize_point_objects(uid: &mut u32, point_objects: &Vec<PointObject>,
-    canvas_width: f32, canvas_height: f32) -> Vec<NormalizedPointObject>
+pub fn normalize_point_objects(point_objects: &Vec<PointObject>,
+    normalized_point_objects: &mut Vec<NormalizedPointObject>,
+    normalized_line_objects: &Vec<NormalizedLineObject>,
+    canvas_width: f32, canvas_height: f32)
 {
     let aspect = canvas_width / canvas_height;
-    let mut normalized_point_objects = Vec::new();
 
     let (x_min, x_max, y_min, y_max, z_min, z_max)
         = find_object_min_max_coordinates(point_objects);
@@ -147,37 +147,56 @@ pub fn normalize_point_objects(uid: &mut u32, point_objects: &Vec<PointObject>,
     let multiplier =   min_canvas_side / max_object_side;
     for point_object in point_objects.iter()
     {
-        *uid += 1;
-        let number = point_object.number;
-        let mut x = (point_object.x * multiplier -
+        let number = point_object.get_number();
+        let mut x = (point_object.get_x() * multiplier -
             (x_max + x_min) * multiplier / 2.0) / (min_canvas_side  / 2.0) *
             min_drawn_object_to_canvas_scale;
         if x.is_nan()
         {
             x = 0.0;
         }
-        let mut y = (point_object.y * multiplier -
+        let mut y = (point_object.get_y() * multiplier -
             (y_max + y_min) * multiplier / 2.0) / (min_canvas_side / 2.0) *
             min_drawn_object_to_canvas_scale;
         if y.is_nan()
         {
             y = 0.0;
         }
-        let mut z = (point_object.z * multiplier -
+        let mut z = (point_object.get_z() * multiplier -
             (z_max + z_min) * multiplier / 2.0) / (min_canvas_side / 2.0) *
             min_drawn_object_to_canvas_scale;
         if z.is_nan()
         {
             z = 0.0;
         }
-        let object_type = point_object.object_type;
-        let normalized_point_object = NormalizedPointObject
+        let object_type = point_object.get_object_type();
+        if let Some(position) = normalized_point_objects.iter()
+            .position(|point_object| point_object.number_same(number) &&
+                point_object.point_object_type_same(object_type))
         {
-            uid: *uid, number, x, y, z, object_type
-        };
-        normalized_point_objects.push(normalized_point_object);
+            normalized_point_objects[position].update_coordinates(x, y, z);
+        }
+        else
+        {
+            let uid =
+            {
+                let mut current_uid = 1;
+                while normalized_point_objects.iter()
+                    .position(|point_object|
+                        point_object.uid_same(current_uid)).is_some() ||
+                    normalized_line_objects.iter().position(|line_object|
+                        line_object.uid_same(current_uid)).is_some()
+                {
+                    current_uid += 1;
+                }
+                current_uid
+            };
+            let normalized_point_object = NormalizedPointObject::create(number,
+                Rc::new(RefCell::new(Coordinates::create(x, y, z))),
+            object_type, uid);
+            normalized_point_objects.push(normalized_point_object);
+        }
     }
-    normalized_point_objects
 }
 
 

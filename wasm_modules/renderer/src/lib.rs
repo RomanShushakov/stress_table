@@ -13,6 +13,7 @@ mod aux_functions;
 use aux_structs::
 {
     ShadersVariables, Buffers, DrawnObject, PointObject, NormalizedPointObject,
+    NormalizedLineObject, Coordinates,
 };
 use aux_structs::{CSAxis, GLMode, PointObjectType};
 use aux_structs::
@@ -38,6 +39,7 @@ use aux_functions::
     define_drawn_object_denotation_color, transform_u32_to_array_of_u8,
     dispatch_custom_event
 };
+use crate::aux_structs::LineObjectType;
 
 const EVENTS_TARGET: &str = "fea-app";
 const CLIENT_MESSAGE: &str = "client message";
@@ -74,8 +76,8 @@ struct State
 {
     under_cursor_color: [u8; 4],
     selected_color: [u8; 4],
-    uid: u32,
     normalized_point_objects: Vec<NormalizedPointObject>,
+    normalized_line_objects: Vec<NormalizedLineObject>,
 }
 
 
@@ -102,8 +104,8 @@ impl Renderer
 
         let state = State
         {
-            under_cursor_color: [0; 4], selected_color: [0; 4], uid: 0,
-            normalized_point_objects: Vec::new(),
+            under_cursor_color: [0; 4], selected_color: [0; 4],
+            normalized_point_objects: Vec::new(), normalized_line_objects: Vec::new(),
         };
 
         Renderer { props, state }
@@ -164,14 +166,9 @@ impl Renderer
 
     fn update_normalized_point_objects(&mut self)
     {
-        self.state.uid = 0;
-        let normalized_point_objects =
-            normalize_point_objects(
-                &mut self.state.uid, &self.props.point_objects,
-                self.props.canvas_gl.width() as f32,
-                self.props.canvas_gl.height() as f32
-            );
-        self.state.normalized_point_objects = normalized_point_objects;
+        normalize_point_objects(&self.props.point_objects, &mut self.state.normalized_point_objects,
+            &self.state.normalized_line_objects, self.props.canvas_gl.width() as f32,
+            self.props.canvas_gl.height() as f32);
         log(&format!("{:?}, {:?}", self.props.point_objects, self.state.normalized_point_objects));
     }
 
@@ -179,7 +176,8 @@ impl Renderer
     pub fn add_point_object(&mut self, number: u32, x: f32, y: f32, z: f32,
         point_object_type: PointObjectType)
     {
-        let point_object = PointObject { number, x, y, z, object_type: point_object_type };
+        let coordinates = Coordinates::create(x, y, z);
+        let point_object = PointObject::create(number, coordinates, point_object_type);
         self.props.point_objects.push(point_object);
         self.update_normalized_point_objects();
     }
@@ -215,28 +213,6 @@ impl Renderer
                 point_object.point_object_type_same(point_object_type))
         {
             let _ = self.props.point_objects.remove(position);
-            if !self.props.point_objects.is_empty()
-            {
-                self.update_normalized_point_objects();
-            }
-            else
-            {
-                if let Some(position) = self.state.normalized_point_objects.iter()
-                    .position(|point_object|
-                        point_object.number_same(number) &&
-                        point_object.point_object_type_same(point_object_type))
-                {
-                    self.state.normalized_point_objects.remove(position);
-                }
-                else
-                {
-                    let error_message = format!("Renderer: Delete {} action: {} with \
-                        number {} does not exist!", point_object_type.as_str().to_lowercase(),
-                        point_object_type.as_str(), number);
-                    return Err(JsValue::from(error_message));
-                }
-            }
-
         }
         else
         {
@@ -245,6 +221,85 @@ impl Renderer
                 point_object_type.as_str(), number);
             return Err(JsValue::from(error_message));
         }
+        if let Some(position) = self.state.normalized_point_objects.iter()
+            .position(|point_object|
+                point_object.number_same(number) &&
+                point_object.point_object_type_same(point_object_type))
+        {
+            let _ = self.state.normalized_point_objects.remove(position);
+        }
+        else
+        {
+            let error_message = format!("Renderer: Delete {} action: {} with \
+                number {} does not exist!", point_object_type.as_str().to_lowercase(),
+                point_object_type.as_str(), number);
+            return Err(JsValue::from(error_message));
+        }
+        if !self.props.point_objects.is_empty()
+        {
+            self.update_normalized_point_objects();
+        }
+        Ok(())
+    }
+
+
+    pub fn add_normalized_line_object(&mut self, number: u32, start_point_object_number: u32,
+        end_point_object_number: u32, line_object_type: LineObjectType) -> Result<(), JsValue>
+    {
+        let point_object_type = match line_object_type
+            {
+                LineObjectType::Line => PointObjectType::Point,
+                LineObjectType::Element => PointObjectType::Node,
+            };
+        let start_point_object_coordinates =
+            {
+                if let Some(position) = self.state.normalized_point_objects.iter()
+                    .position(|point_object|
+                        point_object.number_same(start_point_object_number) &&
+                        point_object.point_object_type_same(point_object_type))
+                {
+                    Ok(self.state.normalized_point_objects[position].clone_coordinates())
+                }
+                else
+                {
+                    let error_message = format!("Renderer: Add {} action: {} with number \
+                        {} does not exist!", line_object_type.as_str().to_lowercase(),
+                    point_object_type.as_str(), start_point_object_number);
+                    Err(JsValue::from(error_message))
+                }
+            }?;
+        let end_point_object_coordinates =
+            {
+                if let Some(position) = self.state.normalized_point_objects.iter()
+                    .position(|point_object|
+                        point_object.number_same(end_point_object_number) &&
+                        point_object.point_object_type_same(point_object_type))
+                {
+                    Ok(self.state.normalized_point_objects[position].clone_coordinates())
+                }
+                else
+                {
+                    let error_message = format!("Renderer: Add {} action: {} with number \
+                        {} does not exist!", line_object_type.as_str().to_lowercase(),
+                    point_object_type.as_str(), end_point_object_number);
+                    Err(JsValue::from(error_message))
+                }
+            }?;
+        let uid =
+            {
+                let mut current_uid = 1;
+                while self.state.normalized_point_objects.iter().position(|point_object|
+                        point_object.uid_same(current_uid)).is_some() ||
+                    self.state.normalized_line_objects.iter().position(|line_object|
+                        line_object.uid_same(current_uid)).is_some()
+                {
+                    current_uid += 1;
+                }
+                current_uid
+            };
+        let normalized_line_object = NormalizedLineObject::create(number,
+            start_point_object_coordinates, end_point_object_coordinates, line_object_type, uid);
+        self.state.normalized_line_objects.push(normalized_line_object);
         Ok(())
     }
 
@@ -254,15 +309,15 @@ impl Renderer
         self.state.selected_color = self.state.under_cursor_color;
         if let Some(position) = self.state.normalized_point_objects.iter()
             .position(|point_object|
-                transform_u32_to_array_of_u8(point_object.uid) == self.state.selected_color)
+                transform_u32_to_array_of_u8(point_object.get_uid()) == self.state.selected_color)
         {
             let selected_point_object =
                 &self.state.normalized_point_objects[position];
-            match selected_point_object.object_type
+            match selected_point_object.get_object_type()
             {
                 PointObjectType::Point =>
                     {
-                        let selected_point_number = selected_point_object.number;
+                        let selected_point_number = selected_point_object.get_number();
                         let detail =
                             json!({ "message": { "selected_point_number": selected_point_number } });
                         dispatch_custom_event(detail, CLIENT_MESSAGE,
@@ -370,14 +425,18 @@ impl Renderer
             drawn_object.add_point_object(&self.state.normalized_point_objects,
             GLMode::Visible, &self.state.under_cursor_color, &self.state.selected_color);
 
+            if !self.state.normalized_line_objects.is_empty()
+            {
+                drawn_object.add_line_objects(&self.state.normalized_line_objects,
+                    GLMode::Visible, &self.state.under_cursor_color,
+                    &self.state.selected_color);
+            }
+
             drawn_objects_buffers.render(&gl, &drawn_object, &shaders_variables);
 
             let point_size = 5.0;
 
-            // let field_of_view = 45.0 * PI / 180.0;
             let mut projection_matrix = mat4::new_zero();
-
-            // mat4::perspective(&mut projection_matrix, &field_of_view, &aspect, &z_near, &z_far);
 
             mat4::orthographic(&mut projection_matrix,
                 &(1.0 / aspect), &1.0, &(-1.0 / aspect), &-1.0,
@@ -406,25 +465,25 @@ impl Renderer
 
             for point_object in self.state.normalized_point_objects.iter()
             {
-                let initial_color = match point_object.object_type
+                let initial_color = match point_object.get_object_type()
                     {
                         PointObjectType::Point => CANVAS_DRAWN_POINTS_DENOTATION_COLOR,
                         PointObjectType::Node => CANVAS_DRAWN_NODES_DENOTATION_COLOR,
                     };
                 let denotation_color = define_drawn_object_denotation_color(
-                    point_object.uid, &self.state.selected_color, &self.state.under_cursor_color,
-                    initial_color);
+                    point_object.get_uid(), &self.state.selected_color,
+                    &self.state.under_cursor_color, initial_color);
                 ctx.set_fill_style(&denotation_color.into());
                 add_denotation(&ctx,
-                &[point_object.x - DRAWN_POINT_OBJECT_DENOTATION_SHIFT /
+                &[point_object.get_x() - DRAWN_POINT_OBJECT_DENOTATION_SHIFT /
                             (1.0 + self.props.d_scale),
-                    point_object.y - DRAWN_POINT_OBJECT_DENOTATION_SHIFT /
+                    point_object.get_y() - DRAWN_POINT_OBJECT_DENOTATION_SHIFT /
                         (1.0 + self.props.d_scale),
-                    point_object.z,
+                    point_object.get_z(),
                     1.0],
                 &matrix,
                 width as f32, height as f32,
-                &point_object.number.to_string());
+                &point_object.get_number().to_string());
                 ctx.stroke();
             }
 

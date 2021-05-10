@@ -152,6 +152,7 @@ class FeaApp extends HTMLElement {
             startPointNumber: event.detail.line_data.start_point_number,
             endPointNumber: event.detail.line_data.end_point_number };
         this.querySelector("fea-preprocessor").addLineToClient = line;
+        this.shadowRoot.querySelector("fea-renderer").addLineToRenderer = line;
         event.stopPropagation();
     }
 

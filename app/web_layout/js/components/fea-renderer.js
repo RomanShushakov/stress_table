@@ -1,6 +1,6 @@
 import { initializeRenderer } from "../wasm_modules_initialization/renderer_initialization.js";
 
-import { PointObjectType } from "../../wasm/renderer/renderer.js";
+import { PointObjectType, LineObjectType } from "../../wasm/renderer/renderer.js";
 
 
 const coefficient = 0.8;
@@ -95,6 +95,14 @@ class FeaRenderer extends HTMLElement {
 
     set deletePointFromRenderer(point) {
         this.state.renderer.delete_point_object(point.number, PointObjectType.Point);
+        if (this.state.isPaused === true)
+        {
+            this.state.renderer.tick();
+        }
+    }
+
+    set addLineToRenderer(line) {
+        this.state.renderer.add_normalized_line_object(line.number, line.startPointNumber, line.endPointNumber, LineObjectType.Line);
         if (this.state.isPaused === true)
         {
             this.state.renderer.tick();

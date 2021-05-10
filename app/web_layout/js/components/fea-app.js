@@ -124,7 +124,8 @@ class FeaApp extends HTMLElement {
         }
         const point = { number: event.detail.point_data.number, x: event.detail.point_data.x,
             y: event.detail.point_data.y, z: event.detail.point_data.z };
-        this.querySelector("fea-preprocessor").updatePointOnClient = point;
+        this.querySelector("fea-preprocessor").updatePointInClient = point;
+        this.shadowRoot.querySelector("fea-renderer").updatePointInRenderer = point;
         event.stopPropagation();
     }
 
@@ -136,6 +137,7 @@ class FeaApp extends HTMLElement {
         }
         const point = { number: event.detail.point_data.number };
         this.querySelector("fea-preprocessor").deletePointFromClient = point;
+        this.shadowRoot.querySelector("fea-renderer").deletePointFromRenderer = point;
         event.stopPropagation();
     }
 
@@ -163,7 +165,7 @@ class FeaApp extends HTMLElement {
             number: event.detail.line_data.number,
             startPointNumber: event.detail.line_data.start_point_number,
             endPointNumber: event.detail.line_data.end_point_number };
-        this.querySelector("fea-preprocessor").updateLineOnClient = line;
+        this.querySelector("fea-preprocessor").updateLineInClient = line;
         event.stopPropagation();
     }
 

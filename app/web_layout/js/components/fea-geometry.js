@@ -1073,7 +1073,7 @@ class FeaGeometry extends HTMLElement {
         this.refreshGeometryFields();
     }
 
-    set updatePointOnClient(point) {
+    set updatePointInClient(point) {
         let pointInProps = this.props.points.find(existedPoint => existedPoint.number == point.number);
         pointInProps.x = point.x;
         pointInProps.y = point.y;
@@ -1092,7 +1092,7 @@ class FeaGeometry extends HTMLElement {
         this.refreshGeometryFields();
     }
 
-    set updateLineOnClient(line) {
+    set updateLineInClient(line) {
         let lineInProps = this.props.lines.find(existedLine => existedLine.number == line.number);
         lineInProps.startPointNumber = line.startPointNumber;
         lineInProps.endPointNumber = line.endPointNumber;

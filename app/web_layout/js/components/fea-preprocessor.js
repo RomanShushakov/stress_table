@@ -43,8 +43,8 @@ class FeaPreprocessor extends HTMLElement {
         this.shadowRoot.querySelector("fea-geometry").addPointToClient = point;
     }
 
-    set updatePointOnClient(point) {
-        this.shadowRoot.querySelector("fea-geometry").updatePointOnClient = point;
+    set updatePointInClient(point) {
+        this.shadowRoot.querySelector("fea-geometry").updatePointInClient = point;
     }
 
     set deletePointFromClient(point) {
@@ -55,8 +55,8 @@ class FeaPreprocessor extends HTMLElement {
         this.shadowRoot.querySelector("fea-geometry").addLineToClient = line;
     }
 
-    set updateLineOnClient(line) {
-        this.shadowRoot.querySelector("fea-geometry").updateLineOnClient = line;
+    set updateLineInClient(line) {
+        this.shadowRoot.querySelector("fea-geometry").updateLineInClient = line;
     }
 
     set deleteLineFromClient(line) {

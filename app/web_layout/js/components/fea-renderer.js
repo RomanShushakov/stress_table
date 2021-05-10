@@ -1,5 +1,8 @@
 import { initializeRenderer } from "../wasm_modules_initialization/renderer_initialization.js";
 
+import { PointObjectType } from "../../wasm/renderer/renderer.js";
+
+
 const coefficient = 0.8;
 
 
@@ -75,7 +78,23 @@ class FeaRenderer extends HTMLElement {
     }
 
     set addPointToRenderer(point) {
-        this.state.renderer.add_point(point.number, point.x, point.y, point.z);
+        this.state.renderer.add_point_object(point.number, point.x, point.y, point.z, PointObjectType.Point);
+        if (this.state.isPaused === true)
+        {
+            this.state.renderer.tick();
+        }
+    }
+
+    set updatePointInRenderer(point) {
+        this.state.renderer.update_point_object(point.number, point.x, point.y, point.z, PointObjectType.Point);
+        if (this.state.isPaused === true)
+        {
+            this.state.renderer.tick();
+        }
+    }
+
+    set deletePointFromRenderer(point) {
+        this.state.renderer.delete_point_object(point.number, PointObjectType.Point);
         if (this.state.isPaused === true)
         {
             this.state.renderer.tick();

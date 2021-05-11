@@ -4,10 +4,12 @@ use std::f32::consts::PI;
 use std::rc::Rc;
 use std::cell::RefCell;
 
-use crate::aux_functions::define_drawn_object_color;
+use crate::aux_functions::{define_drawn_object_color, compare_with_tolerance};
 
+use crate::{TOLERANCE, ElementsValues, ElementsNumbers};
 
-const TOLERANCE: f32 = 1e-6;
+use crate::extended_matrix::{ExtendedMatrix, MatrixElementPosition, extract_element_value};
+
 
 const CS_ORIGIN: [f32; 3] = [0.0, 0.0, 0.0];
 const CS_AXIS_X: [f32; 3] = [1.0, 0.0, 0.0];
@@ -54,7 +56,10 @@ pub const CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR: &str = "cyan";
 pub const DRAWN_LINES_COLOR: [f32; 4] = [0.6, 0.2, 1.0, 1.0]; // purple
 pub const CANVAS_DRAWN_LINES_DENOTATION_COLOR: &str = "rgb(153, 51, 255)";
 
-pub const DRAWN_ELEMENTS_DENOTATION_SHIFT: f32 = 0.01;
+pub const DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER: u32 = 48; // the number of points in cylinder circular base
+pub const DRAWN_LINE_OBJECTS_BASE_RADIUS: f32 = 0.006; // the radius of cylinder circular base
+
+pub const DRAWN_LINE_OBJECTS_DENOTATION_SHIFT: f32 = 0.01;
 
 // pub const CANVAS_BACKGROUND_COLOR: &str = "black";
 
@@ -402,6 +407,12 @@ impl NormalizedLineObject
     }
 
 
+    pub fn get_number(&self) -> u32
+    {
+        self.number
+    }
+
+
     pub fn get_start_point_object_coordinates(&self) -> [f32; 3]
     {
         [self.start_point_object_coordinates.borrow().get_x(),
@@ -415,6 +426,60 @@ impl NormalizedLineObject
         [self.end_point_object_coordinates.borrow().get_x(),
         self.end_point_object_coordinates.borrow().get_y(),
         self.end_point_object_coordinates.borrow().get_z()]
+    }
+
+
+    pub fn length(&self) -> f32
+    {
+        let start_point_object_coordinates = self.get_start_point_object_coordinates();
+        let end_point_object_coordinates = self.get_end_point_object_coordinates();
+        ((start_point_object_coordinates[0] - end_point_object_coordinates[0]).powi(2) +
+        (start_point_object_coordinates[1] - end_point_object_coordinates[1]).powi(2) +
+        (start_point_object_coordinates[2] - end_point_object_coordinates[2]).powi(2)).sqrt()
+    }
+
+
+    fn inverse_rotation_matrix(&self) -> Result<ExtendedMatrix<u32, f32>, JsValue>
+    {
+        let start_point_object_coordinates = self.get_start_point_object_coordinates();
+        let end_point_object_coordinates = self.get_end_point_object_coordinates();
+        let x = (end_point_object_coordinates[0] - start_point_object_coordinates[0]);
+        let y = (end_point_object_coordinates[1] - start_point_object_coordinates[1]);
+        let z = (end_point_object_coordinates[2] - start_point_object_coordinates[2]);
+        let length = self.length();
+        let (u, v, w) = (length, 0.0, 0.0);
+        let alpha = ((x * u + y * v + z * w) / (length.powi(2))).acos();
+        let (rotation_axis_coord_x, mut rotation_axis_coord_y,
+            mut rotation_axis_coord_z) = (0f32, 0.0, 0.0);
+        if x != 0.0 && y == 0.0 && z == 0.0
+        {
+            rotation_axis_coord_z = x;
+        }
+        else
+        {
+            rotation_axis_coord_y = z * length;
+            rotation_axis_coord_z = - y * length;
+        }
+        let norm = 1.0 / (rotation_axis_coord_x.powi(2) +
+            rotation_axis_coord_y.powi(2) + rotation_axis_coord_z.powi(2)).sqrt();
+        let (x_n, y_n, z_n) = (rotation_axis_coord_x * norm,
+            rotation_axis_coord_y * norm, rotation_axis_coord_z * norm);
+        let (c, s) = (alpha.cos(), alpha.sin());
+        let t = 1.0 - c;
+        let q_11 = compare_with_tolerance(t * x_n * x_n + c);
+        let q_12 = compare_with_tolerance(t * x_n * y_n - z_n * s);
+        let q_13 = compare_with_tolerance(t * x_n * z_n + y_n * s);
+        let q_21 = compare_with_tolerance(t * x_n * y_n + z_n * s);
+        let q_22 = compare_with_tolerance(t * y_n * y_n + c);
+        let q_23 = compare_with_tolerance(t * y_n * z_n - x_n * s);
+        let q_31 = compare_with_tolerance(t * x_n * z_n - y_n * s);
+        let q_32 = compare_with_tolerance(t * y_n * z_n + x_n * s);
+        let q_33 = compare_with_tolerance(t * z_n * z_n + c);
+        let rotation_matrix = ExtendedMatrix::create(3,
+            3, vec![q_11, q_12, q_13, q_21, q_22, q_23, q_31, q_32, q_33]);
+        let inverse_rotation_matrix = rotation_matrix.inverse()
+            .map_err(|e| JsValue::from(e))?;
+        Ok(inverse_rotation_matrix)
     }
 }
 
@@ -682,7 +747,8 @@ impl DrawnObject
 
 
     pub fn add_line_objects(&mut self, normalized_line_objects: &[NormalizedLineObject],
-        gl_mode: GLMode, under_cursor_color: &[u8; 4], selected_color: &[u8; 4])
+        gl_mode: GLMode, under_cursor_color: &[u8; 4], selected_color: &[u8; 4],
+        base_points_number: u32, base_radius: f32) -> Result<(), JsValue>
     {
         let start_index =
             if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
@@ -699,21 +765,91 @@ impl DrawnObject
                 &initial_color);
             let start_point_object_coordinates =
                 normalized_line_object.get_start_point_object_coordinates();
+            let end_point_object_coordinates =
+                normalized_line_object.get_end_point_object_coordinates();
+            match gl_mode
+            {
+                GLMode::Selection =>
+                    {
+                        let inverse_rotation_matrix =
+                            normalized_line_object.inverse_rotation_matrix()?;
+                        let mut directional_vectors = Vec::new();
+                        let angle = 2.0 * PI / base_points_number as f32;
+                        for point_number in 0..base_points_number
+                        {
+                            let angle = angle * point_number as f32;
+                            let local_x = {
+                                let value = base_radius * angle.cos();
+                                if value.abs() < TOLERANCE { 0.0 } else { value }
+                            };
+                            let local_y =
+                                {
+                                    let value = base_radius * angle.sin();
+                                    if value.abs() < TOLERANCE { 0.0 } else { value }
+                                };
+                            let directional_vector =
+                                ExtendedMatrix::create(3u32,
+                                1u32, vec![0.0, local_y, local_x]);
+                            directional_vectors.push(directional_vector);
+                        }
+                        for directional_vector in &directional_vectors
+                        {
+                            let mut directional_vector_start_point_object_coordinates =
+                                start_point_object_coordinates.clone();
+                            let mut directional_vector_end_point_object_coordinates =
+                                end_point_object_coordinates.clone();
+                            let transformed_directional_vector =
+                                inverse_rotation_matrix.multiply_by_matrix(directional_vector)
+                                    .map_err(|e| JsValue::from(e))?;
+                            let all_directional_vector_values =
+                                transformed_directional_vector.extract_all_elements_values();
+                            let directional_vector_x_coordinate =
+                                extract_element_value(0, 0,
+                                    &all_directional_vector_values);
+                            let directional_vector_y_coordinate = extract_element_value(1,
+                                0,&all_directional_vector_values);
+                            let directional_vector_z_coordinate = extract_element_value(2,
+                                0, &all_directional_vector_values);
+                            directional_vector_start_point_object_coordinates[0] +=
+                                directional_vector_x_coordinate;
+                            directional_vector_start_point_object_coordinates[1] +=
+                                directional_vector_y_coordinate;
+                            directional_vector_start_point_object_coordinates[2] +=
+                                directional_vector_z_coordinate;
+                            self.vertices_coordinates.extend(
+                                &directional_vector_start_point_object_coordinates);
+                            self.colors_values.extend(&line_object_color);
+                            self.indexes_numbers.push(start_index + count);
+                            count += 1;
+                            directional_vector_end_point_object_coordinates[0] +=
+                                directional_vector_x_coordinate;
+                            directional_vector_end_point_object_coordinates[1] +=
+                                directional_vector_y_coordinate;
+                            directional_vector_end_point_object_coordinates[2] +=
+                                directional_vector_z_coordinate;
+                            self.vertices_coordinates.extend(
+                                &directional_vector_end_point_object_coordinates);
+                            self.colors_values.extend(&line_object_color);
+                            self.indexes_numbers.push(start_index + count);
+                            count += 1;
+                        }
+                    },
+                _ => ()
+            }
             self.vertices_coordinates.extend(&start_point_object_coordinates);
             self.colors_values.extend(&line_object_color);
             self.indexes_numbers.push(start_index + count);
             count += 1;
-            let end_point_object_coordinates =
-                normalized_line_object.get_end_point_object_coordinates();
             self.vertices_coordinates.extend(&end_point_object_coordinates);
             self.colors_values.extend(&line_object_color);
             self.indexes_numbers.push(start_index + count);
             count += 1;
         }
         self.modes.push(GLPrimitiveType::Lines);
-        self.elements_numbers.push(normalized_line_objects.len() as i32 * 2);
+        self.elements_numbers.push(count as i32);
         let offset = self.define_offset();
         self.offsets.push(offset);
+        Ok(())
     }
 
 

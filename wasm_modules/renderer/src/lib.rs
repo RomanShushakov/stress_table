@@ -15,7 +15,7 @@ use aux_structs::
     ShadersVariables, Buffers, DrawnObject, PointObject, NormalizedPointObject,
     NormalizedLineObject, Coordinates,
 };
-use aux_structs::{CSAxis, GLMode, PointObjectType};
+use aux_structs::{CSAxis, GLMode, PointObjectType, LineObjectType};
 use aux_structs::
     {
         CS_AXES_Y_SHIFT, CS_AXES_X_SHIFT, CS_AXES_Z_SHIFT, CS_AXES_SCALE,
@@ -30,8 +30,9 @@ use aux_structs::
         DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_Y, DRAWN_FORCES_LINE_LENGTH, DRAWN_FORCES_CAPS_HEIGHT,
         DRAWN_FORCES_CAPS_WIDTH, DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER,
         CANVAS_DRAWN_FORCES_DENOTATION_COLOR, DRAWN_FORCES_DENOTATION_SHIFT_X,
-        DRAWN_FORCES_DENOTATION_SHIFT_Y, HINTS_COLOR, DRAWN_ELEMENTS_DENOTATION_SHIFT,
-        CANVAS_DRAWN_POINTS_DENOTATION_COLOR
+        DRAWN_FORCES_DENOTATION_SHIFT_Y, HINTS_COLOR, DRAWN_LINE_OBJECTS_DENOTATION_SHIFT,
+        CANVAS_DRAWN_POINTS_DENOTATION_COLOR, DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
+        DRAWN_LINE_OBJECTS_BASE_RADIUS, CANVAS_DRAWN_LINES_DENOTATION_COLOR
     };
 use aux_functions::
 {
@@ -39,7 +40,13 @@ use aux_functions::
     define_drawn_object_denotation_color, transform_u32_to_array_of_u8,
     dispatch_custom_event
 };
-use crate::aux_structs::LineObjectType;
+
+mod extended_matrix;
+
+
+pub const TOLERANCE: f32 = 1e-6;
+pub type ElementsNumbers = u32;
+pub type ElementsValues = f32;
 
 const EVENTS_TARGET: &str = "fea-app";
 const CLIENT_MESSAGE: &str = "client message";
@@ -291,7 +298,7 @@ impl Renderer
                 while self.state.normalized_point_objects.iter().position(|point_object|
                         point_object.uid_same(current_uid)).is_some() ||
                     self.state.normalized_line_objects.iter().position(|line_object|
-                        line_object.uid_same(current_uid)).is_some()
+                        line_object.uid_same(current_uid)).is_some() || current_uid == 255
                 {
                     current_uid += 1;
                 }
@@ -307,6 +314,7 @@ impl Renderer
     pub fn select_object(&mut self) -> Result<(), JsValue>
     {
         self.state.selected_color = self.state.under_cursor_color;
+        log(&format!("{:?}", self.state.selected_color));
         if let Some(position) = self.state.normalized_point_objects.iter()
             .position(|point_object|
                 transform_u32_to_array_of_u8(point_object.get_uid()) == self.state.selected_color)
@@ -379,8 +387,16 @@ impl Renderer
             drawn_object.add_point_object(&self.state.normalized_point_objects,
             GLMode::Selection, &self.state.under_cursor_color, &self.state.selected_color);
 
+            if !self.state.normalized_line_objects.is_empty()
+            {
+                drawn_object.add_line_objects(&self.state.normalized_line_objects,
+                    GLMode::Selection, &self.state.under_cursor_color,
+                    &self.state.selected_color, DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
+                    DRAWN_LINE_OBJECTS_BASE_RADIUS / (1.0 + self.props.d_scale))?;
+            }
+
             drawn_objects_buffers.render(&gl, &drawn_object, &shaders_variables);
-            let point_size = 10.0;
+            let point_size = 12.0;
 
             let mut projection_matrix = mat4::new_zero();
 
@@ -429,12 +445,13 @@ impl Renderer
             {
                 drawn_object.add_line_objects(&self.state.normalized_line_objects,
                     GLMode::Visible, &self.state.under_cursor_color,
-                    &self.state.selected_color);
+                    &self.state.selected_color, DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
+                    DRAWN_LINE_OBJECTS_BASE_RADIUS / (1.0 + self.props.d_scale))?;
             }
 
             drawn_objects_buffers.render(&gl, &drawn_object, &shaders_variables);
 
-            let point_size = 5.0;
+            let point_size = 6.0;
 
             let mut projection_matrix = mat4::new_zero();
 
@@ -487,6 +504,47 @@ impl Renderer
                 ctx.stroke();
             }
 
+            if !self.state.normalized_line_objects.is_empty()
+            {
+                for line_object in &self.state.normalized_line_objects
+                {
+                    let initial_color = match line_object.get_object_type()
+                    {
+                        LineObjectType::Line => CANVAS_DRAWN_LINES_DENOTATION_COLOR,
+                        LineObjectType::Element => CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR,
+                    };
+
+                    let denotation_color = define_drawn_object_denotation_color(
+                        line_object.get_uid(),
+                        &self.state.selected_color, &self.state.under_cursor_color,
+                        initial_color);
+                    let denotation_coordinates =
+                        {
+                            let start_point_object_coordinates =
+                                line_object.get_start_point_object_coordinates();
+                            let end_point_object_coordinates =
+                                line_object.get_end_point_object_coordinates();
+                            [(start_point_object_coordinates[0] +
+                                end_point_object_coordinates[0]) / 2.0,
+                            (start_point_object_coordinates[1] +
+                                end_point_object_coordinates[1]) / 2.0,
+                            (start_point_object_coordinates[2] +
+                                end_point_object_coordinates[2]) / 2.0,
+                            ]
+                        };
+                    ctx.set_fill_style(&denotation_color.into());
+                    add_denotation(&ctx,
+                    &[denotation_coordinates[0],
+                        denotation_coordinates[1] +
+                            DRAWN_LINE_OBJECTS_DENOTATION_SHIFT / (1.0 + self.props.d_scale),
+                        denotation_coordinates[2],
+                        1.0],
+                    &matrix,
+                    width as f32, height as f32,
+                    &line_object.get_number().to_string());
+                    ctx.stroke();
+                }
+            }
         }
 
         let cs_buffers = Buffers::initialize(&gl);
@@ -507,7 +565,7 @@ impl Renderer
 
         cs_buffers.render(&gl, &cs_drawn_object, &shaders_variables);
 
-        let point_size = 5.0;
+        let point_size = 6.0;
 
         let mut projection_matrix = mat4::new_zero();
         mat4::orthographic(&mut projection_matrix,

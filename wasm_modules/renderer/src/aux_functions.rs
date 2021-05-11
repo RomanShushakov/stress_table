@@ -15,6 +15,8 @@ use crate::aux_structs::
     CANVAS_DRAWN_OBJECT_UNDER_CURSOR_DENOTATION_COLOR, DRAWN_OBJECT_UNDER_CURSOR_COLOR,
 };
 
+use crate::TOLERANCE;
+
 
 pub fn initialize_shaders(gl: &GL, vertex_shader_code: &str, fragment_shader_code: &str)
     -> WebGlProgram
@@ -185,7 +187,7 @@ pub fn normalize_point_objects(point_objects: &Vec<PointObject>,
                     .position(|point_object|
                         point_object.uid_same(current_uid)).is_some() ||
                     normalized_line_objects.iter().position(|line_object|
-                        line_object.uid_same(current_uid)).is_some()
+                        line_object.uid_same(current_uid)).is_some() || current_uid == 255
                 {
                     current_uid += 1;
                 }
@@ -310,4 +312,10 @@ pub fn dispatch_custom_event(detail: serde_json::Value, event_type: &str, query_
         .dyn_into::<web_sys::EventTarget>().unwrap()
         .dispatch_event(&custom_event)?;
     Ok(())
+}
+
+
+pub fn compare_with_tolerance(value: f32) -> f32
+{
+    if value.abs() < TOLERANCE { 0.0 } else { value }
 }

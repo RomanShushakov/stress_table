@@ -6,7 +6,7 @@ use std::cell::RefCell;
 
 use crate::aux_functions::{define_drawn_object_color, compare_with_tolerance};
 
-use crate::{TOLERANCE, ElementsValues, ElementsNumbers};
+use crate::{TOLERANCE, ElementsValues, ElementsNumbers, log};
 
 use crate::extended_matrix::{ExtendedMatrix, MatrixElementPosition, extract_element_value};
 
@@ -347,7 +347,7 @@ impl NormalizedPointObject
 
 #[wasm_bindgen]
 #[repr(u8)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum LineObjectType
 {
     Line,
@@ -389,6 +389,20 @@ impl NormalizedLineObject
     }
 
 
+    pub fn update(&mut self, start_point_object_coordinates: Rc<RefCell<Coordinates>>,
+        end_point_object_coordinates: Rc<RefCell<Coordinates>>)
+    {
+        self.start_point_object_coordinates = start_point_object_coordinates;
+        self.end_point_object_coordinates = end_point_object_coordinates;
+    }
+
+
+    pub fn number_same(&self, number: u32) -> bool
+    {
+        self.number == number
+    }
+
+
     pub fn uid_same(&self, uid: u32) -> bool
     {
         self.uid == uid
@@ -410,6 +424,12 @@ impl NormalizedLineObject
     pub fn get_number(&self) -> u32
     {
         self.number
+    }
+
+
+    pub fn line_object_type_same(&self, line_object_type: LineObjectType) -> bool
+    {
+        self.object_type == line_object_type
     }
 
 
@@ -439,7 +459,7 @@ impl NormalizedLineObject
     }
 
 
-    fn inverse_rotation_matrix(&self) -> Result<ExtendedMatrix<u32, f32>, JsValue>
+    fn extract_transposed_rotation_matrix(&self) -> ExtendedMatrix<u32, f32>
     {
         let start_point_object_coordinates = self.get_start_point_object_coordinates();
         let end_point_object_coordinates = self.get_end_point_object_coordinates();
@@ -450,7 +470,7 @@ impl NormalizedLineObject
         let (u, v, w) = (length, 0.0, 0.0);
         let alpha = ((x * u + y * v + z * w) / (length.powi(2))).acos();
         let (rotation_axis_coord_x, mut rotation_axis_coord_y,
-            mut rotation_axis_coord_z) = (0f32, 0.0, 0.0);
+            mut rotation_axis_coord_z) = (0f32, 0f32, 0f32);
         if x != 0.0 && y == 0.0 && z == 0.0
         {
             rotation_axis_coord_z = x;
@@ -475,11 +495,10 @@ impl NormalizedLineObject
         let q_31 = compare_with_tolerance(t * x_n * z_n - y_n * s);
         let q_32 = compare_with_tolerance(t * y_n * z_n + x_n * s);
         let q_33 = compare_with_tolerance(t * z_n * z_n + c);
-        let rotation_matrix = ExtendedMatrix::create(3,
+        let mut rotation_matrix = ExtendedMatrix::create(3,
             3, vec![q_11, q_12, q_13, q_21, q_22, q_23, q_31, q_32, q_33]);
-        let inverse_rotation_matrix = rotation_matrix.inverse()
-            .map_err(|e| JsValue::from(e))?;
-        Ok(inverse_rotation_matrix)
+        rotation_matrix.transpose();
+        rotation_matrix
     }
 }
 
@@ -771,8 +790,8 @@ impl DrawnObject
             {
                 GLMode::Selection =>
                     {
-                        let inverse_rotation_matrix =
-                            normalized_line_object.inverse_rotation_matrix()?;
+                        let transposed_rotation_matrix =
+                            normalized_line_object.extract_transposed_rotation_matrix();
                         let mut directional_vectors = Vec::new();
                         let angle = 2.0 * PI / base_points_number as f32;
                         for point_number in 0..base_points_number
@@ -799,7 +818,7 @@ impl DrawnObject
                             let mut directional_vector_end_point_object_coordinates =
                                 end_point_object_coordinates.clone();
                             let transformed_directional_vector =
-                                inverse_rotation_matrix.multiply_by_matrix(directional_vector)
+                                transposed_rotation_matrix.multiply_by_matrix(directional_vector)
                                     .map_err(|e| JsValue::from(e))?;
                             let all_directional_vector_values =
                                 transformed_directional_vector.extract_all_elements_values();

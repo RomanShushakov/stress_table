@@ -211,6 +211,7 @@ impl Renderer
         Ok(())
     }
 
+
     pub fn delete_point_object(&mut self, number: u32, point_object_type: PointObjectType)
         -> Result<(), JsValue>
     {
@@ -307,6 +308,88 @@ impl Renderer
         let normalized_line_object = NormalizedLineObject::create(number,
             start_point_object_coordinates, end_point_object_coordinates, line_object_type, uid);
         self.state.normalized_line_objects.push(normalized_line_object);
+        Ok(())
+    }
+
+
+    pub fn update_normalized_line_object(&mut self, number: u32, start_point_object_number: u32,
+        end_point_object_number: u32, line_object_type: LineObjectType) -> Result<(), JsValue>
+    {
+        let point_object_type = match line_object_type
+            {
+                LineObjectType::Line => PointObjectType::Point,
+                LineObjectType::Element => PointObjectType::Node,
+            };
+        let start_point_object_coordinates =
+            {
+                if let Some(position) = self.state.normalized_point_objects.iter()
+                    .position(|point_object|
+                        point_object.number_same(start_point_object_number) &&
+                        point_object.point_object_type_same(point_object_type))
+                {
+                    Ok(self.state.normalized_point_objects[position].clone_coordinates())
+                }
+                else
+                {
+                    let error_message = format!("Renderer: Update {} action: {} with number \
+                        {} does not exist!", line_object_type.as_str().to_lowercase(),
+                    point_object_type.as_str(), start_point_object_number);
+                    Err(JsValue::from(error_message))
+                }
+            }?;
+        let end_point_object_coordinates =
+            {
+                if let Some(position) = self.state.normalized_point_objects.iter()
+                    .position(|point_object|
+                        point_object.number_same(end_point_object_number) &&
+                        point_object.point_object_type_same(point_object_type))
+                {
+                    Ok(self.state.normalized_point_objects[position].clone_coordinates())
+                }
+                else
+                {
+                    let error_message = format!("Renderer: Update {} action: {} with number \
+                        {} does not exist!", line_object_type.as_str().to_lowercase(),
+                    point_object_type.as_str(), end_point_object_number);
+                    Err(JsValue::from(error_message))
+                }
+            }?;
+        if let Some(position) = self.state.normalized_line_objects.iter()
+            .position(|line_object|
+                line_object.number_same(number) &&
+                line_object.line_object_type_same(line_object_type))
+        {
+            self.state.normalized_line_objects[position].update(start_point_object_coordinates,
+                end_point_object_coordinates)
+        }
+        else
+        {
+            let error_message = format!("Renderer: Update {} action: {} with number \
+                {} does not exist!", line_object_type.as_str().to_lowercase(),
+                line_object_type.as_str(), number);
+            return Err(JsValue::from(error_message));
+        }
+        Ok(())
+    }
+
+
+    pub fn delete_normalized_line_object(&mut self, number: u32, line_object_type: LineObjectType)
+        -> Result<(), JsValue>
+    {
+        if let Some(position) = self.state.normalized_line_objects.iter()
+            .position(|line_object|
+                line_object.number_same(number) &&
+                line_object.line_object_type_same(line_object_type))
+        {
+            let _ = self.state.normalized_line_objects.remove(position);
+        }
+        else
+        {
+            let error_message = format!("Renderer: Delete {} action: {} with \
+                number {} does not exist!", line_object_type.as_str().to_lowercase(),
+                line_object_type.as_str(), number);
+            return Err(JsValue::from(error_message));
+        }
         Ok(())
     }
 

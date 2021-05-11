@@ -73,7 +73,7 @@ class FeaRenderer extends HTMLElement {
         this.shadowRoot.querySelector(".renderer-canvas-text").addEventListener("mouseleave", () => this.onMouseLeave());
         this.shadowRoot.querySelector(".renderer-canvas-text").addEventListener("mousedown", () => this.onMouseDown());
         this.shadowRoot.querySelector(".renderer-canvas-text").addEventListener("mouseup", () => this.onMouseUp());
-        this.shadowRoot.querySelector(".renderer-canvas-text").addEventListener("mousewheel", (event) => this.onMouseWheel(event));
+        this.shadowRoot.querySelector(".renderer-canvas-text").addEventListener("wheel", (event) => this.onMouseWheel(event));
         this.shadowRoot.querySelector(".renderer-canvas-text").addEventListener("click", () => this.onMouseClick());
     }
 
@@ -103,6 +103,22 @@ class FeaRenderer extends HTMLElement {
 
     set addLineToRenderer(line) {
         this.state.renderer.add_normalized_line_object(line.number, line.startPointNumber, line.endPointNumber, LineObjectType.Line);
+        if (this.state.isPaused === true)
+        {
+            this.state.renderer.tick();
+        }
+    }
+
+    set updateLineInRenderer(line) {
+        this.state.renderer.update_normalized_line_object(line.number, line.startPointNumber, line.endPointNumber, LineObjectType.Line);
+        if (this.state.isPaused === true)
+        {
+            this.state.renderer.tick();
+        }
+    }
+
+    set deleteLineFromRenderer(line) {
+        this.state.renderer.delete_normalized_line_object(line.number, LineObjectType.Line);
         if (this.state.isPaused === true)
         {
             this.state.renderer.tick();

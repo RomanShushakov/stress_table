@@ -1109,6 +1109,11 @@ class FeaGeometry extends HTMLElement {
         this.refreshGeometryFields();
     }
 
+    set close(_empty) {
+        this.shadowRoot.querySelector(".geometry").close = "_empty";
+        this.refreshGeometryFields();
+    }
+
     disconnectedCallback() {
     }
 

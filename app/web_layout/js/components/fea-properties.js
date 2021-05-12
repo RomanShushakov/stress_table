@@ -46,6 +46,11 @@ class FeaProperties extends HTMLElement {
         `;
     }
 
+    set close(_empty) {
+        this.shadowRoot.querySelector(".properties").close = "_empty";
+        // this.refreshGeometryFields();
+    }
+
     connectedCallback() {
     }
 

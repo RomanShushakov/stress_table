@@ -16,9 +16,9 @@ const CS_AXIS_X: [f32; 3] = [1.0, 0.0, 0.0];
 const CS_AXIS_Y: [f32; 3] = [0.0, 1.0, 0.0];
 const CS_AXIS_Z: [f32; 3] = [0.0, 0.0, 1.0];
 
-const CS_AXIS_X_COLOR: [f32; 4] = [1.0, 0.0, 0.0, 1.0]; // red
-const CS_AXIS_Y_COLOR: [f32; 4] = [0.0, 1.0, 0.0, 1.0]; // green
-const CS_AXIS_Z_COLOR: [f32; 4] = [0.0, 0.0, 1.0, 1.0]; // blue
+const CS_AXIS_X_COLOR: [f32; 4] = [0.3843, 0.1490, 0.1607, 1.0]; // red
+const CS_AXIS_Y_COLOR: [f32; 4] = [0.1372, 0.3019, 0.1764, 1.0]; // green
+const CS_AXIS_Z_COLOR: [f32; 4] = [0.4549, 0.4588, 0.9019, 1.0]; // blue
 
 pub const CS_AXES_SCALE: f32 = 0.1;
 pub const CS_AXES_CAPS_HEIGHT: f32 = 0.15; // arrow length
@@ -37,7 +37,7 @@ pub const AXIS_Z_DENOTATION_SHIFT_X: f32 = -0.05;
 pub const AXIS_Z_DENOTATION_SHIFT_Y: f32 = -0.05;
 pub const AXIS_Z_DENOTATION_SHIFT_Z: f32 = 0.1;
 
-pub const CANVAS_AXES_DENOTATION_COLOR: &str = "white";
+pub const CANVAS_AXES_DENOTATION_COLOR: &str = "rgb(217, 217, 217)"; // white
 
 pub const DRAWN_OBJECT_TO_CANVAS_WIDTH_SCALE: f32 = 0.8;
 pub const DRAWN_OBJECT_TO_CANVAS_HEIGHT_SCALE: f32 = 0.9;
@@ -87,7 +87,7 @@ pub const DRAWN_FORCES_CAPS_LENGTH_COEFFICIENT: f32 = 1.5; // line length coeffi
 pub const DRAWN_FORCES_DENOTATION_SHIFT_X: f32 = 0.01;
 pub const DRAWN_FORCES_DENOTATION_SHIFT_Y: f32 = 0.01;
 
-pub const HINTS_COLOR: &str = "white";
+pub const HINTS_COLOR: &str = "rgb(217, 217, 217)"; // white
 pub const HINT_SHIFT_X: f32 = 0.05;
 pub const ROTATION_HINT_SHIFT_Y: f32 = 0.85;
 pub const ZOOM_HINT_SHIFT_Y: f32 = 0.9;

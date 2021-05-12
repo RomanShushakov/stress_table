@@ -20,6 +20,12 @@ class FeaApp extends HTMLElement {
                     display: flex;
                 }
 
+                .main-window {
+                    padding: 0rem;
+                    margin: 0rem;
+                    display: block;
+                }
+
                 .wrapper {
                     display: flex;
                     align-items: start;

@@ -103,6 +103,17 @@ class HidingContentButton extends HTMLElement {
         }
     }
 
+    set close(_empty) {
+        const content = this.shadowRoot.querySelector(".content");
+        const button = this.shadowRoot.querySelector(".hiding-content-button");
+        if (content.classList.contains("hidden") === false) {
+            content.classList.add("hidden");
+            button.classList.remove("active");
+            this.hideSiblings();
+            this.updateContentHeight();
+        }
+    }
+
     toggle() {
         const content = this.shadowRoot.querySelector(".content");
         const button = this.shadowRoot.querySelector(".hiding-content-button");
@@ -113,8 +124,19 @@ class HidingContentButton extends HTMLElement {
             content.classList.remove("hidden");
             button.classList.add("active");
             this.hideSiblings();
+            this.menuOpen();
         }
         this.updateContentHeight();
+    }
+
+    menuOpen() {
+        this.dispatchEvent(new CustomEvent("menu open", {
+            bubbles: true,
+            composed: true,
+            detail: {
+                from: `${this.getAttribute("full-name")}`,
+            },
+        }));
     }
 
     hideSiblings() {

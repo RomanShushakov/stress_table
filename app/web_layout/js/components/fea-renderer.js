@@ -3,7 +3,8 @@ import { initializeRenderer } from "../wasm_modules_initialization/renderer_init
 import { PointObjectType, LineObjectType } from "../../wasm/renderer/renderer.js";
 
 
-const coefficient = 0.8;
+const widthCoefficient = 0.87;
+const heightCoefficient = 0.91;
 
 
 class FeaRenderer extends HTMLElement {
@@ -37,11 +38,12 @@ class FeaRenderer extends HTMLElement {
                 .wrapper {
                     display: flex;
                     flex-direction: column;
-                    border: 1px solid #000000;
+                    border: 0.1rem solid #5c687a;
                 }
                 
                 .renderer-container {
                     position: relative;
+                    border-bottom: 0.1rem solid #5c687a;
                 }
                 
                 .renderer-canvas-text {
@@ -57,9 +59,10 @@ class FeaRenderer extends HTMLElement {
                 }
 
                 .object-info-field {
-                    font-size: 0.85rem;
                     margin-top: 0.2rem;
                     margin-bottom: 0.2rem;
+                    margin-left: 0.2rem;
+                    color: #6c6c6d;
                 }
             </style>
             <div class="wrapper">
@@ -139,8 +142,8 @@ class FeaRenderer extends HTMLElement {
     async connectedCallback() {
         this.state.canvasText = this.shadowRoot.querySelector(".renderer-canvas-text");
         this.state.canvasGL = this.shadowRoot.querySelector(".renderer-canvas-gl");
-        this.state.canvasWidth = window.innerWidth * coefficient;
-        this.state.canvasHeight = window.innerHeight * coefficient;
+        this.state.canvasWidth = window.innerWidth * widthCoefficient;
+        this.state.canvasHeight = window.innerHeight * heightCoefficient;
         this.state.canvasText.width = this.state.canvasWidth;
         this.state.canvasText.height = this.state.canvasHeight;
         this.state.canvasGL.width = this.state.canvasWidth;
@@ -165,8 +168,8 @@ class FeaRenderer extends HTMLElement {
 
 
     updateCanvasSize() {
-        this.state.canvasWidth = window.innerWidth * coefficient;
-        this.state.canvasHeight = window.innerHeight * coefficient;
+        this.state.canvasWidth = window.innerWidth * widthCoefficient;
+        this.state.canvasHeight = window.innerHeight * heightCoefficient;
         this.state.renderer.update_canvas_size(this.state.canvasWidth, this.state.canvasHeight);
         this.state.renderer.tick();
     }

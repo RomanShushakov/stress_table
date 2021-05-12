@@ -17,7 +17,7 @@ class FeaPreprocessor extends HTMLElement {
                 }
 
                 .wrapper {
-                    background-color: #eee;
+                    background-color: #2e3440;
                 }
             </style>
             <div class=wrapper>
@@ -31,8 +31,8 @@ class FeaPreprocessor extends HTMLElement {
                 </fea-preprocessor-menu>
             </div>
         `;
+        this.addEventListener("menu open", (event) => this.closeOtherMenus(event));
     }
-
 
     set actionId(value) {
         this.props.actionId = value;
@@ -72,6 +72,19 @@ class FeaPreprocessor extends HTMLElement {
             }
         });
         this.updateChildrenActionId();
+    }
+
+    closeOtherMenus(event) {
+        switch (event.detail.from) {
+            case "geometry":
+                this.shadowRoot.querySelector("fea-properties").close = "_empty";
+                event.stopPropagation();
+                break;
+            case "properties":
+                this.shadowRoot.querySelector("fea-geometry").close = "_empty";
+                event.stopPropagation();
+                break;
+        }
     }
 
     disconnectedCallback() {

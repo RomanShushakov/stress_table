@@ -14,6 +14,7 @@ const UNDO: &str = "undo";
 const REDO: &str = "redo";
 
 const SELECTED_POINT_NUMBER_EVENT: &str = "selected_point_number";
+const SELECTED_LINE_NUMBER_EVENT: &str = "selected_line_number";
 
 #[wasm_bindgen]
 extern "C"
@@ -61,7 +62,10 @@ extern "C"
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
     #[wasm_bindgen(js_name = showPointInfo, catch)]
-    fn show_point_info(number: u32) -> Result<(), JsValue>;
+    fn show_point_info(number: u32) -> Result<String, JsValue>;
+
+    #[wasm_bindgen(js_name = showLineInfoFromGeometry, catch)]
+    fn show_line_info_from_geometry(number: u32) -> Result<String, JsValue>;
 }
 
 
@@ -132,7 +136,8 @@ enum ActionType
     DeleteLine(ObjectNumber, bool),
     UndoDeleteLine(ObjectNumber, bool),
 
-    ShowPointInfo(ObjectNumber),
+    ShowPointInfo(ObjectNumber, js_sys::Function),
+    ShowLineInfo(ObjectNumber, js_sys::Function),
 }
 
 
@@ -496,15 +501,32 @@ impl ActionsRouter
     }
 
 
-    fn handle_selected_point_number_message(&mut self, selected_point_number: &Value)
+    fn handle_selected_point_number_message(&mut self, selected_point_number: &Value,
+        show_object_info: &js_sys::Function)
         -> Result<(), JsValue>
     {
         let point_number = selected_point_number.to_string()
             .parse::<u32>()
             .or(Err(JsValue::from("Actions router: Show point info action: \
+                Point number could not be converted to u32!")))?;
+        let action_id = 0;
+        let action_type = ActionType::ShowPointInfo(ObjectNumber::create(point_number), show_object_info.clone());
+        let action = Action::create(action_id, action_type);
+        let add_to_active_actions = false;
+        self.current_action = Some((action, add_to_active_actions));
+        Ok(())
+    }
+
+
+    fn handle_selected_line_number_message(&mut self, selected_line_number: &Value,
+        show_object_info: &js_sys::Function) -> Result<(), JsValue>
+    {
+        let line_number = selected_line_number.to_string()
+            .parse::<u32>()
+            .or(Err(JsValue::from("Actions router: Show line info action: \
                 Line number could not be converted to u32!")))?;
         let action_id = 0;
-        let action_type = ActionType::ShowPointInfo(ObjectNumber::create(point_number));
+        let action_type = ActionType::ShowLineInfo(ObjectNumber::create(line_number), show_object_info.clone());
         let action = Action::create(action_id, action_type);
         let add_to_active_actions = false;
         self.current_action = Some((action, add_to_active_actions));
@@ -619,10 +641,23 @@ impl ActionsRouter
                             self.active_actions.push(action.clone());
                         }
                     },
-                ActionType::ShowPointInfo(point_number) =>
+                ActionType::ShowPointInfo(point_number, show_object_info) =>
                     {
                         let number = point_number.get_number();
-                        show_point_info(number)?;
+                        let point_info = show_point_info(number)?;
+                        let point_info_message = format!("Point: {}.",
+                            point_info);
+                        let this = JsValue::null();
+                        let _ = show_object_info.call1(&this, &JsValue::from(point_info_message))?;
+                    },
+                ActionType::ShowLineInfo(line_number, show_object_info) =>
+                    {
+                        let number = line_number.get_number();
+                        let line_info_from_geometry = show_line_info_from_geometry(number)?;
+                        let line_info_message =
+                            format!("Line: {}.", line_info_from_geometry);
+                        let this = JsValue::null();
+                        let _ = show_object_info.call1(&this, &JsValue::from(line_info_message))?;
                     }
             }
             self.current_action = None;
@@ -631,7 +666,8 @@ impl ActionsRouter
     }
 
 
-    pub fn handle_message(&mut self, message: JsValue) -> Result<(), JsValue>
+    pub fn handle_message(&mut self, message: JsValue, show_object_info: &js_sys::Function)
+        -> Result<(), JsValue>
     {
         let serialized_message: Value = message.into_serde().or(Err(JsValue::from(
             "Actions router: Message could not be serialized!")))?;
@@ -670,7 +706,12 @@ impl ActionsRouter
         else if let Some(selected_point_number) =
             serialized_message.get(SELECTED_POINT_NUMBER_EVENT)
         {
-            self.handle_selected_point_number_message(&selected_point_number)?;
+            self.handle_selected_point_number_message(&selected_point_number, show_object_info)?;
+        }
+        else if let Some(selected_line_number) =
+            serialized_message.get(SELECTED_LINE_NUMBER_EVENT)
+        {
+            self.handle_selected_line_number_message(&selected_line_number, show_object_info)?;
         }
         else
         {

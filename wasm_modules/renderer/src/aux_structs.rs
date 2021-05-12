@@ -792,6 +792,9 @@ impl DrawnObject
                     {
                         let transposed_rotation_matrix =
                             normalized_line_object.extract_transposed_rotation_matrix();
+                        let point_object_coordinates_shift =
+                            ExtendedMatrix::create(3u32, 1u32,
+                            vec![base_radius * 2.0, 0.0, 0.0]);
                         let mut directional_vectors = Vec::new();
                         let angle = 2.0 * PI / base_points_number as f32;
                         for point_number in 0..base_points_number
@@ -820,32 +823,46 @@ impl DrawnObject
                             let transformed_directional_vector =
                                 transposed_rotation_matrix.multiply_by_matrix(directional_vector)
                                     .map_err(|e| JsValue::from(e))?;
+                            let transformed_point_object_coordinates_shift =
+                                transposed_rotation_matrix.multiply_by_matrix(&point_object_coordinates_shift)
+                                    .map_err(|e| JsValue::from(e))?;
                             let all_directional_vector_values =
                                 transformed_directional_vector.extract_all_elements_values();
+                            let all_point_object_coordinates_shift_values =
+                                transformed_point_object_coordinates_shift.extract_all_elements_values();
                             let directional_vector_x_coordinate =
                                 extract_element_value(0, 0,
                                     &all_directional_vector_values);
+                            let object_coordinates_shift_x_coordinate =
+                                extract_element_value(0, 0,
+                                    &all_point_object_coordinates_shift_values);
                             let directional_vector_y_coordinate = extract_element_value(1,
                                 0,&all_directional_vector_values);
+                            let object_coordinates_shift_y_coordinate =
+                                extract_element_value(1, 0,
+                                    &all_point_object_coordinates_shift_values);
                             let directional_vector_z_coordinate = extract_element_value(2,
                                 0, &all_directional_vector_values);
+                            let object_coordinates_shift_z_coordinate =
+                                extract_element_value(2, 0,
+                                    &all_point_object_coordinates_shift_values);
                             directional_vector_start_point_object_coordinates[0] +=
-                                directional_vector_x_coordinate;
+                                directional_vector_x_coordinate + object_coordinates_shift_x_coordinate;
                             directional_vector_start_point_object_coordinates[1] +=
-                                directional_vector_y_coordinate;
+                                directional_vector_y_coordinate + object_coordinates_shift_y_coordinate;
                             directional_vector_start_point_object_coordinates[2] +=
-                                directional_vector_z_coordinate;
+                                directional_vector_z_coordinate + object_coordinates_shift_z_coordinate;
                             self.vertices_coordinates.extend(
                                 &directional_vector_start_point_object_coordinates);
                             self.colors_values.extend(&line_object_color);
                             self.indexes_numbers.push(start_index + count);
                             count += 1;
                             directional_vector_end_point_object_coordinates[0] +=
-                                directional_vector_x_coordinate;
+                                directional_vector_x_coordinate - object_coordinates_shift_x_coordinate;
                             directional_vector_end_point_object_coordinates[1] +=
-                                directional_vector_y_coordinate;
+                                directional_vector_y_coordinate - object_coordinates_shift_y_coordinate;
                             directional_vector_end_point_object_coordinates[2] +=
-                                directional_vector_z_coordinate;
+                                directional_vector_z_coordinate - object_coordinates_shift_z_coordinate;
                             self.vertices_coordinates.extend(
                                 &directional_vector_end_point_object_coordinates);
                             self.colors_values.extend(&line_object_color);

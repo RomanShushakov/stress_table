@@ -1070,6 +1070,7 @@ class FeaGeometry extends HTMLElement {
 
     set addPointToClient(point) {
         this.props.points.push(point);
+        this.props.points.sort((a, b) => a.number - b.number);
         this.refreshGeometryFields();
     }
 
@@ -1083,12 +1084,14 @@ class FeaGeometry extends HTMLElement {
 
     set deletePointFromClient(point) {
         let pointIndexInProps = this.props.points.findIndex(existedPoint => existedPoint.number == point.number);
-        this.props.points.splice(pointIndexInProps, 1)
+        this.props.points.splice(pointIndexInProps, 1);
+        this.props.points.sort((a, b) => a.number - b.number);
         this.refreshGeometryFields();
     }
 
     set addLineToClient(line) {
         this.props.lines.push(line);
+        this.props.lines.sort((a, b) => a.number - b.number);
         this.refreshGeometryFields();
     }
 
@@ -1101,7 +1104,8 @@ class FeaGeometry extends HTMLElement {
 
     set deleteLineFromClient(line) {
         let lineIndexInProps = this.props.lines.findIndex(existedLine => existedLine.number == line.number);
-        this.props.lines.splice(lineIndexInProps, 1)
+        this.props.lines.splice(lineIndexInProps, 1);
+        this.props.lines.sort((a, b) => a.number - b.number);
         this.refreshGeometryFields();
     }
 
@@ -1334,28 +1338,36 @@ class FeaGeometry extends HTMLElement {
             }
         }
         if (newPointNumberField.value === "" || inputtedXField.value === "" || inputtedYField.value === "" || inputtedZField.value === "") {
-            this.shadowRoot.querySelector(".point-add-message").innerHTML = "The highlighted fields should be filled!";
-            this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
-                this.shadowRoot.querySelector(".point-add-message").offsetHeight}px;`);
-            return;
+            if (this.shadowRoot.querySelector(".point-add-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".point-add-message").innerHTML = "The highlighted fields should be filled!";
+                this.shadowRoot.querySelector(".wrapper").setAttribute("style",
+                    `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
+                    this.shadowRoot.querySelector(".point-add-message").offsetHeight}px;`);
+                return;
+            }
         }
         const pointNumberInProps = this.props.points.find(point => point.number == newPointNumberField.value);
         if (pointNumberInProps != null) {
-            this.shadowRoot.querySelector(".point-add-message").innerHTML = "The point with the same number does already exist!";
-            this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
-                this.shadowRoot.querySelector(".point-add-message").offsetHeight}px;`);
-            return;
+            if (this.shadowRoot.querySelector(".point-add-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".point-add-message").innerHTML = "The point with the same number does already exist!";
+                this.shadowRoot.querySelector(".wrapper").setAttribute("style",
+                    `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
+                    this.shadowRoot.querySelector(".point-add-message").offsetHeight}px;`);
+                return;
+            }
         }
         const pointCoordinatesInProps = this.props.points.find(point => point.x == inputtedXField.value && point.y == inputtedYField.value &&
             point.z == inputtedZField.value);
         if (pointCoordinatesInProps != null) {
-            this.shadowRoot.querySelector(".point-add-message").innerHTML = "The point with the same coordinates does already exist!";
-            this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
-                this.shadowRoot.querySelector(".point-add-message").offsetHeight}px;`);
-            return;
+            if (this.shadowRoot.querySelector(".point-add-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".point-add-message").innerHTML = "The point with the same coordinates does already exist!";
+                this.shadowRoot.querySelector(".wrapper").setAttribute("style",
+                    `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
+                    this.shadowRoot.querySelector(".point-add-message").offsetHeight}px;`);
+                return;
+            } else {
+                return;
+            }
         }
         const message = {"add_point": {
             "actionId": this.props.actionId,
@@ -1414,20 +1426,28 @@ class FeaGeometry extends HTMLElement {
             }
         }
         if (selectedPointNumberField.value === "" || inputtedXField.value === "" || inputtedYField.value === "" || inputtedZField.value === "") {
-            this.shadowRoot.querySelector(".point-update-message").innerHTML = "The highlighted fields should be filled!";
-            this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
-                this.shadowRoot.querySelector(".point-update-message").offsetHeight}px;`);
-            return;
+            if (this.shadowRoot.querySelector(".point-update-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".point-update-message").innerHTML = "The highlighted fields should be filled!";
+                this.shadowRoot.querySelector(".wrapper").setAttribute("style",
+                    `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
+                    this.shadowRoot.querySelector(".point-update-message").offsetHeight}px;`);
+                return;
+            } else {
+                return;
+            }
         }
         const pointCoordinatesInProps = this.props.points.find(point => point.x == inputtedXField.value && point.y == inputtedYField.value &&
             point.z == inputtedZField.value);
         if (pointCoordinatesInProps != null) {
-            this.shadowRoot.querySelector(".point-update-message").innerHTML = "The point with the same coordinates does already exist!";
-            this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
-                this.shadowRoot.querySelector(".point-update-message").offsetHeight}px;`);
-            return;
+            if (this.shadowRoot.querySelector(".point-update-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".point-update-message").innerHTML = "The point with the same coordinates does already exist!";
+                this.shadowRoot.querySelector(".wrapper").setAttribute("style",
+                    `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
+                    this.shadowRoot.querySelector(".point-update-message").offsetHeight}px;`);
+                return;
+            } else {
+                return;
+            }
         }
         const oldPointValues = this.props.points.find(point => point.number == selectedPointNumberField.value);
         const message = {"update_point": {
@@ -1456,11 +1476,15 @@ class FeaGeometry extends HTMLElement {
             if (selectedPointNumberField.classList.contains("highlighted") === false) {
                 selectedPointNumberField.classList.add("highlighted");
             }
-            this.shadowRoot.querySelector(".point-delete-message").innerHTML = "The highlighted fields should be filled!";
-            this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
-                this.shadowRoot.querySelector(".point-delete-message").offsetHeight}px;`);
-            return;
+            if (this.shadowRoot.querySelector(".point-delete-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".point-delete-message").innerHTML = "The highlighted fields should be filled!";
+                this.shadowRoot.querySelector(".wrapper").setAttribute("style",
+                    `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
+                    this.shadowRoot.querySelector(".point-delete-message").offsetHeight}px;`);
+                return;
+            } else {
+                return;
+            }
         }
         const deletedPointValues = this.props.points.find(point => point.number == selectedPointNumberField.value);
         const message = {"delete_point": { "actionId": this.props.actionId, "number": deletedPointValues.number }};
@@ -1579,36 +1603,52 @@ class FeaGeometry extends HTMLElement {
             }
         }
         if (newLineNumberField.value == "" || startPointField.value == "" || endPointField.value == "") {
-            this.shadowRoot.querySelector(".line-add-message").innerHTML = "The highlighted fields should be filled!";
-            this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
-                this.shadowRoot.querySelector(".line-add-message").offsetHeight}px;`);
-            return;
+            if (this.shadowRoot.querySelector(".line-add-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".line-add-message").innerHTML = "The highlighted fields should be filled!";
+                this.shadowRoot.querySelector(".wrapper").setAttribute("style",
+                    `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
+                    this.shadowRoot.querySelector(".line-add-message").offsetHeight}px;`);
+                return;
+            } else {
+                return;
+            }
         }
         const lineNumberInProps = this.props.lines.find(line => line.number == newLineNumberField.value);
         if (lineNumberInProps != null) {
-            this.shadowRoot.querySelector(".line-add-message").innerHTML = "The line with the same number does already exist!";
-            this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
-                this.shadowRoot.querySelector(".line-add-message").offsetHeight}px;`);
-            return;
+            if (this.shadowRoot.querySelector(".line-add-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".line-add-message").innerHTML = "The line with the same number does already exist!";
+                this.shadowRoot.querySelector(".wrapper").setAttribute("style",
+                    `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
+                    this.shadowRoot.querySelector(".line-add-message").offsetHeight}px;`);
+                return;
+            } else {
+                return;
+            }
         }
         const linePointNumbersInProps = this.props.lines.find(line =>
             (line.startPointNumber == startPointField.value && line.endPointNumber == endPointField.value) ||
             (line.startPointNumber == endPointField.value && line.endPointNumber == startPointField.value));
         if (linePointNumbersInProps != null) {
-            this.shadowRoot.querySelector(".line-add-message").innerHTML = "The line with the same start and end points does already exist!";
-            this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
-                this.shadowRoot.querySelector(".line-add-message").offsetHeight}px;`);
-            return;
+            if (this.shadowRoot.querySelector(".line-add-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".line-add-message").innerHTML = "The line with the same start and end points does already exist!";
+                this.shadowRoot.querySelector(".wrapper").setAttribute("style",
+                    `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
+                    this.shadowRoot.querySelector(".line-add-message").offsetHeight}px;`);
+                return;
+            } else {
+                return;
+            }
         }
         if (startPointField.value === endPointField.value) {
-            this.shadowRoot.querySelector(".line-add-message").innerHTML = "The start and the end point numbers should not be the same!";
-            this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
-                this.shadowRoot.querySelector(".line-add-message").offsetHeight}px;`);
-            return;
+            if (this.shadowRoot.querySelector(".line-add-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".line-add-message").innerHTML = "The start and the end point numbers should not be the same!";
+                this.shadowRoot.querySelector(".wrapper").setAttribute("style",
+                    `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
+                    this.shadowRoot.querySelector(".line-add-message").offsetHeight}px;`);
+                return;
+            } else {
+                return;
+            }
         }
         const message = {"add_line": {
             "actionId": this.props.actionId,
@@ -1680,28 +1720,40 @@ class FeaGeometry extends HTMLElement {
             }
         }
         if (selectedLineNumberField.value == "" || startPointField.value == "" || endPointField.value == "") {
-            this.shadowRoot.querySelector(".line-update-message").innerHTML = "The highlighted fields should be filled!";
-            this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
-                this.shadowRoot.querySelector(".line-update-message").offsetHeight}px;`);
-            return;
+            if (this.shadowRoot.querySelector(".line-update-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".line-update-message").innerHTML = "The highlighted fields should be filled!";
+                this.shadowRoot.querySelector(".wrapper").setAttribute("style",
+                    `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
+                    this.shadowRoot.querySelector(".line-update-message").offsetHeight}px;`);
+                return;
+            } else {
+                return;
+            }
         }
         const linePointNumbersInProps = this.props.lines.find(line =>
             (line.startPointNumber == startPointField.value && line.endPointNumber == endPointField.value) ||
             (line.startPointNumber == endPointField.value && line.endPointNumber == startPointField.value));
         if (linePointNumbersInProps != null) {
-            this.shadowRoot.querySelector(".line-update-message").innerHTML = "The line with the same start and end points does already exist!";
-            this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
-                this.shadowRoot.querySelector(".line-update-message").offsetHeight}px;`);
-            return;
+            if (this.shadowRoot.querySelector(".line-update-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".line-update-message").innerHTML = "The line with the same start and end points does already exist!";
+                this.shadowRoot.querySelector(".wrapper").setAttribute("style",
+                    `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
+                    this.shadowRoot.querySelector(".line-update-message").offsetHeight}px;`);
+                return;
+            } else {
+                return;
+            }
         }
         if (startPointField.value === endPointField.value) {
-            this.shadowRoot.querySelector(".line-update-message").innerHTML = "The start and the end point numbers should not be the same!";
-            this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
-                this.shadowRoot.querySelector(".line-update-message").offsetHeight}px;`);
-            return;
+            if (this.shadowRoot.querySelector(".line-update-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".line-update-message").innerHTML = "The start and the end point numbers should not be the same!";
+                this.shadowRoot.querySelector(".wrapper").setAttribute("style",
+                    `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
+                    this.shadowRoot.querySelector(".line-update-message").offsetHeight}px;`);
+                return;
+            } else {
+                return;
+            }
         }
         const oldLineValues = this.props.lines.find(line => line.number == selectedLineNumberField.value);
         const message = {"update_line": {
@@ -1753,11 +1805,15 @@ class FeaGeometry extends HTMLElement {
             if (selectedLineNumberField.classList.contains("highlighted") === false) {
                 selectedLineNumberField.classList.add("highlighted");
             }
-            this.shadowRoot.querySelector(".line-delete-message").innerHTML = "The highlighted fields should be filled!";
-            this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
-                this.shadowRoot.querySelector(".line-delete-message").offsetHeight}px;`);
-            return;
+            if (this.shadowRoot.querySelector(".line-delete-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".line-delete-message").innerHTML = "The highlighted fields should be filled!";
+                this.shadowRoot.querySelector(".wrapper").setAttribute("style",
+                    `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight +
+                    this.shadowRoot.querySelector(".line-delete-message").offsetHeight}px;`);
+                return;
+            } else {
+                return;
+            }
         }
         const message = {"delete_line": {
             "actionId": this.props.actionId,

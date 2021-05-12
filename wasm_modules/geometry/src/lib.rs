@@ -247,7 +247,7 @@ impl Geometry
 
 
     pub fn add_point(&mut self, action_id: u32, number: u32, x: f64, y: f64, z: f64,
-        is_action_id_should_be_increased: bool ) -> Result<(), JsValue>
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_deleted_lines_by_action_id(&action_id);
         self.clear_deleted_points_by_action_id(&action_id);
@@ -560,43 +560,43 @@ impl Geometry
     }
 
 
-    pub fn show_point_info(&mut self, number: u32) -> Result<(), JsValue>
+    pub fn show_point_info(&mut self, number: u32) -> Result<String, JsValue>
     {
-        if let Some(position) = self.points.iter().position(|point|
+        return if let Some(position) = self.points.iter().position(|point|
             point.borrow().number_same(number))
         {
             let (number, x, y, z) = self.points[position]
                 .borrow()
                 .extract_number_and_coordinates();
-            log(&format!("You selected point with number: {}, x: {}, y: {}, z: {}",
-                number, x, y, z));
+            Ok(format!("number: {}, x: {}, y: {}, z: {}", number, x, y, z))
         }
         else
         {
             let error_message = &format!("Geometry: Show point info action: Point with \
                 number {} does not exist!", number);
-            return Err(JsValue::from(error_message));
+            Err(JsValue::from(error_message))
         }
-
-        Ok(())
-
-        // if self.points.iter().position(|point|
-        //     point.borrow().coordinates_same(x, y, z)).is_some()
-        // {
-        //     let error_message = &format!("Geometry: Add point action: Point with \
-        //         coordinates {}, {}, {} does already exist!", x, y, z);
-        //     return Err(JsValue::from(error_message));
-        // }
-        // let point = Point::create(action_id, number, x, y, z);
-        // self.points.push(Rc::new(RefCell::new(point)));
-        // let detail = json!({ "point_data": { "number": number, "x": x, "y": y, "z": z },
-        //         "is_action_id_should_be_increased": is_action_id_should_be_increased });
-        // dispatch_custom_event(detail, ADD_POINT, EVENTS_TARGET)?;
-        // log(&format!("Geometry: Points: {:?}, lines: {:?}, deleted points: {:?}, \
-        //     deleted lines {:?}", self.points, self.lines, self.deleted_points,
-        //     self.deleted_lines));
-        // Ok(())
     }
+
+
+    pub fn show_line_info(&mut self, number: u32) -> Result<String, JsValue>
+    {
+        return if let Some(position) = self.lines.iter().position(|line|
+            line.number_same(number))
+        {
+            let (number, start_point_number, end_point_number) = self.lines[position]
+                .extract_number_and_points_numbers();
+            Ok(format!("number: {}, start point number: {}, end point number: {}",
+                number, start_point_number, end_point_number))
+        }
+        else
+        {
+            let error_message = &format!("Geometry: Show line info action: Line with \
+                number {} does not exist!", number);
+            Err(JsValue::from(error_message))
+        }
+    }
+
 
     pub fn add_whole_geometry_to_preprocessor(&self, is_action_id_should_be_increased: bool)
         -> Result<(), JsValue>

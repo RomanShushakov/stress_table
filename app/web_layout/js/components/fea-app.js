@@ -98,8 +98,12 @@ class FeaApp extends HTMLElement {
     }
 
     handleClientMessage(event) {
-        this.state.actionsRouter.handle_message(event.detail.message);
+        this.state.actionsRouter.handle_message(event.detail.message, (objectInfo) => this.showObjectInfo(objectInfo));
         event.stopPropagation();
+    }
+
+    showObjectInfo(objectInfo) {
+        this.shadowRoot.querySelector("fea-renderer").objectInfo = objectInfo;
     }
 
     handleAddPointServerMessage(event) {

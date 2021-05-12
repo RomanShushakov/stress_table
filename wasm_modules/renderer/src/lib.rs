@@ -394,7 +394,7 @@ impl Renderer
     }
 
 
-    pub fn select_object(&mut self) -> Result<(), JsValue>
+    pub fn select_object(&mut self, drop_selection: &js_sys::Function) -> Result<(), JsValue>
     {
         self.state.selected_color = self.state.under_cursor_color;
         log(&format!("{:?}", self.state.selected_color));
@@ -404,18 +404,34 @@ impl Renderer
         {
             let selected_point_object =
                 &self.state.normalized_point_objects[position];
-            match selected_point_object.get_object_type()
-            {
-                PointObjectType::Point =>
-                    {
-                        let selected_point_number = selected_point_object.get_number();
-                        let detail =
-                            json!({ "message": { "selected_point_number": selected_point_number } });
-                        dispatch_custom_event(detail, CLIENT_MESSAGE,
-                            EVENTS_TARGET)?;
-                    },
-                PointObjectType::Node => (),
-            }
+            let selected_point_object_number = selected_point_object.get_number();
+            let selected_point_object_type = selected_point_object.get_object_type().as_str()
+                .to_lowercase();
+            let detail_header = &format!("selected_{}_number", selected_point_object_type);
+            let detail =
+                json!({ "message": { detail_header: selected_point_object_number } });
+            dispatch_custom_event(detail, CLIENT_MESSAGE,
+                EVENTS_TARGET)?;
+        }
+        else if let Some(position) = self.state.normalized_line_objects.iter()
+            .position(|line_object|
+                transform_u32_to_array_of_u8(line_object.get_uid()) == self.state.selected_color)
+        {
+            let selected_line_object =
+                &self.state.normalized_line_objects[position];
+            let selected_line_object_number = selected_line_object.get_number();
+            let selected_line_object_type = selected_line_object.get_object_type().as_str()
+                .to_lowercase();
+            let detail_header = &format!("selected_{}_number", selected_line_object_type);
+            let detail =
+                json!({ "message": { detail_header: selected_line_object_number } });
+            dispatch_custom_event(detail, CLIENT_MESSAGE,
+                EVENTS_TARGET)?;
+        }
+        else
+        {
+            let this = JsValue::null();
+            let _ = drop_selection.call0(&this);
         }
         Ok(())
     }
@@ -534,7 +550,7 @@ impl Renderer
 
             drawn_objects_buffers.render(&gl, &drawn_object, &shaders_variables);
 
-            let point_size = 6.0;
+            let point_size = 5.0;
 
             let mut projection_matrix = mat4::new_zero();
 
@@ -648,7 +664,7 @@ impl Renderer
 
         cs_buffers.render(&gl, &cs_drawn_object, &shaders_variables);
 
-        let point_size = 6.0;
+        let point_size = 5.0;
 
         let mut projection_matrix = mat4::new_zero();
         mat4::orthographic(&mut projection_matrix,

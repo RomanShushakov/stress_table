@@ -93,6 +93,19 @@ export function showPointInfo(number)
 {
     try {
         communicatorWithGeometry.showPointInfo = number;
+        const pointInfo = communicatorWithGeometry.objectInfo;
+        return pointInfo;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function showLineInfoFromGeometry(number) 
+{
+    try {
+        communicatorWithGeometry.showLineInfo = number;
+        const lineInfo = communicatorWithGeometry.objectInfo;
+        return lineInfo;
     } catch (error) {
         throw error;
     }

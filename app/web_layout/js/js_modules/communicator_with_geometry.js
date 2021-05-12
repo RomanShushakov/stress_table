@@ -4,6 +4,7 @@ class CommunicatorWithGeometry {
     constructor() {
         this.state = {
             geometry: null,
+            objectInfo: null,
         };
 
         this.initGeometry();
@@ -84,10 +85,26 @@ class CommunicatorWithGeometry {
 
     set showPointInfo(number) {
         try {
-            this.state.geometry.show_point_info(number);
+            const pointInfo = this.state.geometry.show_point_info(number);
+            this.state.objectInfo = pointInfo;
         } catch (error) {
             throw error;
         }
+    }
+
+    set showLineInfo(number) {
+        try {
+            const lineInfo = this.state.geometry.show_line_info(number);
+            this.state.objectInfo = lineInfo;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    get objectInfo() {
+        const objectInfo = this.state.objectInfo;
+        this.state.objectInfo = null;
+        return objectInfo;
     }
 
     set addWholeGeometryToPreprocessor(isActionIdShouldBeIncreased) {

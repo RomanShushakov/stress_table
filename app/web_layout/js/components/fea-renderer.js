@@ -31,14 +31,13 @@ class FeaRenderer extends HTMLElement {
         this.shadowRoot.innerHTML = `
             <style>
                 :host {
-                    display: block;
+                    display: flex;
                 }
 
-                .preprocessor_canvas {
+                .wrapper {
                     display: flex;
                     flex-direction: column;
                     border: 1px solid #000000;
-                    margin-top: 0.5rem;
                 }
                 
                 .renderer-container {
@@ -53,15 +52,23 @@ class FeaRenderer extends HTMLElement {
                     z-index: 10;
                 }
                 
-                
                 .renderer-canvas-gl {
                     vertical-align: top;
+                }
+
+                .object-info-field {
+                    font-size: 0.85rem;
+                    margin-top: 0.2rem;
+                    margin-bottom: 0.2rem;
                 }
             </style>
             <div class="wrapper">
                 <div class="renderer-container">
                     <canvas class="renderer-canvas-text"></canvas>
                     <canvas class="renderer-canvas-gl"></canvas>
+                </div>
+                <div class="object-info">
+                    <p class="object-info-field">Object:</p>
                 </div>
             </div>
         `;
@@ -123,6 +130,10 @@ class FeaRenderer extends HTMLElement {
         {
             this.state.renderer.tick();
         }
+    }
+
+    set objectInfo(objectInfo) {
+        this.shadowRoot.querySelector(".object-info-field").innerHTML = `Object: ${objectInfo}`;
     }
 
     async connectedCallback() {
@@ -236,8 +247,13 @@ class FeaRenderer extends HTMLElement {
     }
 
 
+    dropSelection() {
+        this.shadowRoot.querySelector(".object-info-field").innerHTML = "Object:";
+    }
+
+
     onMouseClick() {
-        this.state.renderer.select_object();
+        this.state.renderer.select_object(() => this.dropSelection());
     }
 
 

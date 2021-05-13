@@ -21,14 +21,12 @@ class FeaPreprocessor extends HTMLElement {
                 }
             </style>
             <div class=wrapper>
-                <fea-preprocessor-menu>
-                    <fea-geometry></fea-geometry>
-                    <fea-properties></fea-properties>
-                    <fea-node></fea-node>
-                    <fea-element></fea-element>
-                    <fea-displacement></fea-displacement>
-                    <fea-load></fea-load>
-                </fea-preprocessor-menu>
+                <fea-geometry></fea-geometry>
+                <fea-properties></fea-properties>
+                <fea-mesh></fea-mesh>
+                <fea-load></fea-load>
+                <fea-boundary-condition></fea-boundary-condition>
+                <fea-analysis></fea-analysis>
             </div>
         `;
         this.addEventListener("menu open", (event) => this.closeOtherMenus(event));

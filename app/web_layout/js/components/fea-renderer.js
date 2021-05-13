@@ -3,15 +3,14 @@ import { initializeRenderer } from "../wasm_modules_initialization/renderer_init
 import { PointObjectType, LineObjectType } from "../../wasm/renderer/renderer.js";
 
 
-const widthCoefficient = 0.87;
-const heightCoefficient = 0.91;
-
-
 class FeaRenderer extends HTMLElement {
     constructor() {
         super();
 
-        this.props = {};
+        this.props = {
+            canvasWidth: null,
+            canvasHeight: null,
+        };
 
         this.state = {
             canvasText: null,
@@ -20,8 +19,6 @@ class FeaRenderer extends HTMLElement {
             animationId: null,
             renderLoop: null,
             isPaused: true,
-            canvasWidth: null,
-            canvasHeight: null,
             isRotate: false,
             isPan: false,
             isShiftPressed: false,
@@ -76,7 +73,6 @@ class FeaRenderer extends HTMLElement {
             </div>
         `;
 
-        window.addEventListener("resize", () => this.updateCanvasSize());
         window.addEventListener("keydown", (event) => this.onKeyDown(event));
         window.addEventListener("keyup", () => this.onKeyUp());
         this.shadowRoot.querySelector(".renderer-canvas-text").addEventListener("mousemove", (event) => this.onMouseMove(event));
@@ -139,20 +135,34 @@ class FeaRenderer extends HTMLElement {
         this.shadowRoot.querySelector(".object-info-field").innerHTML = `Object: ${objectInfo}`;
     }
 
+    set canvasSize(size) {
+        this.props.canvasWidth = size.width;
+        this.props.canvasHeight = size.height;
+        this.updateCanvasSize();
+    }
+
     async connectedCallback() {
+        Object.keys(this.props).forEach((propName) => {
+            if (this.hasOwnProperty(propName)) {
+                let value = this[propName];
+                delete this[propName];
+                this[propName] = value;
+            }
+        });
         this.state.canvasText = this.shadowRoot.querySelector(".renderer-canvas-text");
         this.state.canvasGL = this.shadowRoot.querySelector(".renderer-canvas-gl");
-        this.state.canvasWidth = window.innerWidth * widthCoefficient;
-        this.state.canvasHeight = window.innerHeight * heightCoefficient;
-        this.state.canvasText.width = this.state.canvasWidth;
-        this.state.canvasText.height = this.state.canvasHeight;
-        this.state.canvasGL.width = this.state.canvasWidth;
-        this.state.canvasGL.height = this.state.canvasHeight;
+        this.props.canvasWidth = window.innerWidth;
+        this.props.canvasHeight = window.innerHeight;
+        this.state.canvasText.width = this.props.canvasWidth;
+        this.state.canvasText.height = this.props.canvasHeight;
+        this.state.canvasGL.width = this.props.canvasWidth;
+        this.state.canvasGL.height = this.props.canvasHeight;
         this.state.renderer = await initializeRenderer(this.state.canvasText, this.state.canvasGL);
         this.state.renderLoop = () => {
             this.state.renderer.tick();
             this.state.animationId = requestAnimationFrame(this.state.renderLoop);
         };
+        this.updateCanvasSize();
     }
 
 
@@ -168,10 +178,10 @@ class FeaRenderer extends HTMLElement {
 
 
     updateCanvasSize() {
-        this.state.canvasWidth = window.innerWidth * widthCoefficient;
-        this.state.canvasHeight = window.innerHeight * heightCoefficient;
-        this.state.renderer.update_canvas_size(this.state.canvasWidth, this.state.canvasHeight);
-        this.state.renderer.tick();
+        if (this.state.renderer !== null) {
+            this.state.renderer.update_canvas_size(this.props.canvasWidth, this.props.canvasHeight);
+            this.state.renderer.tick();
+        }
     }
 
 
@@ -199,15 +209,19 @@ class FeaRenderer extends HTMLElement {
         const y = boundingRect.bottom - mouseY;
         this.state.renderer.change_cursor_coordinates(x, y);
         if (this.state.isRotate === true) {
-            const dTheta = event.movementX * 2.0 * Math.PI / this.state.canvasWidth;
+            // const dTheta = event.movementX * 2.0 * Math.PI / this.state.canvasWidth;
+            const dTheta = event.movementX * 2.0 * Math.PI / this.props.canvasWidth;
             this.state.renderer.increment_angle_theta(dTheta);
-            const dPhi = event.movementY * 2.0 * Math.PI / this.state.canvasHeight;
+            // const dPhi = event.movementY * 2.0 * Math.PI / this.state.canvasHeight;
+            const dPhi = event.movementY * 2.0 * Math.PI / this.props.canvasHeight;
             this.state.renderer.increment_angle_phi(dPhi);
         }
         if (this.state.isPan === true) {
-            const dx = event.movementX / this.state.canvasWidth;
+            // const dx = event.movementX / this.state.canvasWidth;
+            const dx = event.movementX / this.props.canvasWidth;
             this.state.renderer.increment_dx(dx);
-            const dy =  -event.movementY / this.state.canvasHeight;
+            // const dy =  -event.movementY / this.state.canvasHeight;
+            const dy =  -event.movementY / this.props.canvasHeight;
             this.state.renderer.increment_dy(dy);
         }
     }

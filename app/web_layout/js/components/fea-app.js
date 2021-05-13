@@ -42,6 +42,8 @@ class FeaApp extends HTMLElement {
             </div>
         `;
 
+        window.addEventListener("resize", () => this.updateCanvasSize())
+
         this.addEventListener("activate-postprocessor", () => this.activatePostprocessor());
         this.addEventListener("activate-preprocessor", () => this.activatePreprocessor());
 
@@ -62,6 +64,7 @@ class FeaApp extends HTMLElement {
         this.state.actionsRouter = await initializeActionsRouter(this.greeting);
         this.activatePreprocessor();
         this.updateTitleBarActionId();
+        this.shadowRoot.querySelector("fea-renderer").canvasSizeCallback = () => this.getCanvasSize();
     }
 
     disconnectedCallback() {
@@ -87,6 +90,7 @@ class FeaApp extends HTMLElement {
         if (this.state.actionId !== 1) {
             this.state.actionsRouter.add_whole_geometry_to_preprocessor();
         }
+        this.updateCanvasSize();
     }
 
     updatePreprocessorActionId() {
@@ -101,6 +105,7 @@ class FeaApp extends HTMLElement {
         this.querySelector("fea-preprocessor").remove();
         const feaPostprocessor = document.createElement("fea-postprocessor");
         this.append(feaPostprocessor);
+        this.updateCanvasSize();
     }
 
     handleClientMessage(event) {
@@ -199,6 +204,21 @@ class FeaApp extends HTMLElement {
             this.updatePreprocessorActionId();
         }
         this.updateTitleBarActionId();
+    }
+
+    updateCanvasSize() {
+        if (this.querySelector("fea-postprocessor") !== null) {
+            const canvasWidth = window.innerWidth - this.querySelector("fea-postprocessor").offsetWidth - 15;
+            const canvasHeight = window.innerHeight - this.shadowRoot.querySelector("fea-app-title-bar").offsetHeight - 40;
+            this.shadowRoot.querySelector("fea-renderer").canvasSize = { "width": canvasWidth, "height": canvasHeight };
+        } else if (this.querySelector("fea-preprocessor") !== null) {
+            const canvasWidth = window.innerWidth - this.querySelector("fea-preprocessor").offsetWidth - 15;
+            const canvasHeight = window.innerHeight - this.shadowRoot.querySelector("fea-app-title-bar").offsetHeight - 40;
+            this.shadowRoot.querySelector("fea-renderer").canvasSize = { "width": canvasWidth, "height": canvasHeight };
+        } else {
+            this.shadowRoot.querySelector("fea-renderer").canvasSize = { "width":  window.innerWidth, "height": window.innerHeight };
+        }
+
     }
 }
 

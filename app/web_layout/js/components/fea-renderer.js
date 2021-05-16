@@ -211,18 +211,14 @@ class FeaRenderer extends HTMLElement {
         const y = boundingRect.bottom - mouseY;
         this.state.renderer.change_cursor_coordinates(x, y);
         if (this.state.isRotate === true) {
-            // const dTheta = event.movementX * 2.0 * Math.PI / this.state.canvasWidth;
             const dTheta = event.movementX * 2.0 * Math.PI / this.props.canvasWidth;
             this.state.renderer.increment_angle_theta(dTheta);
-            // const dPhi = event.movementY * 2.0 * Math.PI / this.state.canvasHeight;
             const dPhi = event.movementY * 2.0 * Math.PI / this.props.canvasHeight;
             this.state.renderer.increment_angle_phi(dPhi);
         }
         if (this.state.isPan === true) {
-            // const dx = event.movementX / this.state.canvasWidth;
             const dx = event.movementX / this.props.canvasWidth;
             this.state.renderer.increment_dx(dx);
-            // const dy =  -event.movementY / this.state.canvasHeight;
             const dy =  -event.movementY / this.props.canvasHeight;
             this.state.renderer.increment_dy(dy);
         }
@@ -255,7 +251,7 @@ class FeaRenderer extends HTMLElement {
 
 
     onMouseWheel(event) {
-        const dScale = this.state.renderer.extract_d_scale() + event.deltaY / this.state.canvasHeight;
+        const dScale = this.state.renderer.extract_d_scale() + event.deltaY / this.props.canvasHeight;
         if (1.0 + dScale > 50.0) {
             this.state.renderer.change_d_scale(48.95);
         } else if (1.0 + dScale < 0.0) {

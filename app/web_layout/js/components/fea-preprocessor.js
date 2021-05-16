@@ -4,12 +4,17 @@ class FeaPreprocessor extends HTMLElement {
 
         this.props = {
             actionId: null,
+            points: [],
         };
 
         this.state = {
-            childrenNames: [
+            childrenNamesForActionIdUpdate: [
                 "fea-geometry-menu",
-            ]
+            ],
+
+            childrenNamesForPointCrud: [
+                "fea-geometry-menu",
+            ],
         };
 
         this.attachShadow({ mode: "open" });
@@ -43,7 +48,9 @@ class FeaPreprocessor extends HTMLElement {
     }
 
     set addPointToClient(point) {
-        this.shadowRoot.querySelector("fea-geometry").addPointToClient = point;
+        this.props.points.push(point);
+        this.props.points.sort((a, b) => a.number - b.number);
+        this.addPointToChildren(point);
     }
 
     set updatePointInClient(point) {
@@ -96,7 +103,11 @@ class FeaPreprocessor extends HTMLElement {
                 this.append(feaGeometryMenu);
                 event.stopPropagation();
                 this.updateCanvasSize();
-                this.updateChildrenActionId();
+                this.querySelector("fea-geometry-menu").actionId = this.props.actionId;
+                for (let i = 0; i < this.props.points.length; i++) {
+                    const point = this.props.points[i];
+                    this.querySelector("fea-geometry-menu").addPointToClient = point;
+                } 
                 break;
         }
     }
@@ -111,20 +122,27 @@ class FeaPreprocessor extends HTMLElement {
         }
     }
 
-    updateChildrenActionId() {
-        for (let i = 0; i < this.state.childrenNames.length; i ++) {
-            if (this.querySelector(this.state.childrenNames[i]) !== null) {
-                console.log(this.state.childrenNames[i]);
-            }
-        } 
-        // this.querySelector("fea-geometry").actionId = this.props.actionId;
-    }
-
     updateCanvasSize() {
         this.dispatchEvent(new CustomEvent("resize", {
             bubbles: true,
             composed: true,
         }));
+    }
+
+    updateChildrenActionId() {
+        for (let i = 0; i < this.state.childrenNamesForActionIdUpdate.length; i++) {
+            if (this.querySelector(this.state.childrenNamesForActionIdUpdate[i]) !== null) {
+                this.querySelector(this.state.childrenNamesForActionIdUpdate[i]).actionId = this.props.actionId;
+            }
+        } 
+    }
+
+    addPointToChildren(point) {
+        for (let i = 0; i < this.state.childrenNamesForPointCrud.length; i++) {
+            if (this.querySelector(this.state.childrenNamesForPointCrud[i]) !== null) {
+                this.querySelector(this.state.childrenNamesForPointCrud[i]).addPointToClient = point;
+            }
+        } 
     }
 }
 

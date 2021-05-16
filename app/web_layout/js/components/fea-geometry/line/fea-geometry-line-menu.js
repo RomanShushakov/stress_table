@@ -2,7 +2,9 @@ class FeaGeometryLineMenu extends HTMLElement {
     constructor() {
         super();
 
-        this.props = {};
+        this.props = {
+            actionId: null,
+        };
 
         this.state = {};
 
@@ -31,6 +33,10 @@ class FeaGeometryLineMenu extends HTMLElement {
         this.addEventListener("activate-menu", (event) => this.activateMenu(event));
 
         this.addEventListener("deactivate-menu", (event) => this.deactivateMenu(event));
+    }
+
+    set actionId(value) {
+        this.props.actionId = value;
     }
 
     connectedCallback() {

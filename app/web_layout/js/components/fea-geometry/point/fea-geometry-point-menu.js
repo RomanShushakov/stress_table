@@ -2,9 +2,24 @@ class FeaGeometryPointMenu extends HTMLElement {
     constructor() {
         super();
 
-        this.props = {};
+        this.props = {
+            actionId: null,
+            points: [],
+        };
 
-        this.state = {};
+        this.state = {
+            childrenNamesForActionIdUpdate: [
+                "fea-geometry-add-point-menu",
+                "fea-geometry-update-point-menu",
+                "fea-geometry-delete-point-menu",
+            ],
+
+            childrenNamesForPointCrud: [
+                "fea-geometry-add-point-menu",
+                "fea-geometry-update-point-menu",
+                "fea-geometry-delete-point-menu",
+            ],
+        };
 
         this.attachShadow({ mode: "open" });
 
@@ -33,7 +48,25 @@ class FeaGeometryPointMenu extends HTMLElement {
         this.addEventListener("deactivate-menu", (event) => this.deactivateMenu(event));
     }
 
+    set actionId(value) {
+        this.props.actionId = value;
+        this.updateChildrenActionId();
+    }
+
+    set addPointToClient(point) {
+        this.props.points.push(point);
+        this.props.points.sort((a, b) => a.number - b.number);
+        this.addPointToChildren(point);
+    }
+
     connectedCallback() {
+        Object.keys(this.props).forEach((propName) => {
+            if (this.hasOwnProperty(propName)) {
+                let value = this[propName];
+                delete this[propName];
+                this[propName] = value;
+            }
+        });
     }
 
     disconnectedCallback() {
@@ -55,16 +88,31 @@ class FeaGeometryPointMenu extends HTMLElement {
                 const feaGeometryAddPointMenu = document.createElement("fea-geometry-add-point-menu");
                 this.append(feaGeometryAddPointMenu);
                 event.stopPropagation();
+                this.querySelector("fea-geometry-add-point-menu").actionId = this.props.actionId;
+                for (let i = 0; i < this.props.points.length; i++) {
+                    const point = this.props.points[i];
+                    this.querySelector("fea-geometry-add-point-menu").addPointToClient = point;
+                } 
                 break;
             case "geometry-update-point-menu":
                 const feaGeometryUpdatePointMenu = document.createElement("fea-geometry-update-point-menu");
                 this.append(feaGeometryUpdatePointMenu);
                 event.stopPropagation();
+                this.querySelector("fea-geometry-update-point-menu").actionId = this.props.actionId;
+                for (let i = 0; i < this.props.points.length; i++) {
+                    const point = this.props.points[i];
+                    this.querySelector("fea-geometry-update-point-menu").addPointToClient = point;
+                } 
                 break;
             case "geometry-delete-point-menu":
                 const feaGeometryDeletePointMenu = document.createElement("fea-geometry-delete-point-menu");
                 this.append(feaGeometryDeletePointMenu);
                 event.stopPropagation();
+                this.querySelector("fea-geometry-delete-point-menu").actionId = this.props.actionId;
+                for (let i = 0; i < this.props.points.length; i++) {
+                    const point = this.props.points[i];
+                    this.querySelector("fea-geometry-delete-point-menu").addPointToClient = point;
+                } 
                 break;
         }
     }
@@ -84,6 +132,22 @@ class FeaGeometryPointMenu extends HTMLElement {
                 event.stopPropagation();
                 break;
         }
+    }
+
+    updateChildrenActionId() {
+        for (let i = 0; i < this.state.childrenNamesForActionIdUpdate.length; i++) {
+            if (this.querySelector(this.state.childrenNamesForActionIdUpdate[i]) !== null) {
+                this.querySelector(this.state.childrenNamesForActionIdUpdate[i]).actionId = this.props.actionId;
+            }
+        } 
+    }
+
+    addPointToChildren(point) {
+        for (let i = 0; i < this.state.childrenNamesForPointCrud.length; i++) {
+            if (this.querySelector(this.state.childrenNamesForPointCrud[i]) !== null) {
+                this.querySelector(this.state.childrenNamesForPointCrud[i]).addPointToClient = point;
+            }
+        } 
     }
 }
 

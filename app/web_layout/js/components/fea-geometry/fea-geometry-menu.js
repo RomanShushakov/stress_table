@@ -2,9 +2,22 @@ class FeaGeometryMenu extends HTMLElement {
     constructor() {
         super();
 
-        this.props = {};
+        this.props = {
+            actionId: null,
+            points: [],
+        };
 
-        this.state = {};
+        this.state = {
+            childrenNamesForActionIdUpdate: [
+                "fea-geometry-point-menu",
+                "fea-geometry-line-menu"
+            ],
+
+            childrenNamesForPointCrud: [
+                "fea-geometry-point-menu",
+                "fea-geometry-line-menu",
+            ],
+        };
 
         this.attachShadow({ mode: "open" });
 
@@ -45,7 +58,25 @@ class FeaGeometryMenu extends HTMLElement {
         this.addEventListener("deactivate-menu", (event) => this.deactivateMenu(event));
     }
 
+    set actionId(value) {
+        this.props.actionId = value;
+        this.updateChildrenActionId();
+    }
+
+    set addPointToClient(point) {
+        this.props.points.push(point);
+        this.props.points.sort((a, b) => a.number - b.number);
+        this.addPointToChildren(point);
+    }
+
     connectedCallback() {
+        Object.keys(this.props).forEach((propName) => {
+            if (this.hasOwnProperty(propName)) {
+                let value = this[propName];
+                delete this[propName];
+                this[propName] = value;
+            }
+        });
     }
 
     disconnectedCallback() {
@@ -67,11 +98,21 @@ class FeaGeometryMenu extends HTMLElement {
                 const feaGeometryPointMenu = document.createElement("fea-geometry-point-menu");
                 this.append(feaGeometryPointMenu);
                 event.stopPropagation();
+                this.querySelector("fea-geometry-point-menu").actionId = this.props.actionId;
+                for (let i = 0; i < this.props.points.length; i++) {
+                    const point = this.props.points[i];
+                    this.querySelector("fea-geometry-point-menu").addPointToClient = point;
+                } 
                 break;
             case "geometry-line-menu":
                 const feaGeometryLineMenu = document.createElement("fea-geometry-line-menu");
                 this.append(feaGeometryLineMenu);
                 event.stopPropagation();
+                this.querySelector("fea-geometry-line-menu").actionId = this.props.actionId;
+                for (let i = 0; i < this.props.points.length; i++) {
+                    const point = this.props.points[i];
+                    this.querySelector("fea-geometry-line-menu").addPointToClient = point;
+                } 
                 break;
         }
     }
@@ -87,6 +128,22 @@ class FeaGeometryMenu extends HTMLElement {
                 event.stopPropagation();
                 break;
         }
+    }
+
+    updateChildrenActionId() {
+        for (let i = 0; i < this.state.childrenNamesForActionIdUpdate.length; i++) {
+            if (this.querySelector(this.state.childrenNamesForActionIdUpdate[i]) !== null) {
+                this.querySelector(this.state.childrenNamesForActionIdUpdate[i]).actionId = this.props.actionId;
+            }
+        } 
+    }
+
+    addPointToChildren(point) {
+        for (let i = 0; i < this.state.childrenNamesForPointCrud.length; i++) {
+            if (this.querySelector(this.state.childrenNamesForPointCrud[i]) !== null) {
+                this.querySelector(this.state.childrenNamesForPointCrud[i]).addPointToClient = point;
+            }
+        } 
     }
 }
 

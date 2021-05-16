@@ -4,7 +4,7 @@ class FeaGeometryAddPointMenu extends HTMLElement {
 
         this.props = {
             actionId: null,
-            points: [ ],
+            points: [],
         };
 
         this.state = {};
@@ -219,7 +219,10 @@ class FeaGeometryAddPointMenu extends HTMLElement {
                 }
 
                 .apply-cancel-buttons {
-                    margin: 0rem;
+                    margin-top: 1rem;
+                    margin-bottom: 0rem;
+                    margin-left: 0rem;
+                    margin-right: 0rem;
                     padding: 0rem;
                 }
 
@@ -252,12 +255,33 @@ class FeaGeometryAddPointMenu extends HTMLElement {
                 .cancel-button:hover {
                     border: 0.2rem solid #4a5060;
                 }
+
+                .analysis-info {
+                    display: flex;
+                    margin: 0rem;
+                    padding: 0rem;
+                }
+
+                .analysis-info-message {
+                    margin-top: 1rem;
+                    margin-bottom: 0rem;
+                    margin-left: 0rem;
+                    margin-right: 0rem;
+                    padding: 0rem;
+                    color: #D9D9D9;
+                    font-size: 80%;
+                    width: 12rem;
+                }
+
+                .highlighted {
+                    box-shadow: 0rem 0.1rem 0rem #72C5FF;
+                }
             </style>
 
             <div class=wrapper>
                 <div class="point-number-field-content">
                     <p class="point-number-caption">Point number</p>
-                    <input class="point-number" type="number" step="1" min="1"/>
+                    <input class="point-number" type="number" step="1"/>
                 </div>
 
                 <div class="point-x-coord-field-content">
@@ -275,19 +299,65 @@ class FeaGeometryAddPointMenu extends HTMLElement {
                     <input class="point-z-coord" type="number"/>
                 </div>
                 
-                <div class="analysis-info">
-                    <p class="analysis-info-message"></p>
-                </div>
-
                 <div class="apply-cancel-buttons">
                     <button class="apply-button">Apply</button>
                     <button class="cancel-button">Cancel</button>
                 </div>
+
+                <div class="analysis-info">
+                    <p class="analysis-info-message"></p>
+                </div>
             </div>
         `;
+
+         this.shadowRoot.querySelector(".apply-button").addEventListener("click", () => this.addPoint());
+
+         this.shadowRoot.querySelector(".cancel-button").addEventListener("click", () => this.cancelPointAddition());
+
+         this.shadowRoot.querySelector(".point-number").addEventListener("click", () => {
+            const highlightedElement = this.shadowRoot.querySelector(".point-number");
+            this.dropHighlight(highlightedElement);
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+        });
+
+        this.shadowRoot.querySelector(".point-x-coord").addEventListener("click", () => {
+            const inputtedXField = this.shadowRoot.querySelector(".point-x-coord");
+            this.dropHighlight(inputtedXField);
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+        });
+
+        this.shadowRoot.querySelector(".point-y-coord").addEventListener("click", () => {
+            const inputtedYField = this.shadowRoot.querySelector(".point-y-coord");
+            this.dropHighlight(inputtedYField);
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+        });
+
+        this.shadowRoot.querySelector(".point-z-coord").addEventListener("click", () => {
+            const inputtedZField = this.shadowRoot.querySelector(".point-z-coord");
+            this.dropHighlight(inputtedZField);
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+        });
+    }
+
+    set actionId(value) {
+        this.props.actionId = value;
+    }
+
+    set addPointToClient(point) {
+        this.props.points.push(point);
+        this.props.points.sort((a, b) => a.number - b.number);
+        this.defineNewPointNumber();
     }
 
     connectedCallback() {
+        Object.keys(this.props).forEach((propName) => {
+            if (this.hasOwnProperty(propName)) {
+                let value = this[propName];
+                delete this[propName];
+                this[propName] = value;
+            }
+        });
+        this.defineNewPointNumber();
     }
 
     disconnectedCallback() {
@@ -302,6 +372,128 @@ class FeaGeometryAddPointMenu extends HTMLElement {
 
     adoptedCallback() {
     }
+
+    defineNewPointNumber() {
+        let newPointNumber = 0;
+        const isPointNumberInArray = (point) => point.number === newPointNumber;
+        do {
+            newPointNumber += 1;
+        } while (this.props.points.some(isPointNumberInArray));
+        this.shadowRoot.querySelector(".point-number").value = newPointNumber;
+        this.shadowRoot.querySelector(".point-number").min = newPointNumber;
+        this.shadowRoot.querySelector(".point-x-coord").value = 0.0;
+        this.shadowRoot.querySelector(".point-y-coord").value = 0.0;
+        this.shadowRoot.querySelector(".point-z-coord").value = 0.0;
+    }
+
+
+    addPoint() {
+        const newPointNumberField = this.shadowRoot.querySelector(".point-number");
+        if (newPointNumberField.value === "") {
+            if (newPointNumberField.classList.contains("highlighted") === false) {
+                newPointNumberField.classList.add("highlighted");
+            }
+        }
+        const inputtedXField = this.shadowRoot.querySelector(".point-x-coord");
+        if (inputtedXField.value === "") {
+            if (inputtedXField.classList.contains("highlighted") === false) {
+                inputtedXField.classList.add("highlighted");
+            }
+        }
+        const inputtedYField = this.shadowRoot.querySelector(".point-y-coord");
+        if (inputtedYField.value === "") {
+            if (inputtedYField.classList.contains("highlighted") === false) {
+                inputtedYField.classList.add("highlighted");
+            }
+        }
+        const inputtedZField = this.shadowRoot.querySelector(".point-z-coord");
+        if (inputtedZField.value === "") {
+            if (inputtedZField.classList.contains("highlighted") === false) {
+                inputtedZField.classList.add("highlighted");
+            }
+        }
+
+        if (newPointNumberField.value === "" || inputtedXField.value === "" || 
+            inputtedYField.value === "" || inputtedZField.value === "") {
+            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "Note: The highlighted fields should be filled!";
+                return;
+            } else {
+                return;
+            }
+        }
+
+        const pointNumberInProps = this.props.points.find(point => point.number == newPointNumberField.value);
+        if (pointNumberInProps != null) {
+            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "Note: The point with the same number does already exist!";
+                return;
+            } else {
+                return;
+            }
+        }
+
+        const pointCoordinatesInProps = this.props.points.find(point => point.x == inputtedXField.value && point.y == inputtedYField.value &&
+            point.z == inputtedZField.value);
+        if (pointCoordinatesInProps != null) {
+            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "Note: The point with the same coordinates does already exist!";
+                return;
+            } else {
+                return;
+            }
+        }
+
+        if (this.isNumeric(newPointNumberField.value) === false || this.isNumeric(inputtedXField.value) === false ||
+            this.isNumeric(inputtedYField.value) === false || this.isNumeric(inputtedZField.value) === false) {
+            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "Note: Only numbers could be used as input values!";
+                return;
+            } else {
+                return;
+            }
+        }
+
+        const message = {"add_point": {
+            "actionId": this.props.actionId,
+            "number": newPointNumberField.value, 
+            "x":  inputtedXField.value, "y":  inputtedYField.value, "z": inputtedZField.value
+        }};
+
+        this.dispatchEvent(new CustomEvent("client message", {
+            bubbles: true,
+            composed: true,
+            detail: {
+                message: message,
+            },
+        }));
+    }
+
+    cancelPointAddition() {
+        this.defineNewPointNumber();
+        const newPointNumberField = this.shadowRoot.querySelector(".point-number");
+        this.dropHighlight(newPointNumberField);
+        const inputtedXField = this.shadowRoot.querySelector(".point-x-coord");
+        this.dropHighlight(inputtedXField);
+        const inputtedYField = this.shadowRoot.querySelector(".point-y-coord");
+        this.dropHighlight(inputtedYField);
+        const inputtedZField = this.shadowRoot.querySelector(".point-z-coord");
+        this.dropHighlight(inputtedZField);
+        this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+    }
+
+    dropHighlight(highlightedElement) {
+        if (highlightedElement.classList.contains("highlighted") === true) {
+            highlightedElement.classList.remove("highlighted");
+        }
+    }
+
+    isNumeric(str) {
+        if (typeof str != "string") {
+            return false;
+        }
+        return !isNaN(str) && !isNaN(parseFloat(str));
+      }
 }
 
 export default FeaGeometryAddPointMenu;

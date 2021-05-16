@@ -1,5 +1,5 @@
 import { communicatorWithGeometry } from "/app/web_layout/js/js_modules/communicator_with_geometry.js";
-
+// import { communicatorWithGeometry } from "../../../../../js/js_modules/communicator_with_geometry.js";
 
 export function addPointToGeometry(actionId, number, x, y, z, isActionIdShouldBeIncreased) 
 {

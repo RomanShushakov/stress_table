@@ -21,6 +21,7 @@ class FeaAppTitleBar extends HTMLElement {
                     background: #1b1f25;
                     border-left: 0.1rem solid #5c687a;
                     border-right: 0.1rem solid #5c687a;
+                    border-bottom: 0.1rem solid #5c687a;
                 }
 
                 .save-button {

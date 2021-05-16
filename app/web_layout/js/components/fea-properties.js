@@ -22,24 +22,24 @@ class FeaProperties extends HTMLElement {
                 }
 
                 .wrapper {
-                    margin-top: 1rem;
                     background-color: #2e3440;
                     display: flex;
                 }
 
                 .properties-button {
                     margin: 0rem;
-                    padding: 0rem;
+                    padding-top: 0.7rem;
+                    padding-bottom: 0.7rem;
                     background: #2e3440;
                     border: #3b4453;
                 }
 
                 .properties-button:hover {
-                    background: #3b4453;
+                    background: #2d303b;
                 }
 
                 .properties-button:hover .properties-button-icon {
-                    color: #3b4453;
+                    color: #2d303b;
                 }
 
                 .properties-button-icon-content {
@@ -49,14 +49,16 @@ class FeaProperties extends HTMLElement {
 
                 .properties-button-icon {
                     color: #2E3440;
-                    width: 3.5rem;
-                    height: 3.5rem;
+                    width: 3rem;
+                    height: 3rem;
                 }
 
                 .properties-button-icon-caption {
                     color: #D9D9D9;
                     margin: 0rem;
                     padding: 0rem;
+                    width: 3rem;
+                    font-size: 85%;
                 }
 
             </style>

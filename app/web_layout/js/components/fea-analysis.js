@@ -22,14 +22,14 @@ class FeaAnalysis extends HTMLElement {
                 }
 
                 .wrapper {
-                    margin-top: 1rem;
                     background-color: #2e3440;
                     display: flex;
                 }
 
                 .analysis-button {
                     margin: 0rem;
-                    padding: 0rem;
+                    padding-top: 0.7rem;
+                    padding-bottom: 0.7rem;
                     background: #2e3440;
                     border: #3b4453;
                 }
@@ -45,15 +45,16 @@ class FeaAnalysis extends HTMLElement {
 
                 .analysis-button-icon {
                     color: #2E3440;
-                    width: 3.5rem;
-                    height: 3.5rem;
+                    width: 3rem;
+                    height: 3rem;
                 }
 
                 .analysis-button-icon-caption {
                     color: #D9D9D9;
                     margin: 0rem;
                     padding: 0rem;
-                    width: 3.5rem;
+                    width: 3rem;
+                    font-size: 85%;
                 }
 
             </style>

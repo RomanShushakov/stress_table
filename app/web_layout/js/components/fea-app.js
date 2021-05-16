@@ -42,7 +42,7 @@ class FeaApp extends HTMLElement {
             </div>
         `;
 
-        window.addEventListener("resize", () => this.updateCanvasSize())
+        window.addEventListener("resize", () => this.updateCanvasSize());
 
         this.addEventListener("activate-postprocessor", () => this.activatePostprocessor());
         this.addEventListener("activate-preprocessor", () => this.activatePreprocessor());
@@ -218,7 +218,6 @@ class FeaApp extends HTMLElement {
         } else {
             this.shadowRoot.querySelector("fea-renderer").canvasSize = { "width":  window.innerWidth, "height": window.innerHeight };
         }
-
     }
 }
 

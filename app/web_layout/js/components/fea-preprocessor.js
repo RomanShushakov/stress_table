@@ -6,7 +6,11 @@ class FeaPreprocessor extends HTMLElement {
             actionId: null,
         };
 
-        this.state = {};
+        this.state = {
+            childrenNames: [
+                "fea-geometry-menu",
+            ]
+        };
 
         this.attachShadow({ mode: "open" });
 
@@ -18,18 +22,19 @@ class FeaPreprocessor extends HTMLElement {
 
                 .wrapper {
                     background-color: #2e3440;
+                    display: flex;
+                    flex-direction: row;
                 }
             </style>
             <div class=wrapper>
-                <fea-geometry></fea-geometry>
-                <fea-properties></fea-properties>
-                <fea-mesh></fea-mesh>
-                <fea-load></fea-load>
-                <fea-boundary-condition></fea-boundary-condition>
-                <fea-analysis></fea-analysis>
+                <fea-preprocessor-menu-buttons></fea-preprocessor-menu-buttons>
+                <slot></slot>
             </div>
         `;
-        this.addEventListener("menu open", (event) => this.closeOtherMenus(event));
+        
+        this.addEventListener("activate-menu", (event) => this.activateMenu(event));
+
+        this.addEventListener("deactivate-menu", (event) => this.deactivateMenu(event));
     }
 
     set actionId(value) {
@@ -69,20 +74,6 @@ class FeaPreprocessor extends HTMLElement {
                 this[propName] = value;
             }
         });
-        this.updateChildrenActionId();
-    }
-
-    closeOtherMenus(event) {
-        switch (event.detail.from) {
-            case "geometry":
-                this.shadowRoot.querySelector("fea-properties").close = "_empty";
-                event.stopPropagation();
-                break;
-            case "properties":
-                this.shadowRoot.querySelector("fea-geometry").close = "_empty";
-                event.stopPropagation();
-                break;
-        }
     }
 
     disconnectedCallback() {
@@ -98,10 +89,43 @@ class FeaPreprocessor extends HTMLElement {
     adoptedCallback() {
     }
 
-    updateChildrenActionId() {
-        this.shadowRoot.querySelector("fea-geometry").actionId = this.props.actionId;
+    activateMenu(event) {
+        switch (event.detail.menuName) {
+            case "geometry-menu":
+                const feaGeometryMenu = document.createElement("fea-geometry-menu");
+                this.append(feaGeometryMenu);
+                event.stopPropagation();
+                this.updateCanvasSize();
+                this.updateChildrenActionId();
+                break;
+        }
     }
 
+    deactivateMenu(event) {
+        switch (event.detail.menuName) {
+            case "geometry-menu":
+                this.querySelector("fea-geometry-menu").remove();
+                event.stopPropagation();
+                this.updateCanvasSize();
+                break;
+        }
+    }
+
+    updateChildrenActionId() {
+        for (let i = 0; i < this.state.childrenNames.length; i ++) {
+            if (this.querySelector(this.state.childrenNames[i]) !== null) {
+                console.log(this.state.childrenNames[i]);
+            }
+        } 
+        // this.querySelector("fea-geometry").actionId = this.props.actionId;
+    }
+
+    updateCanvasSize() {
+        this.dispatchEvent(new CustomEvent("resize", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
 }
 
 export default FeaPreprocessor;

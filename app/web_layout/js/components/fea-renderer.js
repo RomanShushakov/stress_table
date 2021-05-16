@@ -35,7 +35,9 @@ class FeaRenderer extends HTMLElement {
                 .wrapper {
                     display: flex;
                     flex-direction: column;
-                    border: 0.1rem solid #5c687a;
+                    border-left: 0.1rem solid #5c687a;
+                    border-right: 0.1rem solid #5c687a;
+                    border-bottom: 0.1rem solid #5c687a;
                 }
                 
                 .renderer-container {

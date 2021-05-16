@@ -2,7 +2,9 @@ class HidingContentButton extends HTMLElement {
     constructor() {
         super();
 
-        this.props = {};
+        this.props = {
+            canToggle: false,
+        };
 
         this.state = {};
 
@@ -14,37 +16,34 @@ class HidingContentButton extends HTMLElement {
                     display: flex;
                 }
 
-                .active {
-                    background: #a9a9a9;
+                .wrapper {
+                    background: ${this.getAttribute("content-background")};
                 }
 
                 .hiding-content-button {
                     width: ${this.getAttribute("button-width")};
-                    font-family: inherit;
                     font-size: ${this.getAttribute("button-font-size")};
-                    line-height: 1.15;
-                    margin-bottom: 0.25rem;
-                    border-radius: 5px;
-                    border: 2px solid #737373;
+                    background: ${this.getAttribute("button-default-background")};
+                    border: ${this.getAttribute("button-default-background")};
                     margin-right: ${this.getAttribute("button-margin-right")};
                 }
 
                 .hiding-content-button:hover {
-                    background: #d2d2d2;
+                    background: ${this.getAttribute("button-hover-background")};
                 }
 
                 .content {
                     margin: 0rem;
                     background: ${this.getAttribute("content-background")};
-                    border: ${this.getAttribute("content-border")};
-                    border-radius: 5px;
                     padding: ${this.getAttribute("content-padding")};
-                    align-items: center;
-                    display: flex;
                     flex-direction: ${this.getAttribute("content-direction")};
                     left: ${this.getAttribute("content-left")};
+                    top: ${this.getAttribute("content-top")};
                     position: ${this.getAttribute("content-position")};
-                    width: 10.75rem;
+                }
+
+                .active {
+                    background: ${this.getAttribute("button-active-background")};
                 }
 
                 .hidden {
@@ -52,18 +51,19 @@ class HidingContentButton extends HTMLElement {
                 }
             </style>
             <div class="wrapper">
-                <button class="hiding-content-button"></button>
+                <button class="hiding-content-button">
+                    <slot name="icon-content"></slot>
+                </button>
                 <div class="content hidden">
-                    <slot></slot>
+                    <slot name="content"></slot>
                 </div>
             </div>
         `;
 
-        this.shadowRoot.querySelector(".hiding-content-button").addEventListener("click", (event) => this.toggle(event));
+        this.shadowRoot.querySelector(".hiding-content-button").addEventListener("click", (event) => this.activate(event));
     }
 
     connectedCallback() {
-        this.shadowRoot.querySelector(".hiding-content-button").innerHTML = this.getAttribute("name");
     }
 
     disconnectedCallback() {
@@ -114,6 +114,19 @@ class HidingContentButton extends HTMLElement {
         }
     }
 
+    activate() {
+        const content = this.shadowRoot.querySelector(".content");
+        const button = this.shadowRoot.querySelector(".hiding-content-button");
+        if (content.classList.contains("hidden") === true) {
+            content.classList.remove("hidden");
+            button.classList.add("active");
+            this.hideSiblings();
+            this.menuOpen();
+            this.activateMenu();
+        }
+        this.updateContentHeight();
+    }
+
     toggle() {
         const content = this.shadowRoot.querySelector(".content");
         const button = this.shadowRoot.querySelector(".hiding-content-button");
@@ -127,6 +140,16 @@ class HidingContentButton extends HTMLElement {
             this.menuOpen();
         }
         this.updateContentHeight();
+    }
+
+    activateMenu() {
+        this.dispatchEvent(new CustomEvent("activate menu", {
+            bubbles: true,
+            composed: true,
+            detail: {
+                from: `${this.getAttribute("full-name")}`,
+            },
+        }));
     }
 
     menuOpen() {

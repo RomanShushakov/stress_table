@@ -9,14 +9,9 @@ class FeaGeometry extends HTMLElement {
         };
 
         this.state = {
-            buttonNames: {
-                geometry: "Geometry", point: "Point", line: "Line",
-                pointAdd: "Add", pointUpdate: "Update", pointDelete: "Delete",
-                lineAdd: "Add", lineUpdate: "Update", lineDelete: "Delete",
-            },
             buttonFullNames: {
                 geometry: "geometry", point: "point", line: "line",
-                pointAdd: "pointAdd", pointUpdate: "pointUpdate", pointDelete: "pointDelete",
+                addPoint: "addPoint", updatePoint: "updatePoint", deletePoint: "deletePoint",
                 lineAdd: "lineAdd", lineUpdate: "lineUpdate", lineDelete: "lineDelete",
             }
         };
@@ -30,14 +25,352 @@ class FeaGeometry extends HTMLElement {
                 }
 
                 .wrapper {
-                    background-color: #eee;
+                    background-color: #2e3440;
                     display: flex;
-                    align-items: center;
-                    box-sizing: content-box;
-                    flex-direction: column;
-                    border-right: 1px solid #9a9a9a;
-                    border-left: 1px solid #9a9a9a;
+                    position: relative;
                 }
+
+                .geometry-menu-button {
+                    margin: 0rem;
+                    padding-top: 0.7rem;
+                    padding-bottom: 0.7rem;
+                    background: #2e3440;
+                    border: #3b4453;
+                }
+
+                .geometry-menu-button:hover {
+                    background: #2d303b;
+                }
+
+                .geometry-menu-button:hover .geometry-menu-button-icon {
+                    color: #2d303b;
+                }
+
+                .active .geometry-menu-button-icon {
+                    color: #3b4453;
+                }
+
+                .active:hover {
+                    background: #242932;
+                }
+
+                .active:hover .geometry-menu-button-icon {
+                    color: #242932;
+                }
+
+                .geometry-menu-button-icon-content {
+                    margin: 0rem;
+                    padding: 0rem;
+                }
+
+                .geometry-menu-button-icon {
+                    color: #2E3440;
+                    width: 3rem;
+                    height: 3rem;
+                }
+
+                .geometry-menu-button-icon-caption {
+                    color: #D9D9D9;
+                    margin: 0rem;
+                    padding: 0rem;
+                    width: 3rem;
+                    font-size: 85%;
+                }
+
+
+
+
+
+
+
+
+                .geometry-menu-content {
+                    display: flex;
+                    background-color: #3b4453;
+                    padding: 1rem;
+                    flex-direction: column;
+                    position: absolute;
+                    margin-left: 3.7rem;
+                }
+
+                .geometry-menu-caption {
+                    margin: 0rem;
+                    padding: 0rem;
+                    color: #D9D9D9;
+                    height: 1.5rem;
+                    border-bottom: 0.1rem solid #4a5060;
+                    font-size: 85%;
+                }
+
+                .geometry-menu-buttons-content {
+                    margin-top: 1rem;
+                    margin-left: 0rem;
+                    margin-right: 0rem;
+                    margin-bottom: 0rem;
+                    padding: 0rem;
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    border-bottom: 0.1rem solid #4a5060;
+                }
+
+                .geometry-menu-buttons-caption {
+                    margin: 0rem;
+                    padding: 0rem;
+                    width: 4rem;
+                    color: #D9D9D9;
+                    font-size: 85%;
+                }
+
+                .geometry-menu-buttons {
+                    display: flex;
+                    flex-direction: row;
+                    margin: 0rem;
+                    padding: 0rem;
+                }
+
+                .point-button {
+                    margin-left: 0.5rem;
+                }
+
+                .point-button-icon-content {
+                    margin: 0rem;
+                    padding: 0rem;
+                    width: 1.5rem;
+                    height: 1.5rem;
+                }
+
+                .point-button-icon {
+                    width: 1.5rem;
+                    height: 1.5rem;
+                    color: #D9D9D9;
+                }
+
+                .point-button:hover .point-button-icon {
+                    color: #d1d2d7;
+                }
+
+                .active:hover .point-button-icon {
+                    color: #8bbee4;
+                }
+
+                .active .point-button-icon {
+                    color: #72C5FF;
+                }
+
+                .active:hover .point-button-icon-content {
+                    border-bottom: 0.15rem solid #8bbee4;
+                }
+
+                .active .point-button-icon-content {
+                    border-bottom: 0.15rem solid #72C5FF;
+                }
+
+
+
+                
+
+                .line-button {
+                    margin-left: 0.5rem;
+                }
+
+                .line-button-icon-content {
+                    margin: 0rem;
+                    padding: 0rem;
+                    width: 1.5rem;
+                    height: 1.5rem;
+                }
+
+                .line-button-icon {
+                    width: 1.5rem;
+                    height: 1.5rem;
+                    color: #D9D9D9;
+                }
+
+                .line-button:hover .line-button-icon {
+                    color: #d1d2d7;
+                }
+
+                .active:hover .line-button-icon {
+                    color: #8bbee4;
+                }
+
+                .active .line-button-icon {
+                    color: #72C5FF;
+                }
+
+                .active:hover .line-button-icon-content {
+                    border-bottom: 0.15rem solid #8bbee4;
+                }
+
+                .active .line-button-icon-content {
+                    border-bottom: 0.15rem solid #72C5FF;
+                }
+
+
+
+
+
+
+
+
+
+
+                .point-menu-buttons-content {
+                    margin-top: 1rem;
+                    margin-left: 1rem;
+                    margin-right: 0rem;
+                    margin-bottom: 1rem;
+                    padding: 0rem;
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    border-bottom: 0.1rem solid #4a5060;
+                }
+
+                .point-menu-buttons-caption {
+                    margin: 0rem;
+                    padding: 0rem;
+                    width: 4rem;
+                    color: #D9D9D9;
+                    font-size: 85%;
+                }
+
+                .point-menu-buttons {
+                    display: flex;
+                    flex-direction: row;
+                    margin: 0rem;
+                    padding: 0rem;
+                }
+
+
+
+                .add-point-button {
+                    margin-left: 0.5rem;
+                }
+
+                .add-point-button-icon-content {
+                    margin: 0rem;
+                    padding: 0rem;
+                    width: 1.5rem;
+                    height: 1.5rem;
+                }
+
+                .add-point-button-icon {
+                    width: 1.5rem;
+                    height: 1.5rem;
+                    color: #D9D9D9;
+                }
+
+                .add-point-button:hover .add-point-button-icon {
+                    color: #d1d2d7;
+                }
+
+                .active:hover .add-point-button-icon {
+                    color: #8bbee4;
+                }
+
+                .active .add-point-button-icon {
+                    color: #72C5FF;
+                }
+
+                .active:hover .add-point-button-icon-content {
+                    border-bottom: 0.15rem solid #8bbee4;
+                }
+
+                .active .add-point-button-icon-content {
+                    border-bottom: 0.15rem solid #72C5FF;
+                }
+
+
+
+                .update-point-button {
+                    margin-left: 0.5rem;
+                }
+
+                .update-point-button-icon-content {
+                    margin: 0rem;
+                    padding: 0rem;
+                    width: 1.5rem;
+                    height: 1.5rem;
+                }
+
+                .update-point-button-icon {
+                    width: 1.5rem;
+                    height: 1.5rem;
+                    color: #D9D9D9;
+                }
+
+                .update-point-button:hover .update-point-button-icon {
+                    color: #d1d2d7;
+                }
+
+                .active:hover .update-point-button-icon {
+                    color: #8bbee4;
+                }
+
+                .active .update-point-button-icon {
+                    color: #72C5FF;
+                }
+
+                .active:hover .update-point-button-icon-content {
+                    border-bottom: 0.15rem solid #8bbee4;
+                }
+
+                .active .update-point-button-icon-content {
+                    border-bottom: 0.15rem solid #72C5FF;
+                }
+
+
+                .delete-point-button {
+                    margin-left: 0.5rem;
+                }
+
+                .delete-point-button-icon-content {
+                    margin: 0rem;
+                    padding: 0rem;
+                    width: 1.5rem;
+                    height: 1.5rem;
+                }
+
+                .delete-point-button-icon {
+                    width: 1.5rem;
+                    height: 1.5rem;
+                    color: #D9D9D9;
+                }
+
+                .delete-point-button:hover .delete-point-button-icon {
+                    color: #d1d2d7;
+                }
+
+                .active:hover .delete-point-button-icon {
+                    color: #8bbee4;
+                }
+
+                .active .delete-point-button-icon {
+                    color: #72C5FF;
+                }
+
+                .active:hover .delete-point-button-icon-content {
+                    border-bottom: 0.15rem solid #8bbee4;
+                }
+
+                .active .delete-point-button-icon-content {
+                    border-bottom: 0.15rem solid #72C5FF;
+                }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
                 .add-action-over-point-fields {
@@ -518,41 +851,245 @@ class FeaGeometry extends HTMLElement {
                 .highlighted {
                     border: 2px solid #ff0000;
                 }
+
+                .active {
+                    background: #3b4453;
+                }
+
+                .hidden {
+                    display: none;
+                }
             </style>
 
             <div class=wrapper>
-                <hiding-content-button 
-                    class=geometry
-                    name=${this.state.buttonNames.geometry}
-                    full-name=${this.state.buttonFullNames.geometry}
-                    content-position=relative
-                    content-direction=row
-                    button-width=12rem
-                    button-font-size=100%
-                >
-                    <hiding-content-button 
-                        class=point
-                        name=${this.state.buttonNames.point} 
-                        full-name=${this.state.buttonFullNames.point}
-                        content-position=absolute
-                        content-direction=row
-                        content-left=0rem
-                        button-width=5.85rem
-                        button-font-size=100%
-                        button-margin-right=0.3rem
-                    >
-                        <hiding-content-button 
+                <button class="geometry-menu-button">
+                    <div class="geometry-menu-button-icon-content">
+                        <svg class=geometry-menu-button-icon width="100" height="100" viewBox="0 0 100 100" fill="none" 
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <title>Geometry</title>
+                            <g fill="currentColor">
+                                <path d="M6.77588 74.5L44.4645 1.0947L82.1532 74.5H6.77588Z" stroke="#D9D9D9"/>
+                                <rect x="52.5" y="29.5" width="40" height="42" stroke="#72C5FF"/>
+                                <circle cx="77.5" cy="65.5" r="22" stroke="#D9D9D9"/>
+                                <path d="M33.8771 87.5L21.5761 66L33.8771 44.5H58.4554L69.4385 66L58.4554 
+                                    87.5H33.8771Z" stroke="#72C5FF"
+                                />
+                            </g>
+                        </svg>
+                        <p class="geometry-menu-button-icon-caption">Geometry</p>
+                    </div>
+                </button>
+                <div class="geometry-menu-content hidden">
+                    <p class="geometry-menu-caption">Geometry</p>
+                    <div class="geometry-menu-buttons-content">
+                        <p class="geometry-menu-buttons-caption">Point</p>
+                        <div class="geometry-menu-buttons">
+                            <hiding-content-button 
+                                class="point-button"
+                                full-name=${this.state.buttonFullNames.point}
+                                button-default-background=#3b4453
+                                button-active-background=#3b4453
+                                button-hover-background=#3b4453
+                                content-background=#3b4453
+                                content-position=absolute
+                                content-direction=row
+                                content-left=0rem
+                                content-top=6rem
+                                button-width=1.7rem
+                                button-font-size=100%
+                            >
+                                <div slot="icon-content" class="point-button-icon-content">
+                                    <svg class="point-button-icon" width="35" height="35" viewBox="0 0 35 35" fill="none" 
+                                        xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                        <title>Point</title>
+                                        <g stroke="currentColor">
+                                            <rect x="15" y="15" width="5" height="5"/>
+                                        </g>
+                                    </svg>
+                                </div>
+
+
+                                <div slot="content" class="point-menu-buttons-content">
+                                    <p class="point-menu-buttons-caption">Add</p>
+                                    <div class="point-menu-buttons">
+                                        <hiding-content-button 
+                                            class=add-point-button
+                                            full-name=${this.state.buttonFullNames.addPoint}
+                                            button-default-background=#3b4453
+                                            button-active-background=#3b4453
+                                            button-hover-background=#3b4453
+                                            content-background=#3b4453
+                                            content-position=absolute
+                                            content-direction=row
+                                            content-left=0rem
+                                            content-top=0rem
+                                            button-width=1.7rem
+                                            button-font-size=100%
+                                        >
+                                            <div slot="icon-content" class="add-point-button-icon-content">
+                                                <svg class="add-point-button-icon" width="35" height="35" viewBox="0 0 35 35" fill="none" 
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                >  
+                                                    <title>Add point</title>
+                                                    <g stroke="currentColor">
+                                                        <line x1="7" y1="17.5" x2="28" y2="17.5"/>
+                                                        <line x1="17.5" y1="7" x2="17.5" y2="28"/>
+                                                    </g>
+                                                </svg>
+                                            </div>
+                                        </hiding-content-button>
+
+                                        <hiding-content-button 
+                                            class=update-point-button
+                                            full-name=${this.state.buttonFullNames.updatePoint}
+                                            button-default-background=#3b4453
+                                            button-active-background=#3b4453
+                                            button-hover-background=#3b4453
+                                            content-background=#3b4453
+                                            content-position=absolute
+                                            content-direction=row
+                                            content-left=0rem
+                                            button-width=1.7rem
+                                            button-font-size=100%
+                                        >
+                                            <div slot="icon-content" class="update-point-button-icon-content">
+                                                <svg class="update-point-button-icon" width="36" height="35" viewBox="0 0 36 35" fill="none" 
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                >
+                                                    <title>Update point</title>
+                                                    <g stroke="currentColor">
+                                                        <path d="M17.2055 8L16.9178 11.4247L14.9041 12.1096L12.3151 9.91781L10.3014 
+                                                            11.8356L12.4589 14.4384L11.7397 16.2192L8 16.4932V19.2329L11.5959 
+                                                            19.5068L12.4589 21.2877L10.0137 23.8904L12.0274 25.8082L14.7603 
+                                                            23.6164L16.6301 24.4384L16.9178 28H19.7945L20.0822 24.5753L22.2397 
+                                                            23.7534L25.1164 26.0822L27.1301 24.1644L24.5411 21.4247L25.4041 
+                                                            19.6438L29 19.3699V16.7671L25.4041 16.4932L24.6849 14.5753L27.1301 
+                                                            11.8356L25.1164 9.91781L22.2397 12.2466L20.3699 11.5616L20.0822 
+                                                            8H17.2055Z"
+                                                        />
+                                                        <circle cx="18.5" cy="17.5" r="3.5"/>
+                                                        <path d="M34 18.5C34 20.4042 33.6249 22.2897 32.8963 24.0489C32.1676 
+                                                            25.8081 31.0995 27.4066 29.753 28.753C28.4066 30.0995 26.8081 
+                                                            31.1676 25.0489 31.8963C23.2897 32.6249 21.4042 33 19.5 33"
+                                                        />
+                                                        <path d="M32.9962 20L34 17.3919L35.0038 20H32.9962Z"/>
+                                                        <path d="M2.5 16.5C2.5 14.5958 2.87505 12.7103 3.60375 10.9511C4.33244 
+                                                            9.19187 5.4005 7.5934 6.74695 6.24695C8.0934 4.9005 9.69187 
+                                                            3.83244 11.4511 3.10375C13.2103 2.37505 15.0958 2 17 2"
+                                                        />
+                                                        <path d="M3.50384 15L2.5 17.6081L1.49616 15H3.50384Z"/>
+                                                    </g>
+                                                </svg>
+                                            </div>
+                                        </hiding-content-button>
+
+                                        <hiding-content-button 
+                                            class=delete-point-button
+                                            full-name=${this.state.buttonFullNames.deletePoint}
+                                            button-default-background=#3b4453
+                                            button-active-background=#3b4453
+                                            button-hover-background=#3b4453
+                                            content-background=#3b4453
+                                            content-position=absolute
+                                            content-direction=row
+                                            content-left=0rem
+                                            button-width=1.7rem
+                                            button-font-size=100%
+                                        >
+                                            <div slot="icon-content" class="delete-point-button-icon-content">
+                                                <svg class="delete-point-button-icon" width="35" height="35" viewBox="0 0 35 35" fill="none" 
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                >
+                                                    <title>Delete point</title>
+                                                    <g stroke="currentColor">
+                                                        <path d="M7.00184 9.01157C7.00087 9.0055 7.00557 9 7.01172 
+                                                            9H27.9885C27.9946 9 27.9993 9.00535 27.9985 9.01135L25.0012 
+                                                            30.9914C25.0005 30.9963 24.9963 31 24.9913 31H10.5085C10.5036 
+                                                            31 10.4994 30.9964 10.4987 30.9916L7.00184 9.01157Z"
+                                                        />
+                                                        <rect x="14.5" y="4.5" width="6" height="3" rx="0.5"/>
+                                                        <line x1="5" y1="8" x2="30" y2="8" stroke-width="2"/>
+                                                        <line x1="11.4942" y1="12.924" x2="13.4942" y2="25.924"/>
+                                                        <line x1="23.4942" y1="13.076" x2="21.4942" y2="26.076"/>
+                                                        <line x1="17.5" y1="13" x2="17.5" y2="26"/>
+                                                    </g>
+                                                </svg>
+
+
+                                            </div>
+                                        </hiding-content-button>
+
+                                    </div>
+                                </div>
+                            </hiding-content-button>
+
+
+
+
+
+
+
+                            <hiding-content-button 
+                                class=line-button
+                                full-name=${this.state.buttonFullNames.line}
+                                button-default-background=#3b4453
+                                button-active-background=#3b4453
+                                button-hover-background=#3b4453
+                                content-background=#3b4453
+                                content-position=absolute
+                                content-direction=row
+                                content-left=0rem
+                                button-width=1.7rem
+                                button-font-size=100%
+                            >
+                                <div slot="icon-content" class="line-button-icon-content">
+                                    <svg class="line-button-icon" width="35" height="35" viewBox="0 0 35 35" fill="none" 
+                                        xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                        <title>Line</title>
+                                        <g stroke="currentColor">
+                                            <rect x="28" y="2" width="5" height="5"/>
+                                            <rect x="3" y="27" width="5" height="5"/>
+                                            <line x1="8.64645" y1="26.6464" x2="27.6464" y2="7.64645"/>
+                                        </g>
+                                    </svg>
+                                </div>
+                            </hiding-content-button>
+
+                        </div>
+                    </div>
+                </div>
+                    <!-- <div slot="icon-content" class="geometry-button-icon-content">
+                            <svg slot="icon-content" class=geometry-button-icon width="100" height="100" viewBox="0 0 100 100" fill="none" 
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <title>Geometry</title>
+                                <g fill="currentColor">
+                                    <path d="M6.77588 74.5L44.4645 1.0947L82.1532 74.5H6.77588Z" stroke="#D9D9D9"/>
+                                    <rect x="52.5" y="29.5" width="40" height="42" stroke="#72C5FF"/>
+                                    <circle cx="77.5" cy="65.5" r="22" stroke="#D9D9D9"/>
+                                    <path d="M33.8771 87.5L21.5761 66L33.8771 44.5H58.4554L69.4385 66L58.4554 
+                                        87.5H33.8771Z" stroke="#72C5FF"
+                                    />
+                                </g>
+                            </svg>
+                        </div>
+                        <hiding-content-button
+                            slot=content 
                             class=point-add
-                            name=${this.state.buttonNames.pointAdd}
                             full-name=${this.state.buttonFullNames.pointAdd}
+                            button-default-background=#2e3440
+                            button-active-background=#3b4453
+                            button-hover-background=#2d303b
+                            content-background=#3b4453
                             content-position=absolute
                             content-direction=column
                             content-left=0rem
                             button-width=3rem
                             button-font-size=85%
                             button-margin-right=0.25rem
-                            content-background=#adadad
-                            content-border="2px solid #737373"
                             content-padding=0.5rem
                         >
                             <ul class="add-action-over-point-fields">
@@ -579,11 +1116,10 @@ class FeaGeometry extends HTMLElement {
                             <div class="add-action-over-point-apply-cancel-buttons-container">
                                 <button class="point-add-action-apply">Apply</button>
                                 <button class="point-add-action-cancel">Cancel</button>
-                            </div> 
+                            </div>
                         </hiding-content-button>
                         <hiding-content-button 
                             class=point-update
-                            name=${this.state.buttonNames.pointUpdate} 
                             full-name=${this.state.buttonFullNames.pointUpdate}
                             content-position=absolute
                             content-direction=column
@@ -629,7 +1165,6 @@ class FeaGeometry extends HTMLElement {
                         </hiding-content-button>
                         <hiding-content-button
                             class=point-delete
-                            name=${this.state.buttonNames.pointDelete} 
                             full-name=${this.state.buttonFullNames.pointDelete}
                             content-position=absolute 
                             content-direction=column
@@ -663,17 +1198,15 @@ class FeaGeometry extends HTMLElement {
                     </hiding-content-button>
                     <hiding-content-button
                         class=line
-                        name=${this.state.buttonNames.line}
                         full-name=${this.state.buttonFullNames.line}
                         content-position=absolute
                         content-direction=row
-                        content-left=0rem
+                        content-left=3rem
                         button-width=5.85rem
                         button-font-size=100%
                     >
                         <hiding-content-button 
                             class=line-add
-                            name=${this.state.buttonNames.lineAdd}
                             full-name=${this.state.buttonFullNames.lineAdd}
                             content-position=absolute
                             content-direction=column
@@ -721,7 +1254,6 @@ class FeaGeometry extends HTMLElement {
                         </hiding-content-button>
                         <hiding-content-button 
                             class=line-update
-                            name=${this.state.buttonNames.lineUpdate}
                             full-name=${this.state.buttonFullNames.lineUpdate}
                             content-position=absolute 
                             content-direction=column
@@ -775,7 +1307,6 @@ class FeaGeometry extends HTMLElement {
                         </hiding-content-button>
                         <hiding-content-button 
                             class=line-delete
-                            name=${this.state.buttonNames.lineDelete}
                             full-name=${this.state.buttonFullNames.lineDelete}
                             content-position=absolute
                             content-direction=column 
@@ -806,266 +1337,259 @@ class FeaGeometry extends HTMLElement {
                                 <button class="line-delete-action-cancel">Cancel</button>
                             </div>
                         </hiding-content-button>
-                    </hiding-content-button>
-                </hiding-content-button> 
+                    </hiding-content-button> -->
             </div>
         `;
+
+        this.shadowRoot.querySelector(".geometry-menu-button").addEventListener("click", (event) => this.toggle(event));
+
+        this.addEventListener("activate menu", (event) => this.activateMenu(event));
+
         this.addEventListener("hide siblings", (event) => this.hideSiblings(event));
 
-        this.addEventListener("update content height", (event) => this.updateContentHeight(event));
+        // this.addEventListener("update content height", (event) => this.updateContentHeight(event));
 
-        this.shadowRoot.querySelector(".point-add-action-apply").addEventListener("click", () => this.addPoint());
+        // this.shadowRoot.querySelector(".point-add-action-apply").addEventListener("click", () => this.addPoint());
 
-        this.shadowRoot.querySelector(".point-add-action-cancel").addEventListener("click", () => this.cancelPointAddition());
+        // this.shadowRoot.querySelector(".point-add-action-cancel").addEventListener("click", () => this.cancelPointAddition());
 
-        this.shadowRoot.querySelector(".updated-point-number").addEventListener("change", () => this.updatePointCoordinates());
+        // this.shadowRoot.querySelector(".updated-point-number").addEventListener("change", () => this.updatePointCoordinates());
 
-        this.shadowRoot.querySelector(".search-point-number-for-update").addEventListener("keyup", () => {
-            this.filter(
-                this.shadowRoot.querySelector(".search-point-number-for-update").value,
-                this.shadowRoot.querySelector(".updated-point-number"));
-        });
+        // this.shadowRoot.querySelector(".search-point-number-for-update").addEventListener("keyup", () => {
+        //     this.filter(
+        //         this.shadowRoot.querySelector(".search-point-number-for-update").value,
+        //         this.shadowRoot.querySelector(".updated-point-number"));
+        // });
 
-        this.shadowRoot.querySelector(".point-update-action-apply").addEventListener("click", () => this.updatePoint());
+        // this.shadowRoot.querySelector(".point-update-action-apply").addEventListener("click", () => this.updatePoint());
 
-        this.shadowRoot.querySelector(".point-update-action-cancel").addEventListener("click", () => this.cancelPointUpdateOrDelete());
+        // this.shadowRoot.querySelector(".point-update-action-cancel").addEventListener("click", () => this.cancelPointUpdateOrDelete());
 
-        this.shadowRoot.querySelector(".deleted-point-number").addEventListener("change", () => this.showSelectedPointNumberForDelete());
+        // this.shadowRoot.querySelector(".deleted-point-number").addEventListener("change", () => this.showSelectedPointNumberForDelete());
 
-        this.shadowRoot.querySelector(".search-point-number-for-delete").addEventListener("keyup", () => {
-            this.filter(
-                this.shadowRoot.querySelector(".search-point-number-for-delete").value,
-                this.shadowRoot.querySelector(".deleted-point-number"));
-        });
+        // this.shadowRoot.querySelector(".search-point-number-for-delete").addEventListener("keyup", () => {
+        //     this.filter(
+        //         this.shadowRoot.querySelector(".search-point-number-for-delete").value,
+        //         this.shadowRoot.querySelector(".deleted-point-number"));
+        // });
 
-        this.shadowRoot.querySelector(".point-delete-action-apply").addEventListener("click", () => this.deletePoint());
+        // this.shadowRoot.querySelector(".point-delete-action-apply").addEventListener("click", () => this.deletePoint());
 
-        this.shadowRoot.querySelector(".point-delete-action-cancel").addEventListener("click", () => this.cancelPointUpdateOrDelete());
+        // this.shadowRoot.querySelector(".point-delete-action-cancel").addEventListener("click", () => this.cancelPointUpdateOrDelete());
 
-        this.shadowRoot.querySelector(".selected-start-point-number-for-line-addition").addEventListener("change",
-            () => this.showSelectedStartPointNumberForLineAddition());
+        // this.shadowRoot.querySelector(".selected-start-point-number-for-line-addition").addEventListener("change",
+        //     () => this.showSelectedStartPointNumberForLineAddition());
 
-        this.shadowRoot.querySelector(".search-start-point-number-for-line-addition").addEventListener("keyup", () => {
-            this.filter(
-                this.shadowRoot.querySelector(".search-start-point-number-for-line-addition").value,
-                this.shadowRoot.querySelector(".selected-start-point-number-for-line-addition"));
-        });
+        // this.shadowRoot.querySelector(".search-start-point-number-for-line-addition").addEventListener("keyup", () => {
+        //     this.filter(
+        //         this.shadowRoot.querySelector(".search-start-point-number-for-line-addition").value,
+        //         this.shadowRoot.querySelector(".selected-start-point-number-for-line-addition"));
+        // });
 
-        this.shadowRoot.querySelector(".selected-end-point-number-for-line-addition").addEventListener("change",
-            () => this.showSelectedEndPointNumberForLineAddition());
+        // this.shadowRoot.querySelector(".selected-end-point-number-for-line-addition").addEventListener("change",
+        //     () => this.showSelectedEndPointNumberForLineAddition());
 
-        this.shadowRoot.querySelector(".search-end-point-number-for-line-addition").addEventListener("keyup", () => {
-            this.filter(
-                this.shadowRoot.querySelector(".search-end-point-number-for-line-addition").value,
-                this.shadowRoot.querySelector(".selected-end-point-number-for-line-addition"));
-        });
+        // this.shadowRoot.querySelector(".search-end-point-number-for-line-addition").addEventListener("keyup", () => {
+        //     this.filter(
+        //         this.shadowRoot.querySelector(".search-end-point-number-for-line-addition").value,
+        //         this.shadowRoot.querySelector(".selected-end-point-number-for-line-addition"));
+        // });
 
-        this.shadowRoot.querySelector(".line-add-action-apply").addEventListener("click", () => this.addLine());
+        // this.shadowRoot.querySelector(".line-add-action-apply").addEventListener("click", () => this.addLine());
 
-        this.shadowRoot.querySelector(".line-add-action-cancel").addEventListener("click", () => this.cancelLineAddition());
+        // this.shadowRoot.querySelector(".line-add-action-cancel").addEventListener("click", () => this.cancelLineAddition());
 
-        this.shadowRoot.querySelector(".updated-line-number").addEventListener("change",
-            () => this.showSelectedLineNumberForUpdate());
+        // this.shadowRoot.querySelector(".updated-line-number").addEventListener("change",
+        //     () => this.showSelectedLineNumberForUpdate());
 
-        this.shadowRoot.querySelector(".search-line-number-for-update").addEventListener("keyup", () => {
-            this.filter(
-                this.shadowRoot.querySelector(".search-line-number-for-update").value,
-                this.shadowRoot.querySelector(".updated-line-number"));
-        });
+        // this.shadowRoot.querySelector(".search-line-number-for-update").addEventListener("keyup", () => {
+        //     this.filter(
+        //         this.shadowRoot.querySelector(".search-line-number-for-update").value,
+        //         this.shadowRoot.querySelector(".updated-line-number"));
+        // });
 
-        this.shadowRoot.querySelector(".selected-start-point-number-for-line-update").addEventListener("change",
-            () => this.showSelectedStartPointNumberForLineUpdate());
+        // this.shadowRoot.querySelector(".selected-start-point-number-for-line-update").addEventListener("change",
+        //     () => this.showSelectedStartPointNumberForLineUpdate());
 
-        this.shadowRoot.querySelector(".search-start-point-number-for-line-update").addEventListener("keyup", () => {
-            this.filter(
-                this.shadowRoot.querySelector(".search-start-point-number-for-line-update").value,
-                this.shadowRoot.querySelector(".selected-start-point-number-for-line-update"));
-        });
+        // this.shadowRoot.querySelector(".search-start-point-number-for-line-update").addEventListener("keyup", () => {
+        //     this.filter(
+        //         this.shadowRoot.querySelector(".search-start-point-number-for-line-update").value,
+        //         this.shadowRoot.querySelector(".selected-start-point-number-for-line-update"));
+        // });
 
-        this.shadowRoot.querySelector(".selected-end-point-number-for-line-update").addEventListener("change",
-            () => this.showSelectedEndPointNumberForLineUpdate());
+        // this.shadowRoot.querySelector(".selected-end-point-number-for-line-update").addEventListener("change",
+        //     () => this.showSelectedEndPointNumberForLineUpdate());
 
-        this.shadowRoot.querySelector(".search-end-point-number-for-line-update").addEventListener("keyup", () => {
-            this.filter(
-                this.shadowRoot.querySelector(".search-end-point-number-for-line-update").value,
-                this.shadowRoot.querySelector(".selected-end-point-number-for-line-update"));
-        });
+        // this.shadowRoot.querySelector(".search-end-point-number-for-line-update").addEventListener("keyup", () => {
+        //     this.filter(
+        //         this.shadowRoot.querySelector(".search-end-point-number-for-line-update").value,
+        //         this.shadowRoot.querySelector(".selected-end-point-number-for-line-update"));
+        // });
 
-        this.shadowRoot.querySelector(".line-update-action-apply").addEventListener("click", () => this.updateLine());
+        // this.shadowRoot.querySelector(".line-update-action-apply").addEventListener("click", () => this.updateLine());
 
-        this.shadowRoot.querySelector(".line-update-action-cancel").addEventListener("click", () => this.cancelLineUpdate());
+        // this.shadowRoot.querySelector(".line-update-action-cancel").addEventListener("click", () => this.cancelLineUpdate());
 
-        this.shadowRoot.querySelector(".deleted-line-number").addEventListener("change",
-            () => this.showSelectedLineNumberForDelete());
+        // this.shadowRoot.querySelector(".deleted-line-number").addEventListener("change",
+        //     () => this.showSelectedLineNumberForDelete());
 
-        this.shadowRoot.querySelector(".search-line-number-for-delete").addEventListener("keyup", () => {
-            this.filter(
-                this.shadowRoot.querySelector(".search-line-number-for-delete").value,
-                this.shadowRoot.querySelector(".deleted-line-number"));
-        });
+        // this.shadowRoot.querySelector(".search-line-number-for-delete").addEventListener("keyup", () => {
+        //     this.filter(
+        //         this.shadowRoot.querySelector(".search-line-number-for-delete").value,
+        //         this.shadowRoot.querySelector(".deleted-line-number"));
+        // });
 
-        this.shadowRoot.querySelector(".line-delete-action-apply").addEventListener("click", () => this.deleteLine());
+        // this.shadowRoot.querySelector(".line-delete-action-apply").addEventListener("click", () => this.deleteLine());
 
-        this.shadowRoot.querySelector(".line-delete-action-cancel").addEventListener("click", () => this.cancelLineDelete());
+        // this.shadowRoot.querySelector(".line-delete-action-cancel").addEventListener("click", () => this.cancelLineDelete());
 
-        this.shadowRoot.querySelector(".add-point-number").addEventListener("click", () => {
-            const highlightedElement = this.shadowRoot.querySelector(".add-point-number");
-            this.dropHighlight(highlightedElement);
-            this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
-                this.shadowRoot.querySelector(".point-add-message").offsetHeight}px;`);
-            this.shadowRoot.querySelector(".point-add-message").innerHTML = "";
-        });
+        // this.shadowRoot.querySelector(".add-point-number").addEventListener("click", () => {
+        //     const highlightedElement = this.shadowRoot.querySelector(".add-point-number");
+        //     this.dropHighlight(highlightedElement);
+        //     this.shadowRoot.querySelector(".wrapper").setAttribute("style",
+        //         `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
+        //         this.shadowRoot.querySelector(".point-add-message").offsetHeight}px;`);
+        //     this.shadowRoot.querySelector(".point-add-message").innerHTML = "";
+        // });
 
-        this.shadowRoot.querySelector(".add-x-coord").addEventListener("click", () => {
-            const inputtedXField = this.shadowRoot.querySelector(".add-x-coord");
-            this.dropHighlight(inputtedXField);
-            this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
-                this.shadowRoot.querySelector(".point-add-message").offsetHeight}px;`);
-            this.shadowRoot.querySelector(".point-add-message").innerHTML = "";
-        });
+        // this.shadowRoot.querySelector(".add-x-coord").addEventListener("click", () => {
+        //     const inputtedXField = this.shadowRoot.querySelector(".add-x-coord");
+        //     this.dropHighlight(inputtedXField);
+        //     this.shadowRoot.querySelector(".wrapper").setAttribute("style",
+        //         `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
+        //         this.shadowRoot.querySelector(".point-add-message").offsetHeight}px;`);
+        //     this.shadowRoot.querySelector(".point-add-message").innerHTML = "";
+        // });
 
-        this.shadowRoot.querySelector(".add-y-coord").addEventListener("click", () => {
-            const inputtedYField = this.shadowRoot.querySelector(".add-y-coord");
-            this.dropHighlight(inputtedYField);
-            this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
-                this.shadowRoot.querySelector(".point-add-message").offsetHeight}px;`);
-            this.shadowRoot.querySelector(".point-add-message").innerHTML = "";
-        });
+        // this.shadowRoot.querySelector(".add-y-coord").addEventListener("click", () => {
+        //     const inputtedYField = this.shadowRoot.querySelector(".add-y-coord");
+        //     this.dropHighlight(inputtedYField);
+        //     this.shadowRoot.querySelector(".wrapper").setAttribute("style",
+        //         `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
+        //         this.shadowRoot.querySelector(".point-add-message").offsetHeight}px;`);
+        //     this.shadowRoot.querySelector(".point-add-message").innerHTML = "";
+        // });
 
-        this.shadowRoot.querySelector(".add-z-coord").addEventListener("click", () => {
-            const inputtedZField = this.shadowRoot.querySelector(".add-z-coord");
-            this.dropHighlight(inputtedZField);
-            this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
-                this.shadowRoot.querySelector(".point-add-message").offsetHeight}px;`);
-            this.shadowRoot.querySelector(".point-add-message").innerHTML = "";
-        });
+        // this.shadowRoot.querySelector(".add-z-coord").addEventListener("click", () => {
+        //     const inputtedZField = this.shadowRoot.querySelector(".add-z-coord");
+        //     this.dropHighlight(inputtedZField);
+        //     this.shadowRoot.querySelector(".wrapper").setAttribute("style",
+        //         `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
+        //         this.shadowRoot.querySelector(".point-add-message").offsetHeight}px;`);
+        //     this.shadowRoot.querySelector(".point-add-message").innerHTML = "";
+        // });
 
-        this.shadowRoot.querySelector(".updated-point-number").addEventListener("click", () => {
-            const highlightedElement = this.shadowRoot.querySelector(".updated-point-number");
-            this.dropHighlight(highlightedElement);
-            this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
-                this.shadowRoot.querySelector(".point-update-message").offsetHeight}px;`);
-            this.shadowRoot.querySelector(".point-update-message").innerHTML = "";
-        });
+        // this.shadowRoot.querySelector(".updated-point-number").addEventListener("click", () => {
+        //     const highlightedElement = this.shadowRoot.querySelector(".updated-point-number");
+        //     this.dropHighlight(highlightedElement);
+        //     this.shadowRoot.querySelector(".wrapper").setAttribute("style",
+        //         `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
+        //         this.shadowRoot.querySelector(".point-update-message").offsetHeight}px;`);
+        //     this.shadowRoot.querySelector(".point-update-message").innerHTML = "";
+        // });
 
-        this.shadowRoot.querySelector(".update-x-coord").addEventListener("click", () => {
-            const highlightedElement = this.shadowRoot.querySelector(".update-x-coord");
-            this.dropHighlight(highlightedElement);
-            this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
-                this.shadowRoot.querySelector(".point-update-message").offsetHeight}px;`);
-            this.shadowRoot.querySelector(".point-update-message").innerHTML = "";
-        });
+        // this.shadowRoot.querySelector(".update-x-coord").addEventListener("click", () => {
+        //     const highlightedElement = this.shadowRoot.querySelector(".update-x-coord");
+        //     this.dropHighlight(highlightedElement);
+        //     this.shadowRoot.querySelector(".wrapper").setAttribute("style",
+        //         `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
+        //         this.shadowRoot.querySelector(".point-update-message").offsetHeight}px;`);
+        //     this.shadowRoot.querySelector(".point-update-message").innerHTML = "";
+        // });
 
-        this.shadowRoot.querySelector(".update-y-coord").addEventListener("click", () => {
-            const highlightedElement = this.shadowRoot.querySelector(".update-y-coord");
-            this.dropHighlight(highlightedElement);
-            this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
-                this.shadowRoot.querySelector(".point-update-message").offsetHeight}px;`);
-            this.shadowRoot.querySelector(".point-update-message").innerHTML = "";
-        });
+        // this.shadowRoot.querySelector(".update-y-coord").addEventListener("click", () => {
+        //     const highlightedElement = this.shadowRoot.querySelector(".update-y-coord");
+        //     this.dropHighlight(highlightedElement);
+        //     this.shadowRoot.querySelector(".wrapper").setAttribute("style",
+        //         `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
+        //         this.shadowRoot.querySelector(".point-update-message").offsetHeight}px;`);
+        //     this.shadowRoot.querySelector(".point-update-message").innerHTML = "";
+        // });
 
-        this.shadowRoot.querySelector(".update-z-coord").addEventListener("click", () => {
-            const highlightedElement = this.shadowRoot.querySelector(".update-z-coord");
-            this.dropHighlight(highlightedElement);
-            this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
-                this.shadowRoot.querySelector(".point-update-message").offsetHeight}px;`);
-            this.shadowRoot.querySelector(".point-update-message").innerHTML = "";
-        });
+        // this.shadowRoot.querySelector(".update-z-coord").addEventListener("click", () => {
+        //     const highlightedElement = this.shadowRoot.querySelector(".update-z-coord");
+        //     this.dropHighlight(highlightedElement);
+        //     this.shadowRoot.querySelector(".wrapper").setAttribute("style",
+        //         `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
+        //         this.shadowRoot.querySelector(".point-update-message").offsetHeight}px;`);
+        //     this.shadowRoot.querySelector(".point-update-message").innerHTML = "";
+        // });
 
-        this.shadowRoot.querySelector(".deleted-point-number").addEventListener("click", () => {
-            const highlightedElement = this.shadowRoot.querySelector(".deleted-point-number");
-            this.dropHighlight(highlightedElement);
-            this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
-                this.shadowRoot.querySelector(".point-delete-message").offsetHeight}px;`);
-            this.shadowRoot.querySelector(".point-delete-message").innerHTML = "";
-        });
+        // this.shadowRoot.querySelector(".deleted-point-number").addEventListener("click", () => {
+        //     const highlightedElement = this.shadowRoot.querySelector(".deleted-point-number");
+        //     this.dropHighlight(highlightedElement);
+        //     this.shadowRoot.querySelector(".wrapper").setAttribute("style",
+        //         `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
+        //         this.shadowRoot.querySelector(".point-delete-message").offsetHeight}px;`);
+        //     this.shadowRoot.querySelector(".point-delete-message").innerHTML = "";
+        // });
 
-        this.shadowRoot.querySelector(".add-line-number").addEventListener("click", () => {
-            const highlightedElement = this.shadowRoot.querySelector(".add-line-number");
-            this.dropHighlight(highlightedElement);
-            this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
-                this.shadowRoot.querySelector(".line-add-message").offsetHeight}px;`);
-            this.shadowRoot.querySelector(".line-add-message").innerHTML = "";
-        });
+        // this.shadowRoot.querySelector(".add-line-number").addEventListener("click", () => {
+        //     const highlightedElement = this.shadowRoot.querySelector(".add-line-number");
+        //     this.dropHighlight(highlightedElement);
+        //     this.shadowRoot.querySelector(".wrapper").setAttribute("style",
+        //         `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
+        //         this.shadowRoot.querySelector(".line-add-message").offsetHeight}px;`);
+        //     this.shadowRoot.querySelector(".line-add-message").innerHTML = "";
+        // });
 
-        this.shadowRoot.querySelector(".selected-start-point-number-for-line-addition").addEventListener("click", () => {
-            const highlightedElement = this.shadowRoot.querySelector(".selected-start-point-number-for-line-addition");
-            this.dropHighlight(highlightedElement);
-            this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
-                this.shadowRoot.querySelector(".line-add-message").offsetHeight}px;`);
-            this.shadowRoot.querySelector(".line-add-message").innerHTML = "";
-        });
+        // this.shadowRoot.querySelector(".selected-start-point-number-for-line-addition").addEventListener("click", () => {
+        //     const highlightedElement = this.shadowRoot.querySelector(".selected-start-point-number-for-line-addition");
+        //     this.dropHighlight(highlightedElement);
+        //     this.shadowRoot.querySelector(".wrapper").setAttribute("style",
+        //         `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
+        //         this.shadowRoot.querySelector(".line-add-message").offsetHeight}px;`);
+        //     this.shadowRoot.querySelector(".line-add-message").innerHTML = "";
+        // });
 
-        this.shadowRoot.querySelector(".selected-end-point-number-for-line-addition").addEventListener("click", () => {
-            const highlightedElement = this.shadowRoot.querySelector(".selected-end-point-number-for-line-addition");
-            this.dropHighlight(highlightedElement);
-            this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
-                this.shadowRoot.querySelector(".line-add-message").offsetHeight}px;`);
-            this.shadowRoot.querySelector(".line-add-message").innerHTML = "";
-        });
+        // this.shadowRoot.querySelector(".selected-end-point-number-for-line-addition").addEventListener("click", () => {
+        //     const highlightedElement = this.shadowRoot.querySelector(".selected-end-point-number-for-line-addition");
+        //     this.dropHighlight(highlightedElement);
+        //     this.shadowRoot.querySelector(".wrapper").setAttribute("style",
+        //         `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
+        //         this.shadowRoot.querySelector(".line-add-message").offsetHeight}px;`);
+        //     this.shadowRoot.querySelector(".line-add-message").innerHTML = "";
+        // });
 
-        this.shadowRoot.querySelector(".updated-line-number").addEventListener("click", () => {
-            const highlightedElement = this.shadowRoot.querySelector(".updated-line-number");
-            this.dropHighlight(highlightedElement);
-            this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
-                this.shadowRoot.querySelector(".line-update-message").offsetHeight}px;`);
-            this.shadowRoot.querySelector(".line-update-message").innerHTML = "";
-        });
+        // this.shadowRoot.querySelector(".updated-line-number").addEventListener("click", () => {
+        //     const highlightedElement = this.shadowRoot.querySelector(".updated-line-number");
+        //     this.dropHighlight(highlightedElement);
+        //     this.shadowRoot.querySelector(".wrapper").setAttribute("style",
+        //         `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
+        //         this.shadowRoot.querySelector(".line-update-message").offsetHeight}px;`);
+        //     this.shadowRoot.querySelector(".line-update-message").innerHTML = "";
+        // });
 
-        this.shadowRoot.querySelector(".selected-start-point-number-for-line-update").addEventListener("click", () => {
-            const highlightedElement = this.shadowRoot.querySelector(".selected-start-point-number-for-line-update");
-            this.dropHighlight(highlightedElement);
-            this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
-                this.shadowRoot.querySelector(".line-update-message").offsetHeight}px;`);
-            this.shadowRoot.querySelector(".line-update-message").innerHTML = "";
-        });
+        // this.shadowRoot.querySelector(".selected-start-point-number-for-line-update").addEventListener("click", () => {
+        //     const highlightedElement = this.shadowRoot.querySelector(".selected-start-point-number-for-line-update");
+        //     this.dropHighlight(highlightedElement);
+        //     this.shadowRoot.querySelector(".wrapper").setAttribute("style",
+        //         `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
+        //         this.shadowRoot.querySelector(".line-update-message").offsetHeight}px;`);
+        //     this.shadowRoot.querySelector(".line-update-message").innerHTML = "";
+        // });
 
-        this.shadowRoot.querySelector(".selected-end-point-number-for-line-update").addEventListener("click", () => {
-            const highlightedElement = this.shadowRoot.querySelector(".selected-end-point-number-for-line-update");
-            this.dropHighlight(highlightedElement);
-            this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
-                this.shadowRoot.querySelector(".line-update-message").offsetHeight}px;`);
-            this.shadowRoot.querySelector(".line-update-message").innerHTML = "";
-        });
+        // this.shadowRoot.querySelector(".selected-end-point-number-for-line-update").addEventListener("click", () => {
+        //     const highlightedElement = this.shadowRoot.querySelector(".selected-end-point-number-for-line-update");
+        //     this.dropHighlight(highlightedElement);
+        //     this.shadowRoot.querySelector(".wrapper").setAttribute("style",
+        //         `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
+        //         this.shadowRoot.querySelector(".line-update-message").offsetHeight}px;`);
+        //     this.shadowRoot.querySelector(".line-update-message").innerHTML = "";
+        // });
 
-        this.shadowRoot.querySelector(".deleted-line-number").addEventListener("click", () => {
-            const highlightedElement = this.shadowRoot.querySelector(".deleted-line-number");
-            this.dropHighlight(highlightedElement);
-            this.shadowRoot.querySelector(".wrapper").setAttribute("style",
-                `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
-                this.shadowRoot.querySelector(".line-delete-message").offsetHeight}px;`);
-            this.shadowRoot.querySelector(".line-delete-message").innerHTML = "";
-        });
+        // this.shadowRoot.querySelector(".deleted-line-number").addEventListener("click", () => {
+        //     const highlightedElement = this.shadowRoot.querySelector(".deleted-line-number");
+        //     this.dropHighlight(highlightedElement);
+        //     this.shadowRoot.querySelector(".wrapper").setAttribute("style",
+        //         `height: ${this.shadowRoot.querySelector(".wrapper").offsetHeight -
+        //         this.shadowRoot.querySelector(".line-delete-message").offsetHeight}px;`);
+        //     this.shadowRoot.querySelector(".line-delete-message").innerHTML = "";
+        // });
     }
 
     set actionId(value) {
         this.props.actionId = value;
-    }
-
-    connectedCallback() {
-        Object.keys(this.props).forEach((propName) => {
-            if (this.hasOwnProperty(propName)) {
-                let value = this[propName];
-                delete this[propName];
-                this[propName] = value;
-            }
-        });
-        this.refreshGeometryFields();
     }
 
     set addPointToClient(point) {
@@ -1114,6 +1638,17 @@ class FeaGeometry extends HTMLElement {
         this.refreshGeometryFields();
     }
 
+    connectedCallback() {
+        Object.keys(this.props).forEach((propName) => {
+            if (this.hasOwnProperty(propName)) {
+                let value = this[propName];
+                delete this[propName];
+                this[propName] = value;
+            }
+        });
+        this.refreshGeometryFields();
+    }
+
     disconnectedCallback() {
     }
 
@@ -1127,37 +1662,88 @@ class FeaGeometry extends HTMLElement {
     adoptedCallback() {
     }
 
-    refreshGeometryFields() {
-        this.shadowRoot.querySelector(".point-update").disable = false;
-        this.shadowRoot.querySelector(".point-delete").disable = false;
-        this.shadowRoot.querySelector(".line").disable = false;
-        this.shadowRoot.querySelector(".line-update").disable = false;
-        this.shadowRoot.querySelector(".line-delete").disable = false;
-        this.defineNewPointNumber();
-        if (this.props.points.length !== 0) {
-            this.defineUpdateAndDeletePointNumbers();
-            if (this.props.points.length < 2) {
-                this.shadowRoot.querySelector(".line").disable = true;
-            } else {
-                this.defineNewLineNumber();
-                const lineStartPointNumberForAddition = this.shadowRoot.querySelector(".selected-start-point-number-for-line-addition");
-                const lineEndPointNumberForAddition = this.shadowRoot.querySelector(".selected-end-point-number-for-line-addition");
-                this.definePointNumbersForLine(lineStartPointNumberForAddition, lineEndPointNumberForAddition);
-                const lineStartPointNumberForUpdate = this.shadowRoot.querySelector(".selected-start-point-number-for-line-update");
-                const lineEndPointNumberForUpdate = this.shadowRoot.querySelector(".selected-end-point-number-for-line-update");
-                this.definePointNumbersForLine(lineStartPointNumberForUpdate, lineEndPointNumberForUpdate);
-                if (this.props.lines.length !== 0) {
-                    this.defineUpdateAndDeleteLineNumbers();
-                } else {
-                    this.shadowRoot.querySelector(".line-update").disable = true;
-                    this.shadowRoot.querySelector(".line-delete").disable = true;
+
+    activateMenu(event) {
+        switch (event.detail.from) {
+            case "point":
+                if (this.shadowRoot.querySelector(".point-button").classList.contains("active") === false) {
+                    this.shadowRoot.querySelector(".point-button").classList.add("active");
+                    this.shadowRoot.querySelector(".geometry-menu-buttons-caption").innerHTML = "Point";
+                    if (this.shadowRoot.querySelector(".line-button").classList.contains("active") === true) {
+                        this.shadowRoot.querySelector(".line-button").classList.remove("active")
+                    }
                 }
-            }
-        } else {
-            this.shadowRoot.querySelector(".point-update").disable = true;
-            this.shadowRoot.querySelector(".point-delete").disable = true;
-            this.shadowRoot.querySelector(".line").disable = true;
+                event.stopPropagation();
+                break;
+            case "line":
+                if (this.shadowRoot.querySelector(".line-button").classList.contains("active") === false) {
+                    this.shadowRoot.querySelector(".line-button").classList.add("active");
+                    this.shadowRoot.querySelector(".geometry-menu-buttons-caption").innerHTML = "Line";
+                    if (this.shadowRoot.querySelector(".point-button").classList.contains("active") === true) {
+                        this.shadowRoot.querySelector(".point-button").classList.remove("active")
+                    }
+                }
+                event.stopPropagation();
+                break;
+            case "properties":
+                this.shadowRoot.querySelector("fea-geometry").close = "_empty";
+                event.stopPropagation();
+                break;
         }
+    }
+
+    toggle() {
+        const content = this.shadowRoot.querySelector(".geometry-menu-content");
+        const button = this.shadowRoot.querySelector(".geometry-menu-button");
+        if (content.classList.contains("hidden") === false) {
+            content.classList.add("hidden");
+            button.classList.remove("active");
+        } else {
+            content.classList.remove("hidden");
+            button.classList.add("active");
+            // this.hideSiblings();
+            // this.menuOpen();
+        }
+        // this.updateContentHeight();
+        const additionalWidth = button.offsetWidth + content.offsetWidth;
+        this.dispatchEvent(new CustomEvent("update preprocessor menu width", {
+            bubbles: true,
+            composed: true,
+            detail: {"additionalWidth": additionalWidth},
+        }));
+    }
+
+    refreshGeometryFields() {
+        // this.shadowRoot.querySelector(".point-update").disable = false;
+        // this.shadowRoot.querySelector(".point-delete").disable = false;
+        // this.shadowRoot.querySelector(".line").disable = false;
+        // this.shadowRoot.querySelector(".line-update").disable = false;
+        // this.shadowRoot.querySelector(".line-delete").disable = false;
+        // this.defineNewPointNumber();
+        // if (this.props.points.length !== 0) {
+        //     this.defineUpdateAndDeletePointNumbers();
+        //     if (this.props.points.length < 2) {
+        //         this.shadowRoot.querySelector(".line").disable = true;
+        //     } else {
+        //         this.defineNewLineNumber();
+        //         const lineStartPointNumberForAddition = this.shadowRoot.querySelector(".selected-start-point-number-for-line-addition");
+        //         const lineEndPointNumberForAddition = this.shadowRoot.querySelector(".selected-end-point-number-for-line-addition");
+        //         this.definePointNumbersForLine(lineStartPointNumberForAddition, lineEndPointNumberForAddition);
+        //         const lineStartPointNumberForUpdate = this.shadowRoot.querySelector(".selected-start-point-number-for-line-update");
+        //         const lineEndPointNumberForUpdate = this.shadowRoot.querySelector(".selected-end-point-number-for-line-update");
+        //         this.definePointNumbersForLine(lineStartPointNumberForUpdate, lineEndPointNumberForUpdate);
+        //         if (this.props.lines.length !== 0) {
+        //             this.defineUpdateAndDeleteLineNumbers();
+        //         } else {
+        //             this.shadowRoot.querySelector(".line-update").disable = true;
+        //             this.shadowRoot.querySelector(".line-delete").disable = true;
+        //         }
+        //     }
+        // } else {
+        //     this.shadowRoot.querySelector(".point-update").disable = true;
+        //     this.shadowRoot.querySelector(".point-delete").disable = true;
+        //     this.shadowRoot.querySelector(".line").disable = true;
+        // }
     }
 
     hideSiblings(event) {
@@ -1173,13 +1759,13 @@ class FeaGeometry extends HTMLElement {
                 this.shadowRoot.querySelector(".line-delete").deactivate = "_true";
                 event.stopPropagation();
                 break;
-            case "point":
-                this.shadowRoot.querySelector(".line").deactivate = "_true";
-                this.shadowRoot.querySelector(".line-add").deactivate = "_true";
-                this.shadowRoot.querySelector(".line-update").deactivate = "_true";
-                this.shadowRoot.querySelector(".line-delete").deactivate = "_true";
-                event.stopPropagation();
-                break;
+            // case "point":
+            //     this.shadowRoot.querySelector(".line").deactivate = "_true";
+            //     this.shadowRoot.querySelector(".line-add").deactivate = "_true";
+            //     this.shadowRoot.querySelector(".line-update").deactivate = "_true";
+            //     this.shadowRoot.querySelector(".line-delete").deactivate = "_true";
+            //     event.stopPropagation();
+            //     break;
             case "pointAdd":
                 this.shadowRoot.querySelector(".point-update").deactivate = "_true";
                 this.shadowRoot.querySelector(".point-delete").deactivate = "_true";
@@ -1195,13 +1781,13 @@ class FeaGeometry extends HTMLElement {
                 this.shadowRoot.querySelector(".point-update").deactivate = "_true";
                 event.stopPropagation();
                 break;
-            case "line":
-                this.shadowRoot.querySelector(".point").deactivate = "_true";
-                this.shadowRoot.querySelector(".point-add").deactivate = "_true";
-                this.shadowRoot.querySelector(".point-update").deactivate = "_true";
-                this.shadowRoot.querySelector(".point-delete").deactivate = "_true";
-                event.stopPropagation();
-                break;
+            // case "line":
+            //     this.shadowRoot.querySelector(".point").deactivate = "_true";
+            //     this.shadowRoot.querySelector(".point-add").deactivate = "_true";
+            //     this.shadowRoot.querySelector(".point-update").deactivate = "_true";
+            //     this.shadowRoot.querySelector(".point-delete").deactivate = "_true";
+            //     event.stopPropagation();
+            //     break;
             case "lineAdd":
                 this.shadowRoot.querySelector(".line-update").deactivate = "_true";
                 this.shadowRoot.querySelector(".line-delete").deactivate = "_true";

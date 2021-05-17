@@ -4,7 +4,7 @@ customElements.define("hiding-content-button", HidingContentButton);
 import FeaApp from "./components/fea-app.js";
 import FeaAppTitleBar from "./components/fea-app-title-bar.js";
 
-import FeaPreprocessor from "./components/fea-preprocessor.js";
+import FeaPreprocessorMenu from "./components/fea-preprocessor-menu.js";
 import FeaPreprocessorMenuButtons from "./components/fea-preprocessor-menu-buttons.js";
 
 import FeaGeometry from "./components/fea-geometry.js";
@@ -17,6 +17,7 @@ import FeaGeometryLineMenu from "./components/fea-geometry/line/fea-geometry-lin
 import FeaGeometryLineMenuButtons from "./components/fea-geometry/line/fea-geometry-line-menu-buttons.js";
 import FeaGeometryAddPointMenu from "./components/fea-geometry/point/fea-geometry-add-point-menu.js";
 import FeaGeometryUpdatePointMenu from "./components/fea-geometry/point/fea-geometry-update-point-menu.js";
+import FeaGeometryDeletePointMenu from "./components/fea-geometry/point/fea-geometry-delete-point-menu.js";
 
 
 import FeaProperties from "./components/fea-properties.js";
@@ -36,7 +37,7 @@ import FeaPlotForces from "./components/fea-plot-forces.js";
 customElements.define("fea-app", FeaApp);
 customElements.define("fea-app-title-bar", FeaAppTitleBar);
 
-customElements.define("fea-preprocessor", FeaPreprocessor);
+customElements.define("fea-preprocessor-menu", FeaPreprocessorMenu);
 customElements.define("fea-preprocessor-menu-buttons", FeaPreprocessorMenuButtons);
 
 customElements.define("fea-geometry", FeaGeometry);
@@ -49,6 +50,7 @@ customElements.define("fea-geometry-line-menu", FeaGeometryLineMenu);
 customElements.define("fea-geometry-line-menu-buttons", FeaGeometryLineMenuButtons);
 customElements.define("fea-geometry-add-point-menu", FeaGeometryAddPointMenu);
 customElements.define("fea-geometry-update-point-menu", FeaGeometryUpdatePointMenu);
+customElements.define("fea-geometry-delete-point-menu", FeaGeometryDeletePointMenu);
 
 
 customElements.define("fea-properties", FeaProperties);

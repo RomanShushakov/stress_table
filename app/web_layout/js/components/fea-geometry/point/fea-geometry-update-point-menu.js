@@ -415,6 +415,13 @@ class FeaGeometryUpdatePointMenu extends HTMLElement {
         this.definePointNumber();
     }
 
+    set deletePointFromClient(point) {
+        let pointIndexInProps = this.props.points.findIndex(existedPoint => existedPoint.number == point.number);
+        this.props.points.splice(pointIndexInProps, 1);
+        this.props.points.sort((a, b) => a.number - b.number);
+        this.definePointNumber();
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {
@@ -443,15 +450,21 @@ class FeaGeometryUpdatePointMenu extends HTMLElement {
         for (let i = pointUpdateNumberSelect.length - 1; i >= 0; i--) {
             pointUpdateNumberSelect.options[i] = null;
         }
-        for (let i = 0; i < this.props.points.length; i++) {
-            let updateOption = document.createElement("option");
-            updateOption.value = this.props.points[i].number;
-            updateOption.innerHTML = this.props.points[i].number;
-            pointUpdateNumberSelect.appendChild(updateOption);
+        if (this.props.points.length > 0) {
+            for (let i = 0; i < this.props.points.length; i++) {
+                let updateOption = document.createElement("option");
+                updateOption.value = this.props.points[i].number;
+                updateOption.innerHTML = this.props.points[i].number;
+                pointUpdateNumberSelect.appendChild(updateOption);
+            }
+            this.shadowRoot.querySelector(".point-x-coord").value = this.props.points[0].x;
+            this.shadowRoot.querySelector(".point-y-coord").value = this.props.points[0].y;
+            this.shadowRoot.querySelector(".point-z-coord").value = this.props.points[0].z;
+        } else {
+            this.shadowRoot.querySelector(".point-x-coord").value = "";
+            this.shadowRoot.querySelector(".point-y-coord").value = "";
+            this.shadowRoot.querySelector(".point-z-coord").value = "";
         }
-        this.shadowRoot.querySelector(".point-x-coord").value = this.props.points[0].x;
-        this.shadowRoot.querySelector(".point-y-coord").value = this.props.points[0].y;
-        this.shadowRoot.querySelector(".point-z-coord").value = this.props.points[0].z;
     }
 
     updatePointCoordinates() {
@@ -469,7 +482,8 @@ class FeaGeometryUpdatePointMenu extends HTMLElement {
     filter(keywordField, selectField) {
         for (let i = 0; i < selectField.length; i++) {
             let txt = selectField.options[i].value;
-            if (txt.substring(0, keywordField.length).toLowerCase() !== keywordField.toLowerCase() && keywordField.trim() !== "") {
+            if (txt.substring(0, keywordField.length).toLowerCase() !== keywordField.toLowerCase() && 
+                keywordField.trim() !== "") {
                 selectField.options[i].style.display = "none";
             } else {
                 selectField.options[i].style.display = "list-item";
@@ -508,7 +522,8 @@ class FeaGeometryUpdatePointMenu extends HTMLElement {
         if (selectedPointNumberField.value === "" || inputtedXField.value === "" || 
             inputtedYField.value === "" || inputtedZField.value === "") {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "Note: The highlighted fields should be filled!";
+                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
+                    "Note: The highlighted fields should be filled!";
                 return;
             } else {
                 return;
@@ -519,7 +534,8 @@ class FeaGeometryUpdatePointMenu extends HTMLElement {
             point.y == inputtedYField.value && point.z == inputtedZField.value);
         if (pointCoordinatesInProps != null) {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "Note: The point with the same coordinates does already exist!";
+                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
+                    "Note: The point with the same coordinates does already exist!";
                 return;
             } else {
                 return;
@@ -529,7 +545,8 @@ class FeaGeometryUpdatePointMenu extends HTMLElement {
         if (this.isNumeric(selectedPointNumberField.value) === false || this.isNumeric(inputtedXField.value) === false ||
             this.isNumeric(inputtedYField.value) === false || this.isNumeric(inputtedZField.value) === false) {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "Note: Only numbers could be used as input values!";
+                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
+                    "Note: Only numbers could be used as input values!";
                 return;
             } else {
                 return;

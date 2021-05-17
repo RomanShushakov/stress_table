@@ -45,7 +45,7 @@ class FeaApp extends HTMLElement {
         window.addEventListener("resize", () => this.updateCanvasSize());
 
         this.addEventListener("activate-postprocessor", () => this.activatePostprocessor());
-        this.addEventListener("activate-preprocessor", () => this.activatePreprocessor());
+        this.addEventListener("activate-preprocessor-menu", () => this.activatePreprocessorMenu());
 
         this.addEventListener("client message", (event) => this.handleClientMessage(event));
 
@@ -62,7 +62,7 @@ class FeaApp extends HTMLElement {
 
     async connectedCallback() {
         this.state.actionsRouter = await initializeActionsRouter(this.greeting);
-        this.activatePreprocessor();
+        this.activatePreprocessorMenu();
         this.updateTitleBarActionId();
         this.shadowRoot.querySelector("fea-renderer").canvasSizeCallback = () => this.getCanvasSize();
     }
@@ -80,21 +80,21 @@ class FeaApp extends HTMLElement {
     adoptedCallback() {
     }
 
-    activatePreprocessor() {
-        if (this.querySelector("fea-postprocessor") !== null) {
+    activatePreprocessorMenu() {
+        if (this.querySelector("fea-postprocessor-menu") !== null) {
             this.querySelector("fea-postprocessor").remove();
         }
-        const feaPreprocessor = document.createElement("fea-preprocessor");
-        this.append(feaPreprocessor);
-        this.updatePreprocessorActionId();
+        const feaPreprocessorMenu = document.createElement("fea-preprocessor-menu");
+        this.append(feaPreprocessorMenu);
+        this.updatePreprocessorMenuActionId();
         if (this.state.actionId !== 1) {
             this.state.actionsRouter.add_whole_geometry_to_preprocessor();
         }
         this.updateCanvasSize();
     }
 
-    updatePreprocessorActionId() {
-        this.querySelector("fea-preprocessor").actionId = this.state.actionId;
+    updatePreprocessorMenuActionId() {
+        this.querySelector("fea-preprocessor-menu").actionId = this.state.actionId;
     }
 
     updateTitleBarActionId() {
@@ -102,7 +102,7 @@ class FeaApp extends HTMLElement {
     }
 
     activatePostprocessor() {
-        this.querySelector("fea-preprocessor").remove();
+        this.querySelector("fea-preprocessor-menu").remove();
         const feaPostprocessor = document.createElement("fea-postprocessor");
         this.append(feaPostprocessor);
         this.updateCanvasSize();
@@ -120,13 +120,13 @@ class FeaApp extends HTMLElement {
     handleAddPointServerMessage(event) {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
-            this.updatePreprocessorActionId();
+            this.updatePreprocessorMenuActionId();
             this.updateTitleBarActionId();
         }
         const point = { 
             number: event.detail.point_data.number, x: event.detail.point_data.x,
             y: event.detail.point_data.y, z: event.detail.point_data.z };
-        this.querySelector("fea-preprocessor").addPointToClient = point;
+        this.querySelector("fea-preprocessor-menu").addPointToClient = point;
         this.shadowRoot.querySelector("fea-renderer").addPointToRenderer = point;
         event.stopPropagation();
     }
@@ -134,12 +134,12 @@ class FeaApp extends HTMLElement {
     handleUpdatePointServerMessage(event) {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
-            this.updatePreprocessorActionId();
+            this.updatePreprocessorMenuActionId();
             this.updateTitleBarActionId();
         }
         const point = { number: event.detail.point_data.number, x: event.detail.point_data.x,
             y: event.detail.point_data.y, z: event.detail.point_data.z };
-        this.querySelector("fea-preprocessor").updatePointInClient = point;
+        this.querySelector("fea-preprocessor-menu").updatePointInClient = point;
         this.shadowRoot.querySelector("fea-renderer").updatePointInRenderer = point;
         event.stopPropagation();
     }
@@ -147,11 +147,11 @@ class FeaApp extends HTMLElement {
     handleDeletePointServerMessage(event) {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
-            this.updatePreprocessorActionId();
+            this.updatePreprocessorMenuActionId();
             this.updateTitleBarActionId();
         }
         const point = { number: event.detail.point_data.number };
-        this.querySelector("fea-preprocessor").deletePointFromClient = point;
+        this.querySelector("fea-preprocessor-menu").deletePointFromClient = point;
         this.shadowRoot.querySelector("fea-renderer").deletePointFromRenderer = point;
         event.stopPropagation();
     }
@@ -159,14 +159,14 @@ class FeaApp extends HTMLElement {
     handleAddLineServerMessage(event) {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
-            this.updatePreprocessorActionId();
+            this.updatePreprocessorMenuActionId();
             this.updateTitleBarActionId();
         }
         const line = { 
             number: event.detail.line_data.number,
             startPointNumber: event.detail.line_data.start_point_number,
             endPointNumber: event.detail.line_data.end_point_number };
-        this.querySelector("fea-preprocessor").addLineToClient = line;
+        this.querySelector("fea-preprocessor-menu").addLineToClient = line;
         this.shadowRoot.querySelector("fea-renderer").addLineToRenderer = line;
         event.stopPropagation();
     }
@@ -174,14 +174,14 @@ class FeaApp extends HTMLElement {
     handleUpdateLineServerMessage(event) {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
-            this.updatePreprocessorActionId();
+            this.updatePreprocessorMenuActionId();
             this.updateTitleBarActionId();
         }
         const line = { 
             number: event.detail.line_data.number,
             startPointNumber: event.detail.line_data.start_point_number,
             endPointNumber: event.detail.line_data.end_point_number };
-        this.querySelector("fea-preprocessor").updateLineInClient = line;
+        this.querySelector("fea-preprocessor-menu").updateLineInClient = line;
         this.shadowRoot.querySelector("fea-renderer").updateLineInRenderer = line;
         event.stopPropagation();
     }
@@ -189,11 +189,11 @@ class FeaApp extends HTMLElement {
     handleDeleteLineServerMessage(event) {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
-            this.updatePreprocessorActionId();
+            this.updatePreprocessorMenuActionId();
             this.updateTitleBarActionId();
         }
         const line = { number: event.detail.line_data.number };
-        this.querySelector("fea-preprocessor").deleteLineFromClient = line;
+        this.querySelector("fea-preprocessor-menu").deleteLineFromClient = line;
         this.shadowRoot.querySelector("fea-renderer").deleteLineFromRenderer = line;
         event.stopPropagation();
     }
@@ -201,7 +201,7 @@ class FeaApp extends HTMLElement {
     handleDecreaseActionIdMessage() {
         this.state.actionId -= 1;
         if (this.querySelector("fea-preprocessor") !== null) {
-            this.updatePreprocessorActionId();
+            this.updatePreprocessorMenuActionId();
         }
         this.updateTitleBarActionId();
     }
@@ -211,8 +211,8 @@ class FeaApp extends HTMLElement {
             const canvasWidth = window.innerWidth - this.querySelector("fea-postprocessor").offsetWidth - 15;
             const canvasHeight = window.innerHeight - this.shadowRoot.querySelector("fea-app-title-bar").offsetHeight - 40;
             this.shadowRoot.querySelector("fea-renderer").canvasSize = { "width": canvasWidth, "height": canvasHeight };
-        } else if (this.querySelector("fea-preprocessor") !== null) {
-            const canvasWidth = window.innerWidth - this.querySelector("fea-preprocessor").offsetWidth - 15;
+        } else if (this.querySelector("fea-preprocessor-menu") !== null) {
+            const canvasWidth = window.innerWidth - this.querySelector("fea-preprocessor-menu").offsetWidth - 15;
             const canvasHeight = window.innerHeight - this.shadowRoot.querySelector("fea-app-title-bar").offsetHeight - 40;
             this.shadowRoot.querySelector("fea-renderer").canvasSize = { "width": canvasWidth, "height": canvasHeight };
         } else {

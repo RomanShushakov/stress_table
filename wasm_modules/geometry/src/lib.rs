@@ -356,7 +356,8 @@ impl Geometry
             point.borrow().action_id_same(&action_id) && point.borrow().number_same(number))
         {
             let returned_point = self.deleted_points.remove(position);
-            let (number, x, y, z) = returned_point.borrow().extract_number_and_coordinates();
+            let (number, x, y, z) =
+                returned_point.borrow().extract_number_and_coordinates();
             let detail = json!({ "point_data": { "number": number, "x": x, "y": y, "z": z },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, ADD_POINT, EVENTS_TARGET)?;

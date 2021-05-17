@@ -69,6 +69,14 @@ class FeaGeometryMenu extends HTMLElement {
         this.addPointToChildren(point);
     }
 
+    set updatePointInClient(point) {
+        let pointInProps = this.props.points.find(existedPoint => existedPoint.number == point.number);
+        pointInProps.x = point.x;
+        pointInProps.y = point.y;
+        pointInProps.z = point.z;
+        this.updatePointInChildren(point);
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {
@@ -142,6 +150,14 @@ class FeaGeometryMenu extends HTMLElement {
         for (let i = 0; i < this.state.childrenNamesForPointCrud.length; i++) {
             if (this.querySelector(this.state.childrenNamesForPointCrud[i]) !== null) {
                 this.querySelector(this.state.childrenNamesForPointCrud[i]).addPointToClient = point;
+            }
+        } 
+    }
+
+    updatePointInChildren(point) {
+        for (let i = 0; i < this.state.childrenNamesForPointCrud.length; i++) {
+            if (this.querySelector(this.state.childrenNamesForPointCrud[i]) !== null) {
+                this.querySelector(this.state.childrenNamesForPointCrud[i]).updatePointInClient = point;
             }
         } 
     }

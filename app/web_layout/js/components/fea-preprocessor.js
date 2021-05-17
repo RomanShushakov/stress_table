@@ -54,7 +54,11 @@ class FeaPreprocessor extends HTMLElement {
     }
 
     set updatePointInClient(point) {
-        this.shadowRoot.querySelector("fea-geometry").updatePointInClient = point;
+        let pointInProps = this.props.points.find(existedPoint => existedPoint.number == point.number);
+        pointInProps.x = point.x;
+        pointInProps.y = point.y;
+        pointInProps.z = point.z;
+        this.updatePointInChildren(point);
     }
 
     set deletePointFromClient(point) {
@@ -141,6 +145,14 @@ class FeaPreprocessor extends HTMLElement {
         for (let i = 0; i < this.state.childrenNamesForPointCrud.length; i++) {
             if (this.querySelector(this.state.childrenNamesForPointCrud[i]) !== null) {
                 this.querySelector(this.state.childrenNamesForPointCrud[i]).addPointToClient = point;
+            }
+        } 
+    }
+
+    updatePointInChildren(point) {
+        for (let i = 0; i < this.state.childrenNamesForPointCrud.length; i++) {
+            if (this.querySelector(this.state.childrenNamesForPointCrud[i]) !== null) {
+                this.querySelector(this.state.childrenNamesForPointCrud[i]).updatePointInClient = point;
             }
         } 
     }

@@ -16,6 +16,7 @@ import FeaGeometryPointMenuButtons from "./components/fea-geometry/point/fea-geo
 import FeaGeometryLineMenu from "./components/fea-geometry/line/fea-geometry-line-menu.js";
 import FeaGeometryLineMenuButtons from "./components/fea-geometry/line/fea-geometry-line-menu-buttons.js";
 import FeaGeometryAddPointMenu from "./components/fea-geometry/point/fea-geometry-add-point-menu.js";
+import FeaGeometryUpdatePointMenu from "./components/fea-geometry/point/fea-geometry-update-point-menu.js";
 
 
 import FeaProperties from "./components/fea-properties.js";
@@ -47,6 +48,7 @@ customElements.define("fea-geometry-point-menu-buttons", FeaGeometryPointMenuBut
 customElements.define("fea-geometry-line-menu", FeaGeometryLineMenu);
 customElements.define("fea-geometry-line-menu-buttons", FeaGeometryLineMenuButtons);
 customElements.define("fea-geometry-add-point-menu", FeaGeometryAddPointMenu);
+customElements.define("fea-geometry-update-point-menu", FeaGeometryUpdatePointMenu);
 
 
 customElements.define("fea-properties", FeaProperties);

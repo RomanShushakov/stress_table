@@ -561,7 +561,7 @@ impl Geometry
     }
 
 
-    pub fn show_point_info(&mut self, number: u32) -> Result<String, JsValue>
+    pub fn show_point_info(&mut self, number: u32) -> Result<JsValue, JsValue>
     {
         return if let Some(position) = self.points.iter().position(|point|
             point.borrow().number_same(number))
@@ -569,7 +569,12 @@ impl Geometry
             let (number, x, y, z) = self.points[position]
                 .borrow()
                 .extract_number_and_coordinates();
-            Ok(format!("number: {}, x: {}, y: {}, z: {}", number, x, y, z))
+            let point_info_json = json!({ "point_info": { "number": number,
+                "x": x, "y": y, "z": z } });
+            let point_info = JsValue::from_serde(&point_info_json)
+                .or(Err(JsValue::from("Geometry: Show point info: Point info could not be \
+                constructed composed!")))?;
+            Ok(point_info)
         }
         else
         {

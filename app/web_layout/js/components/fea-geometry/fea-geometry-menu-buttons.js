@@ -209,6 +209,10 @@ class FeaGeometryMenuButtons extends HTMLElement {
     adoptedCallback() {
     }
 
+    set activateButton(buttonName) {
+        this.activate(buttonName);
+    }
+
     activate(buttonName) {
         for (let i = 0; i < this.state.buttonNames.length; i ++) {
             if (this.state.buttonNames[i] !== buttonName && 

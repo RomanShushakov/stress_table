@@ -283,6 +283,10 @@ class FeaGeometryPointMenuButtons extends HTMLElement {
             () => this.activate("geometry-delete-point-menu-button"));
     }
 
+    set activateButton(buttonName) {
+        this.activate(buttonName);
+    }
+
     connectedCallback() {
         this.activate("geometry-add-point-menu-button");
     }

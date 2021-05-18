@@ -109,6 +109,11 @@ class FeaGeometryMenu extends HTMLElement {
         this.deleteLineFromChildren(line);
     }
 
+    set selectPointInClient(pointNumber) {
+        this.shadowRoot.querySelector("fea-geometry-menu-buttons").activateButton = "geometry-point-menu-button";
+        this.querySelector("fea-geometry-point-menu").selectPointInClient = pointNumber;
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {

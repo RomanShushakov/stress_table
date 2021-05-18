@@ -74,6 +74,11 @@ class FeaGeometryPointMenu extends HTMLElement {
         this.deletePointFromChildren(point);
     }
 
+    set selectPointInClient(pointNumber) {
+        this.shadowRoot.querySelector("fea-geometry-point-menu-buttons").activateButton = "geometry-update-point-menu-button";
+        this.querySelector("fea-geometry-update-point-menu").selectPointInClient = pointNumber;
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {

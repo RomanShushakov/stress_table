@@ -572,6 +572,11 @@ class FeaPreprocessorMenuButtons extends HTMLElement {
         this.shadowRoot.querySelector(".analysis-menu-button").addEventListener("click", () => this.toggle("analysis-menu-button"));
     }
 
+    set toggleButton(buttonName) {
+        this.toggle(buttonName);
+    }
+
+
     connectedCallback() {
         this.toggle("geometry-menu-button");
     }

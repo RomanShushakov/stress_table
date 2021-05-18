@@ -167,6 +167,12 @@ class FeaRenderer extends HTMLElement {
         this.updateCanvasSize();
     }
 
+    static get observedAttributes() {
+    }
+    
+    attributeChangedCallback(name, oldValue, newValue) {
+    }
+
 
     play() {
         this.state.renderLoop();
@@ -270,42 +276,6 @@ class FeaRenderer extends HTMLElement {
     onMouseClick() {
         this.state.renderer.select_object(() => this.dropSelection());
     }
-
-
-    // connectedCallback() {
-    //     // update the shadowDOM with the intitial props/state
-    //     this.updateChildren();
-    // }
-
-    // onDecrement(event) {
-    //     // decrement our total by the current amount
-    //     this.state.total = this.state.total - this.state.amount;
-
-    //     // update the shadowDOM with the current props/state
-    //     this.updateChildren();
-    // }
-
-    // onIncrement(event) {
-    //     // increment our total by the current amount
-    //     this.state.total = this.state.total + this.state.amount;
-
-    //     // update the shadowDOM with the current props/state
-    //     this.updateChildren();
-    // }
-
-    // onUpdateAmount(event) {
-    //     // update our state to the desired amount
-    //     this.state.amount = event.detail.amount;
-
-    //     // update the shadowDOM with the current props/state
-    //     this.updateChildren();
-    // }
-
-    // updateChildren() {
-    //     // set the props of our child components (one-way data binding)
-    //     this.querySelector('x-controls').amount = this.state.amount;
-    //     this.querySelector('x-counter').total = this.state.total;
-    // }
 }
 
 export default FeaRenderer;

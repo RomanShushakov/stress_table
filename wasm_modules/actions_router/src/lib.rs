@@ -315,10 +315,8 @@ impl ActionsRouter
                     {
                         let number = point_number.get_number();
                         let point_info = show_point_info(number)?;
-                        let point_info_message = format!("Point: {}.",
-                            point_info);
                         let this = JsValue::null();
-                        let _ = show_object_info.call1(&this, &JsValue::from(point_info_message))?;
+                        let _ = show_object_info.call1(&this, &point_info)?;
                     },
                 ActionType::ShowLineInfo(line_number, show_object_info) =>
                     {

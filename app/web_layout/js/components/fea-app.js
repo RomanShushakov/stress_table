@@ -114,7 +114,18 @@ class FeaApp extends HTMLElement {
     }
 
     showObjectInfo(objectInfo) {
-        this.shadowRoot.querySelector("fea-renderer").objectInfo = objectInfo;
+        if ("point_info" in objectInfo) {
+            const pointNumber = objectInfo.point_info.number;
+            const composedObjectInfo = `Point: 
+                number: ${pointNumber},
+                x: ${objectInfo.point_info.x},
+                y: ${objectInfo.point_info.y},
+                z: ${objectInfo.point_info.z}`;
+            this.shadowRoot.querySelector("fea-renderer").objectInfo = composedObjectInfo;          
+            if (this.querySelector("fea-preprocessor-menu") !== null) {
+                this.querySelector("fea-preprocessor-menu").selectPointInClient = pointNumber;
+            }
+        }
     }
 
     handleAddPointServerMessage(event) {

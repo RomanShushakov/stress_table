@@ -20,6 +20,11 @@ class FeaPreprocessorMenu extends HTMLElement {
             childrenNamesForLineCrud: [
                 "fea-geometry-menu",
             ],
+
+            menuNames: [
+                "geometry-menu", "properties-menu", "mesh-menu", "load-menu",
+                "boundary-condition-menu", "analysis-menu",
+            ]
         };
 
         this.attachShadow({ mode: "open" });
@@ -91,6 +96,24 @@ class FeaPreprocessorMenu extends HTMLElement {
         this.props.lines.splice(lineIndexInProps, 1);
         this.props.lines.sort((a, b) => a.number - b.number);
         this.deleteLineFromChildren(line);
+    }
+
+    delay(t, v) {
+        return new Promise(function(resolve) { 
+            setTimeout(resolve.bind(null, v), t)
+        });
+    }
+
+    set selectPointInClient(pointNumber) {
+        if (this.querySelector("fea-geometry-menu") === null) {
+            this.delay(0)
+                .then(() => { 
+                    this.shadowRoot.querySelector("fea-preprocessor-menu-buttons").toggleButton = "geometry-menu-button";
+                 })
+                .then(async () => { this.querySelector("fea-geometry-menu").selectPointInClient = pointNumber });
+        } else {
+            this.querySelector("fea-geometry-menu").selectPointInClient = pointNumber;
+        }
     }
 
     connectedCallback() {

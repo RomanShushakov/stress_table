@@ -47,7 +47,7 @@ extern "C"
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
     #[wasm_bindgen(js_name = showPointInfo, catch)]
-    pub fn show_point_info(number: u32) -> Result<String, JsValue>;
+    pub fn show_point_info(number: u32) -> Result<JsValue, JsValue>;
 
     #[wasm_bindgen(js_name = showLineInfoFromGeometry, catch)]
     pub fn show_line_info_from_geometry(number: u32) -> Result<String, JsValue>;

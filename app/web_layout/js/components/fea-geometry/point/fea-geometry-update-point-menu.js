@@ -404,7 +404,7 @@ class FeaGeometryUpdatePointMenu extends HTMLElement {
     set addPointToClient(point) {
         this.props.points.push(point);
         this.props.points.sort((a, b) => a.number - b.number);
-        this.definePointNumber();
+        this.definePointNumberOptions();
     }
 
     set updatePointInClient(point) {
@@ -412,14 +412,14 @@ class FeaGeometryUpdatePointMenu extends HTMLElement {
         pointInProps.x = point.x;
         pointInProps.y = point.y;
         pointInProps.z = point.z;
-        this.definePointNumber();
+        this.definePointNumberOptions();
     }
 
     set deletePointFromClient(point) {
         let pointIndexInProps = this.props.points.findIndex(existedPoint => existedPoint.number == point.number);
         this.props.points.splice(pointIndexInProps, 1);
         this.props.points.sort((a, b) => a.number - b.number);
-        this.definePointNumber();
+        this.definePointNumberOptions();
     }
 
     connectedCallback() {
@@ -445,7 +445,7 @@ class FeaGeometryUpdatePointMenu extends HTMLElement {
     adoptedCallback() {
     }
 
-    definePointNumber() {
+    definePointNumberOptions() {
         const pointUpdateNumberSelect = this.shadowRoot.querySelector(".point-number");
         for (let i = pointUpdateNumberSelect.length - 1; i >= 0; i--) {
             pointUpdateNumberSelect.options[i] = null;
@@ -573,7 +573,7 @@ class FeaGeometryUpdatePointMenu extends HTMLElement {
 
     cancelPointUpdate() {
         if (this.props.points.length > 0) {
-            this.definePointNumber();
+            this.definePointNumberOptions();
         }
         this.shadowRoot.querySelector(".point-number-filter").value = null;
         const selectedPointNumberForUpdateField = this.shadowRoot.querySelector(".point-number");

@@ -5,6 +5,7 @@ class FeaPreprocessorMenu extends HTMLElement {
         this.props = {
             actionId: null,
             points: [],
+            lines: [],
         };
 
         this.state = {
@@ -13,6 +14,10 @@ class FeaPreprocessorMenu extends HTMLElement {
             ],
 
             childrenNamesForPointCrud: [
+                "fea-geometry-menu",
+            ],
+
+            childrenNamesForLineCrud: [
                 "fea-geometry-menu",
             ],
         };
@@ -69,15 +74,23 @@ class FeaPreprocessorMenu extends HTMLElement {
     }
 
     set addLineToClient(line) {
-        this.shadowRoot.querySelector("fea-geometry").addLineToClient = line;
+        this.props.lines.push(line);
+        this.props.lines.sort((a, b) => a.number - b.number);
+        this.addLineToChildren(line);
     }
 
     set updateLineInClient(line) {
-        this.shadowRoot.querySelector("fea-geometry").updateLineInClient = line;
+        let lineInProps = this.props.lines.find(existedLine => existedLine.number == line.number);
+        lineInProps.startPointNumber = line.startPointNumber;
+        lineInProps.endPointNumber = line.endPointNumber;
+        this.updateLineInChildren(line);
     }
 
     set deleteLineFromClient(line) {
-        this.shadowRoot.querySelector("fea-geometry").deleteLineFromClient = line;
+        let lineIndexInProps = this.props.lines.findIndex(existedLine => existedLine.number == line.number);
+        this.props.lines.splice(lineIndexInProps, 1);
+        this.props.lines.sort((a, b) => a.number - b.number);
+        this.deleteLineFromChildren(line);
     }
 
     connectedCallback() {
@@ -114,7 +127,11 @@ class FeaPreprocessorMenu extends HTMLElement {
                 for (let i = 0; i < this.props.points.length; i++) {
                     const point = this.props.points[i];
                     this.querySelector("fea-geometry-menu").addPointToClient = point;
-                } 
+                }
+                for (let i = 0; i < this.props.lines.length; i++) {
+                    const line = this.props.lines[i];
+                    this.querySelector("fea-geometry-menu").addLineToClient = line;
+                }  
                 break;
         }
     }
@@ -164,6 +181,30 @@ class FeaPreprocessorMenu extends HTMLElement {
         for (let i = 0; i < this.state.childrenNamesForPointCrud.length; i++) {
             if (this.querySelector(this.state.childrenNamesForPointCrud[i]) !== null) {
                 this.querySelector(this.state.childrenNamesForPointCrud[i]).deletePointFromClient = point;
+            }
+        } 
+    }
+
+    addLineToChildren(line) {
+        for (let i = 0; i < this.state.childrenNamesForLineCrud.length; i++) {
+            if (this.querySelector(this.state.childrenNamesForLineCrud[i]) !== null) {
+                this.querySelector(this.state.childrenNamesForLineCrud[i]).addLineToClient = line;
+            }
+        } 
+    }
+
+    updateLineInChildren(line) {
+        for (let i = 0; i < this.state.childrenNamesForLineCrud.length; i++) {
+            if (this.querySelector(this.state.childrenNamesForLineCrud[i]) !== null) {
+                this.querySelector(this.state.childrenNamesForLineCrud[i]).updateLineInClient = line;
+            }
+        } 
+    }
+
+    deleteLineFromChildren(line) {
+        for (let i = 0; i < this.state.childrenNamesForLineCrud.length; i++) {
+            if (this.querySelector(this.state.childrenNamesForLineCrud[i]) !== null) {
+                this.querySelector(this.state.childrenNamesForLineCrud[i]).deleteLineFromClient = line;
             }
         } 
     }

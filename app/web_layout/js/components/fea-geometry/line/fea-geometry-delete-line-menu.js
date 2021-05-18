@@ -1,10 +1,10 @@
-class FeaGeometryDeletePointMenu extends HTMLElement {
+class FeaGeometryDeleteLineMenu extends HTMLElement {
     constructor() {
         super();
 
         this.props = {
             actionId: null,
-            points: [],
+            lines: [],
         };
 
         this.state = {};
@@ -26,7 +26,7 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
                     align-items: center;
                 }
 
-                .point-number-field-content {
+                .line-number-field-content {
                     display: flex;
                     flex-direction: row;
                     background-color: #3b4453;
@@ -35,7 +35,7 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
                     align-items: center;
                 }
 
-                .point-number-caption {
+                .line-number-caption {
                     margin: 0rem;
                     padding: 0rem;
                     color: #D9D9D9;
@@ -43,7 +43,7 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
                     width: 6rem;
                 }
 
-                .point-number-select-filter-content {
+                .line-number-select-filter-content {
                     margin-top: 0rem;
                     margin-bottom: 0rem;
                     margin-left: 1rem;
@@ -53,11 +53,11 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
                     flex-direction: column;
                 }
 
-                .point-number-filter-label {
+                .line-number-filter-label {
                     position: relative;
                 }
                   
-                .point-number-filter-label:before {
+                .line-number-filter-label:before {
                     content: "";
                     position: absolute;
                     left: 0rem;
@@ -67,7 +67,7 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
                     background: url('data:image/svg+xml,<svg width="19" height="17" viewBox="0 0 19 17" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.1182 13.15L7.48598 16L7.48598 6.25L2 0.999999L17 1L12.1182 6.25L12.1182 13.15Z" fill="rgb(112, 112, 114)" stroke="rgb(112, 112, 114)"/></svg>') center / contain no-repeat;
                 }
 
-                .point-number-filter {
+                .line-number-filter {
                     margin-top: 0rem;
                     margin-bottom: 0rem;
                     margin-left: 0rem;
@@ -81,29 +81,29 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
                     color: #D9D9D9;
                 }
 
-                .point-number-filter::placeholder {
+                .line-number-filter::placeholder {
                     font-size: 85%;
                 }
 
-                .point-number-filter::-webkit-outer-spin-button,
-                .point-number-filter::-webkit-inner-spin-button {
+                .line-number-filter::-webkit-outer-spin-button,
+                .line-number-filter::-webkit-inner-spin-button {
                     -webkit-appearance: none;
                     margin: 0;
                 }
 
-                .point-number-filter[type=number] {
+                .line-number-filter[type=number] {
                     -moz-appearance: textfield;
                 }
 
-                .point-number-filter:hover {
+                .line-number-filter:hover {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
-                .point-number-filter:focus {
+                .line-number-filter:focus {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
-                .point-number {
+                .line-number {
                     width: 5rem;
                     margin-top: 0.5rem;
                     background-color: #3b4453;
@@ -116,11 +116,11 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
                     background: url('data:image/svg+xml,<svg width="4" height="4" viewBox="0 0 4 4" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1L2 2L3 1" stroke="rgb(112, 112, 114)" stroke-width="0.5"/></svg>') right / contain no-repeat;
                 }
 
-                .point-number option {
+                .line-number option {
                     background-color: #484f60;
                 }
 
-                .point-number:hover {
+                .line-number:hover {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
@@ -185,17 +185,16 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
             </style>
 
             <div class=wrapper>
-
-                <div class="point-number-field-content">
-                    <p class="point-number-caption">Point number</p>
-                    <div class="point-number-select-filter-content">
-                        <label class="point-number-filter-label">
-                            <input class="point-number-filter" type="number" placeholder="Filter..."/>
+                <div class="line-number-field-content">
+                    <p class="line-number-caption">Line number</p>
+                    <div class="line-number-select-filter-content">
+                        <label class="line-number-filter-label">
+                            <input class="line-number-filter" type="number" placeholder="Filter..."/>
                         </label>
-                        <select class="point-number"></select>
+                        <select class="line-number"></select>
                     </div>
                 </div>
-
+                
                 <div class="apply-cancel-buttons">
                     <button class="apply-button">Apply</button>
                     <button class="cancel-button">Cancel</button>
@@ -207,35 +206,38 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
             </div>
         `;
 
-        this.shadowRoot.querySelector(".apply-button").addEventListener("click", () => this.deletePoint());
+        this.shadowRoot.querySelector(".apply-button").addEventListener("click", () => this.deleteLine());
 
-        this.shadowRoot.querySelector(".cancel-button").addEventListener("click", () => this.cancelPointDelete());
+        this.shadowRoot.querySelector(".cancel-button").addEventListener("click", () => this.cancelLineDelete());
 
-        this.shadowRoot.querySelector(".point-number-filter").addEventListener("keyup", () => {
+        this.shadowRoot.querySelector(".line-number-filter").addEventListener("keyup", () => {
             this.filter(
-                this.shadowRoot.querySelector(".point-number-filter").value,
-                this.shadowRoot.querySelector(".point-number"));
+                this.shadowRoot.querySelector(".line-number-filter").value,
+                this.shadowRoot.querySelector(".line-number"));
         });
+
+        this.shadowRoot.querySelector(".line-number").addEventListener("change", 
+            () => this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "");
     }
 
     set actionId(value) {
         this.props.actionId = value;
     }
 
-    set addPointToClient(point) {
-        this.props.points.push(point);
-        this.props.points.sort((a, b) => a.number - b.number);
-        this.definePointNumberOptions();
+    set addLineToClient(line) {
+        this.props.lines.push(line);
+        this.props.lines.sort((a, b) => a.number - b.number);
+        this.defineLineNumberOptions();
     }
 
-    set updatePointInClient(_point) {
+    set updateLineInClient(_line) {
     }
 
-    set deletePointFromClient(point) {
-        let pointIndexInProps = this.props.points.findIndex(existedPoint => existedPoint.number == point.number);
-        this.props.points.splice(pointIndexInProps, 1);
-        this.props.points.sort((a, b) => a.number - b.number);
-        this.definePointNumberOptions();
+    set deleteLineFromClient(line) {
+        let lineIndexInProps = this.props.lines.findIndex(existedLine => existedLine.number == line.number);
+        this.props.lines.splice(lineIndexInProps, 1);
+        this.props.lines.sort((a, b) => a.number - b.number);
+        this.defineLineNumberOptions();
     }
 
     connectedCallback() {
@@ -245,7 +247,8 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
                 delete this[propName];
                 this[propName] = value;
             }
-        }); 
+        });
+        this.defineLineNumberOptions();
     }
 
     disconnectedCallback() {
@@ -261,23 +264,26 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
     adoptedCallback() {
     }
 
-    definePointNumberOptions() {
-        const pointUpdateNumberSelect = this.shadowRoot.querySelector(".point-number");
-        for (let i = pointUpdateNumberSelect.length - 1; i >= 0; i--) {
-            pointUpdateNumberSelect.options[i] = null;
+    defineLineNumberOptions() {
+        const lineDeleteNumberSelect = this.shadowRoot.querySelector(".line-number");
+        for (let i = lineDeleteNumberSelect.length - 1; i >= 0; i--) {
+            lineDeleteNumberSelect.options[i] = null;
         }
-        for (let i = 0; i < this.props.points.length; i++) {
-            let updateOption = document.createElement("option");
-            updateOption.value = this.props.points[i].number;
-            updateOption.innerHTML = this.props.points[i].number;
-            pointUpdateNumberSelect.appendChild(updateOption);
+        if (this.props.lines.length > 0) {
+            for (let i = 0; i < this.props.lines.length; i++) {
+                let updateOption = document.createElement("option");
+                updateOption.value = this.props.lines[i].number;
+                updateOption.innerHTML = this.props.lines[i].number;
+                lineDeleteNumberSelect.appendChild(updateOption);
+            }
         }
     }
 
     filter(keywordField, selectField) {
         for (let i = 0; i < selectField.length; i++) {
             let txt = selectField.options[i].value;
-            if (txt.substring(0, keywordField.length).toLowerCase() !== keywordField.toLowerCase() && keywordField.trim() !== "") {
+            if (txt.substring(0, keywordField.length).toLowerCase() !== keywordField.toLowerCase() && 
+                keywordField.trim() !== "") {
                 selectField.options[i].style.display = "none";
             } else {
                 selectField.options[i].style.display = "list-item";
@@ -285,25 +291,24 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
         }
     }
 
-    deletePoint() {
-        const selectedPointNumberField = this.shadowRoot.querySelector(".point-number");
-        if (selectedPointNumberField.value == "") {
-            if (selectedPointNumberField.classList.contains("highlighted") === false) {
-                selectedPointNumberField.classList.add("highlighted");
+    deleteLine() {
+        const selectedLineNumberField = this.shadowRoot.querySelector(".line-number");
+        if (selectedLineNumberField.value == "") {
+            if (selectedLineNumberField.classList.contains("highlighted") === false) {
+                selectedLineNumberField.classList.add("highlighted");
             }
-        }
-
-        if (selectedPointNumberField.value === "") {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "Note: The highlighted fields should be filled!";
+                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
+                    "Note: The highlighted fields should be filled!";
                 return;
             } else {
                 return;
             }
         }
-
-        const deletedPointValues = this.props.points.find(point => point.number == selectedPointNumberField.value);
-        const message = {"delete_point": { "actionId": this.props.actionId, "number": deletedPointValues.number }};
+        const message = {"delete_line": {
+            "actionId": this.props.actionId,
+            "number": selectedLineNumberField.value, 
+        }};
         this.dispatchEvent(new CustomEvent("client message", {
             bubbles: true,
             composed: true,
@@ -311,17 +316,14 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
                 message: message,
             },
         }));
-
-        this.shadowRoot.querySelector(".point-number-filter").value = null;
+        this.shadowRoot.querySelector(".line-number-filter").value = null;
     }
 
-    cancelPointDelete() {
-        if (this.props.points.length > 0) {
-            this.definePointNumberOptions();
-        }
-        this.shadowRoot.querySelector(".point-number-filter").value = null;
-        const selectedPointNumberForDeleteField = this.shadowRoot.querySelector(".point-number");
-        this.dropHighlight(selectedPointNumberForDeleteField);
+    cancelLineDelete() {
+        this.defineLineNumberOptions();
+        this.shadowRoot.querySelector(".line-number-filter").value = null;
+        const selectedLineNumberField = this.shadowRoot.querySelector(".line-number");
+        this.dropHighlight(selectedLineNumberField);
         this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
     }
 
@@ -332,4 +334,4 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
     }
 }
 
-export default FeaGeometryDeletePointMenu;
+export default FeaGeometryDeleteLineMenu;

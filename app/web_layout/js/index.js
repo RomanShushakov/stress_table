@@ -7,8 +7,6 @@ import FeaAppTitleBar from "./components/fea-app-title-bar.js";
 import FeaPreprocessorMenu from "./components/fea-preprocessor-menu.js";
 import FeaPreprocessorMenuButtons from "./components/fea-preprocessor-menu-buttons.js";
 
-import FeaGeometry from "./components/fea-geometry.js";
-
 import FeaGeometryMenu from "./components/fea-geometry/fea-geometry-menu.js";
 import FeaGeometryMenuButtons from "./components/fea-geometry/fea-geometry-menu-buttons.js";
 import FeaGeometryPointMenu from "./components/fea-geometry/point/fea-geometry-point-menu.js";
@@ -18,6 +16,9 @@ import FeaGeometryLineMenuButtons from "./components/fea-geometry/line/fea-geome
 import FeaGeometryAddPointMenu from "./components/fea-geometry/point/fea-geometry-add-point-menu.js";
 import FeaGeometryUpdatePointMenu from "./components/fea-geometry/point/fea-geometry-update-point-menu.js";
 import FeaGeometryDeletePointMenu from "./components/fea-geometry/point/fea-geometry-delete-point-menu.js";
+import FeaGeometryAddLineMenu from "./components/fea-geometry/line/fea-geometry-add-line-menu.js";
+import FeaGeometryUpdateLineMenu from "./components/fea-geometry/line/fea-geometry-update-line-menu.js";
+import FeaGeometryDeleteLineMenu from "./components/fea-geometry/line/fea-geometry-delete-line-menu.js";
 
 
 import FeaProperties from "./components/fea-properties.js";
@@ -40,8 +41,6 @@ customElements.define("fea-app-title-bar", FeaAppTitleBar);
 customElements.define("fea-preprocessor-menu", FeaPreprocessorMenu);
 customElements.define("fea-preprocessor-menu-buttons", FeaPreprocessorMenuButtons);
 
-customElements.define("fea-geometry", FeaGeometry);
-
 customElements.define("fea-geometry-menu", FeaGeometryMenu);
 customElements.define("fea-geometry-menu-buttons", FeaGeometryMenuButtons);
 customElements.define("fea-geometry-point-menu", FeaGeometryPointMenu);
@@ -51,6 +50,9 @@ customElements.define("fea-geometry-line-menu-buttons", FeaGeometryLineMenuButto
 customElements.define("fea-geometry-add-point-menu", FeaGeometryAddPointMenu);
 customElements.define("fea-geometry-update-point-menu", FeaGeometryUpdatePointMenu);
 customElements.define("fea-geometry-delete-point-menu", FeaGeometryDeletePointMenu);
+customElements.define("fea-geometry-add-line-menu", FeaGeometryAddLineMenu);
+customElements.define("fea-geometry-update-line-menu", FeaGeometryUpdateLineMenu);
+customElements.define("fea-geometry-delete-line-menu", FeaGeometryDeleteLineMenu);
 
 
 customElements.define("fea-properties", FeaProperties);

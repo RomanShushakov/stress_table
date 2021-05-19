@@ -1,6 +1,3 @@
-import HidingContentButton from "./common_components/hiding-content-button.js";
-customElements.define("hiding-content-button", HidingContentButton);
-
 import FeaApp from "./components/fea-app.js";
 import FeaAppTitleBar from "./components/fea-app-title-bar.js";
 
@@ -20,8 +17,8 @@ import FeaGeometryAddLineMenu from "./components/fea-geometry/line/fea-geometry-
 import FeaGeometryUpdateLineMenu from "./components/fea-geometry/line/fea-geometry-update-line-menu.js";
 import FeaGeometryDeleteLineMenu from "./components/fea-geometry/line/fea-geometry-delete-line-menu.js";
 
-
 import FeaProperties from "./components/fea-properties.js";
+
 import FeaMesh from "./components/fea-mesh.js";
 import FeaAnalysis from "./components/fea-analysis.js";
 import FeaBoundaryCondition from "./components/fea-boundary-condition.js";
@@ -54,8 +51,8 @@ customElements.define("fea-geometry-add-line-menu", FeaGeometryAddLineMenu);
 customElements.define("fea-geometry-update-line-menu", FeaGeometryUpdateLineMenu);
 customElements.define("fea-geometry-delete-line-menu", FeaGeometryDeleteLineMenu);
 
-
 customElements.define("fea-properties", FeaProperties);
+
 customElements.define("fea-mesh", FeaMesh);
 customElements.define("fea-analysis", FeaAnalysis);
 customElements.define("fea-boundary-condition", FeaBoundaryCondition);

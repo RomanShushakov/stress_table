@@ -53,17 +53,74 @@ impl Coordinates
 }
 
 
+#[derive(Clone, Debug)]
+pub struct IsActionIdShouldBeIncreased(bool);
+
+
+impl IsActionIdShouldBeIncreased
+{
+    pub fn create(is_action_id_should_be_increased: bool) -> IsActionIdShouldBeIncreased
+    {
+        IsActionIdShouldBeIncreased(is_action_id_should_be_increased)
+    }
+
+
+    pub fn get_value(&self) -> bool
+    {
+        self.0
+    }
+}
+
+
 #[derive(Debug, Clone)]
 pub enum GeometryActionType
 {
-    AddPoint(ObjectNumber, Coordinates, bool),
-    UpdatePoint(ObjectNumber, Coordinates, Coordinates, bool),
-    DeletePoint(ObjectNumber, bool),
-    UndoDeletePoint(ObjectNumber, bool),
-    AddLine(ObjectNumber, ObjectNumber, ObjectNumber, bool),
-    UpdateLine(ObjectNumber, ObjectNumber, ObjectNumber, ObjectNumber, ObjectNumber, bool),
-    DeleteLine(ObjectNumber, bool),
-    UndoDeleteLine(ObjectNumber, bool),
+    AddPoint(ObjectNumber, Coordinates, IsActionIdShouldBeIncreased),
+    UpdatePoint(ObjectNumber, Coordinates, Coordinates, IsActionIdShouldBeIncreased),
+    DeletePoint(ObjectNumber, IsActionIdShouldBeIncreased),
+    UndoDeletePoint(ObjectNumber, IsActionIdShouldBeIncreased),
+    AddLine(ObjectNumber, ObjectNumber, ObjectNumber, IsActionIdShouldBeIncreased),
+    UpdateLine(ObjectNumber, ObjectNumber, ObjectNumber, ObjectNumber, ObjectNumber, IsActionIdShouldBeIncreased),
+    DeleteLine(ObjectNumber, IsActionIdShouldBeIncreased),
+    UndoDeleteLine(ObjectNumber, IsActionIdShouldBeIncreased),
+}
+
+
+#[derive(Debug, Clone)]
+pub struct Handle(js_sys::Function);
+
+
+impl Handle
+{
+    pub fn create(handle: js_sys::Function) -> Handle
+    {
+        Handle(handle)
+    }
+
+
+    pub fn get_handle(&self) -> js_sys::Function
+    {
+        self.0.clone()
+    }
+}
+
+
+#[derive(Debug, Clone)]
+pub struct ObjectName(String);
+
+
+impl ObjectName
+{
+    pub fn create(name: String) -> ObjectName
+    {
+        ObjectName(name)
+    }
+
+
+    pub fn get_name(&self) -> String
+    {
+        self.0.clone()
+    }
 }
 
 
@@ -71,8 +128,9 @@ pub enum GeometryActionType
 pub enum ActionType
 {
     GeometryActionType(GeometryActionType),
-    ShowPointInfo(ObjectNumber, js_sys::Function),
-    ShowLineInfo(ObjectNumber, js_sys::Function),
+    ShowPointInfo(ObjectNumber, Handle),
+    ShowLineInfo(ObjectNumber, Handle),
+    ChangeView(ObjectName, Handle),
 }
 
 

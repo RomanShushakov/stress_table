@@ -170,6 +170,16 @@ impl Renderer
         self.props.d_scale = d_scale;
     }
 
+    pub fn change_angle_theta(&mut self, theta: f32)
+    {
+        self.props.theta = theta;
+    }
+
+    pub fn change_angle_phi(&mut self, phi: f32)
+    {
+        self.props.phi = phi;
+    }
+
 
     fn update_normalized_point_objects(&mut self)
     {

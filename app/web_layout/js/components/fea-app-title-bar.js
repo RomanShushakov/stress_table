@@ -429,6 +429,10 @@ class FeaAppTitleBar extends HTMLElement {
 
         this.shadowRoot.querySelector(".undo-button").addEventListener("click", () => this.undo());
         this.shadowRoot.querySelector(".redo-button").addEventListener("click", () => this.redo());
+        this.shadowRoot.querySelector(".x-y-view-button").addEventListener("click", () => this.changeView("planeXY"));
+        this.shadowRoot.querySelector(".z-y-view-button").addEventListener("click", () => this.changeView("planeZY"));
+        this.shadowRoot.querySelector(".x-z-view-button").addEventListener("click", () => this.changeView("planeXZ"));
+        this.shadowRoot.querySelector(".isometric-view-button").addEventListener("click", () => this.changeView("isometric"));
     }
 
     set actionId(value) {
@@ -477,6 +481,17 @@ class FeaAppTitleBar extends HTMLElement {
 
     redo() {
         const message = {"redo": { "actionId": this.props.actionId } };
+        this.dispatchEvent(new CustomEvent("client message", {
+            bubbles: true,
+            composed: true,
+            detail: {
+                message: message,
+            },
+        }));   
+    }
+
+    changeView(viewName) {
+        const message = {"change_view": { "selectedView": viewName } };
         this.dispatchEvent(new CustomEvent("client message", {
             bubbles: true,
             composed: true,

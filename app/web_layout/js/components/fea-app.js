@@ -109,7 +109,10 @@ class FeaApp extends HTMLElement {
     }
 
     handleClientMessage(event) {
-        this.state.actionsRouter.handle_message(event.detail.message, (objectInfo) => this.showObjectInfo(objectInfo));
+        this.state.actionsRouter.handle_message(
+            event.detail.message,
+            (objectInfo) => this.showObjectInfo(objectInfo),
+            (selectedView) => this.changeView(selectedView));
         event.stopPropagation();
     }
 
@@ -139,6 +142,10 @@ class FeaApp extends HTMLElement {
         } else {
             throw "Fea-app: Unknown object!";
         }
+    }
+
+    changeView(selectedView) {
+        this.shadowRoot.querySelector("fea-renderer").selectedView = selectedView;
     }
 
     handleAddPointServerMessage(event) {

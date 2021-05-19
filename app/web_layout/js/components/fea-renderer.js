@@ -143,6 +143,39 @@ class FeaRenderer extends HTMLElement {
         this.updateCanvasSize();
     }
 
+    set selectedView(view) {
+        switch (view) {
+            case `"planeXY"`:
+                this.state.renderer.change_angle_theta(0.0);
+                this.state.renderer.change_angle_phi(0.0);
+                if (this.state.isPaused === true) {
+                    this.state.renderer.tick();
+                }
+                break;
+            case `"planeZY"`:
+                this.state.renderer.change_angle_theta(90.0 * Math.PI / 180.0);
+                this.state.renderer.change_angle_phi(0.0);
+                if (this.state.isPaused === true) {
+                    this.state.renderer.tick();
+                }
+                break;
+            case `"planeXZ"`:
+                this.state.renderer.change_angle_theta(0.0);
+                this.state.renderer.change_angle_phi(-90.0 * Math.PI / 180.0);
+                if (this.state.isPaused === true) {
+                    this.state.renderer.tick();
+                }
+                break;
+            case `"isometric"`:
+                this.state.renderer.change_angle_theta(-45.0 * Math.PI / 180.0);
+                this.state.renderer.change_angle_phi(35.264 * Math.PI / 180.0);
+                if (this.state.isPaused === true) {
+                    this.state.renderer.tick();
+                }
+                break;
+        }
+    }
+
     async connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {

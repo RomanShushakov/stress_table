@@ -2,8 +2,9 @@ use serde_json::Value;
 use wasm_bindgen::prelude::*;
 
 use crate::ActionsRouter;
-use crate::{ObjectNumber, Coordinates, Action};
+use crate::{ObjectNumber, Coordinates, Action, IsActionShouldBeAddedToActiveActions};
 use crate::{ActionType, GeometryActionType};
+use crate::action::IsActionIdShouldBeIncreased;
 
 
 impl ActionsRouter
@@ -41,12 +42,14 @@ impl ActionsRouter
         self.undo_actions.clear();
         let point_number = ObjectNumber::create(number);
         let coordinates = Coordinates::create(x, y, z);
-        let is_action_id_should_be_increased = true;
+        let is_action_id_should_be_increased =
+            IsActionIdShouldBeIncreased::create(true);
         let action_type =
             ActionType::GeometryActionType(GeometryActionType::AddPoint(
                 point_number, coordinates, is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
-        let add_to_active_actions = true;
+        let add_to_active_actions =
+            IsActionShouldBeAddedToActiveActions::create(true);
         self.current_action = Some((action, add_to_active_actions));
         Ok(())
     }
@@ -101,11 +104,13 @@ impl ActionsRouter
             old_y_value, old_z_value);
         let new_coordinates = Coordinates::create(new_x_value,
             new_y_value, new_z_value);
-        let is_action_id_should_be_increased = true;
+        let is_action_id_should_be_increased =
+            IsActionIdShouldBeIncreased::create(true);
         let action_type = ActionType::GeometryActionType(GeometryActionType::UpdatePoint(
             point_number,old_coordinates, new_coordinates, is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
-        let add_to_active_actions = true;
+        let add_to_active_actions =
+            IsActionShouldBeAddedToActiveActions::create(true);
         self.current_action = Some((action, add_to_active_actions));
         Ok(())
     }
@@ -123,11 +128,13 @@ impl ActionsRouter
                 Point number could not be converted to u32!")))?;
         self.undo_actions.clear();
         let point_number = ObjectNumber::create(number);
-        let is_action_id_should_be_increased = true;
+        let is_action_id_should_be_increased =
+            IsActionIdShouldBeIncreased::create(true);
         let action_type = ActionType::GeometryActionType(GeometryActionType::DeletePoint(
             point_number, is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
-        let add_to_active_actions = true;
+        let add_to_active_actions =
+            IsActionShouldBeAddedToActiveActions::create(true);
         self.current_action = Some((action, add_to_active_actions));
         Ok(())
     }
@@ -160,11 +167,13 @@ impl ActionsRouter
         let line_number = ObjectNumber::create(number);
         let start_point_number = ObjectNumber::create(start_point_number);
         let end_point_number = ObjectNumber::create(end_point_number);
-        let is_action_id_should_be_increased = true;
+        let is_action_id_should_be_increased =
+            IsActionIdShouldBeIncreased::create(true);
         let action_type = ActionType::GeometryActionType(GeometryActionType::AddLine(
             line_number, start_point_number, end_point_number, is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
-        let add_to_active_actions = true;
+        let add_to_active_actions =
+            IsActionShouldBeAddedToActiveActions::create(true);
         self.current_action = Some((action, add_to_active_actions));
         Ok(())
     }
@@ -207,12 +216,14 @@ impl ActionsRouter
         let old_end_point_number = ObjectNumber::create(old_end_point_number);
         let new_start_point_number = ObjectNumber::create(new_start_point_number);
         let new_end_point_number = ObjectNumber::create(new_end_point_number);
-        let is_action_id_should_be_increased = true;
+        let is_action_id_should_be_increased =
+            IsActionIdShouldBeIncreased::create(true);
         let action_type = ActionType::GeometryActionType(GeometryActionType::UpdateLine(
             line_number, old_start_point_number, old_end_point_number, new_start_point_number,
             new_end_point_number, is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
-        let add_to_active_actions = true;
+        let add_to_active_actions =
+            IsActionShouldBeAddedToActiveActions::create(true);
         self.current_action = Some((action, add_to_active_actions));
         Ok(())
     }
@@ -231,11 +242,13 @@ impl ActionsRouter
             .or(Err(JsValue::from("Actions router: Delete line action: \
                 Line number could not be converted to u32!")))?;
         let line_number = ObjectNumber::create(number);
-        let is_action_id_should_be_increased = true;
+        let is_action_id_should_be_increased =
+            IsActionIdShouldBeIncreased::create(true);
         let action_type = ActionType::GeometryActionType(GeometryActionType::DeleteLine(
             line_number, is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
-        let add_to_active_actions = true;
+        let add_to_active_actions =
+            IsActionShouldBeAddedToActiveActions::create(true);
         self.current_action = Some((action, add_to_active_actions));
         Ok(())
     }

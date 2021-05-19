@@ -1,13 +1,6 @@
 use wasm_bindgen::prelude::*;
 
 
-#[wasm_bindgen]
-extern "C"
-{
-    #[wasm_bindgen(js_namespace = console)]
-    pub fn log(value: &str);
-}
-
 #[wasm_bindgen(module = "/js/interface_to_communicate_with_geometry.js")]
 extern "C"
 {

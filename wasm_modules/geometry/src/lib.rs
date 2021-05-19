@@ -569,11 +569,11 @@ impl Geometry
             let (number, x, y, z) = self.points[position]
                 .borrow()
                 .extract_number_and_coordinates();
-            let point_info_json = json!({ "point_info": { "number": number,
+            let point_info_json = json!({ "point_data": { "number": number,
                 "x": x, "y": y, "z": z } });
             let point_info = JsValue::from_serde(&point_info_json)
                 .or(Err(JsValue::from("Geometry: Show point info: Point info could not be \
-                constructed composed!")))?;
+                    composed!")))?;
             Ok(point_info)
         }
         else
@@ -585,15 +585,20 @@ impl Geometry
     }
 
 
-    pub fn show_line_info(&mut self, number: u32) -> Result<String, JsValue>
+    pub fn show_line_info(&mut self, number: u32) -> Result<JsValue, JsValue>
     {
         return if let Some(position) = self.lines.iter().position(|line|
             line.number_same(number))
         {
             let (number, start_point_number, end_point_number) = self.lines[position]
                 .extract_number_and_points_numbers();
-            Ok(format!("number: {}, start point number: {}, end point number: {}",
-                number, start_point_number, end_point_number))
+            let line_info_json = json!({ "line_data": { "number": number,
+                "start_point_number": start_point_number,
+                "end_point_number": end_point_number } });
+            let line_info = JsValue::from_serde(&line_info_json)
+                .or(Err(JsValue::from("Geometry: Show line info: Line info could not be \
+                    composed!")))?;
+            Ok(line_info)
         }
         else
         {

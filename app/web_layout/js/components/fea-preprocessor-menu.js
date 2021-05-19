@@ -116,6 +116,18 @@ class FeaPreprocessorMenu extends HTMLElement {
         }
     }
 
+    set selectLineInClient(lineNumber) {
+        if (this.querySelector("fea-geometry-menu") === null) {
+            this.delay(0)
+                .then(() => { 
+                    this.shadowRoot.querySelector("fea-preprocessor-menu-buttons").toggleButton = "geometry-menu-button";
+                 })
+                .then(async () => { this.querySelector("fea-geometry-menu").selectLineInClient = lineNumber });
+        } else {
+            this.querySelector("fea-geometry-menu").selectLineInClient = lineNumber;
+        }
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {

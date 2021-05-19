@@ -168,6 +168,7 @@ class FeaRenderer extends HTMLElement {
     }
 
     static get observedAttributes() {
+        return [];
     }
     
     attributeChangedCallback(name, oldValue, newValue) {

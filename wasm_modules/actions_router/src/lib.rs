@@ -322,10 +322,8 @@ impl ActionsRouter
                     {
                         let number = line_number.get_number();
                         let line_info_from_geometry = show_line_info_from_geometry(number)?;
-                        let line_info_message =
-                            format!("Line: {}.", line_info_from_geometry);
                         let this = JsValue::null();
-                        let _ = show_object_info.call1(&this, &JsValue::from(line_info_message))?;
+                        let _ = show_object_info.call1(&this, &line_info_from_geometry)?;
                     }
             }
             self.current_action = None;

@@ -95,6 +95,11 @@ class FeaGeometryLineMenu extends HTMLElement {
         this.deleteLineFromChildren(line);
     }
 
+    set selectLineInClient(lineNumber) {
+        this.shadowRoot.querySelector("fea-geometry-line-menu-buttons").activateButton = "geometry-update-line-menu-button";
+        this.querySelector("fea-geometry-update-line-menu").selectLineInClient = lineNumber;
+    }
+
     connectedCallback() {
     }
 

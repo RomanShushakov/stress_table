@@ -114,17 +114,30 @@ class FeaApp extends HTMLElement {
     }
 
     showObjectInfo(objectInfo) {
-        if ("point_info" in objectInfo) {
-            const pointNumber = objectInfo.point_info.number;
+        if ("point_data" in objectInfo) {
+            const pointNumber = objectInfo.point_data.number;
             const composedObjectInfo = `Point: 
                 number: ${pointNumber},
-                x: ${objectInfo.point_info.x},
-                y: ${objectInfo.point_info.y},
-                z: ${objectInfo.point_info.z}`;
+                x: ${objectInfo.point_data.x},
+                y: ${objectInfo.point_data.y},
+                z: ${objectInfo.point_data.z}`;
             this.shadowRoot.querySelector("fea-renderer").objectInfo = composedObjectInfo;          
             if (this.querySelector("fea-preprocessor-menu") !== null) {
                 this.querySelector("fea-preprocessor-menu").selectPointInClient = pointNumber;
             }
+        } else if ("line_data" in objectInfo) {
+            const lineNumber = objectInfo.line_data.number;
+            const composedObjectInfo = `Line: 
+                number: ${lineNumber},
+                start point number: ${objectInfo.line_data.start_point_number},
+                end point number: ${objectInfo.line_data.end_point_number}`;
+            this.shadowRoot.querySelector("fea-renderer").objectInfo = composedObjectInfo;    
+            if (this.querySelector("fea-preprocessor-menu") !== null) {
+                this.querySelector("fea-preprocessor-menu").selectLineInClient = lineNumber;
+            }   
+
+        } else {
+            throw "Fea-app: Unknown object!";
         }
     }
 

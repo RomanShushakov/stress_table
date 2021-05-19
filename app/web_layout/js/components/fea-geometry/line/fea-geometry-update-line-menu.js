@@ -440,7 +440,7 @@ class FeaGeometryUpdateLineMenu extends HTMLElement {
         });
 
         this.shadowRoot.querySelector(".line-number").addEventListener("change", 
-            (event) => this.updateSelectedLineStartPointAndEndPointNumbers(event));
+            (event) => this.updateSelectedLineStartPointAndEndPointNumbers(event.target.value));
 
         this.shadowRoot.querySelector(".start-point-number-filter").addEventListener("keyup", () => {
             this.filter(
@@ -496,6 +496,18 @@ class FeaGeometryUpdateLineMenu extends HTMLElement {
         this.props.lines.splice(lineIndexInProps, 1);
         this.props.lines.sort((a, b) => a.number - b.number);
         this.defineLineNumberOptions();
+    }
+
+    set selectLineInClient(lineNumber) {
+        const lineNumberSelect =  this.shadowRoot.querySelector(".line-number");
+        const lineNumberOptions =  lineNumberSelect.options;
+        for (let option, i = 0; option = lineNumberOptions[i]; i++) {
+            if (option.value == lineNumber) {
+                lineNumberSelect.selectedIndex = i;
+                break;
+            }
+        }
+        this.updateSelectedLineStartPointAndEndPointNumbers(lineNumber);
     }
 
     connectedCallback() {
@@ -595,8 +607,7 @@ class FeaGeometryUpdateLineMenu extends HTMLElement {
         }
     }
 
-    updateSelectedLineStartPointAndEndPointNumbers(event) {
-        const selectedLineNumber = event.target.value;
+    updateSelectedLineStartPointAndEndPointNumbers(selectedLineNumber) {
         const lineInProps = this.props.lines.find(existedLine => existedLine.number == selectedLineNumber);
         const selectedLineStartPointNumber = lineInProps.startPointNumber;
         const selectedLineEndPointNumber = lineInProps.endPointNumber;

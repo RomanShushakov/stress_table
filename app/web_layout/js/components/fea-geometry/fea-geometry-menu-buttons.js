@@ -192,6 +192,10 @@ class FeaGeometryMenuButtons extends HTMLElement {
             () => this.activate("geometry-line-menu-button"));
     }
 
+    set activateButton(buttonName) {
+        this.activate(buttonName);
+    }
+
     connectedCallback() {
         this.activate("geometry-point-menu-button");
     }
@@ -207,10 +211,6 @@ class FeaGeometryMenuButtons extends HTMLElement {
     }
 
     adoptedCallback() {
-    }
-
-    set activateButton(buttonName) {
-        this.activate(buttonName);
     }
 
     activate(buttonName) {

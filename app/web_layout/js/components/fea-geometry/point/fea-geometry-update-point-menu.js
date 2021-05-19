@@ -423,7 +423,6 @@ class FeaGeometryUpdatePointMenu extends HTMLElement {
     }
 
     set selectPointInClient(pointNumber) {
-        const pointInProps = this.props.points.find(existedPoint => existedPoint.number == pointNumber);
         const pointNumberSelect = this.shadowRoot.querySelector(".point-number");
         const pointNumberOptions = pointNumberSelect.options;
         for (let option, i = 0; option = pointNumberOptions[i]; i++) {

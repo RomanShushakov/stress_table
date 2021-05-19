@@ -283,6 +283,10 @@ class FeaGeometryLineMenuButtons extends HTMLElement {
             () => this.activate("geometry-delete-line-menu-button"));
     }
 
+    set activateButton(buttonName) {
+        this.activate(buttonName);
+    }
+
     connectedCallback() {
         this.activate("geometry-add-line-menu-button");
     }

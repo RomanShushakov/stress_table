@@ -22,7 +22,7 @@ class FeaPreprocessorMenu extends HTMLElement {
             ],
 
             menuNames: [
-                "geometry-menu", "properties-menu", "mesh-menu", "load-menu",
+                "geometry-menu", "material-menu", "properties-menu", "mesh-menu", "load-menu",
                 "boundary-condition-menu", "analysis-menu",
             ]
         };
@@ -168,6 +168,12 @@ class FeaPreprocessorMenu extends HTMLElement {
                     this.querySelector("fea-geometry-menu").addLineToClient = line;
                 }  
                 break;
+            case "material-menu":
+                const feaMaterialMenu = document.createElement("fea-material-menu");
+                this.append(feaMaterialMenu);
+                event.stopPropagation();
+                this.updateCanvasSize();
+                this.querySelector("fea-material-menu").actionId = this.props.actionId;
         }
     }
 
@@ -175,6 +181,11 @@ class FeaPreprocessorMenu extends HTMLElement {
         switch (event.detail.menuName) {
             case "geometry-menu":
                 this.querySelector("fea-geometry-menu").remove();
+                event.stopPropagation();
+                this.updateCanvasSize();
+                break;
+            case "material-menu":
+                this.querySelector("fea-material-menu").remove();
                 event.stopPropagation();
                 this.updateCanvasSize();
                 break;

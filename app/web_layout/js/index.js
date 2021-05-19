@@ -1,6 +1,8 @@
 import FeaApp from "./components/fea-app.js";
 import FeaAppTitleBar from "./components/fea-app-title-bar.js";
 
+import FeaRenderer from "./components/fea-renderer.js";
+
 import FeaPreprocessorMenu from "./components/fea-preprocessor-menu.js";
 import FeaPreprocessorMenuButtons from "./components/fea-preprocessor-menu-buttons.js";
 
@@ -17,23 +19,15 @@ import FeaGeometryAddLineMenu from "./components/fea-geometry/line/fea-geometry-
 import FeaGeometryUpdateLineMenu from "./components/fea-geometry/line/fea-geometry-update-line-menu.js";
 import FeaGeometryDeleteLineMenu from "./components/fea-geometry/line/fea-geometry-delete-line-menu.js";
 
-import FeaProperties from "./components/fea-properties.js";
-
-import FeaMesh from "./components/fea-mesh.js";
-import FeaAnalysis from "./components/fea-analysis.js";
-import FeaBoundaryCondition from "./components/fea-boundary-condition.js";
-import FeaLoad from "./components/fea-load.js";
-import FeaRenderer from "./components/fea-renderer.js";
-import FeaPostprocessor from "./components/fea-postprocessor.js";
-import FeaPostprocessorMenu from "./components/fea-postprocessor-menu.js";
-import FeaPlotDisplacements from "./components/fea-plot-displacements.js";
-import FeaPlotStresses from "./components/fea-plot-stresses.js";
-import FeaPlotStrains from "./components/fea-plot-strains.js";
-import FeaPlotForces from "./components/fea-plot-forces.js";
+import FeaMaterialMenu from "./components/fea-material/fea-material-menu.js";
+import FeaMaterialMenuButtons from "./components/fea-material/fea-material-menu-buttons.js";
+import FeaMaterialAddMaterialMenu from "./components/fea-material/fea-material-add-material-menu.js";
 
 
 customElements.define("fea-app", FeaApp);
 customElements.define("fea-app-title-bar", FeaAppTitleBar);
+
+customElements.define("fea-renderer", FeaRenderer);
 
 customElements.define("fea-preprocessor-menu", FeaPreprocessorMenu);
 customElements.define("fea-preprocessor-menu-buttons", FeaPreprocessorMenuButtons);
@@ -51,16 +45,6 @@ customElements.define("fea-geometry-add-line-menu", FeaGeometryAddLineMenu);
 customElements.define("fea-geometry-update-line-menu", FeaGeometryUpdateLineMenu);
 customElements.define("fea-geometry-delete-line-menu", FeaGeometryDeleteLineMenu);
 
-customElements.define("fea-properties", FeaProperties);
-
-customElements.define("fea-mesh", FeaMesh);
-customElements.define("fea-analysis", FeaAnalysis);
-customElements.define("fea-boundary-condition", FeaBoundaryCondition);
-customElements.define("fea-load", FeaLoad);
-customElements.define("fea-renderer", FeaRenderer);
-customElements.define("fea-postprocessor", FeaPostprocessor);
-customElements.define("fea-postprocessor-menu", FeaPostprocessorMenu);
-customElements.define("fea-plot-displacements", FeaPlotDisplacements);
-customElements.define("fea-plot-stresses", FeaPlotStresses);
-customElements.define("fea-plot-strains", FeaPlotStrains);
-customElements.define("fea-plot-forces", FeaPlotForces);
+customElements.define("fea-material-menu", FeaMaterialMenu);
+customElements.define("fea-material-menu-buttons", FeaMaterialMenuButtons);
+customElements.define("fea-material-add-material-menu", FeaMaterialAddMaterialMenu);

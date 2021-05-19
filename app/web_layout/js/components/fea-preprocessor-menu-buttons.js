@@ -7,6 +7,7 @@ class FeaPreprocessorMenuButtons extends HTMLElement {
         this.state = {
             buttonNames: [
                 "geometry-menu-button",
+                "material-menu-button",
                 "properties-menu-button",
                 "mesh-menu-button",
                 "load-menu-button",
@@ -16,6 +17,7 @@ class FeaPreprocessorMenuButtons extends HTMLElement {
 
             menuNames: {
                 "geometry-menu-button": "geometry-menu",
+                "material-menu-button": "material-menu",
                 "properties-menu-button": "properties-menu",
                 "mesh-menu-button": "mesh-menu",
                 "load-menu-button": "load-menu",
@@ -80,6 +82,45 @@ class FeaPreprocessorMenuButtons extends HTMLElement {
                     padding: 0rem;
                     width: 3.5rem;
                     font-size: 85%;
+                }
+
+                .material-menu-button {
+                    margin: 0rem;
+                    padding-top: 0.7rem;
+                    padding-bottom: 0.7rem;
+                    background: #2e3440;
+                    border: #3b4453;
+                }
+
+                .material-menu-button:hover {
+                    background: #2d303b;
+                }
+
+                .material-menu-button-icon-content {
+                    margin: 0rem;
+                    padding: 0rem;
+                }
+
+                .material-menu-button-icon {
+                    color: #2E3440;
+                    width: 3.5rem;
+                    height: 3.5rem;
+                }
+
+                .material-menu-button-icon-caption {
+                    color: #D9D9D9;
+                    margin: 0rem;
+                    padding: 0rem;
+                    width: 3.5rem;
+                    font-size: 85%;
+                }
+
+                .active .material-menu-button-icon {
+                    color: #3b4453;
+                }
+
+                .active:hover .material-menu-button-icon {
+                    color: #242932;
                 }
 
                 .properties-menu-button {
@@ -310,6 +351,67 @@ class FeaPreprocessorMenuButtons extends HTMLElement {
                             </g>
                         </svg>
                         <p class="geometry-menu-button-icon-caption">Geometry</p>
+                    </div>
+                </button>
+
+                <button class="material-menu-button">
+                    <div class="material-menu-button-icon-content">
+                        <svg class=material-menu-button-icon width="105" height="104" viewBox="0 0 105 104" fill="none" 
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                        <title>Material</title>
+                            <path d="M4.35355 6.1885C4.15829 5.99324 3.84171 5.99324 3.64645 6.1885L0.464466 
+                                9.37048C0.269204 9.56574 0.269204 9.88232 0.464466 10.0776C0.659728 
+                                10.2728 0.976311 10.2728 1.17157 10.0776L4 7.24916L6.82843 10.0776C7.02369 
+                                10.2728 7.34027 10.2728 7.53553 10.0776C7.7308 9.88232 7.7308 9.56574 
+                                7.53553 9.37048L4.35355 6.1885ZM4.5 100L4.5 6.54205H3.5L3.5 100H4.5Z" 
+                                fill="#D9D9D9"
+                            />
+                            <path d="M104.354 100.354C104.549 100.158 104.549 99.8417 
+                                104.354 99.6464L101.172 96.4645C100.976 96.2692 100.66 96.2692 100.464 
+                                96.4645C100.269 96.6597 100.269 96.9763 100.464 97.1716L103.293 100L100.464 
+                                102.828C100.269 103.024 100.269 103.34 100.464 103.536C100.66 103.731 100.976 
+                                103.731 101.172 103.536L104.354 100.354ZM4 100.5H104V99.5H4V100.5Z" 
+                                fill="#D9D9D9"
+                            />
+                            <path d="M5 100L32.5 50C42 36.4486 63.8 27.1028 91 36.4486" stroke="#72C5FF" stroke-width="2"/>
+                            <path d="M35.1094 17.8789H28.9766C30.3958 18.7643 31.4961 19.9427 32.2773 
+                                21.4141C33.0716 22.8724 33.4688 24.5586 33.4688 26.4727V27.1172C33.4688 
+                                29.0443 33.0781 30.7956 32.2969 32.3711C31.5156 33.9466 30.4089 
+                                35.1771 28.9766 36.0625C27.5573 36.9479 25.9492 37.3906 24.1523 
+                                37.3906C21.3529 37.3906 19.0872 36.4076 17.3555 34.4414C15.6367 
+                                32.4622 14.7773 29.8451 14.7773 26.5898V26.1211C14.7773 23.0872 
+                                15.6432 20.6198 17.375 18.7188C19.1198 16.8177 21.3919 15.8672 
+                                24.1914 15.8672H35.1094V17.8789ZM17.1211 26.7656C17.1211 29.3307 
+                                17.7656 31.4141 19.0547 33.0156C20.3438 34.6172 22.043 35.418 
+                                24.1523 35.418C26.2227 35.418 27.9023 34.6237 29.1914 33.0352C30.4935 
+                                31.4336 31.1445 29.2786 31.1445 26.5703V26.1211C31.1445 23.7122 30.5 21.7396 
+                                29.2109 20.2031C27.9219 18.6536 26.2161 17.8789 24.0938 17.8789C22.0104 
+                                17.8789 20.3242 18.6602 19.0352 20.2227C17.7591 21.7721 17.1211 23.7904 
+                                17.1211 26.2773V26.7656Z" 
+                                fill="#D9D9D9"
+                            />
+                            <path d="M52.0898 77.9282C52.0898 75.3241 53.5547 73.6444 56.4844 72.8892C55.1953 
+                                72.4334 54.1992 71.7954 53.4961 70.9751C52.806 70.1548 52.4609 69.2368 
+                                52.4609 68.2212C52.4609 66.3332 53.1966 64.8618 54.668 
+                                63.8071C56.1393 62.7524 58.1641 62.2251 60.7422 62.2251C63.151 
+                                62.2251 65.1562 62.798 66.7578 63.9438C68.3724 65.0897 69.1797 
+                                66.5415 69.1797 68.2993H66.8555C66.8555 67.1144 66.263 66.1379 
+                                65.0781 65.3696C63.9062 64.5884 62.4609 64.1978 60.7422 64.1978C58.9193 
+                                64.1978 57.474 64.5493 56.4062 65.2524C55.3516 65.9556 54.8242 66.9321 
+                                54.8242 68.1821C54.8242 70.7082 56.8229 71.9712 60.8203 
+                                71.9712H64.2773V73.9243H60.5273C58.5482 73.9373 57.0378 74.2629 
+                                55.9961 74.9009C54.9674 75.5389 54.4531 76.561 54.4531 77.9673C54.4531 
+                                79.2303 55.0195 80.2459 56.1523 81.0142C57.2982 81.7694 58.8281 82.147 
+                                60.7422 82.147C62.6042 82.147 64.1406 81.7238 65.3516 80.8774C66.5755 
+                                80.0311 67.1875 78.9634 67.1875 77.6743H69.5312C69.5312 79.6274 68.7044 
+                                81.1899 67.0508 82.3618C65.4102 83.5337 63.3073 84.1196 60.7422 84.1196C58.151 
+                                84.1196 56.0612 83.5597 54.4727 82.4399C52.8841 81.3071 52.0898 79.8032 
+                                52.0898 77.9282Z" 
+                                fill="#D9D9D9"
+                            />
+                        </svg>
+                        <p class="material-menu-button-icon-caption">Material</p>
                     </div>
                 </button>
 
@@ -559,6 +661,8 @@ class FeaPreprocessorMenuButtons extends HTMLElement {
         `;
 
         this.shadowRoot.querySelector(".geometry-menu-button").addEventListener("click", () => this.toggle("geometry-menu-button"));
+
+        this.shadowRoot.querySelector(".material-menu-button").addEventListener("click", () => this.toggle("material-menu-button"));
 
         this.shadowRoot.querySelector(".properties-menu-button").addEventListener("click", () => this.toggle("properties-menu-button"));
 

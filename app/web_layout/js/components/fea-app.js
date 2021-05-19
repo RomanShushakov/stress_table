@@ -61,7 +61,7 @@ class FeaApp extends HTMLElement {
     }
 
     async connectedCallback() {
-        this.state.actionsRouter = await initializeActionsRouter(this.greeting);
+        this.state.actionsRouter = await initializeActionsRouter();
         this.activatePreprocessorMenu();
         this.updateTitleBarActionId();
         this.shadowRoot.querySelector("fea-renderer").canvasSizeCallback = () => this.getCanvasSize();

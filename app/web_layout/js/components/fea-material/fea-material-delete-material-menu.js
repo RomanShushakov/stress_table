@@ -1,10 +1,10 @@
-class FeaGeometryDeletePointMenu extends HTMLElement {
+class FeaMaterialDeleteMaterialMenu extends HTMLElement {
     constructor() {
         super();
 
         this.props = {
             actionId: null,
-            points: [],
+            materials: [],
         };
 
         this.state = {};
@@ -26,7 +26,7 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
                     align-items: center;
                 }
 
-                .point-number-field-content {
+                .material-name-field-content {
                     display: flex;
                     flex-direction: row;
                     background-color: #3b4453;
@@ -35,7 +35,7 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
                     align-items: center;
                 }
 
-                .point-number-caption {
+                .material-name-caption {
                     margin: 0rem;
                     padding: 0rem;
                     color: #D9D9D9;
@@ -43,7 +43,7 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
                     width: 6rem;
                 }
 
-                .point-number-select-filter-content {
+                .material-name-select-filter-content {
                     margin-top: 0rem;
                     margin-bottom: 0rem;
                     margin-left: 1rem;
@@ -53,11 +53,11 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
                     flex-direction: column;
                 }
 
-                .point-number-filter-label {
+                .material-name-filter-label {
                     position: relative;
                 }
                   
-                .point-number-filter-label:before {
+                .material-name-filter-label:before {
                     content: "";
                     position: absolute;
                     left: 0rem;
@@ -67,7 +67,7 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
                     background: url('data:image/svg+xml,<svg width="19" height="17" viewBox="0 0 19 17" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.1182 13.15L7.48598 16L7.48598 6.25L2 0.999999L17 1L12.1182 6.25L12.1182 13.15Z" fill="rgb(112, 112, 114)" stroke="rgb(112, 112, 114)"/></svg>') center / contain no-repeat;
                 }
 
-                .point-number-filter {
+                .material-name-filter {
                     margin-top: 0rem;
                     margin-bottom: 0rem;
                     margin-left: 0rem;
@@ -81,29 +81,19 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
                     color: #D9D9D9;
                 }
 
-                .point-number-filter::placeholder {
+                .material-name-filter::placeholder {
                     font-size: 85%;
                 }
 
-                .point-number-filter::-webkit-outer-spin-button,
-                .point-number-filter::-webkit-inner-spin-button {
-                    -webkit-appearance: none;
-                    margin: 0;
-                }
-
-                .point-number-filter[type=number] {
-                    -moz-appearance: textfield;
-                }
-
-                .point-number-filter:hover {
+                .material-name-filter:hover {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
-                .point-number-filter:focus {
+                .material-name-filter:focus {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
-                .point-number {
+                .material-name {
                     width: 5rem;
                     margin-top: 0.5rem;
                     background-color: #3b4453;
@@ -116,11 +106,11 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
                     background: url('data:image/svg+xml,<svg width="4" height="4" viewBox="0 0 4 4" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1L2 2L3 1" stroke="rgb(112, 112, 114)" stroke-width="0.5"/></svg>') right / contain no-repeat;
                 }
 
-                .point-number option {
+                .material-name option {
                     background-color: #484f60;
                 }
 
-                .point-number:hover {
+                .material-name:hover {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
@@ -186,13 +176,13 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
 
             <div class=wrapper>
 
-                <div class="point-number-field-content">
-                    <p class="point-number-caption">Point number</p>
-                    <div class="point-number-select-filter-content">
-                        <label class="point-number-filter-label">
-                            <input class="point-number-filter" type="number" placeholder="Filter..."/>
+                <div class="material-name-field-content">
+                    <p class="material-name-caption">Material name</p>
+                    <div class="material-name-select-filter-content">
+                        <label class="material-name-filter-label">
+                            <input class="material-name-filter" type="text" placeholder="Filter..."/>
                         </label>
-                        <select class="point-number"></select>
+                        <select class="material-name"></select>
                     </div>
                 </div>
 
@@ -207,14 +197,14 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
             </div>
         `;
 
-        this.shadowRoot.querySelector(".apply-button").addEventListener("click", () => this.deletePoint());
+        this.shadowRoot.querySelector(".apply-button").addEventListener("click", () => this.deleteMaterial());
 
-        this.shadowRoot.querySelector(".cancel-button").addEventListener("click", () => this.cancelPointDelete());
+        this.shadowRoot.querySelector(".cancel-button").addEventListener("click", () => this.cancelMaterialDelete());
 
-        this.shadowRoot.querySelector(".point-number-filter").addEventListener("keyup", () => {
+        this.shadowRoot.querySelector(".material-name-filter").addEventListener("keyup", () => {
             this.filter(
-                this.shadowRoot.querySelector(".point-number-filter").value,
-                this.shadowRoot.querySelector(".point-number"));
+                this.shadowRoot.querySelector(".material-name-filter").value,
+                this.shadowRoot.querySelector(".material-name"));
         });
     }
 
@@ -222,20 +212,10 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
         this.props.actionId = value;
     }
 
-    set addPointToClient(point) {
-        this.props.points.push(point);
-        this.props.points.sort((a, b) => a.number - b.number);
-        this.definePointNumberOptions();
-    }
-
-    set updatePointInClient(_point) {
-    }
-
-    set deletePointFromClient(point) {
-        let pointIndexInProps = this.props.points.findIndex(existedPoint => existedPoint.number == point.number);
-        this.props.points.splice(pointIndexInProps, 1);
-        this.props.points.sort((a, b) => a.number - b.number);
-        this.definePointNumberOptions();
+    set addMaterialToClient(material) {
+        this.props.materials.push(material);
+        this.props.materials.sort((a, b) => a.name - b.name);
+        this.defineMaterialNameOptions();
     }
 
     connectedCallback() {
@@ -261,16 +241,16 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
     adoptedCallback() {
     }
 
-    definePointNumberOptions() {
-        const pointDeleteNumberSelect = this.shadowRoot.querySelector(".point-number");
-        for (let i = pointDeleteNumberSelect.length - 1; i >= 0; i--) {
-            pointDeleteNumberSelect.options[i] = null;
+    defineMaterialNameOptions() {
+        const materialDeleteNameSelect = this.shadowRoot.querySelector(".material-name");
+        for (let i = materialDeleteNameSelect.length - 1; i >= 0; i--) {
+            materialDeleteNameSelect.options[i] = null;
         }
-        for (let i = 0; i < this.props.points.length; i++) {
+        for (let i = 0; i < this.props.materials.length; i++) {
             let deleteOption = document.createElement("option");
-            deleteOption.value = this.props.points[i].number;
-            deleteOption.innerHTML = this.props.points[i].number;
-            pointDeleteNumberSelect.appendChild(deleteOption);
+            deleteOption.value = this.props.materials[i].name.replace(/['"]+/g, "");
+            deleteOption.innerHTML = this.props.materials[i].name.replace(/['"]+/g, "");
+            materialDeleteNameSelect.appendChild(deleteOption);
         }
     }
 
@@ -285,15 +265,15 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
         }
     }
 
-    deletePoint() {
-        const selectedPointNumberField = this.shadowRoot.querySelector(".point-number");
-        if (selectedPointNumberField.value == "") {
-            if (selectedPointNumberField.classList.contains("highlighted") === false) {
-                selectedPointNumberField.classList.add("highlighted");
+    deleteMaterial() {
+        const selectedMaterialNameField = this.shadowRoot.querySelector(".material-name");
+        if (selectedMaterialNameField.value == "") {
+            if (selectedMaterialNameField.classList.contains("highlighted") === false) {
+                selectedMaterialNameField.classList.add("highlighted");
             }
         }
 
-        if (selectedPointNumberField.value === "") {
+        if (selectedMaterialNameField.value === "") {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "Note: The highlighted fields should be filled!";
                 return;
@@ -302,8 +282,8 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
             }
         }
 
-        const deletedPointValues = this.props.points.find(point => point.number == selectedPointNumberField.value);
-        const message = {"delete_point": { "actionId": this.props.actionId, "number": deletedPointValues.number }};
+        const deletedMaterialData = this.props.materials.find(material => material.name == `"${selectedMaterialNameField.value}"`);
+        const message = {"delete_material": { "actionId": this.props.actionId, "name": deletedMaterialData.name.replace(/['"]+/g, "") }};
         this.dispatchEvent(new CustomEvent("client message", {
             bubbles: true,
             composed: true,
@@ -312,16 +292,16 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
             },
         }));
 
-        this.shadowRoot.querySelector(".point-number-filter").value = null;
+        this.shadowRoot.querySelector(".material-name-filter").value = null;
     }
 
-    cancelPointDelete() {
-        if (this.props.points.length > 0) {
-            this.definePointNumberOptions();
+    cancelMaterialDelete() {
+        if (this.props.materials.length > 0) {
+            this.defineMaterialNameOptions();
         }
-        this.shadowRoot.querySelector(".point-number-filter").value = null;
-        const selectedPointNumberForDeleteField = this.shadowRoot.querySelector(".point-number");
-        this.dropHighlight(selectedPointNumberForDeleteField);
+        this.shadowRoot.querySelector(".material-name-filter").value = null;
+        const selectedMaterialNameForDeleteField = this.shadowRoot.querySelector(".material-name");
+        this.dropHighlight(selectedMaterialNameForDeleteField);
         this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
     }
 
@@ -332,4 +312,4 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
     }
 }
 
-export default FeaGeometryDeletePointMenu;
+export default FeaMaterialDeleteMaterialMenu;

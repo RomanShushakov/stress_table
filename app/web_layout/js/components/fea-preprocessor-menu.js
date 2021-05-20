@@ -6,11 +6,13 @@ class FeaPreprocessorMenu extends HTMLElement {
             actionId: null,
             points: [],
             lines: [],
+            materials: [],
         };
 
         this.state = {
             childrenNamesForActionIdUpdate: [
                 "fea-geometry-menu",
+                "fea-material-menu",
             ],
 
             childrenNamesForPointCrud: [
@@ -24,7 +26,11 @@ class FeaPreprocessorMenu extends HTMLElement {
             menuNames: [
                 "geometry-menu", "material-menu", "properties-menu", "mesh-menu", "load-menu",
                 "boundary-condition-menu", "analysis-menu",
-            ]
+            ],
+
+            childrenNamesForMaterialCrud: [
+                "fea-material-menu",
+            ],
         };
 
         this.attachShadow({ mode: "open" });
@@ -128,6 +134,12 @@ class FeaPreprocessorMenu extends HTMLElement {
         }
     }
 
+    set addMaterialToClient(material) {
+        this.props.materials.push(material);
+        this.props.materials.sort((a, b) => a.name - b.name);
+        this.addMaterialToChildren(material);
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {
@@ -174,6 +186,10 @@ class FeaPreprocessorMenu extends HTMLElement {
                 event.stopPropagation();
                 this.updateCanvasSize();
                 this.querySelector("fea-material-menu").actionId = this.props.actionId;
+                for (let i = 0; i < this.props.materials.length; i++) {
+                    const material = this.props.materials[i];
+                    this.querySelector("fea-material-menu").addMaterialToClient = material;
+                }
         }
     }
 
@@ -251,6 +267,14 @@ class FeaPreprocessorMenu extends HTMLElement {
         for (let i = 0; i < this.state.childrenNamesForLineCrud.length; i++) {
             if (this.querySelector(this.state.childrenNamesForLineCrud[i]) !== null) {
                 this.querySelector(this.state.childrenNamesForLineCrud[i]).deleteLineFromClient = line;
+            }
+        } 
+    }
+
+    addMaterialToChildren(material) {
+        for (let i = 0; i < this.state.childrenNamesForMaterialCrud.length; i++) {
+            if (this.querySelector(this.state.childrenNamesForMaterialCrud[i]) !== null) {
+                this.querySelector(this.state.childrenNamesForMaterialCrud[i]).addMaterialToClient = material;
             }
         } 
     }

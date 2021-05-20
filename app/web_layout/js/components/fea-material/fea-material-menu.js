@@ -65,6 +65,12 @@ class FeaMaterialMenu extends HTMLElement {
         this.updateChildrenActionId();
     }
 
+    set addMaterialToClient(material) {
+        this.props.materials.push(material);
+        this.props.materials.sort((a, b) => a.name - b.name);
+        this.addMaterialToChildren(material);
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {
@@ -95,18 +101,30 @@ class FeaMaterialMenu extends HTMLElement {
                 this.append(feaMaterialAddMaterialMenu);
                 event.stopPropagation();
                 this.querySelector("fea-material-add-material-menu").actionId = this.props.actionId;
+                for (let i = 0; i < this.props.materials.length; i++) {
+                    const material = this.props.materials[i];
+                    this.querySelector("fea-material-add-material-menu").addMaterialToClient = material;
+                }
                 break;
             case "material-update-material-menu":
                 const feaMaterialUpdateMaterialMenu = document.createElement("fea-material-update-material-menu");
                 this.append(feaMaterialUpdateMaterialMenu);
                 event.stopPropagation();
                 this.querySelector("fea-material-update-material-menu").actionId = this.props.actionId;
+                for (let i = 0; i < this.props.materials.length; i++) {
+                    const material = this.props.materials[i];
+                    this.querySelector("fea-material-update-material-menu").addMaterialToClient = material;
+                }
                 break;
             case "material-delete-material-menu":
                 const feaMaterialDeleteMaterialMenu = document.createElement("fea-material-delete-material-menu");
                 this.append(feaMaterialDeleteMaterialMenu);
                 event.stopPropagation();
                 this.querySelector("fea-material-delete-material-menu").actionId = this.props.actionId;
+                for (let i = 0; i < this.props.materials.length; i++) {
+                    const material = this.props.materials[i];
+                    this.querySelector("fea-material-delete-material-menu").addMaterialToClient = material;
+                }
                 break;
         }
     }
@@ -132,6 +150,14 @@ class FeaMaterialMenu extends HTMLElement {
         for (let i = 0; i < this.state.childrenNamesForActionIdUpdate.length; i++) {
             if (this.querySelector(this.state.childrenNamesForActionIdUpdate[i]) !== null) {
                 this.querySelector(this.state.childrenNamesForActionIdUpdate[i]).actionId = this.props.actionId;
+            }
+        } 
+    }
+
+    addMaterialToChildren(material) {
+        for (let i = 0; i < this.state.childrenNamesForMaterialCrud.length; i++) {
+            if (this.querySelector(this.state.childrenNamesForMaterialCrud[i]) !== null) {
+                this.querySelector(this.state.childrenNamesForMaterialCrud[i]).addMaterialToClient = material;
             }
         } 
     }

@@ -1,4 +1,4 @@
-class FeaMaterialAddMaterialMenu extends HTMLElement {
+class FeaMaterialUpdateMaterialMenu extends HTMLElement {
     constructor() {
         super();
 
@@ -32,6 +32,7 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
                     background-color: #3b4453;
                     padding: 0rem;
                     margin: 0rem;
+                    align-items: center;
                 }
 
                 .material-name-caption {
@@ -42,13 +43,37 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
                     width: 6rem;
                 }
 
-                .material-name {
+                .material-name-select-filter-content {
                     margin-top: 0rem;
                     margin-bottom: 0rem;
                     margin-left: 1rem;
                     margin-right: 0rem;
                     padding: 0rem;
-                    width: 5rem;
+                    display: flex;
+                    flex-direction: column;
+                }
+
+                .material-name-filter-label {
+                    position: relative;
+                }
+                  
+                .material-name-filter-label:before {
+                    content: "";
+                    position: absolute;
+                    left: 0rem;
+                    top: 0rem;
+                    bottom: 0rem;
+                    width: 0.8rem;
+                    background: url('data:image/svg+xml,<svg width="19" height="17" viewBox="0 0 19 17" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.1182 13.15L7.48598 16L7.48598 6.25L2 0.999999L17 1L12.1182 6.25L12.1182 13.15Z" fill="rgb(112, 112, 114)" stroke="rgb(112, 112, 114)"/></svg>') center / contain no-repeat;
+                }
+
+                .material-name-filter {
+                    margin-top: 0rem;
+                    margin-bottom: 0rem;
+                    margin-left: 0rem;
+                    margin-right: 0rem;
+                    padding-left: 1.3rem;
+                    width: 3.5rem;
                     background-color: #3b4453;
                     border: #4a5060;
                     border-bottom: 0.1rem solid #4a5060;
@@ -56,11 +81,36 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
                     color: #D9D9D9;
                 }
 
-                .material-name:hover {
+                .material-name-filter::placeholder {
+                    font-size: 85%;
+                }
+
+                .material-name-filter:hover {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
-                .material-name:focus {
+                .material-name-filter:focus {
+                    box-shadow: 0rem 0.15rem 0rem #4a5060;
+                }
+
+                .material-name {
+                    width: 5rem;
+                    margin-top: 0.5rem;
+                    background-color: #3b4453;
+                    border: #4a5060;
+                    border-bottom: 0.1rem solid #4a5060;
+                    outline: none;
+                    color: #D9D9D9;
+                    -webkit-appearance: none;
+                    -moz-appearance: none;
+                    background: url('data:image/svg+xml,<svg width="4" height="4" viewBox="0 0 4 4" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1L2 2L3 1" stroke="rgb(112, 112, 114)" stroke-width="0.5"/></svg>') right / contain no-repeat;
+                }
+
+                .material-name option {
+                    background-color: #484f60;
+                }
+
+                .material-name:hover {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
@@ -221,9 +271,15 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
             </style>
 
             <div class=wrapper>
+
                 <div class="material-name-field-content">
                     <p class="material-name-caption">Material name</p>
-                    <input class="material-name" type="text"/>
+                    <div class="material-name-select-filter-content">
+                        <label class="material-name-filter-label">
+                            <input class="material-name-filter" type="text" placeholder="Filter..."/>
+                        </label>
+                        <select class="material-name"></select>
+                    </div>
                 </div>
 
                 <div class="young-modulus-field-content">
@@ -247,14 +303,16 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
             </div>
         `;
 
-         this.shadowRoot.querySelector(".apply-button").addEventListener("click", () => this.addMaterial());
+        this.shadowRoot.querySelector(".apply-button").addEventListener("click", () => this.updateMaterial());
 
-         this.shadowRoot.querySelector(".cancel-button").addEventListener("click", () => this.cancelMaterialAddition());
+        this.shadowRoot.querySelector(".cancel-button").addEventListener("click", () => this.cancelMaterialUpdate());
 
-         this.shadowRoot.querySelector(".material-name").addEventListener("click", () => {
-            const highlightedElement = this.shadowRoot.querySelector(".material-name");
-            this.dropHighlight(highlightedElement);
-            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+        this.shadowRoot.querySelector(".material-name").addEventListener("change", () => this.updateMaterialData());
+
+        this.shadowRoot.querySelector(".material-name-filter").addEventListener("keyup", () => {
+            this.filter(
+                this.shadowRoot.querySelector(".material-name-filter").value,
+                this.shadowRoot.querySelector(".material-name"));
         });
 
         this.shadowRoot.querySelector(".young-modulus").addEventListener("click", () => {
@@ -277,7 +335,7 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
     set addMaterialToClient(material) {
         this.props.materials.push(material);
         this.props.materials.sort((a, b) => a.name - b.name);
-        this.defineNewMaterialName();
+        this.defineMaterialNameOptions();
     }
 
     connectedCallback() {
@@ -287,8 +345,8 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
                 delete this[propName];
                 this[propName] = value;
             }
-        });
-        this.defineNewMaterialName();
+        }); 
+        this.defineMaterialNameOptions();
     }
 
     disconnectedCallback() {
@@ -304,36 +362,71 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
     adoptedCallback() {
     }
 
-    defineNewMaterialName() {
-        const newMaterialName = "mat1";
-        this.shadowRoot.querySelector(".material-name").value = newMaterialName;
-        this.shadowRoot.querySelector(".young-modulus").value = 10000000;
-        this.shadowRoot.querySelector(".poisson-ratio").value = 0.3;
+    defineMaterialNameOptions() {
+        const updateMaterialNameSelect = this.shadowRoot.querySelector(".material-name");
+        for (let i = updateMaterialNameSelect.length - 1; i >= 0; i--) {
+            updateMaterialNameSelect.options[i] = null;
+        }
+        if (this.props.materials.length > 0) {
+            for (let i = 0; i < this.props.materials.length; i++) {
+                let updateOption = document.createElement("option");
+                updateOption.value = this.props.materials[i].name.replace(/['"]+/g, "");
+                updateOption.innerHTML = this.props.materials[i].name.replace(/['"]+/g, "");;
+                updateMaterialNameSelect.appendChild(updateOption);
+            }
+            this.shadowRoot.querySelector(".young-modulus").value = this.props.materials[0].youngModulus;
+            this.shadowRoot.querySelector(".poisson-ratio").value = this.props.materials[0].poissonRatio;
+        } else {
+            this.shadowRoot.querySelector(".young-modulus").value = "";
+            this.shadowRoot.querySelector(".poisson-ratio").value = "";
+        }
     }
 
+    updateMaterialData() {
+        const selectedMaterialName = this.shadowRoot.querySelector(".material-name").value;
+        const materialInProps = this.props.materials.find(material => material.name == `"${selectedMaterialName}"`);
+        this.shadowRoot.querySelector(".young-modulus").value = materialInProps.youngModulus;
+        this.dropHighlight(this.shadowRoot.querySelector(".young-modulus"));
+        this.shadowRoot.querySelector(".poisson-ratio").value = materialInProps.poissonRatio;
+        this.dropHighlight(this.shadowRoot.querySelector(".poisson-ratio"));
+        this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+    }
 
-    addMaterial() {
-        const newMaterialNameField = this.shadowRoot.querySelector(".material-name");
-        if (newMaterialNameField.value === "") {
-            if (newMaterialNameField.classList.contains("highlighted") === false) {
-                newMaterialNameField.classList.add("highlighted");
+    filter(keywordField, selectField) {
+        for (let i = 0; i < selectField.length; i++) {
+            let txt = selectField.options[i].value;
+            if (txt.substring(0, keywordField.length).toLowerCase() !== keywordField.toLowerCase() && 
+                keywordField.trim() !== "") {
+                selectField.options[i].style.display = "none";
+            } else {
+                selectField.options[i].style.display = "list-item";
             }
         }
-        const youngModulusField = this.shadowRoot.querySelector(".young-modulus");
-        if (youngModulusField.value === "") {
-            if (youngModulusField.classList.contains("highlighted") === false) {
-                youngModulusField.classList.add("highlighted");
-            }
-        }
-        const poissonRationField = this.shadowRoot.querySelector(".poisson-ratio");
-        if (poissonRationField.value === "") {
-            if (poissonRationField.classList.contains("highlighted") === false) {
-                poissonRationField.classList.add("highlighted");
+    }
+
+    updateMaterial() {
+        const selectedMaterialNameField = this.shadowRoot.querySelector(".material-name");
+        if (selectedMaterialNameField.value == "") {
+            if (selectedMaterialNameField.classList.contains("highlighted") === false) {
+                selectedMaterialNameField.classList.add("highlighted");
             }
         }
 
-        if (newMaterialNameField.value === "" || youngModulusField.value === "" || 
-            poissonRationField.value === "") {
+        const inputtedYoungModulusField = this.shadowRoot.querySelector(".young-modulus");
+        if (inputtedYoungModulusField.value == "") {
+            if (inputtedYoungModulusField.classList.contains("highlighted") === false) {
+                inputtedYoungModulusField.classList.add("highlighted");
+            }
+        }
+        const inputtedPoissonRatio = this.shadowRoot.querySelector(".poisson-ratio");
+        if (inputtedPoissonRatio.value == "") {
+            if (inputtedPoissonRatio.classList.contains("highlighted") === false) {
+                inputtedPoissonRatio.classList.add("highlighted");
+            }
+        }
+
+        if (selectedMaterialNameField.value === "" || inputtedYoungModulusField.value === "" || 
+            inputtedPoissonRatio.value === "") {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
                     "Note: The highlighted fields should be filled!";
@@ -343,19 +436,8 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
             }
         }
 
-        const materialNameInProps = this.props.materials.find(material => material.name == `"${newMaterialNameField.value}"`);
-        if (materialNameInProps != null) {
-            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                    "Note: The material with the same name does already exist!";
-                return;
-            } else {
-                return;
-            }
-        }
-
-        const materialDataInProps = this.props.materials.find(material => material.youngModulus == youngModulusField.value && 
-            material.poissonRatio == poissonRationField.value);
+        const materialDataInProps = this.props.materials.find(material => material.youngModulus == inputtedYoungModulusField.value && 
+            material.poissonRatio == inputtedPoissonRatio.value);
         if (materialDataInProps != null) {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
@@ -366,7 +448,7 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
             }
         }
 
-        if (this.isNumeric(youngModulusField.value) === false || this.isNumeric(poissonRationField.value) === false) {
+        if (this.isNumeric(inputtedYoungModulusField.value) === false || this.isNumeric(inputtedPoissonRatio.value) === false) {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
                     "Note: Only numbers could be used as input values for Young's modulus and Poisson's ratio!";
@@ -376,12 +458,17 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
             }
         }
 
-        const message = {"add_material": {
+        const oldMaterialValues = this.props.materials.find(material => material.name == selectedMaterialNameField.value);
+        const message = {"update_material": {
             "actionId": this.props.actionId,
-            "name": newMaterialNameField.value, 
-            "young_modulus":  youngModulusField.value, "poisson_ratio":  poissonRationField.value,
+            "name": selectedMaterialNameField.value, 
+            "old_material_values": { 
+                "young_modulus":  oldMaterialValues.youngModulus,
+                "poisson_ratio": oldMaterialValues.poissonRatio },
+            "new_point_values": { 
+                "young_modulus": inputtedYoungModulusField.value,
+                "poisson_ratio": inputtedPoissonRatio.value }
         }};
-
         this.dispatchEvent(new CustomEvent("client message", {
             bubbles: true,
             composed: true,
@@ -389,16 +476,21 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
                 message: message,
             },
         }));
+
+        this.shadowRoot.querySelector(".material-name-filter").value = null;
     }
 
-    cancelMaterialAddition() {
-        this.defineNewMaterialName();
-        const newPointNumberField = this.shadowRoot.querySelector(".material-name");
-        this.dropHighlight(newPointNumberField);
-        const inputtedXField = this.shadowRoot.querySelector(".young-modulus");
-        this.dropHighlight(inputtedXField);
-        const inputtedYField = this.shadowRoot.querySelector(".poisson-ratio");
-        this.dropHighlight(inputtedYField);
+    cancelMaterialUpdate() {
+        if (this.props.materials.length > 0) {
+            this.defineMaterialNameOptions();
+        }
+        this.shadowRoot.querySelector(".material-name-filter").value = null;
+        const selectedMaterialNameForUpdateField = this.shadowRoot.querySelector(".material-name");
+        this.dropHighlight(selectedMaterialNameForUpdateField);
+        const inputtedYongModulusField = this.shadowRoot.querySelector(".young-modulus");
+        this.dropHighlight(inputtedYongModulusField);
+        const inputtedPoissonRatioField = this.shadowRoot.querySelector(".poisson-ratio");
+        this.dropHighlight(inputtedPoissonRatioField);
         this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
     }
 
@@ -413,7 +505,7 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
             return false;
         }
         return !isNaN(str) && !isNaN(parseFloat(str));
-    }
+      }
 }
 
-export default FeaMaterialAddMaterialMenu;
+export default FeaMaterialUpdateMaterialMenu;

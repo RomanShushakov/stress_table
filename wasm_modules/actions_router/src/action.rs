@@ -1,12 +1,12 @@
 #[derive(Clone, Debug)]
-pub struct ObjectNumber(u32);
+pub struct ObjectUIntNumber(u32);
 
 
-impl ObjectNumber
+impl ObjectUIntNumber
 {
-    pub fn create(number: u32) -> ObjectNumber
+    pub fn create(number: u32) -> ObjectUIntNumber
     {
-        ObjectNumber(number)
+        ObjectUIntNumber(number)
     }
 
 
@@ -75,14 +75,14 @@ impl IsActionIdShouldBeIncreased
 #[derive(Debug, Clone)]
 pub enum GeometryActionType
 {
-    AddPoint(ObjectNumber, Coordinates, IsActionIdShouldBeIncreased),
-    UpdatePoint(ObjectNumber, Coordinates, Coordinates, IsActionIdShouldBeIncreased),
-    DeletePoint(ObjectNumber, IsActionIdShouldBeIncreased),
-    UndoDeletePoint(ObjectNumber, IsActionIdShouldBeIncreased),
-    AddLine(ObjectNumber, ObjectNumber, ObjectNumber, IsActionIdShouldBeIncreased),
-    UpdateLine(ObjectNumber, ObjectNumber, ObjectNumber, ObjectNumber, ObjectNumber, IsActionIdShouldBeIncreased),
-    DeleteLine(ObjectNumber, IsActionIdShouldBeIncreased),
-    UndoDeleteLine(ObjectNumber, IsActionIdShouldBeIncreased),
+    AddPoint(ObjectUIntNumber, Coordinates, IsActionIdShouldBeIncreased),
+    UpdatePoint(ObjectUIntNumber, Coordinates, Coordinates, IsActionIdShouldBeIncreased),
+    DeletePoint(ObjectUIntNumber, IsActionIdShouldBeIncreased),
+    UndoDeletePoint(ObjectUIntNumber, IsActionIdShouldBeIncreased),
+    AddLine(ObjectUIntNumber, ObjectUIntNumber, ObjectUIntNumber, IsActionIdShouldBeIncreased),
+    UpdateLine(ObjectUIntNumber, ObjectUIntNumber, ObjectUIntNumber, ObjectUIntNumber, ObjectUIntNumber, IsActionIdShouldBeIncreased),
+    DeleteLine(ObjectUIntNumber, IsActionIdShouldBeIncreased),
+    UndoDeleteLine(ObjectUIntNumber, IsActionIdShouldBeIncreased),
 }
 
 
@@ -124,13 +124,40 @@ impl ObjectName
 }
 
 
+#[derive(Clone, Debug)]
+pub struct ObjectF64Number(f64);
+
+
+impl ObjectF64Number
+{
+    pub fn create(number: f64) -> ObjectF64Number
+    {
+        ObjectF64Number(number)
+    }
+
+
+    pub fn get_number(&self) -> f64
+    {
+        self.0
+    }
+}
+
+
+#[derive(Debug, Clone)]
+pub enum PropertiesActionType
+{
+    AddMaterial(ObjectName, ObjectF64Number, ObjectF64Number, IsActionIdShouldBeIncreased),
+}
+
+
 #[derive(Debug, Clone)]
 pub enum ActionType
 {
     GeometryActionType(GeometryActionType),
-    ShowPointInfo(ObjectNumber, Handle),
-    ShowLineInfo(ObjectNumber, Handle),
+    ShowPointInfo(ObjectUIntNumber, Handle),
+    ShowLineInfo(ObjectUIntNumber, Handle),
     ChangeView(ObjectName, Handle),
+    PropertiesActionType(PropertiesActionType),
 }
 
 
@@ -139,6 +166,15 @@ impl From<GeometryActionType> for ActionType
     fn from(action_type: GeometryActionType) -> ActionType
     {
         ActionType::GeometryActionType(action_type)
+    }
+}
+
+
+impl From<PropertiesActionType> for ActionType
+{
+    fn from(action_type: PropertiesActionType) -> ActionType
+    {
+        ActionType::PropertiesActionType(action_type)
     }
 }
 

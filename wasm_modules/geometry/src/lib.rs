@@ -9,14 +9,13 @@ use wasm_bindgen::JsCast;
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 const EVENTS_TARGET: &str = "fea-app";
+
 const ADD_POINT: &str = "add point server message";
 const UPDATE_POINT: &str = "update point server message";
 const DELETE_POINT: &str = "delete point server message";
 const ADD_LINE: &str = "add line server message";
 const UPDATE_LINE: &str = "update line server message";
 const DELETE_LINE: &str = "delete line server message";
-
-const SELECTED_POINT_INFO: &str = "selected point server message";
 
 
 #[wasm_bindgen]

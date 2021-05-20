@@ -22,6 +22,8 @@ import FeaGeometryDeleteLineMenu from "./components/fea-geometry/line/fea-geomet
 import FeaMaterialMenu from "./components/fea-material/fea-material-menu.js";
 import FeaMaterialMenuButtons from "./components/fea-material/fea-material-menu-buttons.js";
 import FeaMaterialAddMaterialMenu from "./components/fea-material/fea-material-add-material-menu.js";
+import FeaMaterialUpdateMaterialMenu from "./components/fea-material/fea-material-update-material-menu.js";
+import FeaMaterialDeleteMaterialMenu from "./components/fea-material/fea-material-delete-material-menu.js";
 
 
 customElements.define("fea-app", FeaApp);
@@ -48,3 +50,5 @@ customElements.define("fea-geometry-delete-line-menu", FeaGeometryDeleteLineMenu
 customElements.define("fea-material-menu", FeaMaterialMenu);
 customElements.define("fea-material-menu-buttons", FeaMaterialMenuButtons);
 customElements.define("fea-material-add-material-menu", FeaMaterialAddMaterialMenu);
+customElements.define("fea-material-update-material-menu", FeaMaterialUpdateMaterialMenu);
+customElements.define("fea-material-delete-material-menu", FeaMaterialDeleteMaterialMenu);

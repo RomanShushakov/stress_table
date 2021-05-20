@@ -20,3 +20,7 @@
 /wasm_modules/geometry/.idea
 /wasm_modules/geometry/Cargo.lock
 /wasm_modules/geometry/target
+
+/wasm_modules/properties/.idea
+/wasm_modules/properties/Cargo.lock
+/wasm_modules/properties/target

@@ -57,6 +57,8 @@ class FeaApp extends HTMLElement {
         this.addEventListener("update line server message", (event) => this.handleUpdateLineServerMessage(event));
         this.addEventListener("delete line server message", (event) => this.handleDeleteLineServerMessage(event));
 
+        this.addEventListener("add material server message", (event) => this.handleAddMaterialServerMessage(event));
+
         this.addEventListener("decrease action id", (event) => this.handleDecreaseActionIdMessage(event));
     }
 
@@ -226,6 +228,20 @@ class FeaApp extends HTMLElement {
         const line = { number: event.detail.line_data.number };
         this.querySelector("fea-preprocessor-menu").deleteLineFromClient = line;
         this.shadowRoot.querySelector("fea-renderer").deleteLineFromRenderer = line;
+        event.stopPropagation();
+    }
+
+    handleAddMaterialServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;
+            this.updatePreprocessorMenuActionId();
+            this.updateTitleBarActionId();
+        }
+        const material = { 
+            name: event.detail.material_data.name,
+            youngModulus: event.detail.material_data.young_modulus,
+            poissonRatio: event.detail.material_data.poisson_ratio };
+        this.querySelector("fea-preprocessor-menu").addMaterialToClient = material;
         event.stopPropagation();
     }
 

@@ -271,10 +271,10 @@ class FeaGeometryDeleteLineMenu extends HTMLElement {
         }
         if (this.props.lines.length > 0) {
             for (let i = 0; i < this.props.lines.length; i++) {
-                let updateOption = document.createElement("option");
-                updateOption.value = this.props.lines[i].number;
-                updateOption.innerHTML = this.props.lines[i].number;
-                lineDeleteNumberSelect.appendChild(updateOption);
+                let deleteOption = document.createElement("option");
+                deleteOption.value = this.props.lines[i].number;
+                deleteOption.innerHTML = this.props.lines[i].number;
+                lineDeleteNumberSelect.appendChild(deleteOption);
             }
         }
     }

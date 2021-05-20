@@ -36,22 +36,24 @@ mod methods_for_properties_type_actions_handle;
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
-const ADD_POINT_EVENT: &str = "add_point";
-const UPDATE_POINT_EVENT: &str = "update_point";
-const DELETE_POINT_EVENT: &str = "delete_point";
-const ADD_LINE_EVENT: &str = "add_line";
-const UPDATE_LINE_EVENT: &str = "update_line";
-const DELETE_LINE_EVENT: &str = "delete_line";
+const ADD_POINT_MESSAGE_HEADER: &str = "add_point";
+const UPDATE_POINT_MESSAGE_HEADER: &str = "update_point";
+const DELETE_POINT_MESSAGE_HEADER: &str = "delete_point";
+const ADD_LINE_MESSAGE_HEADER: &str = "add_line";
+const UPDATE_LINE_MESSAGE_HEADER: &str = "update_line";
+const DELETE_LINE_MESSAGE_HEADER: &str = "delete_line";
 
-const ADD_MATERIAL_EVENT: &str = "add_material";
+const ADD_MATERIAL_MESSAGE_HEADER: &str = "add_material";
+const UPDATE_MATERIAL_MESSAGE_HEADER: &str = "update_material";
+const DELETE_MATERIAL_MESSAGE_HEADER: &str = "delete_material";
 
-const UNDO: &str = "undo";
-const REDO: &str = "redo";
+const UNDO_MESSAGE_HEADER: &str = "undo";
+const REDO_MESSAGE_HEADER: &str = "redo";
 
-const SELECTED_POINT_NUMBER_EVENT: &str = "selected_point_number";
-const SELECTED_LINE_NUMBER_EVENT: &str = "selected_line_number";
+const SELECTED_POINT_NUMBER_MESSAGE_HEADER: &str = "selected_point_number";
+const SELECTED_LINE_NUMBER_MESSAGE_HEADER: &str = "selected_line_number";
 
-const CHANGE_VIEW_EVENT: &str = "change_view";
+const CHANGE_VIEW_MESSAGE_HEADER: &str = "change_view";
 
 
 pub struct IsActionShouldBeAddedToActiveActions(bool);
@@ -93,7 +95,8 @@ impl ActionsRouter
     }
 
 
-    fn handle_undo_message(&mut self, undo_data: &Value) -> Result<(), JsValue> {
+    fn handle_undo_message(&mut self, undo_data: &Value) -> Result<(), JsValue>
+    {
         let action_id = undo_data["actionId"].to_string()
             .parse::<u32>()
             .or(Err(JsValue::from("Actions router: Redo action: \
@@ -108,7 +111,10 @@ impl ActionsRouter
                     {
                         match geometry_action_type
                         {
-                            GeometryActionType::AddPoint(point_number, _, _) =>
+                            GeometryActionType::AddPoint(
+                                point_number,
+                                _coordinates,
+                                _is_action_id_should_be_increased) =>
                                 {
                                     let is_action_id_should_be_increased =
                                         IsActionIdShouldBeIncreased::create(false);
@@ -120,8 +126,11 @@ impl ActionsRouter
                                         IsActionShouldBeAddedToActiveActions::create(false);
                                     self.current_action = Some((action, add_to_active_actions));
                                 },
-                            GeometryActionType::UpdatePoint(point_number, old_coordinates,
-                                new_coordinates, _) =>
+                            GeometryActionType::UpdatePoint(
+                                point_number,
+                                old_coordinates,
+                                new_coordinates,
+                                _is_action_id_should_be_increased) =>
                                 {
                                     let is_action_id_should_be_increased =
                                         IsActionIdShouldBeIncreased::create(false);
@@ -134,7 +143,9 @@ impl ActionsRouter
                                         IsActionShouldBeAddedToActiveActions::create(false);
                                     self.current_action = Some((action, add_to_active_actions));
                                 },
-                            GeometryActionType::DeletePoint(point_number, _) =>
+                            GeometryActionType::DeletePoint(
+                                point_number,
+                                _is_action_id_should_be_increased) =>
                                 {
                                     let is_action_id_should_be_increased =
                                         IsActionIdShouldBeIncreased::create(false);
@@ -146,7 +157,12 @@ impl ActionsRouter
                                         IsActionShouldBeAddedToActiveActions::create(false);
                                     self.current_action = Some((action, add_to_active_actions));
                                 },
-                            GeometryActionType::AddLine(line_number, _, _, _) =>
+                            GeometryActionType::UndoDeletePoint(_, _) => (),
+                            GeometryActionType::AddLine(
+                                line_number,
+                                _start_point_number,
+                                _end_point_number,
+                                _is_action_id_should_be_increased) =>
                                 {
                                     let is_action_id_should_be_increased =
                                         IsActionIdShouldBeIncreased::create(false);
@@ -158,9 +174,13 @@ impl ActionsRouter
                                         IsActionShouldBeAddedToActiveActions::create(false);
                                     self.current_action = Some((action, add_to_active_actions));
                                 },
-                            GeometryActionType::UpdateLine(line_number, old_start_point_number,
-                                old_end_point_number, new_start_point_number,
-                                new_end_point_number, _) =>
+                            GeometryActionType::UpdateLine(
+                                line_number,
+                                old_start_point_number,
+                                old_end_point_number,
+                                new_start_point_number,
+                                new_end_point_number,
+                                _is_action_id_should_be_increased) =>
                                 {
                                     let is_action_id_should_be_increased =
                                         IsActionIdShouldBeIncreased::create(false);
@@ -174,7 +194,9 @@ impl ActionsRouter
                                         IsActionShouldBeAddedToActiveActions::create(false);
                                     self.current_action = Some((action, add_to_active_actions));
                                 },
-                            GeometryActionType::DeleteLine(line_number, _) =>
+                            GeometryActionType::DeleteLine(
+                                line_number,
+                                _is_action_id_should_be_increased) =>
                                 {
                                     let is_action_id_should_be_increased =
                                         IsActionIdShouldBeIncreased::create(false);
@@ -186,10 +208,19 @@ impl ActionsRouter
                                         IsActionShouldBeAddedToActiveActions::create(false);
                                     self.current_action = Some((action, add_to_active_actions));
                                 },
-                            _ => (),
+                            GeometryActionType::UndoDeleteLine(_, _) => (),
                         }
                     },
-                _ => (),
+                    ActionType::ShowPointInfo(_, _) => (),
+                    ActionType::ShowLineInfo(_, _) => (),
+                    ActionType::ChangeView(_, _) => (),
+                ActionType::PropertiesActionType(properties_action_type) =>
+                    {
+                        match properties_action_type
+                        {
+                            PropertiesActionType::AddMaterial(_, _, _, _) => ()
+                        }
+                    }
             }
             self.undo_actions.push(undo_action);
         }
@@ -216,8 +247,7 @@ impl ActionsRouter
 
 
     fn handle_selected_point_number_message(&mut self, selected_point_number: &Value,
-        show_object_info_handle: &js_sys::Function)
-        -> Result<(), JsValue>
+        show_object_info_handle: &js_sys::Function) -> Result<(), JsValue>
     {
         let point_number = selected_point_number.to_string()
             .parse::<u32>()
@@ -225,7 +255,7 @@ impl ActionsRouter
                 Point number could not be converted to u32!")))?;
         let action_id = 0;
         let action_type = ActionType::ShowPointInfo(ObjectUIntNumber::create(point_number),
-                                                    Handle::create(show_object_info_handle.clone()));
+            Handle::create(show_object_info_handle.clone()));
         let action = Action::create(action_id, action_type);
         let add_to_active_actions =
             IsActionShouldBeAddedToActiveActions::create(false);
@@ -243,7 +273,7 @@ impl ActionsRouter
                 Line number could not be converted to u32!")))?;
         let action_id = 0;
         let action_type = ActionType::ShowLineInfo(ObjectUIntNumber::create(line_number),
-                                                   Handle::create(show_object_info_handle.clone()));
+            Handle::create(show_object_info_handle.clone()));
         let action = Action::create(action_id, action_type);
         let add_to_active_actions =
             IsActionShouldBeAddedToActiveActions::create(false);
@@ -296,7 +326,7 @@ impl ActionsRouter
                                 },
                             GeometryActionType::UpdatePoint(
                                 point_number,
-                                _,
+                                _old_coordinates,
                                 new_coordinates,
                                 is_action_id_should_be_increased) =>
                                 {
@@ -353,22 +383,22 @@ impl ActionsRouter
                                 },
                             GeometryActionType::UpdateLine(
                                 line_number,
-                                _,
-                                _,
-                                start_point_number,
-                                end_point_number,
+                                _old_start_point_number,
+                                _old_end_point_number,
+                                new_start_point_number,
+                                new_end_point_number,
                                 is_action_id_should_be_increased) =>
                                 {
                                     let number = line_number.get_number();
-                                    let start_point_number = start_point_number.get_number();
-                                    let end_point_number = end_point_number.get_number();
+                                    let start_point_number = new_start_point_number.get_number();
+                                    let end_point_number = new_end_point_number.get_number();
                                     update_line_in_geometry(action_id, number, start_point_number,
                                         end_point_number, is_action_id_should_be_increased.get_value())?;
                                     if add_to_active_actions.get_value() == true
                                     {
                                         self.active_actions.push(action.clone());
                                     }
-                                },
+                                }
                             GeometryActionType::DeleteLine(
                                 line_number,
                                 is_action_id_should_be_increased) =>
@@ -395,21 +425,27 @@ impl ActionsRouter
                                 },
                         }
                     },
-                ActionType::ShowPointInfo(point_number, show_object_info_handle) =>
+                ActionType::ShowPointInfo(
+                    point_number,
+                    show_object_info_handle) =>
                     {
                         let number = point_number.get_number();
                         let point_info = show_point_info(number)?;
                         let this = JsValue::null();
                         let _ = show_object_info_handle.get_handle().call1(&this, &point_info)?;
                     },
-                ActionType::ShowLineInfo(line_number, show_object_info_handle) =>
+                ActionType::ShowLineInfo(
+                    line_number,
+                    show_object_info_handle) =>
                     {
                         let number = line_number.get_number();
                         let line_info_from_geometry = show_line_info_from_geometry(number)?;
                         let this = JsValue::null();
                         let _ = show_object_info_handle.get_handle().call1(&this, &line_info_from_geometry)?;
                     },
-                ActionType::ChangeView(selected_view_name, change_view_handle) =>
+                ActionType::ChangeView(
+                    selected_view_name,
+                    change_view_handle) =>
                     {
                         let view_name = selected_view_name.get_name();
                         let this = JsValue::null();
@@ -444,60 +480,58 @@ impl ActionsRouter
     }
 
 
-    pub fn handle_message(&mut self, message: JsValue,
-        show_object_info_handle: &js_sys::Function,
-        change_view_handle: &js_sys::Function)
-        -> Result<(), JsValue>
+    pub fn handle_message(&mut self, message: JsValue, show_object_info_handle: &js_sys::Function,
+        change_view_handle: &js_sys::Function) -> Result<(), JsValue>
     {
         let serialized_message: Value = message.into_serde().or(Err(JsValue::from(
             "Actions router: Message could not be serialized!")))?;
-        if let Some(point_data) = serialized_message.get(ADD_POINT_EVENT)
+        if let Some(point_data) = serialized_message.get(ADD_POINT_MESSAGE_HEADER)
         {
             self.handle_add_point_message(&point_data)?;
         }
-        else if let Some(point_data) = serialized_message.get(UPDATE_POINT_EVENT)
+        else if let Some(point_data) = serialized_message.get(UPDATE_POINT_MESSAGE_HEADER)
         {
             self.handle_update_point_message(&point_data)?;
         }
-        else if let Some(point_data) = serialized_message.get(DELETE_POINT_EVENT)
+        else if let Some(point_data) = serialized_message.get(DELETE_POINT_MESSAGE_HEADER)
         {
             self.handle_delete_point_message(&point_data)?;
         }
-        else if let Some(line_data) = serialized_message.get(ADD_LINE_EVENT)
+        else if let Some(line_data) = serialized_message.get(ADD_LINE_MESSAGE_HEADER)
         {
             self.handle_add_line_message(&line_data)?;
         }
-        else if let Some(line_data) = serialized_message.get(UPDATE_LINE_EVENT)
+        else if let Some(line_data) = serialized_message.get(UPDATE_LINE_MESSAGE_HEADER)
         {
             self.handle_update_line_message(&line_data)?;
         }
-        else if let Some(line_data) = serialized_message.get(DELETE_LINE_EVENT)
+        else if let Some(line_data) = serialized_message.get(DELETE_LINE_MESSAGE_HEADER)
         {
             self.handle_delete_line_message(&line_data)?;
         }
-        else if let Some(material_data) = serialized_message.get(ADD_MATERIAL_EVENT)
+        else if let Some(material_data) = serialized_message.get(ADD_MATERIAL_MESSAGE_HEADER)
         {
             self.handle_add_material_message(&material_data)?;
         }
-        else if let Some(undo_data) = serialized_message.get(UNDO)
+        else if let Some(undo_data) = serialized_message.get(UNDO_MESSAGE_HEADER)
         {
             self.handle_undo_message(&undo_data)?;
         }
-        else if let Some(redo_data) = serialized_message.get(REDO)
+        else if let Some(redo_data) = serialized_message.get(REDO_MESSAGE_HEADER)
         {
             self.handle_redo_message(&redo_data)?;
         }
         else if let Some(selected_point_number) =
-            serialized_message.get(SELECTED_POINT_NUMBER_EVENT)
+            serialized_message.get(SELECTED_POINT_NUMBER_MESSAGE_HEADER)
         {
             self.handle_selected_point_number_message(&selected_point_number, show_object_info_handle)?;
         }
         else if let Some(selected_line_number) =
-            serialized_message.get(SELECTED_LINE_NUMBER_EVENT)
+            serialized_message.get(SELECTED_LINE_NUMBER_MESSAGE_HEADER)
         {
             self.handle_selected_line_number_message(&selected_line_number, show_object_info_handle)?;
         }
-        else if let Some(view) = serialized_message.get(CHANGE_VIEW_EVENT)
+        else if let Some(view) = serialized_message.get(CHANGE_VIEW_MESSAGE_HEADER)
         {
             self.handle_change_view_message(&view, change_view_handle);
         }

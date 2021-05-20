@@ -3,10 +3,10 @@ class FeaPreprocessorMenu extends HTMLElement {
         super();
 
         this.props = {
-            actionId: null,
-            points: [],
-            lines: [],
-            materials: [],
+            actionId: null,     // u32;
+            points: [],         // array of: [{ number: u32, x: f64, y: f64 }, ...];
+            lines: [],          // array of: [{ number: u32, startPointNumber: u32, endPointNumber: u32 }, ...];
+            materials: [],      // array of: [{ name: String, youngModulus: f64, poissonRatio: f64 }, ...];
         };
 
         this.state = {

@@ -3,8 +3,8 @@ class FeaMaterialMenu extends HTMLElement {
         super();
 
         this.props = {
-            actionId: null,
-            materials: [],
+            actionId: null,     // u32;
+            materials: [],      // array of: [{ name: String, youngModulus: f64, poissonRatio: f64 }, ...];
         };
 
         this.state = {

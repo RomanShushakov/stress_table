@@ -3,8 +3,8 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
         super();
 
         this.props = {
-            actionId: null,
-            points: [],
+            actionId: null,     // u32;
+            points: [],         // array of: [{ number: u32, x: f64, y: f64 }, ...];
         };
 
         this.state = {};
@@ -304,7 +304,7 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
 
         const deletedPointValues = this.props.points.find(point => point.number == selectedPointNumberField.value);
         const message = {"delete_point": { "actionId": this.props.actionId, "number": deletedPointValues.number }};
-        this.dispatchEvent(new CustomEvent("client message", {
+        this.dispatchEvent(new CustomEvent("clientMessage", {
             bubbles: true,
             composed: true,
             detail: {

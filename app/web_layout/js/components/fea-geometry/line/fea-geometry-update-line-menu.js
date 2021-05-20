@@ -3,9 +3,9 @@ class FeaGeometryUpdateLineMenu extends HTMLElement {
         super();
 
         this.props = {
-            actionId: null,
-            points: [],
-            lines: [],
+            actionId: null,     // u32;
+            points: [],         // array of: [{ number: u32, x: f64, y: f64 }, ...];
+            lines: [],          // array of: [{ number: u32, startPointNumber: u32, endPointNumber: u32 }, ...];
         };
 
         this.state = {};
@@ -686,7 +686,7 @@ class FeaGeometryUpdateLineMenu extends HTMLElement {
             "old_line_values": { "start_point":  oldLineValues.startPointNumber, "end_point": oldLineValues.endPointNumber },
             "new_line_values": { "start_point":  startPointField.value, "end_point": endPointField.value }
         }};
-        this.dispatchEvent(new CustomEvent("client message", {
+        this.dispatchEvent(new CustomEvent("clientMessage", {
             bubbles: true,
             composed: true,
             detail: {

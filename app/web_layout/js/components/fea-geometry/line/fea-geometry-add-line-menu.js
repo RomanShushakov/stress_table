@@ -3,9 +3,9 @@ class FeaGeometryAddLineMenu extends HTMLElement {
         super();
 
         this.props = {
-            actionId: null,
-            points: [],
-            lines: [],
+            actionId: null,     // u32;
+            points: [],         // array of: [{ number: u32, x: f64, y: f64 }, ...];
+            lines: [],          // array of: [{ number: u32, startPointNumber: u32, endPointNumber: u32 }, ...];
         };
 
         this.state = {};
@@ -591,7 +591,7 @@ class FeaGeometryAddLineMenu extends HTMLElement {
             "number": newLineNumberField.value, 
             "start_point_number": startPointField.value, "end_point_number": endPointField.value
         }};
-        this.dispatchEvent(new CustomEvent("client message", {
+        this.dispatchEvent(new CustomEvent("clientMessage", {
             bubbles: true,
             composed: true,
             detail: {

@@ -48,8 +48,8 @@ pub const TOLERANCE: f32 = 1e-6;
 pub type ElementsNumbers = u32;
 pub type ElementsValues = f32;
 
-const EVENTS_TARGET: &str = "fea-app";
-const CLIENT_MESSAGE: &str = "client message";
+const EVENT_TARGET: &str = "fea-app";
+const CLIENT_MESSAGE_EVENT_NAME: &str = "clientMessage";
 
 
 #[global_allocator]
@@ -420,8 +420,8 @@ impl Renderer
             let detail_header = &format!("selected_{}_number", selected_point_object_type);
             let detail =
                 json!({ "message": { detail_header: selected_point_object_number } });
-            dispatch_custom_event(detail, CLIENT_MESSAGE,
-                EVENTS_TARGET)?;
+            dispatch_custom_event(detail, CLIENT_MESSAGE_EVENT_NAME,
+                                  EVENT_TARGET)?;
         }
         else if let Some(position) = self.state.normalized_line_objects.iter()
             .position(|line_object|
@@ -435,8 +435,8 @@ impl Renderer
             let detail_header = &format!("selected_{}_number", selected_line_object_type);
             let detail =
                 json!({ "message": { detail_header: selected_line_object_number } });
-            dispatch_custom_event(detail, CLIENT_MESSAGE,
-                EVENTS_TARGET)?;
+            dispatch_custom_event(detail, CLIENT_MESSAGE_EVENT_NAME,
+                                  EVENT_TARGET)?;
         }
         else
         {

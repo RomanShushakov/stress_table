@@ -3,8 +3,8 @@ class FeaGeometryAddPointMenu extends HTMLElement {
         super();
 
         this.props = {
-            actionId: null,
-            points: [],
+            actionId: null,     // u32;
+            points: [],         // array of: [{ number: u32, x: f64, y: f64 }, ...];
         };
 
         this.state = {};
@@ -478,7 +478,7 @@ class FeaGeometryAddPointMenu extends HTMLElement {
             "x":  inputtedXField.value, "y":  inputtedYField.value, "z": inputtedZField.value
         }};
 
-        this.dispatchEvent(new CustomEvent("client message", {
+        this.dispatchEvent(new CustomEvent("clientMessage", {
             bubbles: true,
             composed: true,
             detail: {

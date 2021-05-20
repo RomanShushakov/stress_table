@@ -464,12 +464,12 @@ class FeaAppTitleBar extends HTMLElement {
 
     undo() {
         if (this.props.actionId > 1) {
-            this.dispatchEvent(new CustomEvent("decrease action id", {
+            this.dispatchEvent(new CustomEvent("decreaseActionId", {
                 bubbles: true,
                 composed: true,
             }));
             const message = {"undo": { "actionId": this.props.actionId } };
-            this.dispatchEvent(new CustomEvent("client message", {
+            this.dispatchEvent(new CustomEvent("clientMessage", {
                 bubbles: true,
                 composed: true,
                 detail: {
@@ -481,7 +481,7 @@ class FeaAppTitleBar extends HTMLElement {
 
     redo() {
         const message = {"redo": { "actionId": this.props.actionId } };
-        this.dispatchEvent(new CustomEvent("client message", {
+        this.dispatchEvent(new CustomEvent("clientMessage", {
             bubbles: true,
             composed: true,
             detail: {
@@ -492,7 +492,7 @@ class FeaAppTitleBar extends HTMLElement {
 
     changeView(viewName) {
         const message = {"change_view": { "selectedView": viewName } };
-        this.dispatchEvent(new CustomEvent("client message", {
+        this.dispatchEvent(new CustomEvent("clientMessage", {
             bubbles: true,
             composed: true,
             detail: {

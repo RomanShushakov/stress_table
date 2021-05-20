@@ -3,7 +3,7 @@ import { initializeProperties } from "../wasm_modules_initialization/properties_
 class CommunicatorWithProperties {
     constructor() {
         this.state = {
-            properties: null,
+            properties: null,       // wasm module "properties";
         };
 
         this.initProperties();

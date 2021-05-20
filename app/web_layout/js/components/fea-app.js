@@ -5,11 +5,11 @@ class FeaApp extends HTMLElement {
     constructor() {
         super();
 
-        this.props = { };
+        this.props = {};
 
         this.state = {
-            actionId: 1,
-            actionsRouter: null,
+            actionId: 1,                // u32;
+            actionsRouter: null,        // wasm module "actions_router";
         };
 
         this.attachShadow({ mode: "open" });
@@ -47,19 +47,19 @@ class FeaApp extends HTMLElement {
         this.addEventListener("activate-postprocessor", () => this.activatePostprocessor());
         this.addEventListener("activate-preprocessor-menu", () => this.activatePreprocessorMenu());
 
-        this.addEventListener("client message", (event) => this.handleClientMessage(event));
+        this.addEventListener("clientMessage", (event) => this.handleClientMessage(event));
 
-        this.addEventListener("add point server message", (event) => this.handleAddPointServerMessage(event));
-        this.addEventListener("update point server message", (event) => this.handleUpdatePointServerMessage(event));
-        this.addEventListener("delete point server message", (event) => this.handleDeletePointServerMessage(event));
+        this.addEventListener("add_point_server_message", (event) => this.handleAddPointServerMessage(event));
+        this.addEventListener("update_point_server_message", (event) => this.handleUpdatePointServerMessage(event));
+        this.addEventListener("delete_point_server_message", (event) => this.handleDeletePointServerMessage(event));
 
-        this.addEventListener("add line server message", (event) => this.handleAddLineServerMessage(event));
-        this.addEventListener("update line server message", (event) => this.handleUpdateLineServerMessage(event));
-        this.addEventListener("delete line server message", (event) => this.handleDeleteLineServerMessage(event));
+        this.addEventListener("add_line_server_message", (event) => this.handleAddLineServerMessage(event));
+        this.addEventListener("update_line_server_message", (event) => this.handleUpdateLineServerMessage(event));
+        this.addEventListener("delete_line_server_message", (event) => this.handleDeleteLineServerMessage(event));
 
-        this.addEventListener("add material server message", (event) => this.handleAddMaterialServerMessage(event));
+        this.addEventListener("add_material_server_message", (event) => this.handleAddMaterialServerMessage(event));
 
-        this.addEventListener("decrease action id", (event) => this.handleDecreaseActionIdMessage(event));
+        this.addEventListener("decreaseActionId", (event) => this.handleDecreaseActionIdMessage(event));
     }
 
     async connectedCallback() {

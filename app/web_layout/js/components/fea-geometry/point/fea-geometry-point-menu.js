@@ -3,8 +3,8 @@ class FeaGeometryPointMenu extends HTMLElement {
         super();
 
         this.props = {
-            actionId: null,
-            points: [],
+            actionId: null,     // u32;
+            points: [],         // array of: [{ number: u32, x: f64, y: f64 }, ...];
         };
 
         this.state = {

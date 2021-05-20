@@ -3,8 +3,8 @@ class FeaMaterialUpdateMaterialMenu extends HTMLElement {
         super();
 
         this.props = {
-            actionId: null,
-            materials: [],
+            actionId: null,     // u32;
+            materials: [],      // array of: [{ name: String, youngModulus: f64, poissonRatio: f64 }, ...];
         };
 
         this.state = {};
@@ -458,8 +458,8 @@ class FeaMaterialUpdateMaterialMenu extends HTMLElement {
             }
         }
 
-        const oldMaterialValues = this.props.materials.find(material => material.name == selectedMaterialNameField.value);
-        const message = {"update_material": {
+        const oldMaterialValues = this.props.materials.find(material => material.name == `"${selectedMaterialNameField.value}"`);
+        const message = { "update_material": {
             "actionId": this.props.actionId,
             "name": selectedMaterialNameField.value, 
             "old_material_values": { 
@@ -469,7 +469,7 @@ class FeaMaterialUpdateMaterialMenu extends HTMLElement {
                 "young_modulus": inputtedYoungModulusField.value,
                 "poisson_ratio": inputtedPoissonRatio.value }
         }};
-        this.dispatchEvent(new CustomEvent("client message", {
+        this.dispatchEvent(new CustomEvent("clientMessage", {
             bubbles: true,
             composed: true,
             detail: {

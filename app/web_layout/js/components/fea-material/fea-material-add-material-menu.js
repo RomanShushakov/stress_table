@@ -3,8 +3,8 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
         super();
 
         this.props = {
-            actionId: null,
-            materials: [],
+            actionId: null,     // u32;
+            materials: [],      // array of: [{ name: String, youngModulus: f64, poissonRatio: f64 }, ...];
         };
 
         this.state = {};
@@ -382,7 +382,7 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
             "young_modulus":  youngModulusField.value, "poisson_ratio":  poissonRationField.value,
         }};
 
-        this.dispatchEvent(new CustomEvent("client message", {
+        this.dispatchEvent(new CustomEvent("clientMessage", {
             bubbles: true,
             composed: true,
             detail: {

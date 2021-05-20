@@ -8,14 +8,14 @@ use wasm_bindgen::JsCast;
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
-const EVENTS_TARGET: &str = "fea-app";
+const EVENT_TARGET: &str = "fea-app";
 
-const ADD_POINT: &str = "add point server message";
-const UPDATE_POINT: &str = "update point server message";
-const DELETE_POINT: &str = "delete point server message";
-const ADD_LINE: &str = "add line server message";
-const UPDATE_LINE: &str = "update line server message";
-const DELETE_LINE: &str = "delete line server message";
+const ADD_POINT_EVENT_NAME: &str = "add_point_server_message";
+const UPDATE_POINT_EVENT_NAME: &str = "update_point_server_message";
+const DELETE_POINT_EVENT_NAME: &str = "delete_point_server_message";
+const ADD_LINE_EVENT_NAME: &str = "add_line_server_message";
+const UPDATE_LINE_EVENT_NAME: &str = "update_line_server_message";
+const DELETE_LINE_EVENT_NAME: &str = "delete_line_server_message";
 
 
 #[wasm_bindgen]
@@ -268,7 +268,7 @@ impl Geometry
         self.points.push(Rc::new(RefCell::new(point)));
         let detail = json!({ "point_data": { "number": number, "x": x, "y": y, "z": z },
             "is_action_id_should_be_increased": is_action_id_should_be_increased });
-        dispatch_custom_event(detail, ADD_POINT, EVENTS_TARGET)?;
+        dispatch_custom_event(detail, ADD_POINT_EVENT_NAME, EVENT_TARGET)?;
         log(&format!("Geometry: Points: {:?}, lines: {:?}, deleted points: {:?}, \
             deleted lines {:?}", self.points, self.lines, self.deleted_points, self.deleted_lines));
         Ok(())
@@ -294,7 +294,7 @@ impl Geometry
             self.points[position].borrow_mut().update(action_id, x, y, z);
             let detail = json!({ "point_data": { "number": number, "x": x, "y": y, "z": z },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
-            dispatch_custom_event(detail, UPDATE_POINT, EVENTS_TARGET)?;
+            dispatch_custom_event(detail, UPDATE_POINT_EVENT_NAME, EVENT_TARGET)?;
             log(&format!("Geometry: Points: {:?}, lines: {:?}, deleted points: {:?}, \
                 deleted lines {:?}", self.points, self.lines, self.deleted_points,
                 self.deleted_lines));
@@ -326,14 +326,14 @@ impl Geometry
                 self.deleted_lines.push(deleted_line);
                 let detail = json!({ "line_data": { "number": deleted_line_number },
                     "is_action_id_should_be_increased": false });
-                dispatch_custom_event(detail, DELETE_LINE, EVENTS_TARGET)?;
+                dispatch_custom_event(detail, DELETE_LINE_EVENT_NAME, EVENT_TARGET)?;
             }
             let deleted_point = self.points.remove(position);
             deleted_point.borrow_mut().update_action_id(action_id);
             self.deleted_points.push(deleted_point);
             let detail = json!({ "point_data": { "number": number },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
-            dispatch_custom_event(detail, DELETE_POINT, EVENTS_TARGET)?;
+            dispatch_custom_event(detail, DELETE_POINT_EVENT_NAME, EVENT_TARGET)?;
             log(&format!("Geometry: Points: {:?}, lines: {:?}, deleted points: {:?}, \
                 deleted lines {:?}", self.points, self.lines, self.deleted_points,
                 self.deleted_lines));
@@ -359,7 +359,7 @@ impl Geometry
                 returned_point.borrow().extract_number_and_coordinates();
             let detail = json!({ "point_data": { "number": number, "x": x, "y": y, "z": z },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
-            dispatch_custom_event(detail, ADD_POINT, EVENTS_TARGET)?;
+            dispatch_custom_event(detail, ADD_POINT_EVENT_NAME, EVENT_TARGET)?;
             self.points.push(returned_point);
             log(&format!("Geometry: Points: {:?}, lines: {:?}, deleted points: {:?}, \
                 deleted lines {:?}", self.points, self.lines, self.deleted_points,
@@ -373,7 +373,7 @@ impl Geometry
                 let detail = json!({ "line_data": { "number": number,
                     "start_point_number": start_point_number, "end_point_number": end_point_number },
                     "is_action_id_should_be_increased": is_action_id_should_be_increased });
-                dispatch_custom_event(detail, ADD_LINE, EVENTS_TARGET)?;
+                dispatch_custom_event(detail, ADD_LINE_EVENT_NAME, EVENT_TARGET)?;
                 self.lines.push(returned_line);
                 log(&format!("Geometry: Points: {:?}, lines: {:?}, deleted points: {:?}, \
                     deleted lines {:?}", self.points, self.lines, self.deleted_points,
@@ -443,7 +443,7 @@ impl Geometry
         let detail = json!({ "line_data": { "number": number,
             "start_point_number": start_point_number, "end_point_number": end_point_number },
             "is_action_id_should_be_increased": is_action_id_should_be_increased });
-        dispatch_custom_event(detail, ADD_LINE, EVENTS_TARGET)?;
+        dispatch_custom_event(detail, ADD_LINE_EVENT_NAME, EVENT_TARGET)?;
         log(&format!("Geometry: Points: {:?}, lines: {:?}, deleted points: {:?}, \
             deleted lines {:?}", self.points, self.lines, self.deleted_points, self.deleted_lines));
         Ok(())
@@ -495,7 +495,7 @@ impl Geometry
             let detail = json!({ "line_data": { "number": number,
                 "start_point_number": start_point_number, "end_point_number": end_point_number },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
-            dispatch_custom_event(detail, UPDATE_LINE, EVENTS_TARGET)?;
+            dispatch_custom_event(detail, UPDATE_LINE_EVENT_NAME, EVENT_TARGET)?;
             log(&format!("Geometry: Points: {:?}, lines: {:?}, deleted points: {:?}, deleted \
                 lines {:?}", self.points, self.lines, self.deleted_points, self.deleted_lines));
         }
@@ -520,7 +520,7 @@ impl Geometry
             self.deleted_lines.push(deleted_line);
             let detail = json!({ "line_data": { "number": number },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
-            dispatch_custom_event(detail, DELETE_LINE, EVENTS_TARGET)?;
+            dispatch_custom_event(detail, DELETE_LINE_EVENT_NAME, EVENT_TARGET)?;
             log(&format!("Geometry: Points: {:?}, lines: {:?}, deleted points: {:?}, \
                 deleted lines {:?}", self.points, self.lines, self.deleted_points,
                 self.deleted_lines));
@@ -547,7 +547,7 @@ impl Geometry
             let detail = json!({ "line_data": { "number": line_number,
                 "start_point_number": start_point_number, "end_point_number": end_point_number },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
-            dispatch_custom_event(detail, ADD_LINE, EVENTS_TARGET)?;
+            dispatch_custom_event(detail, ADD_LINE_EVENT_NAME, EVENT_TARGET)?;
             self.lines.push(returned_line);
             Ok(())
         }
@@ -618,7 +618,7 @@ impl Geometry
             let detail = json!({ "point_data":
                 { "number": point_number, "x": x, "y": y, "z": z },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
-            dispatch_custom_event(detail, ADD_POINT, EVENTS_TARGET)?;
+            dispatch_custom_event(detail, ADD_POINT_EVENT_NAME, EVENT_TARGET)?;
         }
         for line in &self.lines
         {
@@ -627,7 +627,7 @@ impl Geometry
             let detail = json!({ "line_data": { "number": line_number,
                 "start_point_number": start_point_number, "end_point_number": end_point_number },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
-            dispatch_custom_event(detail, ADD_LINE, EVENTS_TARGET)?;
+            dispatch_custom_event(detail, ADD_LINE_EVENT_NAME, EVENT_TARGET)?;
         }
         Ok(())
     }

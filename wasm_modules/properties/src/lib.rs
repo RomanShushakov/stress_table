@@ -8,9 +8,9 @@ use serde_json::json;
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
-const EVENTS_TARGET: &str = "fea-app";
+const EVENT_TARGET: &str = "fea-app";
 
-const ADD_MATERIAL: &str = "add material server message";
+const ADD_MATERIAL_EVENT_NAME: &str = "add_material_server_message";
 
 
 #[wasm_bindgen]
@@ -154,7 +154,7 @@ impl Properties
         let detail = json!({ "material_data": { "name": name, "young_modulus": young_modulus,
             "poisson_ratio": poisson_ratio },
             "is_action_id_should_be_increased": is_action_id_should_be_increased });
-        dispatch_custom_event(detail, ADD_MATERIAL, EVENTS_TARGET)?;
+        dispatch_custom_event(detail, ADD_MATERIAL_EVENT_NAME, EVENT_TARGET)?;
         log(&format!("Properties: Materials: {:?}, deleted materials: {:?}",
             self.materials, self.deleted_materials));
         Ok(())

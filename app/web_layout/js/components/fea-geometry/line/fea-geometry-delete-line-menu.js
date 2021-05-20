@@ -3,8 +3,8 @@ class FeaGeometryDeleteLineMenu extends HTMLElement {
         super();
 
         this.props = {
-            actionId: null,
-            lines: [],
+            actionId: null,     // u32;
+            lines: [],          // array of: [{ number: u32, startPointNumber: u32, endPointNumber: u32 }, ...];
         };
 
         this.state = {};
@@ -309,7 +309,7 @@ class FeaGeometryDeleteLineMenu extends HTMLElement {
             "actionId": this.props.actionId,
             "number": selectedLineNumberField.value, 
         }};
-        this.dispatchEvent(new CustomEvent("client message", {
+        this.dispatchEvent(new CustomEvent("clientMessage", {
             bubbles: true,
             composed: true,
             detail: {

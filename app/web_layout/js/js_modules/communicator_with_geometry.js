@@ -3,8 +3,8 @@ import { initializeGeometry } from "../wasm_modules_initialization/geometry_init
 class CommunicatorWithGeometry {
     constructor() {
         this.state = {
-            geometry: null,
-            objectInfo: null,
+            geometry: null,         // wasm module "actions_router";
+            objectInfo: null,       // String;
         };
 
         this.initGeometry();

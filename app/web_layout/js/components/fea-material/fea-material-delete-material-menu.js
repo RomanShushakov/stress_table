@@ -3,8 +3,8 @@ class FeaMaterialDeleteMaterialMenu extends HTMLElement {
         super();
 
         this.props = {
-            actionId: null,
-            materials: [],
+            actionId: null,     // u32;
+            materials: [],      // array of: [{ name: String, youngModulus: f64, poissonRatio: f64 }, ...];
         };
 
         this.state = {};
@@ -284,7 +284,7 @@ class FeaMaterialDeleteMaterialMenu extends HTMLElement {
 
         const deletedMaterialData = this.props.materials.find(material => material.name == `"${selectedMaterialNameField.value}"`);
         const message = {"delete_material": { "actionId": this.props.actionId, "name": deletedMaterialData.name.replace(/['"]+/g, "") }};
-        this.dispatchEvent(new CustomEvent("client message", {
+        this.dispatchEvent(new CustomEvent("clientMessage", {
             bubbles: true,
             composed: true,
             detail: {

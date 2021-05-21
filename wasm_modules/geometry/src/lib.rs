@@ -1,6 +1,4 @@
 use serde_json::json;
-use std::cell::RefCell;
-use std::rc::Rc;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 
@@ -49,7 +47,7 @@ fn dispatch_custom_event(detail: serde_json::Value, event_type: &str, query_sele
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 struct Point
 {
     action_id: u32,
@@ -125,17 +123,17 @@ struct Line
 {
     action_id: u32,
     number: u32,
-    start_point: Rc<RefCell<Point>>,
-    end_point: Rc<RefCell<Point>>,
+    start_point_position: usize,
+    end_point_position: usize,
 }
 
 
 impl Line
 {
-    fn create(action_id: u32, number: u32, start_point: Rc<RefCell<Point>>,
-        end_point: Rc<RefCell<Point>>) -> Line
+    fn create(action_id: u32, number: u32, start_point_position: usize,
+        end_point_position: usize) -> Line
     {
-        Line { action_id, number, start_point, end_point }
+        Line { action_id, number, start_point_position, end_point_position }
     }
 
 
@@ -157,21 +155,21 @@ impl Line
     }
 
 
-    fn start_and_end_points_same(&self, start_point_number: u32, end_point_number: u32) -> bool
+    fn start_and_end_points_same(&self, start_point_number: u32, end_point_number: u32,
+        points: &[Point]) -> bool
     {
-        (self.start_point.borrow().number_same(start_point_number) &&
-        self.end_point.borrow().number_same(end_point_number)) ||
-        (self.start_point.borrow().number_same(end_point_number) &&
-        self.end_point.borrow().number_same(start_point_number))
+        (points[self.start_point_position].number_same(start_point_number) &&
+        points[self.end_point_position].number_same(end_point_number)) ||
+        (points[self.start_point_position].number_same(end_point_number) &&
+        points[self.end_point_position].number_same(start_point_number))
     }
 
 
-    fn update(&mut self, action_id: u32, start_point: Rc<RefCell<Point>>,
-        end_point: Rc<RefCell<Point>>)
+    fn update(&mut self, action_id: u32, start_point_position: usize, end_point_position: usize)
     {
         self.action_id = action_id;
-        self.start_point = start_point;
-        self.end_point = end_point;
+        self.start_point_position = start_point_position;
+        self.end_point_position = end_point_position;
     }
 
 
@@ -181,17 +179,17 @@ impl Line
     }
 
 
-    fn point_belongs(&self, point_number: u32) -> bool
+    fn point_belongs(&self, point_number: u32, points: &[Point]) -> bool
     {
-        self.start_point.borrow().number_same(point_number) ||
-        self.end_point.borrow().number_same(point_number)
+        points[self.start_point_position].number_same(point_number) ||
+        points[self.end_point_position].number_same(point_number)
     }
 
 
-    fn extract_number_and_points_numbers(&self) -> (u32, u32, u32)
+    fn extract_number_and_points_numbers(&self, points: &[Point]) -> (u32, u32, u32)
     {
-        (self.number, self.start_point.borrow().extract_number(),
-            self.end_point.borrow().extract_number())
+        (self.number, points[self.start_point_position].extract_number(),
+         points[self.end_point_position].extract_number())
     }
 
 
@@ -199,15 +197,94 @@ impl Line
     {
         self.number
     }
+
+
+    fn decrease_points_positions(&mut self, position: usize)
+    {
+        if self.start_point_position >= position + 1
+        {
+            self.start_point_position -= 1;
+        }
+        if self.end_point_position >= position + 1
+        {
+            self.end_point_position -= 1;
+        }
+    }
+
+
+    fn increase_points_positions(&mut self, position: usize)
+    {
+        if self.start_point_position >= position
+        {
+            self.start_point_position += 1;
+        }
+        if self.end_point_position >= position
+        {
+            self.end_point_position += 1;
+        }
+    }
+}
+
+
+#[derive(Debug)]
+struct DeletedPoint
+{
+    position: usize,
+    point: Point,
+}
+
+
+impl DeletedPoint
+{
+    fn create(position: usize, point: Point) -> DeletedPoint
+    {
+        DeletedPoint { position, point }
+    }
+
+
+    fn action_id_greater_or_same(&self, action_id: &u32) -> bool
+    {
+        self.point.action_id_greater_or_same(action_id)
+    }
+
+
+    fn number_same(&self, number: u32) -> bool
+    {
+        self.point.number_same(number)
+    }
+
+
+    fn action_id_same(&self, action_id: &u32) -> bool
+    {
+        self.point.action_id_same(action_id)
+    }
+
+
+    fn extract_number_and_coordinates(&self) -> (u32, f64, f64, f64)
+    {
+        self.point.extract_number_and_coordinates()
+    }
+
+
+    fn extract_position(&self) -> usize
+    {
+        self.position
+    }
+
+
+    fn extract_point(&self) -> Point
+    {
+        self.point
+    }
 }
 
 
 #[wasm_bindgen]
 pub struct Geometry
 {
-    points: Vec<Rc<RefCell<Point>>>,
+    points: Vec<Point>,
     lines: Vec<Line>,
-    deleted_points: Vec<Rc<RefCell<Point>>>,
+    deleted_points: Vec<DeletedPoint>,
     deleted_lines: Vec<Line>,
 }
 
@@ -237,8 +314,8 @@ impl Geometry
 
     fn clear_deleted_points_by_action_id(&mut self, action_id: &u32)
     {
-        while let Some(position) = self.deleted_points.iter().position(|point|
-            point.borrow().action_id_greater_or_same(&action_id))
+        while let Some(position) = self.deleted_points.iter().position(|deleted_point|
+            deleted_point.action_id_greater_or_same(&action_id))
         {
             let _ = self.deleted_points.remove(position);
         }
@@ -251,21 +328,21 @@ impl Geometry
         self.clear_deleted_lines_by_action_id(&action_id);
         self.clear_deleted_points_by_action_id(&action_id);
         if self.points.iter().position(|point|
-            point.borrow().number_same(number)).is_some()
+            point.number_same(number)).is_some()
         {
             let error_message = &format!("Geometry: Add point action: Point with \
                 number {} does already exist!", number);
             return Err(JsValue::from(error_message));
         }
         if self.points.iter().position(|point|
-            point.borrow().coordinates_same(x, y, z)).is_some()
+            point.coordinates_same(x, y, z)).is_some()
         {
             let error_message = &format!("Geometry: Add point action: Point with \
                 coordinates {}, {}, {} does already exist!", x, y, z);
             return Err(JsValue::from(error_message));
         }
         let point = Point::create(action_id, number, x, y, z);
-        self.points.push(Rc::new(RefCell::new(point)));
+        self.points.push(point);
         let detail = json!({ "point_data": { "number": number, "x": x, "y": y, "z": z },
             "is_action_id_should_be_increased": is_action_id_should_be_increased });
         dispatch_custom_event(detail, ADD_POINT_EVENT_NAME, EVENT_TARGET)?;
@@ -281,7 +358,7 @@ impl Geometry
         self.clear_deleted_lines_by_action_id(&action_id);
         self.clear_deleted_points_by_action_id(&action_id);
         if self.points.iter().position(|point|
-            point.borrow().coordinates_same(x, y, z)).is_some()
+            point.coordinates_same(x, y, z)).is_some()
         {
             let error_message = &format!("Geometry: Update point action: Point with \
                 coordinates {}, {}, {} does already exist!", x, y, z);
@@ -289,9 +366,9 @@ impl Geometry
         }
 
         if let Some(position) = self.points.iter().position(|point|
-            point.borrow().number_same(number))
+            point.number_same(number))
         {
-            self.points[position].borrow_mut().update(action_id, x, y, z);
+            self.points[position].update(action_id, x, y, z);
             let detail = json!({ "point_data": { "number": number, "x": x, "y": y, "z": z },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, UPDATE_POINT_EVENT_NAME, EVENT_TARGET)?;
@@ -315,10 +392,10 @@ impl Geometry
         self.clear_deleted_lines_by_action_id(&action_id);
         self.clear_deleted_points_by_action_id(&action_id);
         if let Some(position) = self.points.iter().position(|point|
-            point.borrow().number_same(number))
+            point.number_same(number))
         {
             while let Some(position) = self.lines.iter().position(|line|
-                line.point_belongs(number))
+                line.point_belongs(number, &self.points))
             {
                 let mut deleted_line = self.lines.remove(position);
                 let deleted_line_number = deleted_line.extract_number();
@@ -328,9 +405,13 @@ impl Geometry
                     "is_action_id_should_be_increased": false });
                 dispatch_custom_event(detail, DELETE_LINE_EVENT_NAME, EVENT_TARGET)?;
             }
-            let deleted_point = self.points.remove(position);
-            deleted_point.borrow_mut().update_action_id(action_id);
-            self.deleted_points.push(deleted_point);
+            let mut deleted_point = self.points.remove(position);
+            deleted_point.update_action_id(action_id);
+            self.deleted_points.push(DeletedPoint::create(position, deleted_point));
+            for line in &mut self.lines
+            {
+                line.decrease_points_positions(position);
+            }
             let detail = json!({ "point_data": { "number": number },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, DELETE_POINT_EVENT_NAME, EVENT_TARGET)?;
@@ -351,16 +432,29 @@ impl Geometry
     pub fn undo_delete_point(&mut self, action_id: u32, number: u32,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        if let Some(position) = self.deleted_points.iter().position(|point|
-            point.borrow().action_id_same(&action_id) && point.borrow().number_same(number))
+        if let Some(position) = self.deleted_points.iter().position(|deleted_point|
+            deleted_point.action_id_same(&action_id) && deleted_point.number_same(number))
         {
-            let returned_point = self.deleted_points.remove(position);
+            let deleted_point = self.deleted_points.remove(position);
             let (number, x, y, z) =
-                returned_point.borrow().extract_number_and_coordinates();
+                deleted_point.extract_number_and_coordinates();
             let detail = json!({ "point_data": { "number": number, "x": x, "y": y, "z": z },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, ADD_POINT_EVENT_NAME, EVENT_TARGET)?;
-            self.points.push(returned_point);
+            let point_position = deleted_point.extract_position();
+            let point = deleted_point.extract_point();
+            if point_position >= self.points.len()
+            {
+                self.points.push(point);
+            }
+            else
+            {
+                self.points.insert(point_position, point);
+            }
+            for line in &mut self.lines
+            {
+                line.increase_points_positions(point_position);
+            }
             log(&format!("Geometry: Points: {:?}, lines: {:?}, deleted points: {:?}, \
                 deleted lines {:?}", self.points, self.lines, self.deleted_points,
                 self.deleted_lines));
@@ -369,7 +463,7 @@ impl Geometry
             {
                 let returned_line = self.deleted_lines.remove(position);
                 let (number, start_point_number, end_point_number) =
-                    returned_line.extract_number_and_points_numbers();
+                    returned_line.extract_number_and_points_numbers(&self.points);
                 let detail = json!({ "line_data": { "number": number,
                     "start_point_number": start_point_number, "end_point_number": end_point_number },
                     "is_action_id_should_be_increased": is_action_id_should_be_increased });
@@ -400,22 +494,22 @@ impl Geometry
                 number {} does already exist!", number);
             return Err(JsValue::from(error_message));
         }
-        if self.lines.iter().position(|line|
-            line.start_and_end_points_same(start_point_number, end_point_number)).is_some()
+        if self.lines.iter().position(|line|  line.start_and_end_points_same(
+            start_point_number, end_point_number, &self.points)).is_some()
         {
             let error_message = &format!("Geometry: Add line action: Line with \
                 point number {} and {} does already exist!", start_point_number, end_point_number);
             return Err(JsValue::from(error_message));
         }
-        let start_point =
+        let start_point_position =
             {
                 if let Some(position) = self
                     .points
                     .iter()
                     .position(|point|
-                        point.borrow().number_same(start_point_number))
+                        point.number_same(start_point_number))
                 {
-                    Ok(Rc::clone(&self.points[position]))
+                    Ok(position)
                 }
                 else
                 {
@@ -424,12 +518,12 @@ impl Geometry
                     Err(JsValue::from(error_message))
                 }
             }?;
-        let end_point =
+        let end_point_position =
             {
                 if let Some(position) = self.points.iter().position(|point|
-                    point.borrow().number_same(end_point_number))
+                    point.number_same(end_point_number))
                 {
-                    Ok(Rc::clone(&self.points[position]))
+                    Ok(position)
                 }
                 else
                 {
@@ -438,7 +532,7 @@ impl Geometry
                     Err(JsValue::from(error_message))
                 }
             }?;
-        let line = Line::create(action_id, number, start_point, end_point);
+        let line = Line::create(action_id, number, start_point_position, end_point_position);
         self.lines.push(line);
         let detail = json!({ "line_data": { "number": number,
             "start_point_number": start_point_number, "end_point_number": end_point_number },
@@ -449,23 +543,24 @@ impl Geometry
         Ok(())
     }
 
+
     pub fn update_line(&mut self, action_id: u32, number: u32, start_point_number: u32,
         end_point_number: u32, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_deleted_lines_by_action_id(&action_id);
-        if self.lines.iter().position(|line|
-            line.start_and_end_points_same(start_point_number, end_point_number)).is_some()
+        if self.lines.iter().position(|line| line.start_and_end_points_same(
+            start_point_number, end_point_number, &self.points)).is_some()
         {
             let error_message = &format!("Geometry: Update line action: Line with \
                 point number {} and {} does already exist!", start_point_number, end_point_number);
             return Err(JsValue::from(error_message));
         }
-        let start_point =
+        let start_point_position =
             {
                 if let Some(position) = self.points.iter().position(|point|
-                    point.borrow().number_same(start_point_number))
+                    point.number_same(start_point_number))
                 {
-                    Ok(Rc::clone(&self.points[position]))
+                    Ok(position)
                 }
                 else
                 {
@@ -477,9 +572,9 @@ impl Geometry
         let end_point =
             {
                 if let Some(position) = self.points.iter().position(|point|
-                    point.borrow().number_same(end_point_number))
+                    point.number_same(end_point_number))
                 {
-                    Ok(Rc::clone(&self.points[position]))
+                    Ok(position)
                 }
                 else
                 {
@@ -491,7 +586,7 @@ impl Geometry
         if let Some(position) = self.lines.iter().position(|line|
             line.number_same(number))
         {
-            self.lines[position].update(action_id, start_point, end_point);
+            self.lines[position].update(action_id, start_point_position, end_point);
             let detail = json!({ "line_data": { "number": number,
                 "start_point_number": start_point_number, "end_point_number": end_point_number },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
@@ -507,6 +602,7 @@ impl Geometry
         }
         Ok(())
     }
+
 
     pub fn delete_line(&mut self, action_id: u32, number: u32,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
@@ -543,7 +639,7 @@ impl Geometry
         {
             let returned_line = self.deleted_lines.remove(position);
             let (line_number, start_point_number, end_point_number) =
-                returned_line.extract_number_and_points_numbers();
+                returned_line.extract_number_and_points_numbers(&self.points);
             let detail = json!({ "line_data": { "number": line_number,
                 "start_point_number": start_point_number, "end_point_number": end_point_number },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
@@ -563,10 +659,9 @@ impl Geometry
     pub fn show_point_info(&mut self, number: u32) -> Result<JsValue, JsValue>
     {
         return if let Some(position) = self.points.iter().position(|point|
-            point.borrow().number_same(number))
+            point.number_same(number))
         {
             let (number, x, y, z) = self.points[position]
-                .borrow()
                 .extract_number_and_coordinates();
             let point_info_json = json!({ "point_data": { "number": number,
                 "x": x, "y": y, "z": z } });
@@ -590,7 +685,7 @@ impl Geometry
             line.number_same(number))
         {
             let (number, start_point_number, end_point_number) = self.lines[position]
-                .extract_number_and_points_numbers();
+                .extract_number_and_points_numbers(&self.points);
             let line_info_json = json!({ "line_data": { "number": number,
                 "start_point_number": start_point_number,
                 "end_point_number": end_point_number } });
@@ -614,7 +709,7 @@ impl Geometry
         for point in &self.points
         {
             let (point_number, x, y, z) =
-                point.borrow().extract_number_and_coordinates();
+                point.extract_number_and_coordinates();
             let detail = json!({ "point_data":
                 { "number": point_number, "x": x, "y": y, "z": z },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
@@ -623,7 +718,7 @@ impl Geometry
         for line in &self.lines
         {
             let (line_number, start_point_number, end_point_number) =
-                line.extract_number_and_points_numbers();
+                line.extract_number_and_points_numbers(&self.points);
             let detail = json!({ "line_data": { "number": line_number,
                 "start_point_number": start_point_number, "end_point_number": end_point_number },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });

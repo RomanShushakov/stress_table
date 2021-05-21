@@ -247,7 +247,7 @@ class FeaApp extends HTMLElement {
 
     handleDecreaseActionIdMessage() {
         this.state.actionId -= 1;
-        if (this.querySelector("fea-preprocessor") !== null) {
+        if (this.querySelector("fea-preprocessor-menu") !== null) {
             this.updatePreprocessorMenuActionId();
         }
         this.updateTitleBarActionId();

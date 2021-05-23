@@ -4,7 +4,7 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
 
         this.props = {
             actionId: null,     // u32;
-            points: [],         // array of: [{ number: u32, x: f64, y: f64 }, ...];
+            points: new Map(),  // map: { number: u32, { x: f64, y: f64, z: f64}, ... };
         };
 
         this.state = {};
@@ -223,8 +223,7 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
     }
 
     set addPointToClient(point) {
-        this.props.points.push(point);
-        this.props.points.sort((a, b) => a.number - b.number);
+        this.props.points.set(point.number, {"x": point.x, "y": point.y, "z": point.z});
         this.definePointNumberOptions();
     }
 
@@ -232,9 +231,7 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
     }
 
     set deletePointFromClient(point) {
-        let pointIndexInProps = this.props.points.findIndex(existedPoint => existedPoint.number == point.number);
-        this.props.points.splice(pointIndexInProps, 1);
-        this.props.points.sort((a, b) => a.number - b.number);
+        this.props.points.delete(point.number);
         this.definePointNumberOptions();
     }
 
@@ -266,10 +263,11 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
         for (let i = pointDeleteNumberSelect.length - 1; i >= 0; i--) {
             pointDeleteNumberSelect.options[i] = null;
         }
-        for (let i = 0; i < this.props.points.length; i++) {
+        const pointsNumbers = Array.from(this.props.points.keys()).sort((a, b) => a - b);
+        for (let i = 0; i < pointsNumbers.length; i++) {
             let deleteOption = document.createElement("option");
-            deleteOption.value = this.props.points[i].number;
-            deleteOption.innerHTML = this.props.points[i].number;
+            deleteOption.value = pointsNumbers[i];
+            deleteOption.innerHTML = pointsNumbers[i];
             pointDeleteNumberSelect.appendChild(deleteOption);
         }
     }
@@ -292,7 +290,6 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
                 selectedPointNumberField.classList.add("highlighted");
             }
         }
-
         if (selectedPointNumberField.value === "") {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "Note: The highlighted fields should be filled!";
@@ -301,22 +298,21 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
                 return;
             }
         }
-
-        const deletedPointValues = this.props.points.find(point => point.number == selectedPointNumberField.value);
-        const message = {"delete_point": { "actionId": this.props.actionId, "number": deletedPointValues.number }};
-        this.dispatchEvent(new CustomEvent("clientMessage", {
-            bubbles: true,
-            composed: true,
-            detail: {
-                message: message,
-            },
-        }));
-
+        if (this.props.points.has(parseInt(selectedPointNumberField.value))) {
+            const message = {"delete_point": { "actionId": this.props.actionId, "number": parseInt(selectedPointNumberField.value) }};
+            this.dispatchEvent(new CustomEvent("clientMessage", {
+                bubbles: true,
+                composed: true,
+                detail: {
+                    message: message,
+                },
+            }));
+        }
         this.shadowRoot.querySelector(".point-number-filter").value = null;
     }
 
     cancelPointDelete() {
-        if (this.props.points.length > 0) {
+        if (this.props.points.size > 0) {
             this.definePointNumberOptions();
         }
         this.shadowRoot.querySelector(".point-number-filter").value = null;

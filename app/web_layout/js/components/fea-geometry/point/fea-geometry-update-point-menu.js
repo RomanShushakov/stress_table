@@ -4,7 +4,7 @@ class FeaGeometryUpdatePointMenu extends HTMLElement {
 
         this.props = {
             actionId: null,     // u32;
-            points: [],         // array of: [{ number: u32, x: f64, y: f64 }, ...];
+            points: new Map(),  // map: { number: u32, { x: f64, y: f64, z: f64}, ... };
         };
 
         this.state = {};
@@ -402,23 +402,17 @@ class FeaGeometryUpdatePointMenu extends HTMLElement {
     }
 
     set addPointToClient(point) {
-        this.props.points.push(point);
-        this.props.points.sort((a, b) => a.number - b.number);
+        this.props.points.set(point.number, {"x": point.x, "y": point.y, "z": point.z});
         this.definePointNumberOptions();
     }
 
     set updatePointInClient(point) {
-        let pointInProps = this.props.points.find(existedPoint => existedPoint.number == point.number);
-        pointInProps.x = point.x;
-        pointInProps.y = point.y;
-        pointInProps.z = point.z;
+        this.props.points.set(point.number, {"x": point.x, "y": point.y, "z": point.z});
         this.definePointNumberOptions();
     }
 
     set deletePointFromClient(point) {
-        let pointIndexInProps = this.props.points.findIndex(existedPoint => existedPoint.number == point.number);
-        this.props.points.splice(pointIndexInProps, 1);
-        this.props.points.sort((a, b) => a.number - b.number);
+        this.props.points.delete(point.number);
         this.definePointNumberOptions();
     }
 
@@ -462,16 +456,17 @@ class FeaGeometryUpdatePointMenu extends HTMLElement {
         for (let i = pointUpdateNumberSelect.length - 1; i >= 0; i--) {
             pointUpdateNumberSelect.options[i] = null;
         }
-        if (this.props.points.length > 0) {
-            for (let i = 0; i < this.props.points.length; i++) {
+        if (this.props.points.size > 0) {
+            const pointsNumbers = Array.from(this.props.points.keys()).sort((a, b) => a - b);
+            for (let i = 0; i < pointsNumbers.length; i++) {
                 let updateOption = document.createElement("option");
-                updateOption.value = this.props.points[i].number;
-                updateOption.innerHTML = this.props.points[i].number;
+                updateOption.value = pointsNumbers[i];
+                updateOption.innerHTML = pointsNumbers[i];
                 pointUpdateNumberSelect.appendChild(updateOption);
             }
-            this.shadowRoot.querySelector(".point-x-coord").value = this.props.points[0].x;
-            this.shadowRoot.querySelector(".point-y-coord").value = this.props.points[0].y;
-            this.shadowRoot.querySelector(".point-z-coord").value = this.props.points[0].z;
+            this.shadowRoot.querySelector(".point-x-coord").value = this.props.points.get(pointsNumbers[0]).x;
+            this.shadowRoot.querySelector(".point-y-coord").value = this.props.points.get(pointsNumbers[0]).y;
+            this.shadowRoot.querySelector(".point-z-coord").value = this.props.points.get(pointsNumbers[0]).z;
         } else {
             this.shadowRoot.querySelector(".point-x-coord").value = "";
             this.shadowRoot.querySelector(".point-y-coord").value = "";
@@ -481,12 +476,11 @@ class FeaGeometryUpdatePointMenu extends HTMLElement {
 
     updatePointCoordinates() {
         const selectedPointNumber = this.shadowRoot.querySelector(".point-number").value;
-        const pointInProps = this.props.points.find(point => point.number == selectedPointNumber);
-        this.shadowRoot.querySelector(".point-x-coord").value = pointInProps.x;
+        this.shadowRoot.querySelector(".point-x-coord").value = this.props.points.get(parseInt(selectedPointNumber)).x;
         this.dropHighlight(this.shadowRoot.querySelector(".point-x-coord"));
-        this.shadowRoot.querySelector(".point-y-coord").value = pointInProps.y;
+        this.shadowRoot.querySelector(".point-y-coord").value = this.props.points.get(parseInt(selectedPointNumber)).y;
         this.dropHighlight(this.shadowRoot.querySelector(".point-y-coord"));
-        this.shadowRoot.querySelector(".point-z-coord").value = pointInProps.z;
+        this.shadowRoot.querySelector(".point-z-coord").value = this.props.points.get(parseInt(selectedPointNumber)).z;
         this.dropHighlight(this.shadowRoot.querySelector(".point-z-coord"));
         this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
     }
@@ -542,8 +536,10 @@ class FeaGeometryUpdatePointMenu extends HTMLElement {
             }
         }
 
-        const pointCoordinatesInProps = this.props.points.find(point => point.x == inputtedXField.value && 
-            point.y == inputtedYField.value && point.z == inputtedZField.value);
+        const pointCoordinatesInProps = Array.from(this.props.points.values()).find(coordinates => 
+            coordinates.x == inputtedXField.value && 
+            coordinates.y == inputtedYField.value && 
+            coordinates.z == inputtedZField.value);
         if (pointCoordinatesInProps != null) {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
@@ -565,7 +561,7 @@ class FeaGeometryUpdatePointMenu extends HTMLElement {
             }
         }
 
-        const oldPointValues = this.props.points.find(point => point.number == selectedPointNumberField.value);
+        const oldPointValues = this.props.points.get(parseInt(selectedPointNumberField.value));
         const message = {"update_point": {
             "actionId": this.props.actionId,
             "number": selectedPointNumberField.value, 
@@ -584,7 +580,7 @@ class FeaGeometryUpdatePointMenu extends HTMLElement {
     }
 
     cancelPointUpdate() {
-        if (this.props.points.length > 0) {
+        if (this.props.points.size > 0) {
             this.definePointNumberOptions();
         }
         this.shadowRoot.querySelector(".point-number-filter").value = null;

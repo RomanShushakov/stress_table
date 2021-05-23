@@ -4,7 +4,7 @@ class FeaGeometryPointMenu extends HTMLElement {
 
         this.props = {
             actionId: null,     // u32;
-            points: [],         // array of: [{ number: u32, x: f64, y: f64 }, ...];
+            points: new Map(),  // map: { number: u32, { x: f64, y: f64, z: f64}, ... };
         };
 
         this.state = {
@@ -54,23 +54,17 @@ class FeaGeometryPointMenu extends HTMLElement {
     }
 
     set addPointToClient(point) {
-        this.props.points.push(point);
-        this.props.points.sort((a, b) => a.number - b.number);
+        this.props.points.set(point.number, {"x": point.x, "y": point.y, "z": point.z});
         this.addPointToChildren(point);
     }
 
     set updatePointInClient(point) {
-        let pointInProps = this.props.points.find(existedPoint => existedPoint.number == point.number);
-        pointInProps.x = point.x;
-        pointInProps.y = point.y;
-        pointInProps.z = point.z;
+        this.props.points.set(point.number, {"x": point.x, "y": point.y, "z": point.z});
         this.updatePointInChildren(point);
     }
 
     set deletePointFromClient(point) {
-        let pointIndexInProps = this.props.points.findIndex(existedPoint => existedPoint.number == point.number);
-        this.props.points.splice(pointIndexInProps, 1);
-        this.props.points.sort((a, b) => a.number - b.number);
+        this.props.points.delete(point.number);
         this.deletePointFromChildren(point);
     }
 
@@ -109,30 +103,30 @@ class FeaGeometryPointMenu extends HTMLElement {
                 this.append(feaGeometryAddPointMenu);
                 event.stopPropagation();
                 this.querySelector("fea-geometry-add-point-menu").actionId = this.props.actionId;
-                for (let i = 0; i < this.props.points.length; i++) {
-                    const point = this.props.points[i];
+                for (let [pointNumber, coordinates] of this.props.points) {
+                    const point = { "number": pointNumber, "x": coordinates.x, "y": coordinates.y, "z": coordinates.z };
                     this.querySelector("fea-geometry-add-point-menu").addPointToClient = point;
-                } 
+                }
                 break;
             case "geometry-update-point-menu":
                 const feaGeometryUpdatePointMenu = document.createElement("fea-geometry-update-point-menu");
                 this.append(feaGeometryUpdatePointMenu);
                 event.stopPropagation();
                 this.querySelector("fea-geometry-update-point-menu").actionId = this.props.actionId;
-                for (let i = 0; i < this.props.points.length; i++) {
-                    const point = this.props.points[i];
+                for (let [pointNumber, coordinates] of this.props.points) {
+                    const point = { "number": pointNumber, "x": coordinates.x, "y": coordinates.y, "z": coordinates.z };
                     this.querySelector("fea-geometry-update-point-menu").addPointToClient = point;
-                } 
+                }
                 break;
             case "geometry-delete-point-menu":
                 const feaGeometryDeletePointMenu = document.createElement("fea-geometry-delete-point-menu");
                 this.append(feaGeometryDeletePointMenu);
                 event.stopPropagation();
                 this.querySelector("fea-geometry-delete-point-menu").actionId = this.props.actionId;
-                for (let i = 0; i < this.props.points.length; i++) {
-                    const point = this.props.points[i];
+                for (let [pointNumber, coordinates] of this.props.points) {
+                    const point = { "number": pointNumber, "x": coordinates.x, "y": coordinates.y, "z": coordinates.z };
                     this.querySelector("fea-geometry-delete-point-menu").addPointToClient = point;
-                } 
+                }
                 break;
         }
     }

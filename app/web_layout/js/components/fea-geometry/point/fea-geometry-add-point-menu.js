@@ -4,7 +4,7 @@ class FeaGeometryAddPointMenu extends HTMLElement {
 
         this.props = {
             actionId: null,     // u32;
-            points: [],         // array of: [{ number: u32, x: f64, y: f64 }, ...];
+            points: new Map(),  // map: { number: u32, { x: f64, y: f64, z: f64}, ... };
         };
 
         this.state = {};
@@ -344,22 +344,16 @@ class FeaGeometryAddPointMenu extends HTMLElement {
     }
 
     set addPointToClient(point) {
-        this.props.points.push(point);
-        this.props.points.sort((a, b) => a.number - b.number);
+        this.props.points.set(point.number, {"x": point.x, "y": point.y, "z": point.z});
         this.defineNewPointNumber();
     }
 
     set updatePointInClient(point) {
-        let pointInProps = this.props.points.find(existedPoint => existedPoint.number == point.number);
-        pointInProps.x = point.x;
-        pointInProps.y = point.y;
-        pointInProps.z = point.z;
+        this.props.points.set(point.number, {"x": point.x, "y": point.y, "z": point.z});
     }
 
     set deletePointFromClient(point) {
-        let pointIndexInProps = this.props.points.findIndex(existedPoint => existedPoint.number == point.number);
-        this.props.points.splice(pointIndexInProps, 1);
-        this.props.points.sort((a, b) => a.number - b.number);
+        this.props.points.delete(point.number);
         this.defineNewPointNumber();
     }
 
@@ -389,10 +383,11 @@ class FeaGeometryAddPointMenu extends HTMLElement {
 
     defineNewPointNumber() {
         let newPointNumber = 0;
-        const isPointNumberInArray = (point) => point.number === newPointNumber;
+        const isPointNumberInArray = (number) => number === newPointNumber;
+        const sortedPointsNumbers = Array.from(this.props.points.keys()).sort((a, b) => a - b);
         do {
             newPointNumber += 1;
-        } while (this.props.points.some(isPointNumberInArray));
+        } while (sortedPointsNumbers.some(isPointNumberInArray));
         this.shadowRoot.querySelector(".point-number").value = newPointNumber;
         this.shadowRoot.querySelector(".point-number").min = newPointNumber;
         this.shadowRoot.querySelector(".point-x-coord").value = 0.0;
@@ -438,8 +433,7 @@ class FeaGeometryAddPointMenu extends HTMLElement {
             }
         }
 
-        const pointNumberInProps = this.props.points.find(point => point.number == newPointNumberField.value);
-        if (pointNumberInProps != null) {
+        if (this.props.points.has(parseInt(newPointNumberField.value)) === true) {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
                     "Note: The point with the same number does already exist!";
@@ -449,8 +443,10 @@ class FeaGeometryAddPointMenu extends HTMLElement {
             }
         }
 
-        const pointCoordinatesInProps = this.props.points.find(point => point.x == inputtedXField.value && 
-            point.y == inputtedYField.value && point.z == inputtedZField.value);
+        const pointCoordinatesInProps = Array.from(this.props.points.values()).find(coordinates => 
+            coordinates.x == inputtedXField.value && 
+            coordinates.y == inputtedYField.value && 
+            coordinates.z == inputtedZField.value);
         if (pointCoordinatesInProps != null) {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 

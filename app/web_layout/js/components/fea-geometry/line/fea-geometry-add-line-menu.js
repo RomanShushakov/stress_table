@@ -4,8 +4,8 @@ class FeaGeometryAddLineMenu extends HTMLElement {
 
         this.props = {
             actionId: null,     // u32;
-            points: [],         // array of: [{ number: u32, x: f64, y: f64 }, ...];
-            lines: [],          // array of: [{ number: u32, startPointNumber: u32, endPointNumber: u32 }, ...];
+            points: new Map(),  // map: { number: u32, { x: f64, y: f64, z: f64}, ... };
+            lines: new Map(),   // map: { number: u32, startPointNumber: u32, endPointNumber: u32 }, ...};
         };
 
         this.state = {};
@@ -408,38 +408,30 @@ class FeaGeometryAddLineMenu extends HTMLElement {
     }
 
     set addPointToClient(point) {
-        this.props.points.push(point);
-        this.props.points.sort((a, b) => a.number - b.number);
+        this.props.points.set(point.number, {"x": point.x, "y": point.y, "z": point.z});
         this.defineStartPointNumberOptions();
         this.defineEndPointNumberOptions();
     }
 
     set deletePointFromClient(point) {
-        let pointIndexInProps = this.props.points.findIndex(existedPoint => existedPoint.number == point.number);
-        this.props.points.splice(pointIndexInProps, 1);
-        this.props.points.sort((a, b) => a.number - b.number);
+        this.props.points.delete(point.number);
         this.defineStartPointNumberOptions();
         this.defineEndPointNumberOptions();
     }
 
     set addLineToClient(line) {
-        this.props.lines.push(line);
-        this.props.lines.sort((a, b) => a.number - b.number);
+        this.props.lines.set(line.number, { "startPointNumber": line.startPointNumber, "endPointNumber": line.endPointNumber });
         this.defineNewLineNumber();
         this.defineStartPointNumberOptions();
         this.defineEndPointNumberOptions();
     }
 
     set updateLineInClient(line) {
-        let lineInProps = this.props.lines.find(existedLine => existedLine.number == line.number);
-        lineInProps.startPointNumber = line.startPointNumber;
-        lineInProps.endPointNumber = line.endPointNumber;
+        this.props.lines.set(line.number, { "startPointNumber": line.startPointNumber, "endPointNumber": line.endPointNumber });
     }
 
     set deleteLineFromClient(line) {
-        let lineIndexInProps = this.props.lines.findIndex(existedLine => existedLine.number == line.number);
-        this.props.lines.splice(lineIndexInProps, 1);
-        this.props.lines.sort((a, b) => a.number - b.number);
+        this.props.lines.delete(line.number);
         this.defineNewLineNumber();
         this.defineStartPointNumberOptions();
         this.defineEndPointNumberOptions();
@@ -470,11 +462,13 @@ class FeaGeometryAddLineMenu extends HTMLElement {
     }
 
     defineNewLineNumber() {
+
         let newLineNumber = 0;
-        const isLineNumberInArray = (line) => line.number === newLineNumber;
+        const isLineNumberInArray = (number) => number === newLineNumber;
+        const sortedLinesNumbers = Array.from(this.props.lines.keys()).sort((a, b) => a - b);
         do {
             newLineNumber += 1;
-        } while (this.props.lines.some(isLineNumberInArray));
+        } while (sortedLinesNumbers.some(isLineNumberInArray));
         this.shadowRoot.querySelector(".line-number").value = newLineNumber;
         this.shadowRoot.querySelector(".line-number").min = newLineNumber;
     }
@@ -496,11 +490,14 @@ class FeaGeometryAddLineMenu extends HTMLElement {
         for (let i = startPointNumberSelect.length - 1; i >= 0; i--) {
             startPointNumberSelect.options[i] = null;
         }
-        for (let i = 0; i < this.props.points.length; i++) {
-            let updateOption = document.createElement("option");
-            updateOption.value = this.props.points[i].number;
-            updateOption.innerHTML = this.props.points[i].number;
-            startPointNumberSelect.appendChild(updateOption);
+        if (this.props.points.size > 0) {
+            const pointsNumbers = Array.from(this.props.points.keys()).sort((a, b) => a - b);
+            for (let i = 0; i < pointsNumbers.length; i++) {
+                let updateOption = document.createElement("option");
+                updateOption.value = pointsNumbers[i];
+                updateOption.innerHTML = pointsNumbers[i];
+                startPointNumberSelect.appendChild(updateOption);
+            }
         }
     }
 
@@ -509,11 +506,14 @@ class FeaGeometryAddLineMenu extends HTMLElement {
         for (let i = endPointNumberSelect.length - 1; i >= 0; i--) {
             endPointNumberSelect.options[i] = null;
         }
-        for (let i = 0; i < this.props.points.length; i++) {
-            let updateOption = document.createElement("option");
-            updateOption.value = this.props.points[i].number;
-            updateOption.innerHTML = this.props.points[i].number;
-            endPointNumberSelect.appendChild(updateOption);
+        if (this.props.points.size > 0) {
+            const pointsNumbers = Array.from(this.props.points.keys()).sort((a, b) => a - b);
+            for (let i = 0; i < pointsNumbers.length; i++) {
+                let updateOption = document.createElement("option");
+                updateOption.value = pointsNumbers[i];
+                updateOption.innerHTML = pointsNumbers[i];
+                endPointNumberSelect.appendChild(updateOption);
+            }
         }
     }
 
@@ -545,8 +545,7 @@ class FeaGeometryAddLineMenu extends HTMLElement {
                 return;
             }
         }
-        const lineNumberInProps = this.props.lines.find(line => line.number == newLineNumberField.value);
-        if (lineNumberInProps != null) {
+        if (this.props.lines.has(parseInt(newLineNumberField.value)) === true) {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
                     "Note: The line with the same number does already exist!";
@@ -555,9 +554,9 @@ class FeaGeometryAddLineMenu extends HTMLElement {
                 return;
             }
         }
-        const linePointNumbersInProps = this.props.lines.find(line =>
-            (line.startPointNumber == startPointField.value && line.endPointNumber == endPointField.value) ||
-            (line.startPointNumber == endPointField.value && line.endPointNumber == startPointField.value));
+        const linePointNumbersInProps = Array.from(this.props.lines.values()).find(lineNumbers => 
+            (lineNumbers.startPointNumber == startPointField.value && lineNumbers.endPointNumber == endPointField.value) ||
+            (lineNumbers.startPointNumber == endPointField.value && lineNumbers.endPointNumber == startPointField.value));
         if (linePointNumbersInProps != null) {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 

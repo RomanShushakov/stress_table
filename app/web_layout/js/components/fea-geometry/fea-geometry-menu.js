@@ -4,8 +4,8 @@ class FeaGeometryMenu extends HTMLElement {
 
         this.props = {
             actionId: null,     // u32;
-            points: [],         // array of: [{ number: u32, x: f64, y: f64 }, ...];
-            lines: [],          // array of: [{ number: u32, startPointNumber: u32, endPointNumber: u32 }, ...];
+            points: new Map(),  // map: { number: u32, { x: f64, y: f64, z: f64}, ... };
+            lines: new Map(),   // map: { number: u32, startPointNumber: u32, endPointNumber: u32 }, ...};
         };
 
         this.state = {
@@ -69,43 +69,32 @@ class FeaGeometryMenu extends HTMLElement {
     }
 
     set addPointToClient(point) {
-        this.props.points.push(point);
-        this.props.points.sort((a, b) => a.number - b.number);
+        this.props.points.set(point.number, {"x": point.x, "y": point.y, "z": point.z});
         this.addPointToChildren(point);
     }
 
     set updatePointInClient(point) {
-        let pointInProps = this.props.points.find(existedPoint => existedPoint.number == point.number);
-        pointInProps.x = point.x;
-        pointInProps.y = point.y;
-        pointInProps.z = point.z;
+        this.props.points.set(point.number, {"x": point.x, "y": point.y, "z": point.z});
         this.updatePointInChildren(point);
     }
 
     set deletePointFromClient(point) {
-        let pointIndexInProps = this.props.points.findIndex(existedPoint => existedPoint.number == point.number);
-        this.props.points.splice(pointIndexInProps, 1);
-        this.props.points.sort((a, b) => a.number - b.number);
+        this.props.points.delete(point.number);
         this.deletePointFromChildren(point);
     }
 
     set addLineToClient(line) {
-        this.props.lines.push(line);
-        this.props.lines.sort((a, b) => a.number - b.number);
+        this.props.lines.set(line.number, { "startPointNumber": line.startPointNumber, "endPointNumber": line.endPointNumber });
         this.addLineToChildren(line);
     }
 
     set updateLineInClient(line) {
-        let lineInProps = this.props.lines.find(existedLine => existedLine.number == line.number);
-        lineInProps.startPointNumber = line.startPointNumber;
-        lineInProps.endPointNumber = line.endPointNumber;
+        this.props.lines.set(line.number, { "startPointNumber": line.startPointNumber, "endPointNumber": line.endPointNumber });
         this.updateLineInChildren(line);
     }
 
     set deleteLineFromClient(line) {
-        let lineIndexInProps = this.props.lines.findIndex(existedLine => existedLine.number == line.number);
-        this.props.lines.splice(lineIndexInProps, 1);
-        this.props.lines.sort((a, b) => a.number - b.number);
+        this.props.lines.delete(line.number);
         this.deleteLineFromChildren(line);
     }
 
@@ -149,24 +138,26 @@ class FeaGeometryMenu extends HTMLElement {
                 this.append(feaGeometryPointMenu);
                 event.stopPropagation();
                 this.querySelector("fea-geometry-point-menu").actionId = this.props.actionId;
-                for (let i = 0; i < this.props.points.length; i++) {
-                    const point = this.props.points[i];
+                for (let [pointNumber, coordinates] of this.props.points) {
+                    const point = { "number": pointNumber, "x": coordinates.x, "y": coordinates.y, "z": coordinates.z };
                     this.querySelector("fea-geometry-point-menu").addPointToClient = point;
-                } 
+                }
                 break;
             case "geometry-line-menu":
                 const feaGeometryLineMenu = document.createElement("fea-geometry-line-menu");
                 this.append(feaGeometryLineMenu);
                 event.stopPropagation();
                 this.querySelector("fea-geometry-line-menu").actionId = this.props.actionId;
-                for (let i = 0; i < this.props.points.length; i++) {
-                    const point = this.props.points[i];
+                for (let [pointNumber, coordinates] of this.props.points) {
+                    const point = { "number": pointNumber, "x": coordinates.x, "y": coordinates.y, "z": coordinates.z };
                     this.querySelector("fea-geometry-line-menu").addPointToClient = point;
-                } 
-                for (let i = 0; i < this.props.lines.length; i++) {
-                    const line = this.props.lines[i];
+                }
+                for (let [lineNumber, linePointsNumbers] of this.props.lines) {
+                    const line = { "number": lineNumber,
+                        "startPointNumber": linePointsNumbers.startPointNumber,
+                        "endPointNumber": linePointsNumbers.endPointNumber };
                     this.querySelector("fea-geometry-line-menu").addLineToClient = line;
-                } 
+                }
                 break;
         }
     }

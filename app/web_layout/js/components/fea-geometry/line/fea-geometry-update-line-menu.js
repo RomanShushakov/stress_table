@@ -4,8 +4,8 @@ class FeaGeometryUpdateLineMenu extends HTMLElement {
 
         this.props = {
             actionId: null,     // u32;
-            points: [],         // array of: [{ number: u32, x: f64, y: f64 }, ...];
-            lines: [],          // array of: [{ number: u32, startPointNumber: u32, endPointNumber: u32 }, ...];
+            points: new Map(),  // map: { number: u32, { x: f64, y: f64, z: f64}, ... };
+            lines: new Map(),   // map: { number: u32, startPointNumber: u32, endPointNumber: u32 }, ...};
         };
 
         this.state = {};
@@ -466,35 +466,27 @@ class FeaGeometryUpdateLineMenu extends HTMLElement {
     }
 
     set addPointToClient(point) {
-        this.props.points.push(point);
-        this.props.points.sort((a, b) => a.number - b.number);
+        this.props.points.set(point.number, {"x": point.x, "y": point.y, "z": point.z});
         this.defineLineNumberOptions();
     }
 
     set deletePointFromClient(point) {
-        let pointIndexInProps = this.props.points.findIndex(existedPoint => existedPoint.number == point.number);
-        this.props.points.splice(pointIndexInProps, 1);
-        this.props.points.sort((a, b) => a.number - b.number);
+        this.props.points.delete(point.number);
         this.defineLineNumberOptions();
     }
 
     set addLineToClient(line) {
-        this.props.lines.push(line);
-        this.props.lines.sort((a, b) => a.number - b.number);
+        this.props.lines.set(line.number, { "startPointNumber": line.startPointNumber, "endPointNumber": line.endPointNumber });
         this.defineLineNumberOptions();
     }
 
     set updateLineInClient(line) {
-        let lineInProps = this.props.lines.find(existedLine => existedLine.number == line.number);
-        lineInProps.startPointNumber = line.startPointNumber;
-        lineInProps.endPointNumber = line.endPointNumber;
+        this.props.lines.set(line.number, { "startPointNumber": line.startPointNumber, "endPointNumber": line.endPointNumber });
         this.defineLineNumberOptions();
     }
 
     set deleteLineFromClient(line) {
-        let lineIndexInProps = this.props.lines.findIndex(existedLine => existedLine.number == line.number);
-        this.props.lines.splice(lineIndexInProps, 1);
-        this.props.lines.sort((a, b) => a.number - b.number);
+        this.props.lines.delete(line.number);
         this.defineLineNumberOptions();
     }
 
@@ -541,15 +533,16 @@ class FeaGeometryUpdateLineMenu extends HTMLElement {
         }
         this.defineStartPointNumberOptions();
         this.defineEndPointNumberOptions();
-        if (this.props.lines.length > 0) {
-            for (let i = 0; i < this.props.lines.length; i++) {
+        if (this.props.lines.size > 0) {
+            const linesNumbers = Array.from(this.props.lines.keys()).sort((a, b) => a - b);
+            for (let i = 0; i < linesNumbers.length; i++) {
                 let updateOption = document.createElement("option");
-                updateOption.value = this.props.lines[i].number;
-                updateOption.innerHTML = this.props.lines[i].number;
+                updateOption.value = linesNumbers[i];
+                updateOption.innerHTML = linesNumbers[i];
                 lineUpdateNumberSelect.appendChild(updateOption);
             }
-            const selectedLineStartPointNumber = this.props.lines[0].startPointNumber;
-            const selectedLineEndPointNumber = this.props.lines[0].endPointNumber;
+            const selectedLineStartPointNumber = this.props.lines.get(linesNumbers[0]).startPointNumber;
+            const selectedLineEndPointNumber = this.props.lines.get(linesNumbers[0]).endPointNumber;
             const startPointNumberSelect = this.shadowRoot.querySelector(".start-point-number");
             const startPointNumberOptions = startPointNumberSelect.options;
             for (let option, i = 0; option = startPointNumberOptions[i]; i++) {
@@ -586,11 +579,14 @@ class FeaGeometryUpdateLineMenu extends HTMLElement {
         for (let i = startPointNumberSelect.length - 1; i >= 0; i--) {
             startPointNumberSelect.options[i] = null;
         }
-        for (let i = 0; i < this.props.points.length; i++) {
-            let updateOption = document.createElement("option");
-            updateOption.value = this.props.points[i].number;
-            updateOption.innerHTML = this.props.points[i].number;
-            startPointNumberSelect.appendChild(updateOption);
+        if (this.props.points.size > 0) {
+            const pointsNumbers = Array.from(this.props.points.keys()).sort((a, b) => a - b);
+            for (let i = 0; i < pointsNumbers.length; i++) {
+                let updateOption = document.createElement("option");
+                updateOption.value = pointsNumbers[i];
+                updateOption.innerHTML = pointsNumbers[i];
+                startPointNumberSelect.appendChild(updateOption);
+            }
         }
     }
 
@@ -599,18 +595,20 @@ class FeaGeometryUpdateLineMenu extends HTMLElement {
         for (let i = endPointNumberSelect.length - 1; i >= 0; i--) {
             endPointNumberSelect.options[i] = null;
         }
-        for (let i = 0; i < this.props.points.length; i++) {
-            let updateOption = document.createElement("option");
-            updateOption.value = this.props.points[i].number;
-            updateOption.innerHTML = this.props.points[i].number;
-            endPointNumberSelect.appendChild(updateOption);
+        if (this.props.points.size > 0) {
+            const pointsNumbers = Array.from(this.props.points.keys()).sort((a, b) => a - b);
+            for (let i = 0; i < pointsNumbers.length; i++) {
+                let updateOption = document.createElement("option");
+                updateOption.value = pointsNumbers[i];
+                updateOption.innerHTML = pointsNumbers[i];
+                endPointNumberSelect.appendChild(updateOption);
+            }
         }
     }
 
     updateSelectedLineStartPointAndEndPointNumbers(selectedLineNumber) {
-        const lineInProps = this.props.lines.find(existedLine => existedLine.number == selectedLineNumber);
-        const selectedLineStartPointNumber = lineInProps.startPointNumber;
-        const selectedLineEndPointNumber = lineInProps.endPointNumber;
+        const selectedLineStartPointNumber = this.props.lines.get(selectedLineNumber).startPointNumber;
+        const selectedLineEndPointNumber = this.props.lines.get(selectedLineNumber).endPointNumber;
         const startPointNumberSelect =  this.shadowRoot.querySelector(".start-point-number");
         const startPointNumberOptions =  startPointNumberSelect.options;
         for (let option, i = 0; option = startPointNumberOptions[i]; i++) {
@@ -658,7 +656,7 @@ class FeaGeometryUpdateLineMenu extends HTMLElement {
                 return;
             }
         }
-        const linePointNumbersInProps = this.props.lines.find(line =>
+        const linePointNumbersInProps = Array.from(this.props.lines.values()).find(line =>
             (line.startPointNumber == startPointField.value && line.endPointNumber == endPointField.value) ||
             (line.startPointNumber == endPointField.value && line.endPointNumber == startPointField.value));
         if (linePointNumbersInProps != null) {
@@ -679,7 +677,7 @@ class FeaGeometryUpdateLineMenu extends HTMLElement {
                 return;
             }
         }
-        const oldLineValues = this.props.lines.find(line => line.number == selectedLineNumberField.value);
+        const oldLineValues = this.props.lines.get(parseInt(selectedLineNumberField.value));
         const message = {"update_line": {
             "actionId": this.props.actionId,
             "number": selectedLineNumberField.value, 

@@ -4,7 +4,7 @@ class FeaGeometryDeleteLineMenu extends HTMLElement {
 
         this.props = {
             actionId: null,     // u32;
-            lines: [],          // array of: [{ number: u32, startPointNumber: u32, endPointNumber: u32 }, ...];
+            lines: new Map(),   // map: { number: u32, startPointNumber: u32, endPointNumber: u32 }, ...};
         };
 
         this.state = {};
@@ -225,8 +225,7 @@ class FeaGeometryDeleteLineMenu extends HTMLElement {
     }
 
     set addLineToClient(line) {
-        this.props.lines.push(line);
-        this.props.lines.sort((a, b) => a.number - b.number);
+        this.props.lines.set(line.number, { "startPointNumber": line.startPointNumber, "endPointNumber": line.endPointNumber });
         this.defineLineNumberOptions();
     }
 
@@ -234,9 +233,7 @@ class FeaGeometryDeleteLineMenu extends HTMLElement {
     }
 
     set deleteLineFromClient(line) {
-        let lineIndexInProps = this.props.lines.findIndex(existedLine => existedLine.number == line.number);
-        this.props.lines.splice(lineIndexInProps, 1);
-        this.props.lines.sort((a, b) => a.number - b.number);
+        this.props.lines.delete(line.number);
         this.defineLineNumberOptions();
     }
 
@@ -269,11 +266,12 @@ class FeaGeometryDeleteLineMenu extends HTMLElement {
         for (let i = lineDeleteNumberSelect.length - 1; i >= 0; i--) {
             lineDeleteNumberSelect.options[i] = null;
         }
-        if (this.props.lines.length > 0) {
-            for (let i = 0; i < this.props.lines.length; i++) {
+        if (this.props.lines.size > 0) {
+            const linesNumbers = Array.from(this.props.lines.keys()).sort((a, b) => a - b);
+            for (let i = 0; i < linesNumbers.length; i++) {
                 let deleteOption = document.createElement("option");
-                deleteOption.value = this.props.lines[i].number;
-                deleteOption.innerHTML = this.props.lines[i].number;
+                deleteOption.value = linesNumbers[i];
+                deleteOption.innerHTML = linesNumbers[i];
                 lineDeleteNumberSelect.appendChild(deleteOption);
             }
         }

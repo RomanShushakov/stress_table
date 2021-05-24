@@ -6,8 +6,8 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::aux_structs::{PointObject, NormalizedPointObject, Coordinates, NormalizedLineObject};
-use crate::aux_structs::{GLMode};
-use crate::aux_structs::
+use crate::drawn_object::{GLMode};
+use crate::drawn_object::
 {
     HINT_SHIFT_X, ROTATION_HINT_SHIFT_Y, ZOOM_HINT_SHIFT_Y, PAN_HINT_SHIFT_Y,
     DRAWN_OBJECT_TO_CANVAS_WIDTH_SCALE, DRAWN_OBJECT_TO_CANVAS_HEIGHT_SCALE,
@@ -146,7 +146,7 @@ pub fn normalize_point_objects(point_objects: &Vec<PointObject>,
     let min_canvas_side = find_min_canvas_side(canvas_width, canvas_height);
     let min_drawn_object_to_canvas_scale = find_min_drawn_object_to_canvas_scale(aspect);
     let max_object_side = find_max_object_side(x_min, x_max, y_min, y_max, z_min, z_max);
-    let multiplier =   min_canvas_side / max_object_side;
+    let multiplier = min_canvas_side / max_object_side;
     for point_object in point_objects.iter()
     {
         let number = point_object.get_number();

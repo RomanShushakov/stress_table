@@ -12,11 +12,33 @@ mod aux_functions;
 
 use aux_structs::
 {
-    ShadersVariables, Buffers, DrawnObject, PointObject, NormalizedPointObject,
-    NormalizedLineObject, Coordinates,
+    PointObject, NormalizedPointObject, NormalizedLineObject, Coordinates,
 };
-use aux_structs::{CSAxis, GLMode, PointObjectType, LineObjectType};
-use aux_structs::
+
+use aux_structs::{PointObjectType, LineObjectType};
+
+use aux_functions::
+{
+    initialize_shaders, add_denotation, add_hints, normalize_point_objects,
+    define_drawn_object_denotation_color, transform_u32_to_array_of_u8,
+    dispatch_custom_event
+};
+
+mod extended_matrix;
+
+mod buffers;
+
+use buffers::Buffers;
+
+mod shaders_variables;
+
+use shaders_variables::ShadersVariables;
+
+mod drawn_object;
+
+use drawn_object::DrawnObject;
+use drawn_object::{CSAxis, GLMode};
+use drawn_object::
     {
         CS_AXES_Y_SHIFT, CS_AXES_X_SHIFT, CS_AXES_Z_SHIFT, CS_AXES_SCALE,
         CS_AXES_CAPS_BASE_POINTS_NUMBER, CS_AXES_CAPS_WIDTH, CS_AXES_CAPS_HEIGHT,
@@ -34,14 +56,9 @@ use aux_structs::
         CANVAS_DRAWN_POINTS_DENOTATION_COLOR, DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
         DRAWN_LINE_OBJECTS_BASE_RADIUS, CANVAS_DRAWN_LINES_DENOTATION_COLOR
     };
-use aux_functions::
-{
-    initialize_shaders, add_denotation, add_hints, normalize_point_objects,
-    define_drawn_object_denotation_color, transform_u32_to_array_of_u8,
-    dispatch_custom_event
-};
 
-mod extended_matrix;
+
+mod methods_for_canvas_manipulation;
 
 
 pub const TOLERANCE: f32 = 1e-6;
@@ -116,68 +133,6 @@ impl Renderer
         };
 
         Renderer { props, state }
-    }
-
-
-    pub fn update_canvas_size(&mut self, canvas_width: f32, canvas_height: f32)
-    {
-        self.props.canvas_text.set_width(canvas_width as u32);
-        self.props.canvas_text.set_height(canvas_height as u32);
-        self.props.canvas_gl.set_width(canvas_width as u32);
-        self.props.canvas_gl.set_height(canvas_height as u32);
-    }
-
-
-    pub fn change_cursor_coordinates(&mut self, x: i32, y: i32)
-    {
-        self.props.cursor_coord_x = x;
-        self.props.cursor_coord_y = y;
-    }
-
-
-    pub fn increment_angle_theta(&mut self, d_theta: f32)
-    {
-        self.props.theta += d_theta;
-    }
-
-
-    pub fn increment_angle_phi(&mut self, d_phi: f32)
-    {
-        self.props.phi += d_phi;
-    }
-
-
-    pub fn increment_dx(&mut self, dx: f32)
-    {
-        self.props.dx += dx;
-    }
-
-
-    pub fn increment_dy(&mut self, dy: f32)
-    {
-        self.props.dy += dy;
-    }
-
-
-    pub fn extract_d_scale(&self) -> f32
-    {
-        self.props.d_scale
-    }
-
-
-    pub fn change_d_scale(&mut self, d_scale: f32)
-    {
-        self.props.d_scale = d_scale;
-    }
-
-    pub fn change_angle_theta(&mut self, theta: f32)
-    {
-        self.props.theta = theta;
-    }
-
-    pub fn change_angle_phi(&mut self, phi: f32)
-    {
-        self.props.phi = phi;
     }
 
 
@@ -523,11 +478,11 @@ impl Renderer
             mat4::rotate_x(&mut model_view_matrix,&mat_to_rotate,&self.props.phi);
             let mat_to_rotate = model_view_matrix;
             mat4::rotate_y(&mut model_view_matrix, &mat_to_rotate, &self.props.theta);
-            gl.uniform1f(Some(&shaders_variables.point_size), point_size);
+            gl.uniform1f(Some(shaders_variables.get_point_size()), point_size);
             gl.uniform_matrix4fv_with_f32_array(
-                Some(&shaders_variables.projection_matrix), false, &projection_matrix);
+                Some(shaders_variables.get_projection_matrix()), false, &projection_matrix);
             gl.uniform_matrix4fv_with_f32_array(
-                Some(&shaders_variables.model_view_matrix), false, &model_view_matrix);
+                Some(shaders_variables.get_model_view_matrix()), false, &model_view_matrix);
 
             drawn_object.draw(&gl);
 
@@ -578,11 +533,11 @@ impl Renderer
             mat4::rotate_x(&mut model_view_matrix,&mat_to_rotate,&self.props.phi);
             let mat_to_rotate = model_view_matrix;
             mat4::rotate_y(&mut model_view_matrix, &mat_to_rotate, &self.props.theta);
-            gl.uniform1f(Some(&shaders_variables.point_size), point_size);
+            gl.uniform1f(Some(shaders_variables.get_point_size()), point_size);
             gl.uniform_matrix4fv_with_f32_array(
-                Some(&shaders_variables.projection_matrix), false, &projection_matrix);
+                Some(shaders_variables.get_projection_matrix()), false, &projection_matrix);
             gl.uniform_matrix4fv_with_f32_array(
-                Some(&shaders_variables.model_view_matrix), false, &model_view_matrix);
+                Some(shaders_variables.get_model_view_matrix()), false, &model_view_matrix);
 
             drawn_object.draw(&gl);
 
@@ -693,11 +648,11 @@ impl Renderer
         mat4::rotate_x(&mut model_view_matrix,&mat_to_rotate,&self.props.phi);
         let mat_to_rotate = model_view_matrix;
         mat4::rotate_y(&mut model_view_matrix, &mat_to_rotate, &self.props.theta);
-        gl.uniform1f(Some(&shaders_variables.point_size), point_size);
+        gl.uniform1f(Some(shaders_variables.get_point_size()), point_size);
         gl.uniform_matrix4fv_with_f32_array(
-            Some(&shaders_variables.projection_matrix), false, &projection_matrix);
+            Some(shaders_variables.get_projection_matrix()), false, &projection_matrix);
         gl.uniform_matrix4fv_with_f32_array(
-            Some(&shaders_variables.model_view_matrix), false, &model_view_matrix);
+            Some(shaders_variables.get_model_view_matrix()), false, &model_view_matrix);
 
         cs_drawn_object.draw(&gl);
 

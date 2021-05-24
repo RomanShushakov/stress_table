@@ -1,11 +1,22 @@
 use wasm_bindgen::prelude::*;
 use web_sys::{WebGlRenderingContext as GL};
 use std::f32::consts::PI;
+use std::collections::HashMap;
+
+use crate::line_object::{LineObject, LineObjectKey};
+use crate::line_object::{LineObjectType};
+
+use crate::{PointObjectKey, PointObject};
+use crate::{PointObjectType};
+
+use crate::aux_functions::define_drawn_object_color;
+
+use crate::extended_matrix::ExtendedMatrix;
+use crate::extended_matrix::extract_element_value;
 
 use crate::TOLERANCE;
-use crate::aux_structs::{NormalizedPointObject, PointObjectType, NormalizedLineObject, LineObjectType };
-use crate::aux_functions::define_drawn_object_color;
-use crate::extended_matrix::{ExtendedMatrix, extract_element_value};
+
+
 
 
 const CS_ORIGIN: [f32; 3] = [0.0, 0.0, 0.0];
@@ -310,61 +321,68 @@ impl DrawnObject
     }
 
 
-    pub fn add_point_object(&mut self, normalized_point_objects: &[NormalizedPointObject],
+    pub fn add_point_object(&mut self, point_objects: &HashMap<PointObjectKey, PointObject>,
         gl_mode: GLMode, under_cursor_color: &[u8; 4], selected_color: &[u8; 4])
+        -> Result<(), JsValue>
     {
         let start_index =
             if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
-        for (i, point_object) in
-            normalized_point_objects.iter().enumerate()
+        for (i, (point_object_key, point_object))  in
+            point_objects.iter().enumerate()
         {
-            let initial_color = match point_object.get_object_type()
+            let initial_color = match point_object_key.get_object_type()
                 {
                     PointObjectType::Point => DRAWN_POINTS_COLOR,
                     PointObjectType::Node => DRAWN_NODES_COLOR,
                 };
             self.vertices_coordinates.extend(
-                &[point_object.get_x(), point_object.get_y(), point_object.get_z()]);
+                &[point_object.get_normalized_x()?,
+                    point_object.get_normalized_y()?,
+                    point_object.get_normalized_z()?]);
             let point_object_color = define_drawn_object_color(
-                &gl_mode, point_object.get_uid(),
+                &gl_mode, point_object.get_uid()?,
                 selected_color, under_cursor_color, &initial_color);
             self.colors_values.extend(&point_object_color);
             self.indexes_numbers.push(start_index + i as u32);
         }
         self.modes.push(GLPrimitiveType::Points);
-        self.elements_numbers.push(normalized_point_objects.len() as i32);
+        self.elements_numbers.push(point_objects.len() as i32);
         let offset = self.define_offset();
         self.offsets.push(offset);
+        Ok(())
     }
 
 
-    pub fn add_line_objects(&mut self, normalized_line_objects: &[NormalizedLineObject],
-        gl_mode: GLMode, under_cursor_color: &[u8; 4], selected_color: &[u8; 4],
-        base_points_number: u32, base_radius: f32) -> Result<(), JsValue>
+    pub fn add_line_objects(&mut self,
+        point_objects: &HashMap<PointObjectKey, PointObject>,
+        line_objects: &HashMap<LineObjectKey, LineObject>,
+        gl_mode: GLMode, under_cursor_color: &[u8; 4],
+        selected_color: &[u8; 4], base_points_number: u32,
+        base_radius: f32) -> Result<(), JsValue>
     {
         let start_index =
             if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
         let mut count = 0;
-        for normalized_line_object in normalized_line_objects
+        for (line_object_key, line_object) in line_objects.iter()
         {
-            let initial_color = match normalized_line_object.get_object_type()
+            let initial_color = match line_object_key.get_object_type()
                 {
                     LineObjectType::Line => DRAWN_LINES_COLOR,
                     LineObjectType::Element => DRAWN_ELEMENTS_COLOR,
                 };
             let line_object_color = define_drawn_object_color(&gl_mode,
-                normalized_line_object.get_uid(), selected_color, under_cursor_color,
+                line_object.get_uid(), selected_color, under_cursor_color,
                 &initial_color);
             let start_point_object_coordinates =
-                normalized_line_object.get_start_point_object_coordinates();
+                line_object.get_start_point_object_coordinates(point_objects)?;
             let end_point_object_coordinates =
-                normalized_line_object.get_end_point_object_coordinates();
+                line_object.get_end_point_object_coordinates(point_objects)?;
             match gl_mode
             {
                 GLMode::Selection =>
                     {
                         let transposed_rotation_matrix =
-                            normalized_line_object.extract_transposed_rotation_matrix();
+                            line_object.extract_transposed_rotation_matrix(point_objects)?;
                         let point_object_coordinates_shift =
                             ExtendedMatrix::create(3u32, 1u32,
                             vec![base_radius * 2.0, 0.0, 0.0]);
@@ -390,9 +408,9 @@ impl DrawnObject
                         for directional_vector in &directional_vectors
                         {
                             let mut directional_vector_start_point_object_coordinates =
-                                start_point_object_coordinates.clone();
+                                start_point_object_coordinates;
                             let mut directional_vector_end_point_object_coordinates =
-                                end_point_object_coordinates.clone();
+                                end_point_object_coordinates;
                             let transformed_directional_vector =
                                 transposed_rotation_matrix.multiply_by_matrix(directional_vector)
                                     .map_err(|e| JsValue::from(e))?;

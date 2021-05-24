@@ -110,7 +110,7 @@ class FeaRenderer extends HTMLElement {
     }
 
     set addLineToRenderer(line) {
-        this.state.renderer.add_normalized_line_object(line.number, line.startPointNumber, line.endPointNumber, LineObjectType.Line);
+        this.state.renderer.add_line_object(line.number, line.startPointNumber, line.endPointNumber, LineObjectType.Line);
         if (this.state.isPaused === true)
         {
             this.state.renderer.tick();
@@ -118,7 +118,7 @@ class FeaRenderer extends HTMLElement {
     }
 
     set updateLineInRenderer(line) {
-        this.state.renderer.update_normalized_line_object(line.number, line.startPointNumber, line.endPointNumber, LineObjectType.Line);
+        this.state.renderer.update_line_object(line.number, line.startPointNumber, line.endPointNumber, LineObjectType.Line);
         if (this.state.isPaused === true)
         {
             this.state.renderer.tick();
@@ -126,7 +126,7 @@ class FeaRenderer extends HTMLElement {
     }
 
     set deleteLineFromRenderer(line) {
-        this.state.renderer.delete_normalized_line_object(line.number, LineObjectType.Line);
+        this.state.renderer.delete_line_object(line.number, LineObjectType.Line);
         if (this.state.isPaused === true)
         {
             this.state.renderer.tick();

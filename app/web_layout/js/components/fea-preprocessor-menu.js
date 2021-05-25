@@ -195,6 +195,13 @@ class FeaPreprocessorMenu extends HTMLElement {
                     const material = this.props.materials[i];
                     this.querySelector("fea-material-menu").addMaterialToClient = material;
                 }
+                break;
+            case "section-menu":
+                const feaSectionMenu = document.createElement("fea-section-menu");
+                this.append(feaSectionMenu);
+                event.stopPropagation();
+                this.updateCanvasSize();
+                break;
         }
     }
 
@@ -207,6 +214,11 @@ class FeaPreprocessorMenu extends HTMLElement {
                 break;
             case "material-menu":
                 this.querySelector("fea-material-menu").remove();
+                event.stopPropagation();
+                this.updateCanvasSize();
+                break;
+            case "section-menu":
+                this.querySelector("fea-section-menu").remove();
                 event.stopPropagation();
                 this.updateCanvasSize();
                 break;

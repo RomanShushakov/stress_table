@@ -8,6 +8,7 @@ class FeaPreprocessorMenuButtons extends HTMLElement {
             buttonNames: [
                 "geometry-menu-button",
                 "material-menu-button",
+                "section-menu-button",
                 "properties-menu-button",
                 "mesh-menu-button",
                 "load-menu-button",
@@ -18,6 +19,7 @@ class FeaPreprocessorMenuButtons extends HTMLElement {
             menuNames: {
                 "geometry-menu-button": "geometry-menu",
                 "material-menu-button": "material-menu",
+                "section-menu-button": "section-menu",
                 "properties-menu-button": "properties-menu",
                 "mesh-menu-button": "mesh-menu",
                 "load-menu-button": "load-menu",
@@ -120,6 +122,45 @@ class FeaPreprocessorMenuButtons extends HTMLElement {
                 }
 
                 .active:hover .material-menu-button-icon {
+                    color: #242932;
+                }
+
+                .section-menu-button {
+                    margin: 0rem;
+                    padding-top: 0.7rem;
+                    padding-bottom: 0.7rem;
+                    background: #2e3440;
+                    border: #3b4453;
+                }
+
+                .section-menu-button:hover {
+                    background: #2d303b;
+                }
+
+                .section-menu-button-icon-content {
+                    margin: 0rem;
+                    padding: 0rem;
+                }
+
+                .section-menu-button-icon {
+                    color: #2E3440;
+                    width: 3.5rem;
+                    height: 3.5rem;
+                }
+
+                .section-menu-button-icon-caption {
+                    color: #D9D9D9;
+                    margin: 0rem;
+                    padding: 0rem;
+                    width: 3.5rem;
+                    font-size: 85%;
+                }
+
+                .active .section-menu-button-icon {
+                    color: #3b4453;
+                }
+
+                .active:hover .section-menu-button-icon {
                     color: #242932;
                 }
 
@@ -415,6 +456,42 @@ class FeaPreprocessorMenuButtons extends HTMLElement {
                     </div>
                 </button>
 
+                <button class="section-menu-button">
+                    <div class="section-menu-button-icon-content">
+                        <svg class="section-menu-button-icon" width="102" height="101" viewBox="0 0 102 101" fill="none" 
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <title>Section</title>
+                            <path d="M92.3979 11.101H3.30803V21.202H34.5829C38.725 21.202 42.0829 24.5598 
+                                42.0829 28.702V77.8434C42.0829 81.9855 38.725 85.3434 34.5829 
+                                85.3434H1V96.9595H92.3979V85.3434H59.2766C55.1344 85.3434 51.7766 81.9855 51.7766 
+                                77.8434V28.702C51.7766 24.5598 55.1345 21.202 59.2766 21.202H92.3979V11.101Z" stroke="#D9D9D9"
+                            />
+                            <path d="M47.5901 0.646447C47.3949 0.451184 47.0783 0.451184 46.883 0.646447L43.701 
+                                3.82843C43.5058 4.02369 43.5058 4.34027 43.701 4.53553C43.8963 4.7308 44.2129 
+                                4.7308 44.4081 4.53553L47.2366 1.70711L50.065 4.53553C50.2603 4.7308 50.5768 
+                                4.7308 50.7721 4.53553C50.9674 4.34027 50.9674 4.02369 50.7721 3.82843L47.5901 
+                                0.646447ZM47.7366 101V98.5H46.7366V101H47.7366ZM47.7366 
+                                93.5V88.5H46.7366V93.5H47.7366ZM47.7366 83.5V78.5H46.7366V83.5H47.7366ZM47.7366 
+                                73.5V68.5H46.7366V73.5H47.7366ZM47.7366 63.5V58.5H46.7366V63.5H47.7366ZM47.7366 
+                                53.5V48.5H46.7366V53.5H47.7366ZM47.7366 43.5V38.5H46.7366V43.5H47.7366ZM47.7366 
+                                33.5V28.5H46.7366V33.5H47.7366ZM47.7366 23.5V18.5H46.7366V23.5H47.7366ZM47.7366 
+                                13.5V8.5H46.7366V13.5H47.7366ZM47.7366 3.5V1H46.7366V3.5H47.7366Z" fill="#72C5FF"
+                            />
+                            <path d="M101.354 51.8586C101.549 51.6633 101.549 51.3467 101.354 51.1515L98.1716 
+                                47.9695C97.9763 47.7742 97.6597 47.7742 97.4645 47.9695C97.2692 48.1647 97.2692 
+                                48.4813 97.4645 48.6766L100.293 51.505L97.4645 54.3334C97.2692 54.5287 97.2692 
+                                54.8453 97.4645 55.0405C97.6597 55.2358 97.9763 55.2358 98.1716 55.0405L101.354 
+                                51.8586ZM47.2366 52.005H49.9247V51.005H47.2366V52.005ZM55.3011 
+                                52.005H60.6774V51.005H55.3011V52.005ZM66.0538 52.005H71.4301V51.005H66.0538V52.005ZM76.8065 
+                                52.005H82.1828V51.005H76.8065V52.005ZM87.5591 52.005H92.9355V51.005H87.5591V52.005ZM98.3118 
+                                52.005H101V51.005H98.3118V52.005Z" fill="#72C5FF"
+                            />
+                        </svg>
+                        <p class="section-menu-button-icon-caption">Section</p>
+                    </div>
+                </button>
+
                 <button class="properties-menu-button">
                     <div class="properties-menu-button-icon-content">
                         <svg class="properties-menu-button-icon" width="101" height="101" viewBox="0 0 101 101" fill="none" 
@@ -663,6 +740,8 @@ class FeaPreprocessorMenuButtons extends HTMLElement {
         this.shadowRoot.querySelector(".geometry-menu-button").addEventListener("click", () => this.toggle("geometry-menu-button"));
 
         this.shadowRoot.querySelector(".material-menu-button").addEventListener("click", () => this.toggle("material-menu-button"));
+
+        this.shadowRoot.querySelector(".section-menu-button").addEventListener("click", () => this.toggle("section-menu-button"));
 
         this.shadowRoot.querySelector(".properties-menu-button").addEventListener("click", () => this.toggle("properties-menu-button"));
 

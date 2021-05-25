@@ -25,6 +25,9 @@ import FeaMaterialAddMaterialMenu from "./components/fea-material/fea-material-a
 import FeaMaterialUpdateMaterialMenu from "./components/fea-material/fea-material-update-material-menu.js";
 import FeaMaterialDeleteMaterialMenu from "./components/fea-material/fea-material-delete-material-menu.js";
 
+import FeaSectionMenu from "./components/fea-section/fea-section-menu.js";
+import FeaSectionMenuButtons from "./components/fea-section/fea-section-menu-buttons.js";
+
 
 customElements.define("fea-app", FeaApp);
 customElements.define("fea-app-title-bar", FeaAppTitleBar);
@@ -52,3 +55,6 @@ customElements.define("fea-material-menu-buttons", FeaMaterialMenuButtons);
 customElements.define("fea-material-add-material-menu", FeaMaterialAddMaterialMenu);
 customElements.define("fea-material-update-material-menu", FeaMaterialUpdateMaterialMenu);
 customElements.define("fea-material-delete-material-menu", FeaMaterialDeleteMaterialMenu);
+
+customElements.define("fea-section-menu", FeaSectionMenu);
+customElements.define("fea-section-menu-buttons", FeaSectionMenuButtons);

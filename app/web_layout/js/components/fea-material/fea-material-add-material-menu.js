@@ -280,6 +280,19 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
         this.defineNewMaterialName();
     }
 
+    set updateMaterialInClient(material) {
+        let materialInProps = this.props.materials.find(existedMaterial => existedMaterial.name == material.name);
+        materialInProps.youngModulus = material.youngModulus;
+        materialInProps.poissonRatio = material.poissonRatio;
+    }
+
+    set deleteMaterialFromClient(material) {
+        let materialIndexInProps = this.props.materials.findIndex(existedMaterial => existedMaterial.name == material.name);
+        this.props.materials.splice(materialIndexInProps, 1);
+        this.props.materials.sort((a, b) => a.name - b.name);
+        this.defineNewMaterialName();
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {

@@ -16,15 +16,12 @@ use external_functions::communication_with_geometry::
 
 use external_functions::communication_with_properties::
 {
-    add_material_to_properties,
+    add_material_to_properties, update_material_in_properties,
+    delete_material_from_properties, undo_delete_material_from_properties
 };
 
 mod action;
-use action::
-{
-    Action, Coordinates, ObjectUIntNumber, IsActionIdShouldBeIncreased, Handle, ObjectName,
-    ObjectF64Number
-};
+use action::{Action, Coordinates};
 use action::{GeometryActionType, ActionType, PropertiesActionType};
 
 mod methods_for_geometry_type_actions_handle;
@@ -56,28 +53,11 @@ const SELECTED_LINE_NUMBER_MESSAGE_HEADER: &str = "selected_line_number";
 const CHANGE_VIEW_MESSAGE_HEADER: &str = "change_view";
 
 
-pub struct IsActionShouldBeAddedToActiveActions(bool);
-
-
-impl IsActionShouldBeAddedToActiveActions
-{
-    pub fn create(add_to_active_actions: bool) -> IsActionShouldBeAddedToActiveActions
-    {
-        IsActionShouldBeAddedToActiveActions(add_to_active_actions)
-    }
-
-
-    pub fn get_value(&self) -> bool
-    {
-        self.0
-    }
-}
-
 
 #[wasm_bindgen]
 pub struct ActionsRouter
 {
-    current_action: Option<(Action, IsActionShouldBeAddedToActiveActions)>,
+    current_action: Option<(Action, bool)>, // ( action, is_action_id_should_be_added_to_active_actions )
     active_actions: Vec<Action>,
     undo_actions: Vec<Action>,
 }
@@ -101,7 +81,7 @@ impl ActionsRouter
             .parse::<u32>()
             .or(Err(JsValue::from("Actions router: Redo action: \
                 Action id could not be converted to u32!")))?;
-        if let Some(position) = self.active_actions.iter().position(|action|
+        if let Some(position) = self.active_actions.iter().rposition(|action|
             action.action_id_same(action_id))
         {
             let undo_action = self.active_actions.remove(position);
@@ -116,14 +96,12 @@ impl ActionsRouter
                                 _coordinates,
                                 _is_action_id_should_be_increased) =>
                                 {
-                                    let is_action_id_should_be_increased =
-                                        IsActionIdShouldBeIncreased::create(false);
+                                    let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::GeometryActionType(
-                                        GeometryActionType::DeletePoint(point_number.clone(),
+                                        GeometryActionType::DeletePoint(*point_number,
                                         is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
-                                    let add_to_active_actions =
-                                        IsActionShouldBeAddedToActiveActions::create(false);
+                                    let add_to_active_actions = false;
                                     self.current_action = Some((action, add_to_active_actions));
                                 },
                             GeometryActionType::UpdatePoint(
@@ -132,29 +110,25 @@ impl ActionsRouter
                                 new_coordinates,
                                 _is_action_id_should_be_increased) =>
                                 {
-                                    let is_action_id_should_be_increased =
-                                        IsActionIdShouldBeIncreased::create(false);
+                                    let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::GeometryActionType(
-                                        GeometryActionType::UpdatePoint(point_number.clone(),
+                                        GeometryActionType::UpdatePoint(*point_number,
                                         new_coordinates.clone(), old_coordinates.clone(),
                                         is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
-                                    let add_to_active_actions =
-                                        IsActionShouldBeAddedToActiveActions::create(false);
+                                    let add_to_active_actions = false;
                                     self.current_action = Some((action, add_to_active_actions));
                                 },
                             GeometryActionType::DeletePoint(
                                 point_number,
                                 _is_action_id_should_be_increased) =>
                                 {
-                                    let is_action_id_should_be_increased =
-                                        IsActionIdShouldBeIncreased::create(false);
+                                    let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::GeometryActionType(
-                                        GeometryActionType::UndoDeletePoint(point_number.clone(),
+                                        GeometryActionType::UndoDeletePoint(*point_number,
                                         is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
-                                    let add_to_active_actions =
-                                        IsActionShouldBeAddedToActiveActions::create(false);
+                                    let add_to_active_actions = false;
                                     self.current_action = Some((action, add_to_active_actions));
                                 },
                             GeometryActionType::UndoDeletePoint(_, _) => (),
@@ -164,14 +138,12 @@ impl ActionsRouter
                                 _end_point_number,
                                 _is_action_id_should_be_increased) =>
                                 {
-                                    let is_action_id_should_be_increased =
-                                        IsActionIdShouldBeIncreased::create(false);
+                                    let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::GeometryActionType(
-                                        GeometryActionType::DeleteLine(line_number.clone(),
+                                        GeometryActionType::DeleteLine(*line_number,
                                         is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
-                                    let add_to_active_actions =
-                                        IsActionShouldBeAddedToActiveActions::create(false);
+                                    let add_to_active_actions = false;
                                     self.current_action = Some((action, add_to_active_actions));
                                 },
                             GeometryActionType::UpdateLine(
@@ -182,30 +154,26 @@ impl ActionsRouter
                                 new_end_point_number,
                                 _is_action_id_should_be_increased) =>
                                 {
-                                    let is_action_id_should_be_increased =
-                                        IsActionIdShouldBeIncreased::create(false);
+                                    let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::GeometryActionType(
-                                        GeometryActionType::UpdateLine(line_number.clone(),
-                                        new_start_point_number.clone(), new_end_point_number.clone(),
-                                        old_start_point_number.clone(), old_end_point_number.clone(),
+                                        GeometryActionType::UpdateLine(*line_number,
+                                        *new_start_point_number, *new_end_point_number,
+                                        *old_start_point_number, *old_end_point_number,
                                         is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
-                                    let add_to_active_actions =
-                                        IsActionShouldBeAddedToActiveActions::create(false);
+                                    let add_to_active_actions = false;
                                     self.current_action = Some((action, add_to_active_actions));
                                 },
                             GeometryActionType::DeleteLine(
                                 line_number,
                                 _is_action_id_should_be_increased) =>
                                 {
-                                    let is_action_id_should_be_increased =
-                                        IsActionIdShouldBeIncreased::create(false);
+                                    let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::GeometryActionType(
-                                        GeometryActionType::UndoDeleteLine(line_number.clone(),
+                                        GeometryActionType::UndoDeleteLine(*line_number,
                                         is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
-                                    let add_to_active_actions =
-                                        IsActionShouldBeAddedToActiveActions::create(false);
+                                    let add_to_active_actions = false;
                                     self.current_action = Some((action, add_to_active_actions));
                                 },
                             GeometryActionType::UndoDeleteLine(_, _) => (),
@@ -218,7 +186,51 @@ impl ActionsRouter
                     {
                         match properties_action_type
                         {
-                            PropertiesActionType::AddMaterial(_, _, _, _) => ()
+                            PropertiesActionType::AddMaterial(
+                                material_name,
+                                _young_modulus,
+                                _poisson_ratio,
+                                _is_action_id_should_be_increased) =>
+                                {
+                                    let is_action_id_should_be_increased = false;
+                                    let action_type = ActionType::PropertiesActionType(
+                                        PropertiesActionType::DeleteMaterial(material_name.clone(),
+                                        is_action_id_should_be_increased));
+                                    let action = Action::create(action_id, action_type);
+                                    let add_to_active_actions = false;
+                                    self.current_action = Some((action, add_to_active_actions));
+                                },
+                            PropertiesActionType::UpdateMaterial(
+                                material_name,
+                                old_young_modulus,
+                                old_poisson_ratio,
+                                new_young_modulus,
+                                new_poisson_ratio,
+                                _is_action_id_should_be_increased) =>
+                                {
+                                    let is_action_id_should_be_increased = false;
+                                    let action_type = ActionType::PropertiesActionType(
+                                        PropertiesActionType::UpdateMaterial(material_name.clone(),
+                                        *new_young_modulus, *new_poisson_ratio,
+                                        *old_young_modulus, *old_poisson_ratio,
+                                        is_action_id_should_be_increased));
+                                    let action = Action::create(action_id, action_type);
+                                    let add_to_active_actions = false;
+                                    self.current_action = Some((action, add_to_active_actions));
+                                },
+                            PropertiesActionType::DeleteMaterial(
+                                material_name,
+                                _is_action_id_should_be_increased) =>
+                                {
+                                    let is_action_id_should_be_increased = false;
+                                    let action_type = ActionType::PropertiesActionType(
+                                        PropertiesActionType::UndoDeleteMaterial(
+                                        material_name.clone(), is_action_id_should_be_increased));
+                                    let action = Action::create(action_id, action_type);
+                                    let add_to_active_actions = false;
+                                    self.current_action = Some((action, add_to_active_actions));
+                                },
+                            PropertiesActionType::UndoDeleteMaterial(_, _) => (),
                         }
                     }
             }
@@ -238,8 +250,7 @@ impl ActionsRouter
             action.action_id_same(action_id))
         {
             let redo_action = self.undo_actions.remove(position);
-            let add_to_active_actions =
-                IsActionShouldBeAddedToActiveActions::create(true);
+            let add_to_active_actions = true;
             self.current_action = Some((redo_action, add_to_active_actions));
         }
         Ok(())
@@ -254,11 +265,9 @@ impl ActionsRouter
             .or(Err(JsValue::from("Actions router: Show point info action: \
                 Point number could not be converted to u32!")))?;
         let action_id = 0;
-        let action_type = ActionType::ShowPointInfo(ObjectUIntNumber::create(point_number),
-            Handle::create(show_object_info_handle.clone()));
+        let action_type = ActionType::ShowPointInfo(point_number, show_object_info_handle.clone());
         let action = Action::create(action_id, action_type);
-        let add_to_active_actions =
-            IsActionShouldBeAddedToActiveActions::create(false);
+        let add_to_active_actions = false;
         self.current_action = Some((action, add_to_active_actions));
         Ok(())
     }
@@ -272,11 +281,9 @@ impl ActionsRouter
             .or(Err(JsValue::from("Actions router: Show line info action: \
                 Line number could not be converted to u32!")))?;
         let action_id = 0;
-        let action_type = ActionType::ShowLineInfo(ObjectUIntNumber::create(line_number),
-            Handle::create(show_object_info_handle.clone()));
+        let action_type = ActionType::ShowLineInfo(line_number, show_object_info_handle.clone());
         let action = Action::create(action_id, action_type);
-        let add_to_active_actions =
-            IsActionShouldBeAddedToActiveActions::create(false);
+        let add_to_active_actions = false;
         self.current_action = Some((action, add_to_active_actions));
         Ok(())
     }
@@ -286,11 +293,9 @@ impl ActionsRouter
     {
         let selected_view = view["selectedView"].to_string();
         let action_id = 0;
-        let action_type = ActionType::ChangeView(ObjectName::create(selected_view),
-            Handle::create(change_view_handle.clone()));
+        let action_type = ActionType::ChangeView(selected_view, change_view_handle.clone());
         let action = Action::create(action_id, action_type);
-        let add_to_active_actions =
-            IsActionShouldBeAddedToActiveActions::create(false);
+        let add_to_active_actions = false;
         self.current_action = Some((action, add_to_active_actions));
     }
 
@@ -313,13 +318,12 @@ impl ActionsRouter
                                 coordinates,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    let number = point_number.get_number();
                                     let x = coordinates.get_x();
                                     let y = coordinates.get_y();
                                     let z = coordinates.get_z();
-                                    add_point_to_geometry(action_id, number, x, y, z,
-                                        is_action_id_should_be_increased.get_value())?;
-                                    if add_to_active_actions.get_value() == true
+                                    add_point_to_geometry(action_id, *point_number, x, y, z,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions == true
                                     {
                                         self.active_actions.push(action.clone());
                                     }
@@ -330,13 +334,12 @@ impl ActionsRouter
                                 new_coordinates,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    let number = point_number.get_number();
                                     let x = new_coordinates.get_x();
                                     let y = new_coordinates.get_y();
                                     let z = new_coordinates.get_z();
-                                    update_point_in_geometry(action_id, number, x, y, z,
-                                        is_action_id_should_be_increased.get_value())?;
-                                    if add_to_active_actions.get_value() == true
+                                    update_point_in_geometry(action_id, *point_number, x, y, z,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions == true
                                     {
                                         self.active_actions.push(action.clone());
                                     }
@@ -345,10 +348,9 @@ impl ActionsRouter
                                 point_number,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    let number = point_number.get_number();
-                                    delete_point_from_geometry(action_id, number,
-                                        is_action_id_should_be_increased.get_value())?;
-                                    if add_to_active_actions.get_value()
+                                    delete_point_from_geometry(action_id, *point_number,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions
                                     {
                                         self.active_actions.push(action.clone());
                                     }
@@ -357,10 +359,9 @@ impl ActionsRouter
                                 point_number,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    let number = point_number.get_number();
-                                    undo_delete_point_from_geometry(action_id, number,
-                                        is_action_id_should_be_increased.get_value())?;
-                                    if add_to_active_actions.get_value() == true
+                                    undo_delete_point_from_geometry(action_id, *point_number,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions == true
                                     {
                                         self.active_actions.push(action.clone());
                                     }
@@ -371,12 +372,10 @@ impl ActionsRouter
                                 end_point_number,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    let number = line_number.get_number();
-                                    let start_point_number = start_point_number.get_number();
-                                    let end_point_number = end_point_number.get_number();
-                                    add_line_to_geometry(action_id, number, start_point_number,
-                                        end_point_number, is_action_id_should_be_increased.get_value())?;
-                                    if add_to_active_actions.get_value() == true
+                                    add_line_to_geometry(action_id, *line_number,
+                                        *start_point_number, *end_point_number,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions == true
                                     {
                                         self.active_actions.push(action.clone());
                                     }
@@ -389,12 +388,10 @@ impl ActionsRouter
                                 new_end_point_number,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    let number = line_number.get_number();
-                                    let start_point_number = new_start_point_number.get_number();
-                                    let end_point_number = new_end_point_number.get_number();
-                                    update_line_in_geometry(action_id, number, start_point_number,
-                                        end_point_number, is_action_id_should_be_increased.get_value())?;
-                                    if add_to_active_actions.get_value() == true
+                                    update_line_in_geometry(action_id, *line_number,
+                                        *new_start_point_number, *new_end_point_number,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions == true
                                     {
                                         self.active_actions.push(action.clone());
                                     }
@@ -403,10 +400,9 @@ impl ActionsRouter
                                 line_number,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    let number = line_number.get_number();
-                                    delete_line_from_geometry(action_id, number,
-                                        is_action_id_should_be_increased.get_value())?;
-                                    if add_to_active_actions.get_value() == true
+                                    delete_line_from_geometry(action_id, *line_number,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions == true
                                     {
                                         self.active_actions.push(action.clone());
                                     }
@@ -415,10 +411,9 @@ impl ActionsRouter
                                 line_number,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    let number = line_number.get_number();
-                                    undo_delete_line_from_geometry(action_id, number,
-                                        is_action_id_should_be_increased.get_value())?;
-                                    if add_to_active_actions.get_value() == true
+                                    undo_delete_line_from_geometry(action_id, *line_number,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions == true
                                     {
                                         self.active_actions.push(action.clone());
                                     }
@@ -429,27 +424,26 @@ impl ActionsRouter
                     point_number,
                     show_object_info_handle) =>
                     {
-                        let number = point_number.get_number();
-                        let point_info = show_point_info(number)?;
+                        let point_info = show_point_info(*point_number)?;
                         let this = JsValue::null();
-                        let _ = show_object_info_handle.get_handle().call1(&this, &point_info)?;
+                        let _ = show_object_info_handle.call1(&this, &point_info)?;
                     },
                 ActionType::ShowLineInfo(
                     line_number,
                     show_object_info_handle) =>
                     {
-                        let number = line_number.get_number();
-                        let line_info_from_geometry = show_line_info_from_geometry(number)?;
+                        let line_info_from_geometry =
+                            show_line_info_from_geometry(*line_number)?;
                         let this = JsValue::null();
-                        let _ = show_object_info_handle.get_handle().call1(&this, &line_info_from_geometry)?;
+                        let _ = show_object_info_handle.call1(&this, &line_info_from_geometry)?;
                     },
                 ActionType::ChangeView(
                     selected_view_name,
                     change_view_handle) =>
                     {
-                        let view_name = selected_view_name.get_name();
+                        let view_name = selected_view_name.clone();
                         let this = JsValue::null();
-                        let _ = change_view_handle.get_handle().call1(&this, &JsValue::from(view_name))?;
+                        let _ = change_view_handle.call1(&this, &JsValue::from(view_name))?;
                     },
                 ActionType::PropertiesActionType(properties_action_type) =>
                     {
@@ -461,16 +455,56 @@ impl ActionsRouter
                                 poisson_ratio,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    let name = material_name.get_name();
-                                    let young_modulus = young_modulus.get_number();
-                                    let poisson_ratio = poisson_ratio.get_number();
-                                    add_material_to_properties(action_id, name, young_modulus,
-                                        poisson_ratio, is_action_id_should_be_increased.get_value())?;
-                                    if add_to_active_actions.get_value() == true
+                                    let name = material_name.clone();
+                                    add_material_to_properties(action_id, name,
+                                        *young_modulus, *poisson_ratio,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions == true
                                     {
                                         self.active_actions.push(action.clone());
                                     }
-                                }
+                                },
+                            PropertiesActionType::UpdateMaterial(
+                                material_name,
+                                _old_young_modulus,
+                                _old_poisson_ratio,
+                                new_young_modulus,
+                                new_poisson_ratio,
+                                is_action_id_should_be_increased) =>
+                                {
+                                    let name = material_name.clone();
+                                    update_material_in_properties(action_id, name,
+                                        *new_young_modulus, *new_poisson_ratio,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions == true
+                                    {
+                                        self.active_actions.push(action.clone());
+                                    }
+                                },
+                            PropertiesActionType::DeleteMaterial(
+                                material_name,
+                                is_action_id_should_be_increased) =>
+                                {
+                                    let name = material_name.clone();
+                                    delete_material_from_properties(action_id, name,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions == true
+                                    {
+                                        self.active_actions.push(action.clone());
+                                    }
+                                },
+                            PropertiesActionType::UndoDeleteMaterial(
+                                material_name,
+                                is_action_id_should_be_increased) =>
+                                {
+                                    let name = material_name.clone();
+                                    undo_delete_material_from_properties(action_id, name,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions == true
+                                    {
+                                        self.active_actions.push(action.clone());
+                                    }
+                                },
                         }
                     }
             }
@@ -512,6 +546,14 @@ impl ActionsRouter
         else if let Some(material_data) = serialized_message.get(ADD_MATERIAL_MESSAGE_HEADER)
         {
             self.handle_add_material_message(&material_data)?;
+        }
+        else if let Some(material_data) = serialized_message.get(UPDATE_MATERIAL_MESSAGE_HEADER)
+        {
+            self.handle_update_material_message(&material_data)?;
+        }
+        else if let Some(material_data) = serialized_message.get(DELETE_MATERIAL_MESSAGE_HEADER)
+        {
+            self.handle_delete_material_message(&material_data)?;
         }
         else if let Some(undo_data) = serialized_message.get(UNDO_MESSAGE_HEADER)
         {

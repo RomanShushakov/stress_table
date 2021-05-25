@@ -1,23 +1,4 @@
 #[derive(Clone, Debug)]
-pub struct ObjectUIntNumber(u32);
-
-
-impl ObjectUIntNumber
-{
-    pub fn create(number: u32) -> ObjectUIntNumber
-    {
-        ObjectUIntNumber(number)
-    }
-
-
-    pub fn get_number(&self) -> u32
-    {
-        self.0
-    }
-}
-
-
-#[derive(Clone, Debug)]
 pub struct Coordinates
 {
     x: f64,
@@ -53,100 +34,27 @@ impl Coordinates
 }
 
 
-#[derive(Clone, Debug)]
-pub struct IsActionIdShouldBeIncreased(bool);
-
-
-impl IsActionIdShouldBeIncreased
-{
-    pub fn create(is_action_id_should_be_increased: bool) -> IsActionIdShouldBeIncreased
-    {
-        IsActionIdShouldBeIncreased(is_action_id_should_be_increased)
-    }
-
-
-    pub fn get_value(&self) -> bool
-    {
-        self.0
-    }
-}
-
-
 #[derive(Debug, Clone)]
 pub enum GeometryActionType
 {
-    AddPoint(ObjectUIntNumber, Coordinates, IsActionIdShouldBeIncreased),
-    UpdatePoint(ObjectUIntNumber, Coordinates, Coordinates, IsActionIdShouldBeIncreased),
-    DeletePoint(ObjectUIntNumber, IsActionIdShouldBeIncreased),
-    UndoDeletePoint(ObjectUIntNumber, IsActionIdShouldBeIncreased),
-    AddLine(ObjectUIntNumber, ObjectUIntNumber, ObjectUIntNumber, IsActionIdShouldBeIncreased),
-    UpdateLine(ObjectUIntNumber, ObjectUIntNumber, ObjectUIntNumber, ObjectUIntNumber, ObjectUIntNumber, IsActionIdShouldBeIncreased),
-    DeleteLine(ObjectUIntNumber, IsActionIdShouldBeIncreased),
-    UndoDeleteLine(ObjectUIntNumber, IsActionIdShouldBeIncreased),
-}
-
-
-#[derive(Debug, Clone)]
-pub struct Handle(js_sys::Function);
-
-
-impl Handle
-{
-    pub fn create(handle: js_sys::Function) -> Handle
-    {
-        Handle(handle)
-    }
-
-
-    pub fn get_handle(&self) -> js_sys::Function
-    {
-        self.0.clone()
-    }
-}
-
-
-#[derive(Debug, Clone)]
-pub struct ObjectName(String);
-
-
-impl ObjectName
-{
-    pub fn create(name: String) -> ObjectName
-    {
-        ObjectName(name)
-    }
-
-
-    pub fn get_name(&self) -> String
-    {
-        self.0.clone()
-    }
-}
-
-
-#[derive(Clone, Debug)]
-pub struct ObjectF64Number(f64);
-
-
-impl ObjectF64Number
-{
-    pub fn create(number: f64) -> ObjectF64Number
-    {
-        ObjectF64Number(number)
-    }
-
-
-    pub fn get_number(&self) -> f64
-    {
-        self.0
-    }
+    AddPoint(u32, Coordinates, bool),   // ( number, Coordinates, is_action_id_should_be_increased )
+    UpdatePoint(u32, Coordinates, Coordinates, bool),   // ( number, Coordinates, Coordinates, is_action_id_should_be_increased )
+    DeletePoint(u32, bool), // ( number, is_action_id_should_be_increased )
+    UndoDeletePoint(u32, bool), // ( number, is_action_id_should_be_increased )
+    AddLine(u32, u32, u32, bool),   // ( number, start_point_number, end_point_number, is_action_id_should_be_increased )
+    UpdateLine(u32, u32, u32, u32, u32, bool),  // ( number, old_start_point_number, old_end_point_number, new_start_point_number, new_end_point_number, is_action_id_should_be_increased )
+    DeleteLine(u32, bool),  // ( number, is_action_id_should_be_increased )
+    UndoDeleteLine(u32, bool),  // ( number, is_action_id_should_be_increased )
 }
 
 
 #[derive(Debug, Clone)]
 pub enum PropertiesActionType
 {
-    AddMaterial(ObjectName, ObjectF64Number, ObjectF64Number, IsActionIdShouldBeIncreased),
+    AddMaterial(String, f64, f64, bool),    // ( name, young_modulus, poisson_ratio, is_action_id_should_be_increased )
+    UpdateMaterial(String, f64, f64, f64, f64, bool),    // ( name, old_young_modulus, old_poisson_ratio, new_young_modulus, new_poisson_ratio, is_action_id_should_be_increased )
+    DeleteMaterial(String, bool),   // ( name, is_action_id_should_be_increased )
+    UndoDeleteMaterial(String, bool), // ( name, is_action_id_should_be_increased )
 }
 
 
@@ -154,9 +62,9 @@ pub enum PropertiesActionType
 pub enum ActionType
 {
     GeometryActionType(GeometryActionType),
-    ShowPointInfo(ObjectUIntNumber, Handle),
-    ShowLineInfo(ObjectUIntNumber, Handle),
-    ChangeView(ObjectName, Handle),
+    ShowPointInfo(u32, js_sys::Function),   // ( number, show_object_info_handle )
+    ShowLineInfo(u32, js_sys::Function),    // ( number, show_object_info_handle )
+    ChangeView(String, js_sys::Function),   // ( name, change_view_handle )
     PropertiesActionType(PropertiesActionType),
 }
 

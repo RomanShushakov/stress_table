@@ -48,7 +48,7 @@ fn dispatch_custom_event(detail: serde_json::Value, event_type: &str, query_sele
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 struct Point
 {
     x: f64,
@@ -86,7 +86,7 @@ impl Point
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 struct Line
 {
     start_point_number: u32,
@@ -125,7 +125,7 @@ impl Line
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 struct DeletedPoint
 {
     number: u32,
@@ -149,7 +149,7 @@ impl DeletedPoint
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 struct DeletedLine
 {
     number: u32,
@@ -189,7 +189,6 @@ impl DeletedLine
 #[wasm_bindgen]
 pub struct Geometry
 {
-    max_action_id: u32,
     points: HashMap<u32, Point>,    // { point_number: Point }
     lines: HashMap<u32, Line>,  // { line_number: Line }
     points_in_lines: HashMap<u32, Vec<u32>>,    // { point_number: Vec<line_numbers> }
@@ -203,30 +202,37 @@ impl Geometry
 {
     pub fn create() -> Geometry
     {
-        let max_action_id = 0u32;
         let points = HashMap::new();
         let lines = HashMap::new();
         let points_in_lines = HashMap::new();
         let deleted_points = HashMap::new();
         let deleted_lines = HashMap::new();
-        Geometry { max_action_id, points, lines, points_in_lines, deleted_points, deleted_lines }
+        Geometry { points, lines, points_in_lines, deleted_points, deleted_lines }
     }
 
 
     fn clear_deleted_lines_by_action_id(&mut self, action_id: u32)
     {
-        for action_id in action_id..=self.max_action_id
+        for action_id in self.deleted_lines.clone()
+            .keys()
+            .filter(|deletion_action_id| **deletion_action_id >= action_id)
+            .collect::<Vec<&u32>>()
+            .iter()
         {
-            let _ = self.deleted_lines.remove(&action_id);
+            let _ = self.deleted_lines.remove(action_id);
         }
     }
 
 
     fn clear_deleted_points_by_action_id(&mut self, action_id: u32)
     {
-        for action_id in action_id..=self.max_action_id
+        for action_id in self.deleted_points.clone()
+            .keys()
+            .filter(|deletion_action_id| **deletion_action_id >= action_id)
+            .collect::<Vec<&u32>>()
+            .iter()
         {
-            let _ = self.deleted_points.remove(&action_id);
+            let _ = self.deleted_points.remove(action_id);
         }
     }
 
@@ -236,7 +242,6 @@ impl Geometry
     {
         self.clear_deleted_lines_by_action_id(action_id);
         self.clear_deleted_points_by_action_id(action_id);
-        self.max_action_id = action_id;
         if self.points.contains_key(&number)
         {
             let error_message = &format!("Geometry: Add point action: Point with \
@@ -255,8 +260,8 @@ impl Geometry
         let detail = json!({ "point_data": { "number": number, "x": x, "y": y, "z": z },
             "is_action_id_should_be_increased": is_action_id_should_be_increased });
         dispatch_custom_event(detail, ADD_POINT_EVENT_NAME, EVENT_TARGET)?;
-        log(&format!("Geometry: Max action id: {}, Points: {:?}, Lines: {:?}, Points in \
-            lines: {:?}, Deleted points: {:?}, Deleted lines {:?}", self.max_action_id, self.points,
+        log(&format!("Geometry: Points: {:?}, Lines: {:?}, Points in \
+            lines: {:?}, Deleted points: {:?}, Deleted lines {:?}", self.points,
             self.lines, self.points_in_lines, self.deleted_points, self.deleted_lines));
         Ok(())
     }
@@ -267,7 +272,6 @@ impl Geometry
     {
         self.clear_deleted_lines_by_action_id(action_id);
         self.clear_deleted_points_by_action_id(action_id);
-        self.max_action_id = action_id;
         if self.points.values().position(|point| point.coordinates_same(x, y, z)).is_some()
         {
             let error_message = &format!("Geometry: Update point action: Point with \
@@ -281,8 +285,8 @@ impl Geometry
             let detail = json!({ "point_data": { "number": number, "x": x, "y": y, "z": z },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, UPDATE_POINT_EVENT_NAME, EVENT_TARGET)?;
-            log(&format!("Geometry: Max action id: {}, Points: {:?}, Lines: {:?}, Points in \
-                lines: {:?}, Deleted points: {:?}, Deleted lines {:?}", self.max_action_id, self.points,
+            log(&format!("Geometry: Points: {:?}, Lines: {:?}, Points in \
+                lines: {:?}, Deleted points: {:?}, Deleted lines {:?}", self.points,
                 self.lines, self.points_in_lines, self.deleted_points, self.deleted_lines));
             Ok(())
         }
@@ -300,7 +304,6 @@ impl Geometry
     {
         self.clear_deleted_lines_by_action_id(action_id);
         self.clear_deleted_points_by_action_id(action_id);
-        self.max_action_id = action_id;
         if let Some(lines_numbers) = self.points_in_lines.remove(&number)
         {
             let mut current_deleted_lines = Vec::new();
@@ -325,8 +328,8 @@ impl Geometry
             let detail = json!({ "point_data": { "number": number },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, DELETE_POINT_EVENT_NAME, EVENT_TARGET)?;
-            log(&format!("Geometry: Max action id: {}, Points: {:?}, Lines: {:?}, Points in \
-                lines: {:?}, Deleted points: {:?}, Deleted lines {:?}", self.max_action_id, self.points,
+            log(&format!("Geometry: Points: {:?}, Lines: {:?}, Points in \
+                lines: {:?}, Deleted points: {:?}, Deleted lines {:?}", self.points,
                 self.lines, self.points_in_lines, self.deleted_points, self.deleted_lines));
             Ok(())
         }
@@ -398,10 +401,9 @@ impl Geometry
                     }
                 }
             }
-            log(&format!("Geometry: Max action id: {}, Points: {:?}, Lines: {:?}, Points in \
-                lines: {:?}, Deleted points: {:?}, Deleted lines {:?}", self.max_action_id,
-                self.points, self.lines, self.points_in_lines, self.deleted_points,
-                self.deleted_lines));
+            log(&format!("Geometry: Points: {:?}, Lines: {:?}, Points in \
+                lines: {:?}, Deleted points: {:?}, Deleted lines {:?}", self.points,
+                self.lines, self.points_in_lines, self.deleted_points, self.deleted_lines));
             Ok(())
         }
         else
@@ -417,7 +419,6 @@ impl Geometry
         end_point_number: u32, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_deleted_lines_by_action_id(action_id);
-        self.max_action_id = action_id;
         if self.lines.contains_key(&number)
         {
             let error_message = &format!("Geometry: Add line action: Line with \
@@ -490,8 +491,8 @@ impl Geometry
             "start_point_number": start_point_number, "end_point_number": end_point_number },
             "is_action_id_should_be_increased": is_action_id_should_be_increased });
         dispatch_custom_event(detail, ADD_LINE_EVENT_NAME, EVENT_TARGET)?;
-        log(&format!("Geometry: Max action id: {}, Points: {:?}, Lines: {:?}, Points in \
-            lines: {:?}, Deleted points: {:?}, Deleted lines {:?}", self.max_action_id, self.points,
+        log(&format!("Geometry: Points: {:?}, Lines: {:?}, Points in \
+            lines: {:?}, Deleted points: {:?}, Deleted lines {:?}", self.points,
             self.lines, self.points_in_lines, self.deleted_points, self.deleted_lines));
         Ok(())
     }
@@ -501,7 +502,6 @@ impl Geometry
         end_point_number: u32, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_deleted_lines_by_action_id(action_id);
-        self.max_action_id = action_id;
         if self.lines.values().position(|line| line.start_and_end_points_same(
             start_point_number, end_point_number)).is_some()
         {
@@ -597,8 +597,8 @@ impl Geometry
                 number {} does not exist!", number);
             return Err(JsValue::from(error_message));
         }
-        log(&format!("Geometry: Max action id: {}, Points: {:?}, Lines: {:?}, Points in \
-            lines: {:?}, Deleted points: {:?}, Deleted lines {:?}", self.max_action_id, self.points,
+        log(&format!("Geometry: Points: {:?}, Lines: {:?}, Points in \
+            lines: {:?}, Deleted points: {:?}, Deleted lines {:?}", self.points,
             self.lines, self.points_in_lines, self.deleted_points, self.deleted_lines));
         Ok(())
     }
@@ -608,7 +608,6 @@ impl Geometry
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_deleted_lines_by_action_id(action_id);
-        self.max_action_id = action_id;
         if let Some((line_number, line)) = self.lines.remove_entry(&number)
         {
             let (start_point_number, end_point_number) = line.extract_points_numbers();
@@ -635,9 +634,9 @@ impl Geometry
             let detail = json!({ "line_data": { "number": number },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, DELETE_LINE_EVENT_NAME, EVENT_TARGET)?;
-            log(&format!("Geometry: Points: {:?}, lines: {:?}, deleted points: {:?}, \
-                deleted lines {:?}", self.points, self.lines, self.deleted_points,
-                self.deleted_lines));
+            log(&format!("Geometry: Points: {:?}, Lines: {:?}, Points in \
+                lines: {:?}, Deleted points: {:?}, Deleted lines {:?}", self.points,
+                self.lines, self.points_in_lines, self.deleted_points, self.deleted_lines));
             Ok(())
         }
         else

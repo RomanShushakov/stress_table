@@ -338,6 +338,20 @@ class FeaMaterialUpdateMaterialMenu extends HTMLElement {
         this.defineMaterialNameOptions();
     }
 
+    set updateMaterialInClient(material) {
+        let materialInProps = this.props.materials.find(existedMaterial => existedMaterial.name == material.name);
+        materialInProps.youngModulus = material.youngModulus;
+        materialInProps.poissonRatio = material.poissonRatio;
+        this.defineMaterialNameOptions();
+    }
+
+    set deleteMaterialFromClient(material) {
+        let materialIndexInProps = this.props.materials.findIndex(existedMaterial => existedMaterial.name == material.name);
+        this.props.materials.splice(materialIndexInProps, 1);
+        this.props.materials.sort((a, b) => a.name - b.name);
+        this.defineMaterialNameOptions();
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {
@@ -465,7 +479,7 @@ class FeaMaterialUpdateMaterialMenu extends HTMLElement {
             "old_material_values": { 
                 "young_modulus":  oldMaterialValues.youngModulus,
                 "poisson_ratio": oldMaterialValues.poissonRatio },
-            "new_point_values": { 
+            "new_material_values": { 
                 "young_modulus": inputtedYoungModulusField.value,
                 "poisson_ratio": inputtedPoissonRatio.value }
         }};

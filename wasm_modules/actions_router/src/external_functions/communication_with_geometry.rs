@@ -12,9 +12,6 @@ extern "C"
     pub fn update_point_in_geometry(action_id: u32, number: u32, x: f64, y: f64, z: f64,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
-    #[wasm_bindgen(js_name = addWholeGeometryToPreprocessor)]
-    pub fn add_whole_geometry_to_preprocessor(is_action_id_should_be_increased: bool);
-
     #[wasm_bindgen(js_name = deletePointFromGeometry, catch)]
     pub fn delete_point_from_geometry(action_id: u32, number: u32,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
@@ -38,6 +35,9 @@ extern "C"
     #[wasm_bindgen(js_name = undoDeleteLineFromGeometry, catch)]
     pub fn undo_delete_line_from_geometry(action_id: u32, number: u32,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
+
+    #[wasm_bindgen(js_name = addWholeGeometryToPreprocessor)]
+    pub fn add_whole_geometry_to_preprocessor(is_action_id_should_be_increased: bool);
 
     #[wasm_bindgen(js_name = showPointInfo, catch)]
     pub fn show_point_info(number: u32) -> Result<JsValue, JsValue>;

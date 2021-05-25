@@ -58,6 +58,8 @@ class FeaApp extends HTMLElement {
         this.addEventListener("delete_line_server_message", (event) => this.handleDeleteLineServerMessage(event));
 
         this.addEventListener("add_material_server_message", (event) => this.handleAddMaterialServerMessage(event));
+        this.addEventListener("update_material_server_message", (event) => this.handleUpdateMaterialServerMessage(event));
+        this.addEventListener("delete_material_server_message", (event) => this.handleDeleteMaterialServerMessage(event));
 
         this.addEventListener("decreaseActionId", (event) => this.handleDecreaseActionIdMessage(event));
     }
@@ -242,6 +244,32 @@ class FeaApp extends HTMLElement {
             youngModulus: event.detail.material_data.young_modulus,
             poissonRatio: event.detail.material_data.poisson_ratio };
         this.querySelector("fea-preprocessor-menu").addMaterialToClient = material;
+        event.stopPropagation();
+    }
+
+
+    handleUpdateMaterialServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;
+            this.updatePreprocessorMenuActionId();
+            this.updateTitleBarActionId();
+        }
+        const material = { 
+            name: event.detail.material_data.name,
+            youngModulus: event.detail.material_data.young_modulus,
+            poissonRatio: event.detail.material_data.poisson_ratio };
+        this.querySelector("fea-preprocessor-menu").updateMaterialInClient = material;
+        event.stopPropagation();
+    }
+
+    handleDeleteMaterialServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;
+            this.updatePreprocessorMenuActionId();
+            this.updateTitleBarActionId();
+        }
+        const material = { number: event.detail.material_data.name };
+        this.querySelector("fea-preprocessor-menu").deleteMaterialFromClient = material;
         event.stopPropagation();
     }
 

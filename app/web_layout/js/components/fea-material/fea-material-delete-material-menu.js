@@ -218,6 +218,16 @@ class FeaMaterialDeleteMaterialMenu extends HTMLElement {
         this.defineMaterialNameOptions();
     }
 
+    set updateMaterialInClient(_material) {
+    }
+
+    set deleteMaterialFromClient(material) {
+        let materialIndexInProps = this.props.materials.findIndex(existedMaterial => existedMaterial.name == material.name);
+        this.props.materials.splice(materialIndexInProps, 1);
+        this.props.materials.sort((a, b) => a.name - b.name);
+        this.defineMaterialNameOptions();
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {

@@ -129,6 +129,20 @@ class FeaPreprocessorMenu extends HTMLElement {
         this.addMaterialToChildren(material);
     }
 
+    set updateMaterialInClient(material) {
+        let materialInProps = this.props.materials.find(existedMaterial => existedMaterial.name == material.name);
+        materialInProps.youngModulus = material.youngModulus;
+        materialInProps.poissonRatio = material.poissonRatio;
+        this.updateMaterialInChildren(material);
+    }
+
+    set deleteMaterialFromClient(material) {
+        let materialIndexInProps = this.props.materials.findIndex(existedMaterial => existedMaterial.name == material.name);
+        this.props.materials.splice(materialIndexInProps, 1);
+        this.props.materials.sort((a, b) => a.name - b.name);
+        this.deleteMaterialFromChildren(material);
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {
@@ -266,6 +280,22 @@ class FeaPreprocessorMenu extends HTMLElement {
         for (let i = 0; i < this.state.childrenNamesForMaterialCrud.length; i++) {
             if (this.querySelector(this.state.childrenNamesForMaterialCrud[i]) !== null) {
                 this.querySelector(this.state.childrenNamesForMaterialCrud[i]).addMaterialToClient = material;
+            }
+        } 
+    }
+
+    updateMaterialInChildren(material) {
+        for (let i = 0; i < this.state.childrenNamesForMaterialCrud.length; i++) {
+            if (this.querySelector(this.state.childrenNamesForMaterialCrud[i]) !== null) {
+                this.querySelector(this.state.childrenNamesForMaterialCrud[i]).updateMaterialInClient = material;
+            }
+        } 
+    }
+
+    deleteMaterialFromChildren(material) {
+        for (let i = 0; i < this.state.childrenNamesForMaterialCrud.length; i++) {
+            if (this.querySelector(this.state.childrenNamesForMaterialCrud[i]) !== null) {
+                this.querySelector(this.state.childrenNamesForMaterialCrud[i]).deleteMaterialFromClient = material;
             }
         } 
     }

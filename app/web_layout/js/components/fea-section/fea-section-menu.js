@@ -10,18 +10,18 @@ class FeaSectionMenu extends HTMLElement {
 
         this.state = {
             childrenNamesForActionIdUpdate: [
-                "fea-geometry-point-menu",
-                "fea-geometry-line-menu"
+                "fea-section-truss-menu",
+                "fea-section-beam-menu"
             ],
 
-            childrenNamesForPointCrud: [
-                "fea-geometry-point-menu",
-                "fea-geometry-line-menu",
-            ],
+            // childrenNamesForPointCrud: [
+            //     "fea-geometry-point-menu",
+            //     "fea-geometry-line-menu",
+            // ],
 
-            childrenNamesForLineCrud: [
-                "fea-geometry-line-menu",
-            ],
+            // childrenNamesForLineCrud: [
+            //     "fea-geometry-line-menu",
+            // ],
         };
 
         this.attachShadow({ mode: "open" });
@@ -132,47 +132,47 @@ class FeaSectionMenu extends HTMLElement {
     }
 
     activateMenu(event) {
-        // switch (event.detail.menuName) {
-        //     case "geometry-point-menu":
-        //         const feaGeometryPointMenu = document.createElement("fea-geometry-point-menu");
-        //         this.append(feaGeometryPointMenu);
-        //         event.stopPropagation();
-        //         this.querySelector("fea-geometry-point-menu").actionId = this.props.actionId;
-        //         for (let [pointNumber, coordinates] of this.props.points) {
-        //             const point = { "number": pointNumber, "x": coordinates.x, "y": coordinates.y, "z": coordinates.z };
-        //             this.querySelector("fea-geometry-point-menu").addPointToClient = point;
-        //         }
-        //         break;
-        //     case "geometry-line-menu":
-        //         const feaGeometryLineMenu = document.createElement("fea-geometry-line-menu");
-        //         this.append(feaGeometryLineMenu);
-        //         event.stopPropagation();
-        //         this.querySelector("fea-geometry-line-menu").actionId = this.props.actionId;
-        //         for (let [pointNumber, coordinates] of this.props.points) {
-        //             const point = { "number": pointNumber, "x": coordinates.x, "y": coordinates.y, "z": coordinates.z };
-        //             this.querySelector("fea-geometry-line-menu").addPointToClient = point;
-        //         }
-        //         for (let [lineNumber, linePointsNumbers] of this.props.lines) {
-        //             const line = { "number": lineNumber,
-        //                 "startPointNumber": linePointsNumbers.startPointNumber,
-        //                 "endPointNumber": linePointsNumbers.endPointNumber };
-        //             this.querySelector("fea-geometry-line-menu").addLineToClient = line;
-        //         }
-        //         break;
-        // }
+        switch (event.detail.menuName) {
+            case "section-truss-menu":
+                const feaSectionTrussMenu = document.createElement("fea-section-truss-menu");
+                this.append(feaSectionTrussMenu);
+                event.stopPropagation();
+                this.querySelector("fea-section-truss-menu").actionId = this.props.actionId;
+                // for (let [pointNumber, coordinates] of this.props.points) {
+                //     const point = { "number": pointNumber, "x": coordinates.x, "y": coordinates.y, "z": coordinates.z };
+                //     this.querySelector("fea-geometry-point-menu").addPointToClient = point;
+                // }
+                break;
+            case "section-beam-menu":
+                const feaSectionBeamMenu = document.createElement("fea-section-beam-menu");
+                this.append(feaSectionBeamMenu);
+                event.stopPropagation();
+                this.querySelector("fea-section-beam-menu").actionId = this.props.actionId;
+                // for (let [pointNumber, coordinates] of this.props.points) {
+                //     const point = { "number": pointNumber, "x": coordinates.x, "y": coordinates.y, "z": coordinates.z };
+                //     this.querySelector("fea-geometry-line-menu").addPointToClient = point;
+                // }
+                // for (let [lineNumber, linePointsNumbers] of this.props.lines) {
+                //     const line = { "number": lineNumber,
+                //         "startPointNumber": linePointsNumbers.startPointNumber,
+                //         "endPointNumber": linePointsNumbers.endPointNumber };
+                //     this.querySelector("fea-geometry-line-menu").addLineToClient = line;
+                // }
+                break;
+        }
     }
 
     deactivateMenu(event) {
-        // switch (event.detail.menuName) {
-        //     case "geometry-point-menu":
-        //         this.querySelector("fea-geometry-point-menu").remove();
-        //         event.stopPropagation();
-        //         break;
-        //     case "geometry-line-menu":
-        //         this.querySelector("fea-geometry-line-menu").remove();
-        //         event.stopPropagation();
-        //         break;
-        // }
+        switch (event.detail.menuName) {
+            case "section-truss-menu":
+                this.querySelector("fea-section-truss-menu").remove();
+                event.stopPropagation();
+                break;
+            case "section-beam-menu":
+                this.querySelector("fea-section-beam-menu").remove();
+                event.stopPropagation();
+                break;
+        }
     }
 
     // updateChildrenActionId() {

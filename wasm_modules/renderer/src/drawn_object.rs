@@ -69,6 +69,9 @@ pub const DRAWN_LINE_OBJECTS_BASE_RADIUS: f32 = 0.006; // the radius of cylinder
 
 pub const DRAWN_LINE_OBJECTS_DENOTATION_SHIFT: f32 = 0.01;
 
+pub const SELECTION_RECTANGLE_STROKE_COLOR: &str = "rgb(217, 217, 217)"; // white
+pub const SELECTION_RECTANGLE_FILL_COLOR: &str = "rgba(37, 55, 95, 0.5)"; // white
+
 // pub const CANVAS_BACKGROUND_COLOR: &str = "black";
 
 pub const DRAWN_DISPLACEMENTS_COLOR: [f32; 4] = [1.0, 0.5, 0.0, 1.0]; // orange
@@ -322,7 +325,7 @@ impl DrawnObject
 
 
     pub fn add_point_object(&mut self, point_objects: &HashMap<PointObjectKey, PointObject>,
-        gl_mode: GLMode, under_cursor_color: &[u8; 4], selected_color: &[u8; 4])
+        gl_mode: GLMode, under_selection_box_colors: &Vec<u8>, selected_colors: &Vec<u8>)
         -> Result<(), JsValue>
     {
         let start_index =
@@ -341,7 +344,7 @@ impl DrawnObject
                     point_object.get_normalized_z()?]);
             let point_object_color = define_drawn_object_color(
                 &gl_mode, point_object.get_uid()?,
-                selected_color, under_cursor_color, &initial_color);
+                selected_colors, under_selection_box_colors, &initial_color);
             self.colors_values.extend(&point_object_color);
             self.indexes_numbers.push(start_index + i as u32);
         }
@@ -356,8 +359,8 @@ impl DrawnObject
     pub fn add_line_objects(&mut self,
         point_objects: &HashMap<PointObjectKey, PointObject>,
         line_objects: &HashMap<LineObjectKey, LineObject>,
-        gl_mode: GLMode, under_cursor_color: &[u8; 4],
-        selected_color: &[u8; 4], base_points_number: u32,
+        gl_mode: GLMode, under_selection_box_colors: &Vec<u8>,
+        selected_colors: &Vec<u8>, base_points_number: u32,
         base_radius: f32) -> Result<(), JsValue>
     {
         let start_index =
@@ -371,7 +374,7 @@ impl DrawnObject
                     LineObjectType::Element => DRAWN_ELEMENTS_COLOR,
                 };
             let line_object_color = define_drawn_object_color(&gl_mode,
-                line_object.get_uid(), selected_color, under_cursor_color,
+                line_object.get_uid(), selected_colors, under_selection_box_colors,
                 &initial_color);
             let start_point_object_coordinates =
                 line_object.get_start_point_object_coordinates(point_objects)?;

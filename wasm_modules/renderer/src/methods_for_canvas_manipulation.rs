@@ -68,4 +68,18 @@ impl Renderer
     {
         self.props.phi = phi;
     }
+
+
+    pub fn selection_box_start(&mut self)
+    {
+        self.state.selection_box_start_x = Some(self.props.cursor_coord_x);
+        self.state.selection_box_start_y = Some(self.props.cursor_coord_y);
+    }
+
+
+    pub fn selection_box_end(&mut self)
+    {
+        self.state.selection_box_start_x = None;
+        self.state.selection_box_start_y = None;
+    }
 }

@@ -21,7 +21,7 @@ class FeaRenderer extends HTMLElement {
             isPaused: true,
             isRotate: false,
             isPan: false,
-            isShiftPressed: false,
+            isZoom: false,
         };
 
         this.attachShadow({ mode: "open" });
@@ -66,8 +66,8 @@ class FeaRenderer extends HTMLElement {
             </style>
             <div class="wrapper">
                 <div class="renderer-container">
-                    <canvas class="renderer-canvas-text"></canvas>
-                    <canvas class="renderer-canvas-gl"></canvas>
+                    <canvas class="renderer-canvas-text" oncontextmenu="return false;"></canvas>
+                    <canvas class="renderer-canvas-gl" oncontextmenu="return false;"></canvas>
                 </div>
                 <div class="object-info">
                     <p class="object-info-field">Object:</p>
@@ -75,14 +75,14 @@ class FeaRenderer extends HTMLElement {
             </div>
         `;
 
-        window.addEventListener("keydown", (event) => this.onKeyDown(event));
-        window.addEventListener("keyup", () => this.onKeyUp());
+        // window.addEventListener("keydown", (event) => this.onKeyDown(event));
+        window.addEventListener("keyup", (event) => this.onKeyUp(event));
         this.shadowRoot.querySelector(".renderer-canvas-text").addEventListener("mousemove", (event) => this.onMouseMove(event));
         this.shadowRoot.querySelector(".renderer-canvas-text").addEventListener("mouseleave", () => this.onMouseLeave());
-        this.shadowRoot.querySelector(".renderer-canvas-text").addEventListener("mousedown", () => this.onMouseDown());
-        this.shadowRoot.querySelector(".renderer-canvas-text").addEventListener("mouseup", () => this.onMouseUp());
+        this.shadowRoot.querySelector(".renderer-canvas-text").addEventListener("mousedown", (event) => this.onMouseDown(event));
+        this.shadowRoot.querySelector(".renderer-canvas-text").addEventListener("mouseup", (event) => this.onMouseUp(event));
         this.shadowRoot.querySelector(".renderer-canvas-text").addEventListener("wheel", (event) => this.onMouseWheel(event));
-        this.shadowRoot.querySelector(".renderer-canvas-text").addEventListener("click", () => this.onMouseClick());
+        // this.shadowRoot.querySelector(".renderer-canvas-text").addEventListener("click", () => this.onMouseClick());
     }
 
     set addPointToRenderer(point) {
@@ -227,15 +227,22 @@ class FeaRenderer extends HTMLElement {
     }
 
 
-    onKeyDown(event) {
-        if (event.shiftKey === true) {
-            this.state.isShiftPressed = true;
+    // onKeyDown(event) {
+    //     if (event.ctrlKey === true) {
+    //         console.log("Ctrl pressed");
+    //     }
+    //     if (event.altKey === true) {
+    //         console.log("Alt pressed");
+    //     }
+    // }
+
+
+    onKeyUp(event) {
+        if (event.key === "Control" || event.key === "Alt") {
+            this.state.isRotate = false;
+            this.state.isPan = false;
+            this.state.isZoom = false;
         }
-    }
-
-
-    onKeyUp() {
-        this.state.isShiftPressed = false;
     }
 
 
@@ -262,6 +269,18 @@ class FeaRenderer extends HTMLElement {
             const dy =  -event.movementY / this.props.canvasHeight;
             this.state.renderer.increment_dy(dy);
         }
+        if (this.state.isZoom === true) {
+            const dScale = this.state.renderer.extract_d_scale() + 
+                event.movementX / this.props.canvasWidth + 
+                event.movementY / this.props.canvasHeight;
+            if (1.0 + dScale > 50.0) {
+                this.state.renderer.change_d_scale(48.95);
+            } else if (1.0 + dScale < 0.0) {
+                this.state.renderer.change_d_scale(-0.95);
+            } else {
+                this.state.renderer.change_d_scale(dScale);
+            }
+        }
     }
 
 
@@ -272,25 +291,70 @@ class FeaRenderer extends HTMLElement {
         }
         this.state.isRotate = false;
         this.state.isPan = false;
+        this.state.isZoom = false;
     }
 
 
-    onMouseDown() {
-        if (this.state.isShiftPressed === true) {
-            this.state.isPan = true;
-        } else {
-            this.state.isRotate = true;
+    onMouseDown(event) {
+        if (typeof event === 'object') {
+            switch (event.button) {
+            case 0:
+                if (event.ctrlKey === true && event.altKey === true && this.state.isPan === false && this.state.isZoom === false) {
+                    this.state.isRotate = true;
+                }
+                if (this.state.isRotate === false) {
+                    this.state.renderer.selection_box_start();
+                }
+                break;
+            case 1:
+                if (event.ctrlKey === true && event.altKey === true && this.state.isRotate === false && this.state.isPan === false) {
+                    this.state.isZoom = true;
+                }
+                break;
+            case 2:
+                if (event.ctrlKey === true && event.altKey === true && this.state.isRotate === false && this.state.isZoom === false) {
+                    this.state.isPan = true;
+                }
+                break;
+            default:
+                console.log(`Unknown button code: ${event.button}`);
+            }
         }
     }
 
 
-    onMouseUp() {
-        this.state.isRotate = false;
-        this.state.isPan = false;
+    onMouseUp(event) {
+
+        if (typeof event === 'object') {
+            switch (event.button) {
+            case 0:
+                this.state.renderer.selection_box_end();
+                this.state.renderer.select_objects(() => this.dropSelection());
+                if (this.state.isRotate === true) {
+                    this.state.isRotate = false;
+                }
+                break;
+            case 1:
+                if (this.state.isZoom === true) {
+                    this.state.isZoom = false;
+                }
+                break;
+            case 2:
+                if (this.state.isPan === true) {
+                    this.state.isPan = false;
+                }
+                break;
+            default:
+                console.log(`Unknown button code: ${event.button}`);
+            }
+        }
     }
 
 
     onMouseWheel(event) {
+        if (event.ctrlKey === true) {
+            event.preventDefault();
+        }
         const dScale = this.state.renderer.extract_d_scale() + event.deltaY / this.props.canvasHeight;
         if (1.0 + dScale > 50.0) {
             this.state.renderer.change_d_scale(48.95);
@@ -307,9 +371,9 @@ class FeaRenderer extends HTMLElement {
     }
 
 
-    onMouseClick() {
-        this.state.renderer.select_object(() => this.dropSelection());
-    }
+    // onMouseClick() {
+    //     this.state.renderer.select_object(() => this.dropSelection());
+    // }
 }
 
 export default FeaRenderer;

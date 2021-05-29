@@ -3,6 +3,7 @@ use wasm_bindgen::JsCast;
 use web_sys::{WebGlProgram, WebGlRenderingContext as GL, CanvasRenderingContext2d as CTX};
 use vec4;
 use std::collections::HashMap;
+use std::convert::TryInto;
 
 use crate::line_object::{LineObject, LineObjectKey};
 
@@ -220,9 +221,8 @@ pub fn transform_u32_to_array_of_u8(x: u32) -> [u8; 4]
 }
 
 
-pub fn define_drawn_object_color(gl_mode: &GLMode, uid: u32,
-    selected_color: &[u8; 4], under_cursor_color: &[u8; 4],
-    initial_color: &[f32; 4]) -> [f32; 4]
+pub fn define_drawn_object_color(gl_mode: &GLMode, uid: u32, selected_colors: &Vec<u8>,
+    under_selection_box_colors: &Vec<u8>, initial_color: &[f32; 4]) -> [f32; 4]
 {
     match gl_mode
     {
@@ -238,11 +238,15 @@ pub fn define_drawn_object_color(gl_mode: &GLMode, uid: u32,
         GLMode::Visible =>
             {
                 let transformed_uid = transform_u32_to_array_of_u8(uid);
-                if transformed_uid == *selected_color
+                if selected_colors.as_slice()
+                    .chunks(4)
+                    .position(|color| transformed_uid == *color).is_some()
                 {
                     DRAWN_OBJECT_SELECTED_COLOR
                 }
-                else if transformed_uid == *under_cursor_color
+                else if under_selection_box_colors.as_slice()
+                    .chunks(4)
+                    .position(|color| transformed_uid == *color).is_some()
                 {
                     DRAWN_OBJECT_UNDER_CURSOR_COLOR
                 }
@@ -255,15 +259,19 @@ pub fn define_drawn_object_color(gl_mode: &GLMode, uid: u32,
 }
 
 
-pub fn define_drawn_object_denotation_color(uid: u32, selected_color: &[u8; 4],
-    under_cursor_color: &[u8; 4], initial_denotation_color: &str) -> String
+pub fn define_drawn_object_denotation_color(uid: u32, selected_colors: &Vec<u8>,
+    under_selection_box_colors: &Vec<u8>, initial_denotation_color: &str) -> String
 {
     let transformed_uid = transform_u32_to_array_of_u8(uid);
-    if transformed_uid == *selected_color
+    if selected_colors.as_slice()
+        .chunks(4)
+        .position(|color| transformed_uid == *color).is_some()
     {
         CANVAS_DRAWN_OBJECT_SELECTED_DENOTATION_COLOR.to_string()
     }
-    else if transformed_uid == *under_cursor_color
+    else if under_selection_box_colors.as_slice()
+        .chunks(4)
+        .position(|color| transformed_uid == *color).is_some()
     {
         CANVAS_DRAWN_OBJECT_UNDER_CURSOR_DENOTATION_COLOR.to_string()
     }
@@ -278,13 +286,13 @@ pub fn add_hints(ctx: &CTX, canvas_width: f32, canvas_height: f32)
 {
     let hint_x = canvas_width * HINT_SHIFT_X;
     let rotate_hint_y = canvas_height * ROTATION_HINT_SHIFT_Y;
-    let rotate_hint = "Rotate - Left Mouse Button";
+    let rotate_hint = "Rotate - (Ctrl + Alt + MB1)";
     ctx.fill_text(rotate_hint, hint_x as f64, rotate_hint_y as f64).unwrap();
     let zoom_hint_y = canvas_height * ZOOM_HINT_SHIFT_Y;
-    let zoom_hint = "Zoom - Mouse Wheel";
+    let zoom_hint = "Zoom - (Ctrl + Alt + MB3) or Mouse Wheel";
     ctx.fill_text(zoom_hint, hint_x as f64, zoom_hint_y as f64).unwrap();
     let pan_hint_y = canvas_height * PAN_HINT_SHIFT_Y;
-    let pan_hint = "Pan - Shift + Left Mouse Button";
+    let pan_hint = "Pan - (Ctrl + Alt + MB2)";
     ctx.fill_text(pan_hint, hint_x as f64, pan_hint_y as f64).unwrap();
 }
 
@@ -315,4 +323,10 @@ pub fn dispatch_custom_event(detail: serde_json::Value, event_type: &str, query_
 pub fn compare_with_tolerance(value: f32) -> f32
 {
     if value.abs() < TOLERANCE { 0.0 } else { value }
+}
+
+
+pub fn convert_into_array<T, const N: usize>(v: Vec<T>) -> [T; N] {
+    v.try_into()
+        .unwrap_or_else(|v: Vec<T>| panic!("Expected a Vec of length {} but it was {}", N, v.len()))
 }

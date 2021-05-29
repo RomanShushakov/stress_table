@@ -17,7 +17,7 @@ use aux_functions::
 {
     initialize_shaders, add_denotation, add_hints, normalize_point_objects_coordinates,
     define_drawn_object_denotation_color, transform_u32_to_array_of_u8,
-    dispatch_custom_event
+    dispatch_custom_event, convert_into_array
 };
 
 mod extended_matrix;
@@ -47,7 +47,8 @@ use drawn_object::
         CANVAS_DRAWN_FORCES_DENOTATION_COLOR, DRAWN_FORCES_DENOTATION_SHIFT_X,
         DRAWN_FORCES_DENOTATION_SHIFT_Y, HINTS_COLOR, DRAWN_LINE_OBJECTS_DENOTATION_SHIFT,
         CANVAS_DRAWN_POINTS_DENOTATION_COLOR, DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
-        DRAWN_LINE_OBJECTS_BASE_RADIUS, CANVAS_DRAWN_LINES_DENOTATION_COLOR
+        DRAWN_LINE_OBJECTS_BASE_RADIUS, CANVAS_DRAWN_LINES_DENOTATION_COLOR,
+        SELECTION_RECTANGLE_STROKE_COLOR, SELECTION_RECTANGLE_FILL_COLOR,
     };
 
 mod methods_for_canvas_manipulation;
@@ -94,9 +95,11 @@ struct Props
 
 struct State
 {
-    under_cursor_color: [u8; 4],
-    selected_color: [u8; 4],
+    under_selection_box_colors: Vec<u8>,
+    selected_colors: Vec<u8>,
     line_objects: HashMap<LineObjectKey, LineObject>,
+    selection_box_start_x: Option<i32>,
+    selection_box_start_y: Option<i32>,
 }
 
 
@@ -123,8 +126,11 @@ impl Renderer
 
         let state = State
         {
-            under_cursor_color: [0; 4], selected_color: [0; 4],
+            under_selection_box_colors: Vec::new(),
+            selected_colors: Vec::new(),
             line_objects: HashMap::new(),
+            selection_box_start_x: None,
+            selection_box_start_y: None,
         };
 
         Renderer { props, state }
@@ -218,7 +224,7 @@ impl Renderer
         }
         let uid =
             {
-                let mut current_uid = 1;
+                let mut current_uid = u32::MAX / 2;
                 while self.props.point_objects.values().position(|point_object|
                         point_object.uid_same(current_uid)).is_some() ||
                     self.state.line_objects.values().position(|line_object|
@@ -294,42 +300,47 @@ impl Renderer
     }
 
 
-    pub fn select_object(&mut self, drop_selection: &js_sys::Function) -> Result<(), JsValue>
+    pub fn select_objects(&mut self, drop_selection: &js_sys::Function) -> Result<(), JsValue>
     {
-        self.state.selected_color = self.state.under_cursor_color;
-        log(&format!("{:?}", self.state.selected_color));
-        for (point_object_key, point_object) in self.props.point_objects.iter()
+        self.state.selected_colors = self.state.under_selection_box_colors.clone();
+        if self.state.selected_colors.len() == 4
         {
-            if point_object.uid_same(u32::from_be_bytes(self.state.selected_color))
+            let selected_color =
+                convert_into_array::<u8, 4>(self.state.selected_colors.clone());
+            for (point_object_key, point_object) in
+                self.props.point_objects.iter()
             {
-                let selected_point_object_number = point_object_key.get_number();
-                let selected_point_object_type = point_object_key.get_object_type()
-                    .as_str().to_lowercase();
-                let detail_header = &format!("selected_{}_number", selected_point_object_type);
-                let detail =
-                    json!({ "message": { detail_header: selected_point_object_number } });
-                dispatch_custom_event(detail, CLIENT_MESSAGE_EVENT_NAME,
-                    EVENT_TARGET)?;
-                return Ok(());
+                if point_object.uid_same(u32::from_be_bytes(selected_color))
+                {
+                    let selected_point_object_number = point_object_key.get_number();
+                    let selected_point_object_type = point_object_key.get_object_type()
+                        .as_str().to_lowercase();
+                    let detail_header = &format!("selected_{}_number", selected_point_object_type);
+                    let detail =
+                        json!({ "message": { detail_header: selected_point_object_number } });
+                    dispatch_custom_event(detail, CLIENT_MESSAGE_EVENT_NAME,
+                        EVENT_TARGET)?;
+                    return Ok(());
+                }
             }
-        }
-        for (line_object_key, line_object) in self.state.line_objects.iter()
-        {
-            if line_object.uid_same(u32::from_be_bytes(self.state.selected_color))
+            for (line_object_key, line_object) in self.state.line_objects.iter()
             {
-                let selected_line_object_number = line_object_key.get_number();
-                let selected_line_object_type = line_object_key.get_object_type()
-                    .as_str().to_lowercase();
-                let detail_header = &format!("selected_{}_number", selected_line_object_type);
-                let detail =
-                    json!({ "message": { detail_header: selected_line_object_number } });
-                dispatch_custom_event(detail, CLIENT_MESSAGE_EVENT_NAME,
-                    EVENT_TARGET)?;
-                return Ok(());
+                if line_object.uid_same(u32::from_be_bytes(selected_color))
+                {
+                    let selected_line_object_number = line_object_key.get_number();
+                    let selected_line_object_type = line_object_key.get_object_type()
+                        .as_str().to_lowercase();
+                    let detail_header = &format!("selected_{}_number", selected_line_object_type);
+                    let detail =
+                        json!({ "message": { detail_header: selected_line_object_number } });
+                    dispatch_custom_event(detail, CLIENT_MESSAGE_EVENT_NAME,
+                        EVENT_TARGET)?;
+                    return Ok(());
+                }
             }
+            let this = JsValue::null();
+            let _ = drop_selection.call0(&this);
         }
-        let this = JsValue::null();
-        let _ = drop_selection.call0(&this);
         Ok(())
     }
 
@@ -380,8 +391,9 @@ impl Renderer
             let mut drawn_objects_buffers = Buffers::initialize(&gl);
             let mut drawn_object = DrawnObject::create();
 
-            drawn_object.add_point_object(&self.props.point_objects,
-            GLMode::Selection, &self.state.under_cursor_color, &self.state.selected_color)?;
+            drawn_object.add_point_object(&self.props.point_objects, GLMode::Selection,
+                &self.state.under_selection_box_colors,
+                &self.state.selected_colors)?;
 
             if !self.state.line_objects.is_empty()
             {
@@ -389,8 +401,8 @@ impl Renderer
                     &self.props.point_objects,
                     &self.state.line_objects,
                     GLMode::Selection,
-                    &self.state.under_cursor_color,
-                    &self.state.selected_color,
+                    &self.state.under_selection_box_colors,
+                    &self.state.selected_colors,
                     DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
                     DRAWN_LINE_OBJECTS_BASE_RADIUS / (1.0 + self.props.d_scale))?;
             }
@@ -422,13 +434,101 @@ impl Renderer
 
             drawn_object.draw(&gl);
 
-            let mut pixels = [0u8; 4];
-            match gl.read_pixels_with_opt_u8_array(
-                self.props.cursor_coord_x, self.props.cursor_coord_y, 1, 1, GL::RGBA,
-                GL::UNSIGNED_BYTE, Some(&mut pixels))
+            if let (Some(start_x), Some(start_y)) =
+                (self.state.selection_box_start_x, self.state.selection_box_start_y)
             {
-                Ok(_) => self.state.under_cursor_color = pixels,
-                Err(msg) => return Err(JsValue::from(&format!("{:?}", msg))),
+                let selection_rectangle_width = self.props.cursor_coord_x - start_x;
+                let selection_rectangle_height = self.props.cursor_coord_y - start_y;
+                if selection_rectangle_width > 0 && selection_rectangle_height > 0
+                {
+                    let mut pixels = vec![0u8; (selection_rectangle_width *
+                        selection_rectangle_height).abs() as usize * 4];
+                    match gl.read_pixels_with_opt_u8_array(
+                        start_x,
+                        start_y,
+                        selection_rectangle_width.abs(),
+                        selection_rectangle_height.abs(),
+                        GL::RGBA,
+                        GL::UNSIGNED_BYTE,
+                        Some(&mut pixels))
+                    {
+                        Ok(_) => self.state.under_selection_box_colors = pixels,
+                        Err(msg) => return Err(JsValue::from(&format!("{:?}", msg))),
+                    }
+                }
+                else if selection_rectangle_width < 0 && selection_rectangle_height > 0
+                {
+                    let mut pixels = vec![0u8; (selection_rectangle_width *
+                        selection_rectangle_height).abs() as usize * 4];
+                    match gl.read_pixels_with_opt_u8_array(
+                        self.props.cursor_coord_x,
+                        start_y,
+                        selection_rectangle_width.abs(),
+                        selection_rectangle_height.abs(),
+                        GL::RGBA,
+                        GL::UNSIGNED_BYTE,
+                        Some(&mut pixels))
+                    {
+                        Ok(_) => self.state.under_selection_box_colors = pixels,
+                        Err(msg) => return Err(JsValue::from(&format!("{:?}", msg))),
+                    }
+                }
+                else if selection_rectangle_width > 0 && selection_rectangle_height < 0
+                {
+                    let mut pixels = vec![0u8; (selection_rectangle_width *
+                        selection_rectangle_height).abs() as usize * 4];
+                    match gl.read_pixels_with_opt_u8_array(
+                        start_x,
+                        self.props.cursor_coord_y,
+                        selection_rectangle_width.abs(),
+                        selection_rectangle_height.abs(),
+                        GL::RGBA,
+                        GL::UNSIGNED_BYTE,
+                        Some(&mut pixels))
+                    {
+                        Ok(_) => self.state.under_selection_box_colors = pixels,
+                        Err(msg) => return Err(JsValue::from(&format!("{:?}", msg))),
+                    }
+                }
+                else if selection_rectangle_width < 0 && selection_rectangle_height < 0
+                {
+                    let mut pixels = vec![0u8; (selection_rectangle_width *
+                        selection_rectangle_height).abs() as usize * 4];
+                    match gl.read_pixels_with_opt_u8_array(
+                        self.props.cursor_coord_x,
+                        self.props.cursor_coord_y,
+                        selection_rectangle_width.abs(),
+                        selection_rectangle_height.abs(),
+                        GL::RGBA,
+                        GL::UNSIGNED_BYTE,
+                        Some(&mut pixels))
+                    {
+                        Ok(_) => self.state.under_selection_box_colors = pixels,
+                        Err(msg) => return Err(JsValue::from(&format!("{:?}", msg))),
+                    }
+                }
+                else
+                {
+                    let mut pixels = vec![0u8; 4];
+                    match gl.read_pixels_with_opt_u8_array(
+                        self.props.cursor_coord_x, self.props.cursor_coord_y, 1, 1, GL::RGBA,
+                        GL::UNSIGNED_BYTE, Some(&mut pixels))
+                    {
+                        Ok(_) => self.state.under_selection_box_colors = pixels,
+                        Err(msg) => return Err(JsValue::from(&format!("{:?}", msg))),
+                    }
+                }
+            }
+            else
+            {
+                let mut pixels = vec![0u8; 4];
+                match gl.read_pixels_with_opt_u8_array(
+                    self.props.cursor_coord_x, self.props.cursor_coord_y, 1, 1, GL::RGBA,
+                    GL::UNSIGNED_BYTE, Some(&mut pixels))
+                {
+                    Ok(_) => self.state.under_selection_box_colors = pixels,
+                    Err(msg) => return Err(JsValue::from(&format!("{:?}", msg))),
+                }
             }
 
             gl.clear(GL::COLOR_BUFFER_BIT);
@@ -439,7 +539,8 @@ impl Renderer
             drawn_objects_buffers = Buffers::initialize(&gl);
 
             drawn_object.add_point_object(&self.props.point_objects,
-            GLMode::Visible, &self.state.under_cursor_color, &self.state.selected_color)?;
+                GLMode::Visible, &self.state.under_selection_box_colors,
+                &self.state.selected_colors)?;
 
             if !self.state.line_objects.is_empty()
             {
@@ -447,8 +548,8 @@ impl Renderer
                     &self.props.point_objects,
                     &self.state.line_objects,
                     GLMode::Visible,
-                    &self.state.under_cursor_color,
-                    &self.state.selected_color,
+                    &self.state.under_selection_box_colors,
+                    &self.state.selected_colors,
                     DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
                     DRAWN_LINE_OBJECTS_BASE_RADIUS / (1.0 + self.props.d_scale))?;
             }
@@ -492,8 +593,8 @@ impl Renderer
                         PointObjectType::Node => CANVAS_DRAWN_NODES_DENOTATION_COLOR,
                     };
                 let denotation_color = define_drawn_object_denotation_color(
-                    point_object.get_uid().unwrap(), &self.state.selected_color,
-                    &self.state.under_cursor_color, initial_color);
+                    point_object.get_uid().unwrap(), &self.state.selected_colors,
+                    &self.state.under_selection_box_colors, initial_color);
                 ctx.set_fill_style(&denotation_color.into());
                 add_denotation(&ctx,
                 &[point_object.get_normalized_x()? -
@@ -520,7 +621,7 @@ impl Renderer
 
                     let denotation_color = define_drawn_object_denotation_color(
                         line_object.get_uid(),
-                        &self.state.selected_color, &self.state.under_cursor_color,
+                        &self.state.selected_colors, &self.state.under_selection_box_colors,
                         initial_color);
                     let denotation_coordinates =
                         {
@@ -613,6 +714,19 @@ impl Renderer
         ctx.set_fill_style(&HINTS_COLOR.into());
         add_hints(&ctx, width as f32, height as f32);
         ctx.stroke();
+
+        if let (Some(start_x), Some(start_y)) =
+            (self.state.selection_box_start_x, self.state.selection_box_start_y)
+        {
+            let selection_rectangle_width = self.props.cursor_coord_x - start_x;
+            let selection_rectangle_height = self.props.cursor_coord_y - start_y;
+            ctx.set_stroke_style(&SELECTION_RECTANGLE_STROKE_COLOR.into());
+            ctx.stroke_rect(start_x as f64, self.props.canvas_text.height() as f64 - start_y as f64,
+                selection_rectangle_width as f64, -selection_rectangle_height as f64);
+            ctx.set_fill_style(&SELECTION_RECTANGLE_FILL_COLOR.into());
+            ctx.fill_rect(start_x as f64, self.props.canvas_text.height() as f64 - start_y as f64,
+                selection_rectangle_width as f64, -selection_rectangle_height as f64);
+        }
 
         Ok(())
     }

@@ -4,9 +4,6 @@ use wasm_bindgen::JsCast;
 use std::collections::HashMap;
 
 
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-
 const EVENT_TARGET: &str = "fea-app";
 
 const ADD_POINT_EVENT_NAME: &str = "add_point_server_message";

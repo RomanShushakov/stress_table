@@ -29,10 +29,6 @@ mod methods_for_geometry_type_actions_handle;
 mod methods_for_properties_type_actions_handle;
 
 
-
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-
 const ADD_POINT_MESSAGE_HEADER: &str = "add_point";
 const UPDATE_POINT_MESSAGE_HEADER: &str = "update_point";
 const DELETE_POINT_MESSAGE_HEADER: &str = "delete_point";

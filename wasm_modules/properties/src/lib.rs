@@ -4,9 +4,6 @@ use serde_json::json;
 use std::collections::HashMap;
 
 
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-
 const EVENT_TARGET: &str = "fea-app";
 
 const ADD_MATERIAL_EVENT_NAME: &str = "add_material_server_message";

@@ -66,10 +66,6 @@ const EVENT_TARGET: &str = "fea-app";
 const CLIENT_MESSAGE_EVENT_NAME: &str = "clientMessage";
 
 
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-
-
 #[wasm_bindgen]
 extern "C"
 {

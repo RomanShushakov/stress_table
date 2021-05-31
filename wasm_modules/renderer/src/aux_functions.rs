@@ -2,7 +2,7 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{WebGlProgram, WebGlRenderingContext as GL, CanvasRenderingContext2d as CTX};
 use vec4;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::convert::TryInto;
 
 use crate::line_object::{LineObject, LineObjectKey};
@@ -221,7 +221,7 @@ pub fn transform_u32_to_array_of_u8(x: u32) -> [u8; 4]
 }
 
 
-pub fn define_drawn_object_color(gl_mode: &GLMode, uid: u32, selected_colors: &Vec<u8>,
+pub fn define_drawn_object_color(gl_mode: &GLMode, uid: u32, selected_colors: &HashSet<[u8; 4]>,
     under_selection_box_colors: &Vec<u8>, initial_color: &[f32; 4]) -> [f32; 4]
 {
     match gl_mode
@@ -238,9 +238,9 @@ pub fn define_drawn_object_color(gl_mode: &GLMode, uid: u32, selected_colors: &V
         GLMode::Visible =>
             {
                 let transformed_uid = transform_u32_to_array_of_u8(uid);
-                if selected_colors.as_slice()
-                    .chunks(4)
-                    .position(|color| transformed_uid == *color).is_some()
+                if selected_colors.iter()
+                    .position(|color| transformed_uid == *color)
+                    .is_some()
                 {
                     DRAWN_OBJECT_SELECTED_COLOR
                 }
@@ -259,13 +259,13 @@ pub fn define_drawn_object_color(gl_mode: &GLMode, uid: u32, selected_colors: &V
 }
 
 
-pub fn define_drawn_object_denotation_color(uid: u32, selected_colors: &Vec<u8>,
+pub fn define_drawn_object_denotation_color(uid: u32, selected_colors: &HashSet<[u8; 4]>,
     under_selection_box_colors: &Vec<u8>, initial_denotation_color: &str) -> String
 {
     let transformed_uid = transform_u32_to_array_of_u8(uid);
-    if selected_colors.as_slice()
-        .chunks(4)
-        .position(|color| transformed_uid == *color).is_some()
+    if selected_colors.iter()
+        .position(|color| transformed_uid == *color)
+        .is_some()
     {
         CANVAS_DRAWN_OBJECT_SELECTED_DENOTATION_COLOR.to_string()
     }

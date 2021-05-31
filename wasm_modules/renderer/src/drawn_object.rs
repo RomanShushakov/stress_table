@@ -1,7 +1,7 @@
 use wasm_bindgen::prelude::*;
 use web_sys::{WebGlRenderingContext as GL};
 use std::f32::consts::PI;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use crate::line_object::{LineObject, LineObjectKey};
 use crate::line_object::{LineObjectType};
@@ -325,7 +325,7 @@ impl DrawnObject
 
 
     pub fn add_point_object(&mut self, point_objects: &HashMap<PointObjectKey, PointObject>,
-        gl_mode: GLMode, under_selection_box_colors: &Vec<u8>, selected_colors: &Vec<u8>)
+        gl_mode: GLMode, under_selection_box_colors: &Vec<u8>, selected_colors: &HashSet<[u8; 4]>)
         -> Result<(), JsValue>
     {
         let start_index =
@@ -360,7 +360,7 @@ impl DrawnObject
         point_objects: &HashMap<PointObjectKey, PointObject>,
         line_objects: &HashMap<LineObjectKey, LineObject>,
         gl_mode: GLMode, under_selection_box_colors: &Vec<u8>,
-        selected_colors: &Vec<u8>, base_points_number: u32,
+        selected_colors: &HashSet<[u8; 4]>, base_points_number: u32,
         base_radius: f32) -> Result<(), JsValue>
     {
         let start_index =

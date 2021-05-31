@@ -6,7 +6,8 @@ use web_sys::
 };
 use mat4;
 use serde_json::json;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
+use std::convert::TryFrom;
 
 mod line_object;
 use line_object::{LineObject, LineObjectKey};
@@ -58,6 +59,7 @@ use point_object::{PointObjectKey, PointObject, Coordinates};
 use point_object::{PointObjectType};
 
 
+
 pub const TOLERANCE: f32 = 1e-6;
 pub type ElementsNumbers = u32;
 pub type ElementsValues = f32;
@@ -92,7 +94,7 @@ struct Props
 struct State
 {
     under_selection_box_colors: Vec<u8>,
-    selected_colors: Vec<u8>,
+    selected_colors: HashSet<[u8; 4]>,
     line_objects: HashMap<LineObjectKey, LineObject>,
     selection_box_start_x: Option<i32>,
     selection_box_start_y: Option<i32>,
@@ -123,7 +125,7 @@ impl Renderer
         let state = State
         {
             under_selection_box_colors: Vec::new(),
-            selected_colors: Vec::new(),
+            selected_colors: HashSet::new(),
             line_objects: HashMap::new(),
             selection_box_start_x: None,
             selection_box_start_y: None,
@@ -220,7 +222,7 @@ impl Renderer
         }
         let uid =
             {
-                let mut current_uid = u32::MAX / 2;
+                let mut current_uid = u32::MAX / 4;
                 while self.props.point_objects.values().position(|point_object|
                         point_object.uid_same(current_uid)).is_some() ||
                     self.state.line_objects.values().position(|line_object|
@@ -298,15 +300,18 @@ impl Renderer
 
     pub fn select_objects(&mut self, drop_selection: &js_sys::Function) -> Result<(), JsValue>
     {
-        self.state.selected_colors = self.state.under_selection_box_colors.clone();
-        if self.state.selected_colors.len() == 4
+        self.state.selected_colors = self.state.under_selection_box_colors
+            .chunks(4)
+            .map(|chunk| <[u8; 4]>::try_from(chunk).unwrap())
+            .collect::<HashSet<[u8; 4]>>();
+        if self.state.selected_colors.len() == 1
         {
-            let selected_color =
-                convert_into_array::<u8, 4>(self.state.selected_colors.clone());
+            let selected_color = self.state.selected_colors.iter()
+                .collect::<Vec<&[u8; 4]>>()[0];
             for (point_object_key, point_object) in
                 self.props.point_objects.iter()
             {
-                if point_object.uid_same(u32::from_be_bytes(selected_color))
+                if point_object.uid_same(u32::from_be_bytes(*selected_color))
                 {
                     let selected_point_object_number = point_object_key.get_number();
                     let selected_point_object_type = point_object_key.get_object_type()
@@ -321,7 +326,7 @@ impl Renderer
             }
             for (line_object_key, line_object) in self.state.line_objects.iter()
             {
-                if line_object.uid_same(u32::from_be_bytes(selected_color))
+                if line_object.uid_same(u32::from_be_bytes(*selected_color))
                 {
                     let selected_line_object_number = line_object_key.get_number();
                     let selected_line_object_type = line_object_key.get_object_type()

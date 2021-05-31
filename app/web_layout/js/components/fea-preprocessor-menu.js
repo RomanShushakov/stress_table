@@ -7,12 +7,20 @@ class FeaPreprocessorMenu extends HTMLElement {
             points: new Map(),  // map: { number: u32, { x: f64, y: f64, z: f64}, ... };
             lines: new Map(),   // map: { number: u32, startPointNumber: u32, endPointNumber: u32 }, ...};
             materials: [],      // array of: [{ name: String, youngModulus: f64, poissonRatio: f64 }, ...];
+            trussSections: [],  // array of: [{ name: String, area: f64, area2: f64 or null }];
         };
 
         this.state = {
+
+            menuNames: [
+                "geometry-menu", "material-menu", "properties-menu", "mesh-menu", "load-menu",
+                "boundary-condition-menu", "analysis-menu",
+            ],
+
             childrenNamesForActionIdUpdate: [
                 "fea-geometry-menu",
                 "fea-material-menu",
+                "fea-section-menu",
             ],
 
             childrenNamesForPointCrud: [
@@ -23,13 +31,12 @@ class FeaPreprocessorMenu extends HTMLElement {
                 "fea-geometry-menu",
             ],
 
-            menuNames: [
-                "geometry-menu", "material-menu", "properties-menu", "mesh-menu", "load-menu",
-                "boundary-condition-menu", "analysis-menu",
-            ],
-
             childrenNamesForMaterialCrud: [
                 "fea-material-menu",
+            ],
+
+            childrenNamesForTrussSectionCrud: [
+                "fea-section-menu",
             ],
         };
 
@@ -130,17 +137,41 @@ class FeaPreprocessorMenu extends HTMLElement {
     }
 
     set updateMaterialInClient(material) {
-        let materialInProps = this.props.materials.find(existedMaterial => existedMaterial.name == material.name);
+        let materialInProps = this.props.materials
+            .find(existedMaterial => existedMaterial.name == material.name);
         materialInProps.youngModulus = material.youngModulus;
         materialInProps.poissonRatio = material.poissonRatio;
         this.updateMaterialInChildren(material);
     }
 
     set deleteMaterialFromClient(material) {
-        let materialIndexInProps = this.props.materials.findIndex(existedMaterial => existedMaterial.name == material.name);
+        let materialIndexInProps = this.props.materials
+            .findIndex(existedMaterial => existedMaterial.name == material.name);
         this.props.materials.splice(materialIndexInProps, 1);
         this.props.materials.sort((a, b) => a.name - b.name);
         this.deleteMaterialFromChildren(material);
+    }
+
+    set addTrussSectionToClient(trussSection) {
+        this.props.trussSections.push(trussSection);
+        this.props.trussSections.sort((a, b) => a.name - b.name);
+        this.addTrussSectionToChildren(trussSection);
+    }
+
+    set updateTrussSectionInClient(trussSection) {
+        let trussSectionInProps = this.props.trussSections
+            .find(existedTrussSection => existedTrussSection.name == trussSection.name);
+        trussSectionInProps.area = trussSection.area;
+        trussSectionInProps.area2 = trussSection.area2;
+        this.updateTrussSectionInChildren(trussSection);
+    }
+
+    set deleteTrussSectionFromClient(trussSection) {
+        let trussSectionIndexInProps = this.props.trussSections
+            .findIndex(existedTrussSection => existedTrussSection.name == trussSection.name);
+        this.props.trussSections.splice(trussSectionIndexInProps, 1);
+        this.props.trussSections.sort((a, b) => a.name - b.name);
+        this.deleteTrussSectionFromChildren(trussSection);
     }
 
     connectedCallback() {
@@ -201,6 +232,11 @@ class FeaPreprocessorMenu extends HTMLElement {
                 this.append(feaSectionMenu);
                 event.stopPropagation();
                 this.updateCanvasSize();
+                this.querySelector("fea-section-menu").actionId = this.props.actionId;
+                for (let i = 0; i < this.props.trussSections.length; i++) {
+                    const trussSection = this.props.trussSections[i];
+                    this.querySelector("fea-section-menu").addTrussSectionToClient = trussSection;
+                }
                 break;
         }
     }
@@ -308,6 +344,30 @@ class FeaPreprocessorMenu extends HTMLElement {
         for (let i = 0; i < this.state.childrenNamesForMaterialCrud.length; i++) {
             if (this.querySelector(this.state.childrenNamesForMaterialCrud[i]) !== null) {
                 this.querySelector(this.state.childrenNamesForMaterialCrud[i]).deleteMaterialFromClient = material;
+            }
+        } 
+    }
+
+    addTrussSectionToChildren(trussSection) {
+        for (let i = 0; i < this.state.childrenNamesForTrussSectionCrud.length; i++) {
+            if (this.querySelector(this.state.childrenNamesForTrussSectionCrud[i]) !== null) {
+                this.querySelector(this.state.childrenNamesForTrussSectionCrud[i]).addTrussSectionToClient = trussSection;
+            }
+        } 
+    }
+
+    updateTrussSectionInChildren(trussSection) {
+        for (let i = 0; i < this.state.childrenNamesForTrussSectionCrud.length; i++) {
+            if (this.querySelector(this.state.childrenNamesForTrussSectionCrud[i]) !== null) {
+                this.querySelector(this.state.childrenNamesForTrussSectionCrud[i]).updateTrussSectionToClient = trussSection;
+            }
+        } 
+    }
+
+    deleteTrussSectionFromChildren(trussSection) {
+        for (let i = 0; i < this.state.childrenNamesForTrussSectionCrud.length; i++) {
+            if (this.querySelector(this.state.childrenNamesForTrussSectionCrud[i]) !== null) {
+                this.querySelector(this.state.childrenNamesForTrussSectionCrud[i]).deleteTrussSectionFromClient = trussSection;
             }
         } 
     }

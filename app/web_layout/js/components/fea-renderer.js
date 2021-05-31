@@ -75,14 +75,12 @@ class FeaRenderer extends HTMLElement {
             </div>
         `;
 
-        // window.addEventListener("keydown", (event) => this.onKeyDown(event));
         window.addEventListener("keyup", (event) => this.onKeyUp(event));
         this.shadowRoot.querySelector(".renderer-canvas-text").addEventListener("mousemove", (event) => this.onMouseMove(event));
         this.shadowRoot.querySelector(".renderer-canvas-text").addEventListener("mouseleave", () => this.onMouseLeave());
         this.shadowRoot.querySelector(".renderer-canvas-text").addEventListener("mousedown", (event) => this.onMouseDown(event));
         this.shadowRoot.querySelector(".renderer-canvas-text").addEventListener("mouseup", (event) => this.onMouseUp(event));
         this.shadowRoot.querySelector(".renderer-canvas-text").addEventListener("wheel", (event) => this.onMouseWheel(event));
-        // this.shadowRoot.querySelector(".renderer-canvas-text").addEventListener("click", () => this.onMouseClick());
     }
 
     set addPointToRenderer(point) {
@@ -207,17 +205,14 @@ class FeaRenderer extends HTMLElement {
     attributeChangedCallback(name, oldValue, newValue) {
     }
 
-
     play() {
         this.state.renderLoop();
     }
-
 
     pause() {
         cancelAnimationFrame(this.state.animationId);
         this.state.animationId = null;
     }
-
 
     updateCanvasSize() {
         if (this.state.renderer !== null) {
@@ -226,17 +221,6 @@ class FeaRenderer extends HTMLElement {
         }
     }
 
-
-    // onKeyDown(event) {
-    //     if (event.ctrlKey === true) {
-    //         console.log("Ctrl pressed");
-    //     }
-    //     if (event.altKey === true) {
-    //         console.log("Alt pressed");
-    //     }
-    // }
-
-
     onKeyUp(event) {
         if (event.key === "Control" || event.key === "Alt") {
             this.state.isRotate = false;
@@ -244,7 +228,6 @@ class FeaRenderer extends HTMLElement {
             this.state.isZoom = false;
         }
     }
-
 
     onMouseMove(event) {
         if (this.state.isPaused === true) {
@@ -292,6 +275,8 @@ class FeaRenderer extends HTMLElement {
         this.state.isRotate = false;
         this.state.isPan = false;
         this.state.isZoom = false;
+        this.state.renderer.selection_box_end();
+        this.state.renderer.tick();
     }
 
 
@@ -369,11 +354,7 @@ class FeaRenderer extends HTMLElement {
     dropSelection() {
         this.shadowRoot.querySelector(".object-info-field").innerHTML = "Object:";
     }
-
-
-    // onMouseClick() {
-    //     this.state.renderer.select_object(() => this.dropSelection());
-    // }
 }
+
 
 export default FeaRenderer;

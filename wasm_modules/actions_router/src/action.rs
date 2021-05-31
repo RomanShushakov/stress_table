@@ -38,11 +38,16 @@ impl Coordinates
 pub enum GeometryActionType
 {
     AddPoint(u32, Coordinates, bool),   // ( number, Coordinates, is_action_id_should_be_increased )
-    UpdatePoint(u32, Coordinates, Coordinates, bool),   // ( number, Coordinates, Coordinates, is_action_id_should_be_increased )
+    UpdatePoint(u32, Coordinates, Coordinates, bool),   // ( number, Coordinates, Coordinates,
+                                                        // is_action_id_should_be_increased )
     DeletePoint(u32, bool), // ( number, is_action_id_should_be_increased )
     UndoDeletePoint(u32, bool), // ( number, is_action_id_should_be_increased )
-    AddLine(u32, u32, u32, bool),   // ( number, start_point_number, end_point_number, is_action_id_should_be_increased )
-    UpdateLine(u32, u32, u32, u32, u32, bool),  // ( number, old_start_point_number, old_end_point_number, new_start_point_number, new_end_point_number, is_action_id_should_be_increased )
+    AddLine(u32, u32, u32, bool),   // ( number, start_point_number, end_point_number,
+                                    // is_action_id_should_be_increased )
+    UpdateLine(u32, u32, u32, u32, u32, bool),  // ( number, old_start_point_number,
+                                                // old_end_point_number, new_start_point_number,
+                                                // new_end_point_number,
+                                                // is_action_id_should_be_increased )
     DeleteLine(u32, bool),  // ( number, is_action_id_should_be_increased )
     UndoDeleteLine(u32, bool),  // ( number, is_action_id_should_be_increased )
 }
@@ -51,8 +56,12 @@ pub enum GeometryActionType
 #[derive(Debug, Clone)]
 pub enum PropertiesActionType
 {
-    AddMaterial(String, f64, f64, bool),    // ( name, young_modulus, poisson_ratio, is_action_id_should_be_increased )
-    UpdateMaterial(String, f64, f64, f64, f64, bool),    // ( name, old_young_modulus, old_poisson_ratio, new_young_modulus, new_poisson_ratio, is_action_id_should_be_increased )
+    AddMaterial(String, f64, f64, bool),    // ( name, young_modulus, poisson_ratio,
+                                            // is_action_id_should_be_increased )
+    UpdateMaterial(String, f64, f64, f64, f64, bool),   // ( name, old_young_modulus,
+                                                        // old_poisson_ratio, new_young_modulus,
+                                                        // new_poisson_ratio,
+                                                        // is_action_id_should_be_increased )
     DeleteMaterial(String, bool),   // ( name, is_action_id_should_be_increased )
     UndoDeleteMaterial(String, bool), // ( name, is_action_id_should_be_increased )
 }

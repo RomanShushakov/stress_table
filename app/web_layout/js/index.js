@@ -27,6 +27,11 @@ import FeaMaterialDeleteMaterialMenu from "./components/fea-material/fea-materia
 
 import FeaSectionMenu from "./components/fea-section/fea-section-menu.js";
 import FeaSectionMenuButtons from "./components/fea-section/fea-section-menu-buttons.js";
+import FeaSectionTrussMenu from "./components/fea-section/truss/fea-section-truss-menu.js";
+import FeaSectionTrussMenuButtons from "./components/fea-section/truss/fea-section-truss-menu-buttons.js";
+import FeaSectionAddTrussMenu from "./components/fea-section/truss/fea-section-add-truss-menu.js";
+import FeaSectionUpdateTrussMenu from "./components/fea-section/truss/fea-section-update-truss-menu.js";
+import FeaSectionDeleteTrussMenu from "./components/fea-section/truss/fea-section-delete-truss-menu.js";
 
 
 customElements.define("fea-app", FeaApp);
@@ -58,3 +63,8 @@ customElements.define("fea-material-delete-material-menu", FeaMaterialDeleteMate
 
 customElements.define("fea-section-menu", FeaSectionMenu);
 customElements.define("fea-section-menu-buttons", FeaSectionMenuButtons);
+customElements.define("fea-section-truss-menu", FeaSectionTrussMenu);
+customElements.define("fea-section-truss-menu-buttons", FeaSectionTrussMenuButtons);
+customElements.define("fea-section-add-truss-menu", FeaSectionAddTrussMenu);
+customElements.define("fea-section-update-truss-menu", FeaSectionUpdateTrussMenu);
+customElements.define("fea-section-delete-truss-menu", FeaSectionDeleteTrussMenu);

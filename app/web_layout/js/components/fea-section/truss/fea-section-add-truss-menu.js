@@ -1,10 +1,10 @@
-class FeaMaterialAddMaterialMenu extends HTMLElement {
+class FeaSectionAddTrussMenu extends HTMLElement {
     constructor() {
         super();
 
         this.props = {
             actionId: null,     // u32;
-            materials: [],      // array of: [{ name: String, youngModulus: f64, poissonRatio: f64 }, ...];
+            trussSections: [],  // array of: [{ name: String, area: f64, area2: f64 or null }];
         };
 
         this.state = {};
@@ -26,7 +26,7 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
                     align-items: center;
                 }
 
-                .material-name-field-content {
+                .truss-section-name-field-content {
                     display: flex;
                     flex-direction: row;
                     background-color: #3b4453;
@@ -34,7 +34,7 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
                     margin: 0rem;
                 }
 
-                .material-name-caption {
+                .truss-section-name-caption {
                     margin: 0rem;
                     padding: 0rem;
                     color: #D9D9D9;
@@ -42,7 +42,7 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
                     width: 6rem;
                 }
 
-                .material-name {
+                .truss-section-name {
                     margin-top: 0rem;
                     margin-bottom: 0rem;
                     margin-left: 1rem;
@@ -56,63 +56,15 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
                     color: #D9D9D9;
                 }
 
-                .material-name:hover {
+                .truss-section-name:hover {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
-                .material-name:focus {
+                .truss-section-name:focus {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
-                .young-modulus-field-content {
-                    display: flex;
-                    flex-direction: row;
-                    background-color: #3b4453;
-                    padding: 0rem;
-                    margin-top: 1rem;
-                }
-
-                .young-modulus-caption {
-                    margin: 0rem;
-                    padding: 0rem;
-                    color: #D9D9D9;
-                    font-size: 85%;
-                    width: 6rem;
-                }
-
-                .young-modulus {
-                    margin-top: 0rem;
-                    margin-bottom: 0rem;
-                    margin-left: 1rem;
-                    margin-right: 0rem;
-                    padding: 0rem;
-                    width: 5rem;
-                    background-color: #3b4453;
-                    border: #4a5060;
-                    border-bottom: 0.1rem solid #4a5060;
-                    outline: none;
-                    color: #D9D9D9;
-                }
-
-                .young-modulus[type=number]::-webkit-outer-spin-button,
-                .young-modulus[type=number]::-webkit-inner-spin-button {
-                    -webkit-appearance: none;
-                    margin: 0;
-                }
-
-                .young-modulus[type=number] {
-                    -moz-appearance: textfield;
-                }
-
-                .young-modulus:hover {
-                    box-shadow: 0rem 0.15rem 0rem #4a5060;
-                }
-
-                .young-modulus:focus {
-                    box-shadow: 0rem 0.15rem 0rem #4a5060;
-                }
-
-                .poisson-ratio-field-content {
+                .area-field-content {
                     display: flex;
                     flex-direction: row;
                     background-color: #3b4453;
@@ -120,7 +72,7 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
                     margin-top: 1rem;
                 }
 
-                .poisson-ratio-caption {
+                .area-caption {
                     margin: 0rem;
                     padding: 0rem;
                     color: #D9D9D9;
@@ -128,7 +80,7 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
                     width: 6rem;
                 }
 
-                .poisson-ratio {
+                .area {
                     margin-top: 0rem;
                     margin-bottom: 0rem;
                     margin-left: 1rem;
@@ -142,21 +94,69 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
                     color: #D9D9D9;
                 }
 
-                .poisson-ratio[type=number]::-webkit-outer-spin-button,
-                .poisson-ratio[type=number]::-webkit-inner-spin-button {
+                .area[type=number]::-webkit-outer-spin-button,
+                .area[type=number]::-webkit-inner-spin-button {
                     -webkit-appearance: none;
                     margin: 0;
                 }
 
-                .poisson-ratio[type=number] {
+                .area[type=number] {
                     -moz-appearance: textfield;
                 }
 
-                .poisson-ratio:hover {
+                .area:hover {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
-                .poisson-ratio:focus {
+                .area:focus {
+                    box-shadow: 0rem 0.15rem 0rem #4a5060;
+                }
+
+                .area2-field-content {
+                    display: flex;
+                    flex-direction: row;
+                    background-color: #3b4453;
+                    padding: 0rem;
+                    margin-top: 1rem;
+                }
+
+                .area2-caption {
+                    margin: 0rem;
+                    padding: 0rem;
+                    color: #D9D9D9;
+                    font-size: 85%;
+                    width: 6rem;
+                }
+
+                .area2 {
+                    margin-top: 0rem;
+                    margin-bottom: 0rem;
+                    margin-left: 1rem;
+                    margin-right: 0rem;
+                    padding: 0rem;
+                    width: 5rem;
+                    background-color: #3b4453;
+                    border: #4a5060;
+                    border-bottom: 0.1rem solid #4a5060;
+                    outline: none;
+                    color: #D9D9D9;
+                }
+
+                .area2[type=number]::-webkit-outer-spin-button,
+                .area2[type=number]::-webkit-inner-spin-button {
+                    -webkit-appearance: none;
+                    margin: 0;
+                }
+
+                .area2[type=number] {
+                    -moz-appearance: textfield;
+                }
+
+                .area2:hover {
+                    box-shadow: 0rem 0.15rem 0rem #4a5060;
+                }
+
+                .area2:focus {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
@@ -221,19 +221,19 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
             </style>
 
             <div class=wrapper>
-                <div class="material-name-field-content">
-                    <p class="material-name-caption">Material name</p>
-                    <input class="material-name" type="text"/>
+                <div class="truss-section-name-field-content">
+                    <p class="truss-section-name-caption">Section name</p>
+                    <input class="truss-section-name" type="text"/>
                 </div>
 
-                <div class="young-modulus-field-content">
-                    <p class="young-modulus-caption">Young's modulus</p>
-                    <input class="young-modulus" type="number"/>
+                <div class="area-field-content">
+                    <p class="area-caption">Area</p>
+                    <input class="area" type="number"/>
                 </div>
 
-                <div class="poisson-ratio-field-content">
-                    <p class="poisson-ratio-caption">Poisson's ratio</p>
-                    <input class="poisson-ratio" type="number"/>
+                <div class="area2-field-content">
+                    <p class="area2-caption">Area 2 (optional)</p>
+                    <input class="area2" type="number"/>
                 </div>
                 
                 <div class="apply-cancel-buttons">
@@ -247,25 +247,19 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
             </div>
         `;
 
-         this.shadowRoot.querySelector(".apply-button").addEventListener("click", () => this.addMaterial());
+         this.shadowRoot.querySelector(".apply-button").addEventListener("click", () => this.addTrussSection());
 
-         this.shadowRoot.querySelector(".cancel-button").addEventListener("click", () => this.cancelMaterialAddition());
+         this.shadowRoot.querySelector(".cancel-button").addEventListener("click", () => this.cancelTrussSectionAddition());
 
-         this.shadowRoot.querySelector(".material-name").addEventListener("click", () => {
-            const highlightedElement = this.shadowRoot.querySelector(".material-name");
+         this.shadowRoot.querySelector(".truss-section-name").addEventListener("click", () => {
+            const highlightedElement = this.shadowRoot.querySelector(".truss-section-name");
             this.dropHighlight(highlightedElement);
             this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
         });
 
-        this.shadowRoot.querySelector(".young-modulus").addEventListener("click", () => {
-            const inputtedYoungModulus = this.shadowRoot.querySelector(".young-modulus");
+        this.shadowRoot.querySelector(".area").addEventListener("click", () => {
+            const inputtedYoungModulus = this.shadowRoot.querySelector(".area");
             this.dropHighlight(inputtedYoungModulus);
-            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
-        });
-
-        this.shadowRoot.querySelector(".poisson-ratio").addEventListener("click", () => {
-            const inputtedPoissonRatio = this.shadowRoot.querySelector(".poisson-ratio");
-            this.dropHighlight(inputtedPoissonRatio);
             this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
         });
     }
@@ -274,23 +268,25 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
         this.props.actionId = value;
     }
 
-    set addMaterialToClient(material) {
-        this.props.materials.push(material);
-        this.props.materials.sort((a, b) => a.name - b.name);
-        this.defineNewMaterialName();
+    set addTrussSectionToClient(trussSection) {
+        this.props.trussSections.push(trussSection);
+        this.props.trussSections.sort((a, b) => a.name - b.name);
+        this.defineNewTrussSectionName();
     }
 
-    set updateMaterialInClient(material) {
-        let materialInProps = this.props.materials.find(existedMaterial => existedMaterial.name == material.name);
-        materialInProps.youngModulus = material.youngModulus;
-        materialInProps.poissonRatio = material.poissonRatio;
+    set updateTrussSectionInClient(trussSection) {
+        let trussSectionInProps = this.props.trussSections
+            .find(existedTrussSection => existedTrussSection.name == trussSection.name);
+        trussSectionInProps.area = trussSection.area;
+        trussSectionInProps.area2 = trussSection.area2;
     }
 
-    set deleteMaterialFromClient(material) {
-        let materialIndexInProps = this.props.materials.findIndex(existedMaterial => existedMaterial.name == material.name);
-        this.props.materials.splice(materialIndexInProps, 1);
-        this.props.materials.sort((a, b) => a.name - b.name);
-        this.defineNewMaterialName();
+    set deleteTrussSectionFromClient(trussSection) {
+        let trussSectionIndexInProps = this.props.trussSections
+            .findIndex(existedTrussSection => existedTrussSection.name == trussSection.name);
+        this.props.trussSections.splice(trussSectionIndexInProps, 1);
+        this.props.trussSections.sort((a, b) => a.name - b.name);
+        this.defineNewTrussSectionName();
     }
 
     connectedCallback() {
@@ -301,7 +297,7 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
                 this[propName] = value;
             }
         });
-        this.defineNewMaterialName();
+        this.defineNewTrussSectionName();
     }
 
     disconnectedCallback() {
@@ -317,36 +313,32 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
     adoptedCallback() {
     }
 
-    defineNewMaterialName() {
-        const newMaterialName = "mat1";
-        this.shadowRoot.querySelector(".material-name").value = newMaterialName;
-        this.shadowRoot.querySelector(".young-modulus").value = 10000000;
-        this.shadowRoot.querySelector(".poisson-ratio").value = 0.3;
+    defineNewTrussSectionName() {
+        const newTrussSectionName = "truss1";
+        this.shadowRoot.querySelector(".truss-section-name").value = newTrussSectionName;
+        this.shadowRoot.querySelector(".area").value = 1;
+        this.shadowRoot.querySelector(".area2").value = null;
     }
 
 
-    addMaterial() {
-        const newMaterialNameField = this.shadowRoot.querySelector(".material-name");
-        if (newMaterialNameField.value === "") {
-            if (newMaterialNameField.classList.contains("highlighted") === false) {
-                newMaterialNameField.classList.add("highlighted");
-            }
-        }
-        const youngModulusField = this.shadowRoot.querySelector(".young-modulus");
-        if (youngModulusField.value === "") {
-            if (youngModulusField.classList.contains("highlighted") === false) {
-                youngModulusField.classList.add("highlighted");
-            }
-        }
-        const poissonRationField = this.shadowRoot.querySelector(".poisson-ratio");
-        if (poissonRationField.value === "") {
-            if (poissonRationField.classList.contains("highlighted") === false) {
-                poissonRationField.classList.add("highlighted");
+    addTrussSection() {
+        const newTrussSectionNameField = this.shadowRoot.querySelector(".truss-section-name");
+        if (newTrussSectionNameField.value === "") {
+            if (newTrussSectionNameField.classList.contains("highlighted") === false) {
+                newTrussSectionNameField.classList.add("highlighted");
             }
         }
 
-        if (newMaterialNameField.value === "" || youngModulusField.value === "" || 
-            poissonRationField.value === "") {
+        const areaField = this.shadowRoot.querySelector(".area");
+        if (areaField.value === "") {
+            if (areaField.classList.contains("highlighted") === false) {
+                areaField.classList.add("highlighted");
+            }
+        }
+        
+        const area2Field = this.shadowRoot.querySelector(".area2");
+
+        if (newTrussSectionNameField.value === "" || areaField.value === "") {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
                     "Note: The highlighted fields should be filled!";
@@ -356,43 +348,45 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
             }
         }
 
-        const materialNameInProps = this.props.materials.find(material => material.name == `"${newMaterialNameField.value}"`);
-        if (materialNameInProps != null) {
+        const trussSectionNameInProps = this.props.trussSections
+            .find(trussSection => trussSection.name == `"${newTrussSectionNameField.value}"`);
+        if (trussSectionNameInProps != null) {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                    "Note: The material with the same name does already exist!";
+                    "Note: The truss section with the same name does already exist!";
                 return;
             } else {
                 return;
             }
         }
 
-        const materialDataInProps = this.props.materials.find(material => material.youngModulus == youngModulusField.value && 
-            material.poissonRatio == poissonRationField.value);
-        if (materialDataInProps != null) {
+        const trussSectionDataInProps = this.props.trussSections
+            .find(trussSection => trussSection.area == areaField.value && 
+                trussSection.area2 == area2Field.value);
+        if (trussSectionDataInProps != null) {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                    "Note: The material with the same data does already exist!";
+                    "Note: The truss section with the same data does already exist!";
                 return;
             } else {
                 return;
             }
         }
 
-        if (this.isNumeric(youngModulusField.value) === false || this.isNumeric(poissonRationField.value) === false) {
+        if (this.isNumeric(areaField.value) === false) {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                    "Note: Only numbers could be used as input values for Young's modulus and Poisson's ratio!";
+                    "Note: Only numbers could be used as input values for Area!";
                 return;
             } else {
                 return;
             }
         }
 
-        const message = {"add_material": {
+        const message = {"add_truss_section": {
             "actionId": this.props.actionId,
-            "name": newMaterialNameField.value, 
-            "young_modulus":  youngModulusField.value, "poisson_ratio":  poissonRationField.value,
+            "name": newTrussSectionNameField.value, 
+            "area": areaField.value, "area2":  area2Field.value,
         }};
 
         this.dispatchEvent(new CustomEvent("clientMessage", {
@@ -404,14 +398,12 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
         }));
     }
 
-    cancelMaterialAddition() {
-        this.defineNewMaterialName();
-        const newMaterialNameField = this.shadowRoot.querySelector(".material-name");
-        this.dropHighlight(newMaterialNameField);
-        const inputtedYoungModulusField = this.shadowRoot.querySelector(".young-modulus");
-        this.dropHighlight(inputtedYoungModulusField);
-        const inputtedPoissonRatioField = this.shadowRoot.querySelector(".poisson-ratio");
-        this.dropHighlight(inputtedPoissonRatioField);
+    cancelTrussSectionAddition() {
+        this.defineNewTrussSectionName();
+        const newTrussSectionNameField = this.shadowRoot.querySelector(".truss-section-name");
+        this.dropHighlight(newTrussSectionNameField);
+        const inputtedAreaField = this.shadowRoot.querySelector(".area");
+        this.dropHighlight(inputtedAreaField);
         this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
     }
 
@@ -429,4 +421,4 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
     }
 }
 
-export default FeaMaterialAddMaterialMenu;
+export default FeaSectionAddTrussMenu;

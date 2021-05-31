@@ -1,4 +1,4 @@
-class FeaSectionMenu extends HTMLElement {
+class FeaSectionTrussMenu extends HTMLElement {
     constructor() {
         super();
 
@@ -9,17 +9,16 @@ class FeaSectionMenu extends HTMLElement {
 
         this.state = {
             childrenNamesForActionIdUpdate: [
-                "fea-section-truss-menu",
-                "fea-section-beam-menu"
+                "fea-section-add-truss-menu",
+                "fea-section-update-truss-menu",
+                "fea-section-delete-truss-menu",
             ],
 
             childrenNamesForTrussSectionCrud: [
-                "fea-section-truss-menu",
+                "fea-section-add-truss-menu",
+                "fea-section-update-truss-menu",
+                "fea-section-delete-truss-menu",
             ],
-
-            // childrenNamesForLineCrud: [
-            //     "fea-geometry-line-menu",
-            // ],
         };
 
         this.attachShadow({ mode: "open" });
@@ -34,24 +33,12 @@ class FeaSectionMenu extends HTMLElement {
                     display: flex;
                     flex-direction: column;
                     background-color: #3b4453;
-                    padding: 1rem;
-                }
-
-                .section-menu-caption {
-                    margin: 0rem;
-                    padding-top: 0rem;
-                    padding-bottom: 0.3rem;
-                    padding-left: 0rem;
-                    padding-right: 0rem;
-                    color: #D9D9D9;
-                    border-bottom: 0.1rem solid #4a5060;
-                    font-size: 85%;
+                    padding: 0rem;
                 }
             </style>
 
             <div class=wrapper>
-                <p class="section-menu-caption">Section</p>
-                <fea-section-menu-buttons></fea-section-menu-buttons>
+                <fea-section-truss-menu-buttons></fea-section-truss-menu-buttons>
                 <slot></slot>
             </div>
         `;
@@ -113,43 +100,51 @@ class FeaSectionMenu extends HTMLElement {
 
     activateMenu(event) {
         switch (event.detail.menuName) {
-            case "section-truss-menu":
-                const feaSectionTrussMenu = document.createElement("fea-section-truss-menu");
-                this.append(feaSectionTrussMenu);
+            case "section-add-truss-menu":
+                const feaSectionAddTrussMenu = document.createElement("fea-section-add-truss-menu");
+                this.append(feaSectionAddTrussMenu);
                 event.stopPropagation();
-                this.querySelector("fea-section-truss-menu").actionId = this.props.actionId;
+                this.querySelector("fea-section-add-truss-menu").actionId = this.props.actionId;
                 for (let i = 0; i < this.props.trussSections.length; i++) {
                     const trussSection = this.props.trussSections[i];
-                    this.querySelector("fea-section-menu").addTrussSectionToClient = trussSection;
+                    this.querySelector("fea-section-add-truss-menu").addTrussSectionToClient = trussSection;
                 }
                 break;
-            case "section-beam-menu":
-                const feaSectionBeamMenu = document.createElement("fea-section-beam-menu");
-                this.append(feaSectionBeamMenu);
+            case "section-update-truss-menu":
+                const feaSectionUpdateTrussMenu = document.createElement("fea-section-update-truss-menu");
+                this.append(feaSectionUpdateTrussMenu);
                 event.stopPropagation();
-                this.querySelector("fea-section-beam-menu").actionId = this.props.actionId;
-                // for (let [pointNumber, coordinates] of this.props.points) {
-                //     const point = { "number": pointNumber, "x": coordinates.x, "y": coordinates.y, "z": coordinates.z };
-                //     this.querySelector("fea-geometry-line-menu").addPointToClient = point;
-                // }
-                // for (let [lineNumber, linePointsNumbers] of this.props.lines) {
-                //     const line = { "number": lineNumber,
-                //         "startPointNumber": linePointsNumbers.startPointNumber,
-                //         "endPointNumber": linePointsNumbers.endPointNumber };
-                //     this.querySelector("fea-geometry-line-menu").addLineToClient = line;
-                // }
+                this.querySelector("fea-section-update-truss-menu").actionId = this.props.actionId;
+                for (let i = 0; i < this.props.trussSections.length; i++) {
+                    const trussSection = this.props.trussSections[i];
+                    this.querySelector("fea-section-update-truss-menu").addTrussSectionToClient = trussSection;
+                }
+                break;
+            case "section-delete-truss-menu":
+                const feaSectionDeleteTrussMenu = document.createElement("fea-section-delete-truss-menu");
+                this.append(feaSectionDeleteTrussMenu);
+                event.stopPropagation();
+                this.querySelector("fea-section-delete-truss-menu").actionId = this.props.actionId;
+                for (let i = 0; i < this.props.trussSections.length; i++) {
+                    const trussSection = this.props.trussSections[i];
+                    this.querySelector("fea-section-delete-truss-menu").addTrussSectionToClient = trussSection;
+                }
                 break;
         }
     }
 
     deactivateMenu(event) {
         switch (event.detail.menuName) {
-            case "section-truss-menu":
-                this.querySelector("fea-section-truss-menu").remove();
+            case "section-add-truss-menu":
+                this.querySelector("fea-section-add-truss-menu").remove();
                 event.stopPropagation();
                 break;
-            case "section-beam-menu":
-                this.querySelector("fea-section-beam-menu").remove();
+            case "section-update-truss-menu":
+                this.querySelector("fea-section-update-truss-menu").remove();
+                event.stopPropagation();
+                break;
+            case "section-delete-truss-menu":
+                this.querySelector("fea-section-delete-truss-menu").remove();
                 event.stopPropagation();
                 break;
         }
@@ -188,4 +183,4 @@ class FeaSectionMenu extends HTMLElement {
     }
 }
 
-export default FeaSectionMenu;
+export default FeaSectionTrussMenu;

@@ -407,7 +407,7 @@ impl Properties
     }
 
 
-    pub fn undo_delete_material(&mut self, action_id: u32, name: &str,
+    pub fn restore_material(&mut self, action_id: u32, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         if let Some(deleted_material) = self.deleted_materials.remove(&action_id)
@@ -416,7 +416,7 @@ impl Properties
                 deleted_material.extract_name_and_data();
             if deleted_material_name != name
             {
-                let error_message = &format!("Properties: Undo delete material action: \
+                let error_message = &format!("Properties: Restore material action: \
                     Material with name {} does not exist!", name);
                 return Err(JsValue::from(error_message));
             }
@@ -434,7 +434,7 @@ impl Properties
         }
         else
         {
-            let error_message = &format!("Properties: Undo delete material action: \
+            let error_message = &format!("Properties: Restore material action: \
                 Material with name {} does not exist!", name);
             return Err(JsValue::from(error_message));
         }
@@ -559,7 +559,7 @@ impl Properties
     }
 
 
-    pub fn undo_delete_truss_section(&mut self, action_id: u32, name: &str,
+    pub fn restore_truss_section(&mut self, action_id: u32, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         if let Some(deleted_cross_section) =
@@ -572,7 +572,7 @@ impl Properties
                 deleted_cross_section.extract_key_and_data();
             if deleted_cross_section_key != &cross_section_key
             {
-                let error_message = &format!("Properties: Undo delete truss section \
+                let error_message = &format!("Properties: Restore truss section \
                     action: Truss section with name {} does not exist!", name);
                 return Err(JsValue::from(error_message));
             }
@@ -593,7 +593,7 @@ impl Properties
         }
         else
         {
-            let error_message = &format!("Properties: Undo delete truss section action: \
+            let error_message = &format!("Properties: Restore truss section action: \
                 Truss section with name {} does not exist!", name);
             return Err(JsValue::from(error_message));
         }

@@ -40,9 +40,9 @@ class CommunicatorWithProperties {
         }
     }
 
-    set undoDeleteMaterialFromProperties(materialData) {
+    set restoreMaterialInProperties(materialData) {
         try {
-            this.state.properties.undo_delete_material(materialData.actionId, materialData.name, 
+            this.state.properties.restore_material(materialData.actionId, materialData.name, 
                 materialData.isActionIdShouldBeIncreased);
         } catch (error) {
             throw error;
@@ -76,9 +76,9 @@ class CommunicatorWithProperties {
         }
     }
 
-    set undoDeleteTrussSectionFromProperties(trussSectionData) {
+    set restoreTrussSectionInProperties(trussSectionData) {
         try {
-            this.state.properties.undo_delete_truss_section(trussSectionData.actionId, trussSectionData.name, 
+            this.state.properties.restore_truss_section(trussSectionData.actionId, trussSectionData.name, 
                 trussSectionData.isActionIdShouldBeIncreased);
         } catch (error) {
             throw error;

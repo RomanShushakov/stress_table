@@ -33,11 +33,11 @@ export function deletePointFromGeometry(actionId, number, isActionIdShouldBeIncr
     }
 }
 
-export function undoDeletePointFromGeometry(actionId, number, isActionIdShouldBeIncreased) 
+export function restorePointInGeometry(actionId, number, isActionIdShouldBeIncreased) 
 {
     const pointData = { "actionId": actionId, "number": number, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
     try {
-        communicatorWithGeometry.undoDeletePointFromGeometry = pointData;
+        communicatorWithGeometry.restorePointInGeometry = pointData;
     } catch (error) {
         throw error;
     }
@@ -79,11 +79,11 @@ export function deleteLineFromGeometry(actionId, number, isActionIdShouldBeIncre
     }
 }
 
-export function undoDeleteLineFromGeometry(actionId, number, isActionIdShouldBeIncreased) 
+export function restoreLineInGeometry(actionId, number, isActionIdShouldBeIncreased) 
 {
     const lineData = { "actionId": actionId, "number": number, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
     try {
-        communicatorWithGeometry.undoDeleteLineFromGeometry = lineData;
+        communicatorWithGeometry.restoreLineInGeometry = lineData;
     } catch (error) {
         throw error;
     }

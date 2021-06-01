@@ -41,9 +41,9 @@ class CommunicatorWithGeometry {
         }
     }
 
-    set undoDeletePointFromGeometry(pointData) {
+    set restorePointInGeometry(pointData) {
         try {
-            this.state.geometry.undo_delete_point(pointData.actionId, pointData.number, pointData.isActionIdShouldBeIncreased);
+            this.state.geometry.restore_point(pointData.actionId, pointData.number, pointData.isActionIdShouldBeIncreased);
         } catch (error) {
             throw error;
         }
@@ -75,9 +75,9 @@ class CommunicatorWithGeometry {
         }
     }
 
-    set undoDeleteLineFromGeometry(lineData) {
+    set restoreLineInGeometry(lineData) {
         try {
-            this.state.geometry.undo_delete_line(lineData.actionId, lineData.number, lineData.isActionIdShouldBeIncreased);
+            this.state.geometry.restore_line(lineData.actionId, lineData.number, lineData.isActionIdShouldBeIncreased);
         } catch (error) {
             throw error;
         }

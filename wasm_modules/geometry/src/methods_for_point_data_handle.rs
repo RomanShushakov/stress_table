@@ -118,7 +118,7 @@ impl Geometry
     }
 
 
-    pub fn undo_delete_point(&mut self, action_id: u32, number: u32,
+    pub fn restore_point(&mut self, action_id: u32, number: u32,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         if let Some(deleted_point) = self.deleted_points.remove(&action_id)
@@ -127,7 +127,7 @@ impl Geometry
                 deleted_point.extract_number_and_coordinates();
             if deleted_point_number != number
             {
-                let error_message = &format!("Geometry: Undo delete point action: Point with \
+                let error_message = &format!("Geometry: Restore point action: Point with \
                     number {} does not exist!", number);
                 return Err(JsValue::from(error_message));
             }
@@ -184,7 +184,7 @@ impl Geometry
         }
         else
         {
-            let error_message = &format!("Geometry: Undo delete point action: Point with \
+            let error_message = &format!("Geometry: Restore point action: Point with \
                 number {} does not exist!", number);
             return Err(JsValue::from(error_message));
         }

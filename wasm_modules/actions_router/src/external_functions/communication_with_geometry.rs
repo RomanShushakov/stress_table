@@ -16,8 +16,8 @@ extern "C"
     pub fn delete_point_from_geometry(action_id: u32, number: u32,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
-    #[wasm_bindgen(js_name = undoDeletePointFromGeometry, catch)]
-    pub fn undo_delete_point_from_geometry(action_id: u32, number: u32,
+    #[wasm_bindgen(js_name = restorePointInGeometry, catch)]
+    pub fn restore_point_in_geometry(action_id: u32, number: u32,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
     #[wasm_bindgen(js_name = addLineToGeometry, catch)]
@@ -32,8 +32,8 @@ extern "C"
     pub fn delete_line_from_geometry(action_id: u32, number: u32,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
-    #[wasm_bindgen(js_name = undoDeleteLineFromGeometry, catch)]
-    pub fn undo_delete_line_from_geometry(action_id: u32, number: u32,
+    #[wasm_bindgen(js_name = restoreLineInGeometry, catch)]
+    pub fn restore_line_in_geometry(action_id: u32, number: u32,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
     #[wasm_bindgen(js_name = clearGeometryModuleByActionId)]

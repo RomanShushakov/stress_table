@@ -242,20 +242,20 @@ impl Geometry
     }
 
 
-    pub fn undo_delete_line(&mut self, action_id: u32, number: u32,
+    pub fn restore_line(&mut self, action_id: u32, number: u32,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         if let Some(deleted_lines) = self.deleted_lines.remove(&action_id)
         {
             if deleted_lines.is_empty() || deleted_lines.len() > 1
             {
-                let error_message = &format!("Geometry: Undo delete line action: Incorrect \
+                let error_message = &format!("Geometry: Restore line action: Incorrect \
                     number of lines");
                 return Err(JsValue::from(error_message));
             }
             if !deleted_lines[0].number_same(number) || self.lines.contains_key(&number)
             {
-                let error_message = &format!("Geometry: Undo delete line action: Incorrect \
+                let error_message = &format!("Geometry: Restore line action: Incorrect \
                     line number");
                 return Err(JsValue::from(error_message));
             }
@@ -296,7 +296,7 @@ impl Geometry
         }
         else
         {
-            let error_message = &format!("Geometry: Undo delete line action: Line with \
+            let error_message = &format!("Geometry: Restore line action: Line with \
                 number {} does not exist!", number);
             return Err(JsValue::from(error_message));
         }

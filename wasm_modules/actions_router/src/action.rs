@@ -47,7 +47,7 @@ pub enum GeometryActionType
     DeletePoint(u32, bool),
 
     // ( number, is_action_id_should_be_increased )
-    UndoDeletePoint(u32, bool),
+    RestorePoint(u32, bool),
 
     // ( number, start_point_number, end_point_number, is_action_id_should_be_increased )
     AddLine(u32, u32, u32, bool),
@@ -60,7 +60,7 @@ pub enum GeometryActionType
     DeleteLine(u32, bool),
 
     // ( number, is_action_id_should_be_increased )
-    UndoDeleteLine(u32, bool),
+    RestoreLine(u32, bool),
 }
 
 
@@ -78,7 +78,7 @@ pub enum PropertiesActionType
     DeleteMaterial(String, bool),
 
     // ( name, is_action_id_should_be_increased )
-    UndoDeleteMaterial(String, bool),
+    RestoreMaterial(String, bool),
 
     // ( name, area, area2, is_action_id_should_be_increased )
     AddTrussSection(String, f64, Option<f64>, bool),
@@ -90,7 +90,7 @@ pub enum PropertiesActionType
     DeleteTrussSection(String, bool),
 
     // ( name, is_action_id_should_be_increased )
-    UndoDeleteTrussSection(String, bool),
+    RestoreTrussSection(String, bool),
 }
 
 

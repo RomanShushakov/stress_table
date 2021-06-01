@@ -16,8 +16,8 @@ extern "C"
     pub fn delete_material_from_properties(action_id: u32, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
-    #[wasm_bindgen(js_name = undoDeleteMaterialFromProperties, catch)]
-    pub fn undo_delete_material_from_properties(action_id: u32, name: &str,
+    #[wasm_bindgen(js_name = restoreMaterialInProperties, catch)]
+    pub fn restore_material_in_properties(action_id: u32, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
     #[wasm_bindgen(js_name = addTrussSectionToProperties, catch)]
@@ -32,8 +32,8 @@ extern "C"
     pub fn delete_truss_section_from_properties(action_id: u32, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
-    #[wasm_bindgen(js_name = undoDeleteTrussSectionFromProperties, catch)]
-    pub fn undo_delete_truss_section_from_properties(action_id: u32, name: &str,
+    #[wasm_bindgen(js_name = restoreTrussSectionInProperties, catch)]
+    pub fn restore_truss_section_in_properties(action_id: u32, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
     #[wasm_bindgen(js_name = clearPropertiesModuleByActionId)]

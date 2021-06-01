@@ -33,11 +33,11 @@ export function deleteMaterialFromProperties(actionId, name, isActionIdShouldBeI
     }
 }
 
-export function undoDeleteMaterialFromProperties(actionId, name, isActionIdShouldBeIncreased) 
+export function restoreMaterialInProperties(actionId, name, isActionIdShouldBeIncreased) 
 {
     const materialData = { "actionId": actionId, "name": name, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
     try {
-        communicatorWithProperties.undoDeleteMaterialFromProperties = materialData;
+        communicatorWithProperties.restoreMaterialInProperties = materialData;
     } catch (error) {
         throw error;
     }
@@ -75,11 +75,11 @@ export function deleteTrussSectionFromProperties(actionId, name, isActionIdShoul
     }
 }
 
-export function undoDeleteTrussSectionFromProperties(actionId, name, isActionIdShouldBeIncreased) 
+export function restoreTrussSectionInProperties(actionId, name, isActionIdShouldBeIncreased) 
 {
     const trussSectionData = { "actionId": actionId, "name": name, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
     try {
-        communicatorWithProperties.undoDeleteTrussSectionFromProperties = trussSectionData;
+        communicatorWithProperties.restoreTrussSectionInProperties = trussSectionData;
     } catch (error) {
         throw error;
     }

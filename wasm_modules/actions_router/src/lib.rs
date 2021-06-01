@@ -10,7 +10,7 @@ use external_functions::communication_with_geometry::
     add_line_to_geometry, update_line_in_geometry,
     delete_line_from_geometry, undo_delete_line_from_geometry,
     show_point_info, show_line_info_from_geometry,
-    add_whole_geometry_to_preprocessor
+    add_whole_geometry_to_preprocessor, clear_geometry_module_by_action_id
 };
 
 
@@ -19,7 +19,8 @@ use external_functions::communication_with_properties::
     add_material_to_properties, update_material_in_properties,
     delete_material_from_properties, undo_delete_material_from_properties,
     add_truss_section_to_properties, update_truss_section_in_properties,
-    delete_truss_section_from_properties
+    delete_truss_section_from_properties, undo_delete_truss_section_from_properties,
+    clear_properties_module_by_action_id,
 };
 
 mod action;
@@ -59,7 +60,9 @@ const CHANGE_VIEW_MESSAGE_HEADER: &str = "change_view";
 #[wasm_bindgen]
 pub struct ActionsRouter
 {
-    current_action: Option<(Action, bool)>, // ( action, is_action_id_should_be_added_to_active_actions )
+    // ( action, is_action_id_should_be_added_to_active_actions )
+    current_action: Option<(Action, bool)>,
+
     active_actions: Vec<Action>,
     undo_actions: Vec<Action>,
 }
@@ -233,8 +236,7 @@ impl ActionsRouter
                                     self.current_action = Some((action, add_to_active_actions));
                                 },
                             PropertiesActionType::UndoDeleteMaterial(_, _) => (),
-
-                             PropertiesActionType::AddTrussSection(
+                            PropertiesActionType::AddTrussSection(
                                 truss_section_name,
                                 _area,
                                 _area2,
@@ -249,8 +251,39 @@ impl ActionsRouter
                                     let add_to_active_actions = false;
                                     self.current_action = Some((action, add_to_active_actions));
                                 },
-                            PropertiesActionType::UpdateTrussSection(_, _, _, _, _, _) => (),
-                            PropertiesActionType::DeleteTrussSection(_, _) => (),
+                            PropertiesActionType::UpdateTrussSection(
+                                truss_section_name,
+                                old_area,
+                                old_area2,
+                                new_area,
+                                new_area2,
+                                _is_action_id_should_be_increased) =>
+                                {
+                                    let is_action_id_should_be_increased = false;
+                                    let action_type = ActionType::PropertiesActionType(
+                                        PropertiesActionType::UpdateTrussSection(
+                                            truss_section_name.clone(),
+                                            *new_area, *new_area2,
+                                            *old_area, *old_area2,
+                                            is_action_id_should_be_increased));
+                                    let action = Action::create(action_id, action_type);
+                                    let add_to_active_actions = false;
+                                    self.current_action = Some((action, add_to_active_actions));
+                                },
+                            PropertiesActionType::DeleteTrussSection(
+                                truss_section_name,
+                                _is_action_id_should_be_increased) =>
+                                {
+                                    let is_action_id_should_be_increased = false;
+                                    let action_type = ActionType::PropertiesActionType(
+                                        PropertiesActionType::UndoDeleteTrussSection(
+                                        truss_section_name.clone(),
+                                        is_action_id_should_be_increased));
+                                    let action = Action::create(action_id, action_type);
+                                    let add_to_active_actions = false;
+                                    self.current_action = Some((action, add_to_active_actions));
+                                },
+                            PropertiesActionType::UndoDeleteTrussSection(_, _) => (),
                         }
                     }
             }
@@ -338,6 +371,8 @@ impl ActionsRouter
                                 coordinates,
                                 is_action_id_should_be_increased) =>
                                 {
+                                    clear_properties_module_by_action_id(action_id);
+                                    clear_geometry_module_by_action_id(action_id);
                                     let x = coordinates.get_x();
                                     let y = coordinates.get_y();
                                     let z = coordinates.get_z();
@@ -354,6 +389,7 @@ impl ActionsRouter
                                 new_coordinates,
                                 is_action_id_should_be_increased) =>
                                 {
+                                    clear_properties_module_by_action_id(action_id);
                                     let x = new_coordinates.get_x();
                                     let y = new_coordinates.get_y();
                                     let z = new_coordinates.get_z();
@@ -368,6 +404,8 @@ impl ActionsRouter
                                 point_number,
                                 is_action_id_should_be_increased) =>
                                 {
+                                    clear_properties_module_by_action_id(action_id);
+                                    clear_geometry_module_by_action_id(action_id);
                                     delete_point_from_geometry(action_id, *point_number,
                                         *is_action_id_should_be_increased)?;
                                     if *add_to_active_actions
@@ -392,6 +430,8 @@ impl ActionsRouter
                                 end_point_number,
                                 is_action_id_should_be_increased) =>
                                 {
+                                    clear_properties_module_by_action_id(action_id);
+                                    clear_geometry_module_by_action_id(action_id);
                                     add_line_to_geometry(action_id, *line_number,
                                         *start_point_number, *end_point_number,
                                         *is_action_id_should_be_increased)?;
@@ -408,6 +448,8 @@ impl ActionsRouter
                                 new_end_point_number,
                                 is_action_id_should_be_increased) =>
                                 {
+                                    clear_properties_module_by_action_id(action_id);
+                                    clear_geometry_module_by_action_id(action_id);
                                     update_line_in_geometry(action_id, *line_number,
                                         *new_start_point_number, *new_end_point_number,
                                         *is_action_id_should_be_increased)?;
@@ -420,6 +462,8 @@ impl ActionsRouter
                                 line_number,
                                 is_action_id_should_be_increased) =>
                                 {
+                                    clear_properties_module_by_action_id(action_id);
+                                    clear_geometry_module_by_action_id(action_id);
                                     delete_line_from_geometry(action_id, *line_number,
                                         *is_action_id_should_be_increased)?;
                                     if *add_to_active_actions == true
@@ -475,8 +519,10 @@ impl ActionsRouter
                                 poisson_ratio,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    let name = material_name.clone();
-                                    add_material_to_properties(action_id, name,
+                                    clear_properties_module_by_action_id(action_id);
+                                    clear_geometry_module_by_action_id(action_id);
+                                    add_material_to_properties(action_id,
+                                        material_name,
                                         *young_modulus, *poisson_ratio,
                                         *is_action_id_should_be_increased)?;
                                     if *add_to_active_actions == true
@@ -492,8 +538,10 @@ impl ActionsRouter
                                 new_poisson_ratio,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    let name = material_name.clone();
-                                    update_material_in_properties(action_id, name,
+                                    clear_properties_module_by_action_id(action_id);
+                                    clear_geometry_module_by_action_id(action_id);
+                                    update_material_in_properties(action_id,
+                                        material_name,
                                         *new_young_modulus, *new_poisson_ratio,
                                         *is_action_id_should_be_increased)?;
                                     if *add_to_active_actions == true
@@ -505,8 +553,10 @@ impl ActionsRouter
                                 material_name,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    let name = material_name.clone();
-                                    delete_material_from_properties(action_id, name,
+                                    clear_properties_module_by_action_id(action_id);
+                                    clear_geometry_module_by_action_id(action_id);
+                                    delete_material_from_properties(action_id,
+                                        material_name,
                                         *is_action_id_should_be_increased)?;
                                     if *add_to_active_actions == true
                                     {
@@ -517,8 +567,8 @@ impl ActionsRouter
                                 material_name,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    let name = material_name.clone();
-                                    undo_delete_material_from_properties(action_id, name,
+                                    undo_delete_material_from_properties(action_id,
+                                        material_name,
                                         *is_action_id_should_be_increased)?;
                                     if *add_to_active_actions == true
                                     {
@@ -531,8 +581,10 @@ impl ActionsRouter
                                 area2,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    let name = truss_section_name.clone();
-                                    add_truss_section_to_properties(action_id, name,
+                                    clear_properties_module_by_action_id(action_id);
+                                    clear_geometry_module_by_action_id(action_id);
+                                    add_truss_section_to_properties(action_id,
+                                        truss_section_name,
                                         *area, *area2,
                                         *is_action_id_should_be_increased)?;
                                     if *add_to_active_actions == true
@@ -548,8 +600,10 @@ impl ActionsRouter
                                 new_area2,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    let name = truss_section_name.clone();
-                                    update_truss_section_in_properties(action_id, name,
+                                    clear_properties_module_by_action_id(action_id);
+                                    clear_geometry_module_by_action_id(action_id);
+                                    update_truss_section_in_properties(action_id,
+                                        truss_section_name,
                                         *new_area, *new_area2,
                                         *is_action_id_should_be_increased)?;
                                     if *add_to_active_actions == true
@@ -561,8 +615,22 @@ impl ActionsRouter
                                 truss_section_name,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    let name = truss_section_name.clone();
-                                    delete_truss_section_from_properties(action_id, name,
+                                    clear_properties_module_by_action_id(action_id);
+                                    clear_geometry_module_by_action_id(action_id);
+                                    delete_truss_section_from_properties(action_id,
+                                        truss_section_name,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions == true
+                                    {
+                                        self.active_actions.push(action.clone());
+                                    }
+                                },
+                            PropertiesActionType::UndoDeleteTrussSection(
+                                truss_section_name,
+                                is_action_id_should_be_increased) =>
+                                {
+                                    undo_delete_truss_section_from_properties(action_id,
+                                        truss_section_name,
                                         *is_action_id_should_be_increased)?;
                                     if *add_to_active_actions == true
                                     {

@@ -75,6 +75,19 @@ class CommunicatorWithProperties {
             throw error;
         }
     }
+
+    set undoDeleteTrussSectionFromProperties(trussSectionData) {
+        try {
+            this.state.properties.undo_delete_truss_section(trussSectionData.actionId, trussSectionData.name, 
+                trussSectionData.isActionIdShouldBeIncreased);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    set clearPropertiesModuleByActionId(actionId) {
+        this.state.properties.clear_properties_module_by_action_id(actionId);
+    }
 }
 
 export const communicatorWithProperties = new CommunicatorWithProperties();

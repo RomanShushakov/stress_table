@@ -74,3 +74,17 @@ export function deleteTrussSectionFromProperties(actionId, name, isActionIdShoul
         throw error;
     }
 }
+
+export function undoDeleteTrussSectionFromProperties(actionId, name, isActionIdShouldBeIncreased) 
+{
+    const trussSectionData = { "actionId": actionId, "name": name, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
+    try {
+        communicatorWithProperties.undoDeleteTrussSectionFromProperties = trussSectionData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function clearPropertiesModuleByActionId(actionId) {
+    communicatorWithProperties.clearPropertiesModuleByActionId = actionId;
+}

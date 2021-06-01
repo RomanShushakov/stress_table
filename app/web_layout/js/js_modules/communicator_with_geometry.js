@@ -110,6 +110,10 @@ class CommunicatorWithGeometry {
     set addWholeGeometryToPreprocessor(isActionIdShouldBeIncreased) {
         this.state.geometry.add_whole_geometry_to_preprocessor(isActionIdShouldBeIncreased);
     }
+
+    set clearGeometryModuleByActionId(actionId) {
+        this.state.geometry.clear_geometry_module_by_action_id(actionId);
+    }
 }
 
 export const communicatorWithGeometry = new CommunicatorWithGeometry();

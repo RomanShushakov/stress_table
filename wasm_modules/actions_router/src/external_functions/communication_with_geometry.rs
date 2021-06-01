@@ -36,6 +36,9 @@ extern "C"
     pub fn undo_delete_line_from_geometry(action_id: u32, number: u32,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
+    #[wasm_bindgen(js_name = clearGeometryModuleByActionId)]
+    pub fn clear_geometry_module_by_action_id(action_id: u32);
+
     #[wasm_bindgen(js_name = addWholeGeometryToPreprocessor)]
     pub fn add_whole_geometry_to_preprocessor(is_action_id_should_be_increased: bool);
 

@@ -174,7 +174,7 @@ class FeaSectionMenu extends HTMLElement {
     updateTrussSectionInChildren(trussSection) {
         for (let i = 0; i < this.state.childrenNamesForTrussSectionCrud.length; i++) {
             if (this.querySelector(this.state.childrenNamesForTrussSectionCrud[i]) !== null) {
-                this.querySelector(this.state.childrenNamesForTrussSectionCrud[i]).updateTrussSectionToClient = trussSection;
+                this.querySelector(this.state.childrenNamesForTrussSectionCrud[i]).updateTrussSectionInClient = trussSection;
             }
         } 
     }

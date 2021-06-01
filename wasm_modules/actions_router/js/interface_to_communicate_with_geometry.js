@@ -115,3 +115,7 @@ export function addWholeGeometryToPreprocessor(isActionIdShouldBeIncreased)
 {
     communicatorWithGeometry.addWholeGeometryToPreprocessor = isActionIdShouldBeIncreased;
 }
+
+export function clearGeometryModuleByActionId(actionId) {
+    communicatorWithGeometry.clearGeometryModuleByActionId = actionId;
+}

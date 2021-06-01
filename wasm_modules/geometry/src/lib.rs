@@ -106,6 +106,13 @@ impl Geometry
     }
 
 
+    pub fn clear_geometry_module_by_action_id(&mut self, action_id: u32)
+    {
+        self.clear_deleted_lines_by_action_id(action_id);
+        self.clear_deleted_points_by_action_id(action_id);
+    }
+
+
     pub fn show_point_info(&mut self, number: u32) -> Result<JsValue, JsValue>
     {
         return if let Some(point) = self.points.get(&number)

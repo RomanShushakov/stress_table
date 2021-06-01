@@ -88,6 +88,9 @@ pub enum PropertiesActionType
 
     // ( name, is_action_id_should_be_increased )
     DeleteTrussSection(String, bool),
+
+    // ( name, is_action_id_should_be_increased )
+    UndoDeleteTrussSection(String, bool),
 }
 
 

@@ -61,6 +61,10 @@ class FeaApp extends HTMLElement {
         this.addEventListener("update_material_server_message", (event) => this.handleUpdateMaterialServerMessage(event));
         this.addEventListener("delete_material_server_message", (event) => this.handleDeleteMaterialServerMessage(event));
 
+        this.addEventListener("add_truss_section_server_message", (event) => this.handleAddTrussSectionServerMessage(event));
+        this.addEventListener("update_truss_section_server_message", (event) => this.handleUpdateTrussSectionServerMessage(event));
+        this.addEventListener("delete_truss_section_server_message", (event) => this.handleDeleteTrussSectionServerMessage(event));
+
         this.addEventListener("decreaseActionId", (event) => this.handleDecreaseActionIdMessage(event));
     }
 
@@ -68,7 +72,6 @@ class FeaApp extends HTMLElement {
         this.state.actionsRouter = await initializeActionsRouter();
         this.activatePreprocessorMenu();
         this.updateTitleBarActionId();
-        this.shadowRoot.querySelector("fea-renderer").canvasSizeCallback = () => this.getCanvasSize();
     }
 
     disconnectedCallback() {
@@ -270,6 +273,45 @@ class FeaApp extends HTMLElement {
         }
         const material = { number: event.detail.material_data.name };
         this.querySelector("fea-preprocessor-menu").deleteMaterialFromClient = material;
+        event.stopPropagation();
+    }
+
+    handleAddTrussSectionServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;
+            this.updatePreprocessorMenuActionId();
+            this.updateTitleBarActionId();
+        }
+        const trussSection = { 
+            name: event.detail.truss_section_data.name,
+            area: event.detail.truss_section_data.area,
+            area2: event.detail.truss_section_data.area2 };
+        this.querySelector("fea-preprocessor-menu").addTrussSectionToClient = trussSection;
+        event.stopPropagation();
+    }
+
+    handleUpdateTrussSectionServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;
+            this.updatePreprocessorMenuActionId();
+            this.updateTitleBarActionId();
+        }
+        const trussSection = { 
+            name: event.detail.truss_section_data.name,
+            area: event.detail.truss_section_data.area,
+            area2: event.detail.truss_section_data.area2 };
+        this.querySelector("fea-preprocessor-menu").updateTrussSectionInClient = trussSection;
+        event.stopPropagation();
+    }
+
+    handleDeleteTrussSectionServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;
+            this.updatePreprocessorMenuActionId();
+            this.updateTitleBarActionId();
+        }
+        const trussSection = { number: event.detail.truss_section_data.name };
+        this.querySelector("fea-preprocessor-menu").deleteTrussSectionFromClient = trussSection;
         event.stopPropagation();
     }
 

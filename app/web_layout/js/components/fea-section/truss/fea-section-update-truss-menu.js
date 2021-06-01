@@ -320,6 +320,10 @@ class FeaSectionUpdateTrussMenu extends HTMLElement {
             this.dropHighlight(inputtedArea);
             this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
         });
+
+        this.shadowRoot.querySelector(".area2").addEventListener("click", () => {
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+        });
     }
 
     set actionId(value) {
@@ -382,7 +386,7 @@ class FeaSectionUpdateTrussMenu extends HTMLElement {
                 let updateOption = document.createElement("option");
                 updateOption.value = this.props.trussSections[i].name.replace(/['"]+/g, "");
                 updateOption.innerHTML = this.props.trussSections[i].name.replace(/['"]+/g, "");;
-                updateMaterialNameSelect.appendChild(updateOption);
+                updateTrussSectionNameSelect.appendChild(updateOption);
             }
             this.shadowRoot.querySelector(".area").value = this.props.trussSections[0].area;
             this.shadowRoot.querySelector(".area2").value = this.props.trussSections[0].area2;
@@ -444,7 +448,8 @@ class FeaSectionUpdateTrussMenu extends HTMLElement {
 
         const trussSEctionDataInProps = this.props.trussSections
             .find(trussSection => trussSection.area == inputtedAreaField.value && 
-                trussSection.area2 == inputtedArea2Field.value);
+                (trussSection.area2 == inputtedArea2Field.value || 
+                    (trussSection.area2 === null && inputtedArea2Field.value === "")));
         if (trussSEctionDataInProps != null) {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 

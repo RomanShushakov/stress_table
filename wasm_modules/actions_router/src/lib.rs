@@ -17,7 +17,9 @@ use external_functions::communication_with_geometry::
 use external_functions::communication_with_properties::
 {
     add_material_to_properties, update_material_in_properties,
-    delete_material_from_properties, undo_delete_material_from_properties
+    delete_material_from_properties, undo_delete_material_from_properties,
+    add_truss_section_to_properties, update_truss_section_in_properties,
+    delete_truss_section_from_properties
 };
 
 mod action;
@@ -39,6 +41,10 @@ const DELETE_LINE_MESSAGE_HEADER: &str = "delete_line";
 const ADD_MATERIAL_MESSAGE_HEADER: &str = "add_material";
 const UPDATE_MATERIAL_MESSAGE_HEADER: &str = "update_material";
 const DELETE_MATERIAL_MESSAGE_HEADER: &str = "delete_material";
+
+const ADD_TRUSS_SECTION_MESSAGE_HEADER: &str = "add_truss_section";
+const UPDATE_TRUSS_SECTION_MESSAGE_HEADER: &str = "update_truss_section";
+const DELETE_TRUSS_SECTION_MESSAGE_HEADER: &str = "delete_truss_section";
 
 const UNDO_MESSAGE_HEADER: &str = "undo";
 const REDO_MESSAGE_HEADER: &str = "redo";
@@ -227,6 +233,24 @@ impl ActionsRouter
                                     self.current_action = Some((action, add_to_active_actions));
                                 },
                             PropertiesActionType::UndoDeleteMaterial(_, _) => (),
+
+                             PropertiesActionType::AddTrussSection(
+                                truss_section_name,
+                                _area,
+                                _area2,
+                                _is_action_id_should_be_increased) =>
+                                {
+                                    let is_action_id_should_be_increased = false;
+                                    let action_type = ActionType::PropertiesActionType(
+                                        PropertiesActionType::DeleteTrussSection(
+                                            truss_section_name.clone(),
+                                            is_action_id_should_be_increased));
+                                    let action = Action::create(action_id, action_type);
+                                    let add_to_active_actions = false;
+                                    self.current_action = Some((action, add_to_active_actions));
+                                },
+                            PropertiesActionType::UpdateTrussSection(_, _, _, _, _, _) => (),
+                            PropertiesActionType::DeleteTrussSection(_, _) => (),
                         }
                     }
             }
@@ -501,6 +525,50 @@ impl ActionsRouter
                                         self.active_actions.push(action.clone());
                                     }
                                 },
+                            PropertiesActionType::AddTrussSection(
+                                truss_section_name,
+                                area,
+                                area2,
+                                is_action_id_should_be_increased) =>
+                                {
+                                    let name = truss_section_name.clone();
+                                    add_truss_section_to_properties(action_id, name,
+                                        *area, *area2,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions == true
+                                    {
+                                        self.active_actions.push(action.clone());
+                                    }
+                                },
+                            PropertiesActionType::UpdateTrussSection(
+                                truss_section_name,
+                                _old_area,
+                                _old_area2,
+                                new_area,
+                                new_area2,
+                                is_action_id_should_be_increased) =>
+                                {
+                                    let name = truss_section_name.clone();
+                                    update_truss_section_in_properties(action_id, name,
+                                        *new_area, *new_area2,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions == true
+                                    {
+                                        self.active_actions.push(action.clone());
+                                    }
+                                },
+                            PropertiesActionType::DeleteTrussSection(
+                                truss_section_name,
+                                is_action_id_should_be_increased) =>
+                                {
+                                    let name = truss_section_name.clone();
+                                    delete_truss_section_from_properties(action_id, name,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions == true
+                                    {
+                                        self.active_actions.push(action.clone());
+                                    }
+                                },
                         }
                     }
             }
@@ -519,11 +587,13 @@ impl ActionsRouter
         {
             self.handle_add_point_message(&point_data)?;
         }
-        else if let Some(point_data) = serialized_message.get(UPDATE_POINT_MESSAGE_HEADER)
+        else if let Some(point_data) = serialized_message
+            .get(UPDATE_POINT_MESSAGE_HEADER)
         {
             self.handle_update_point_message(&point_data)?;
         }
-        else if let Some(point_data) = serialized_message.get(DELETE_POINT_MESSAGE_HEADER)
+        else if let Some(point_data) = serialized_message
+            .get(DELETE_POINT_MESSAGE_HEADER)
         {
             self.handle_delete_point_message(&point_data)?;
         }
@@ -531,25 +601,45 @@ impl ActionsRouter
         {
             self.handle_add_line_message(&line_data)?;
         }
-        else if let Some(line_data) = serialized_message.get(UPDATE_LINE_MESSAGE_HEADER)
+        else if let Some(line_data) = serialized_message
+            .get(UPDATE_LINE_MESSAGE_HEADER)
         {
             self.handle_update_line_message(&line_data)?;
         }
-        else if let Some(line_data) = serialized_message.get(DELETE_LINE_MESSAGE_HEADER)
+        else if let Some(line_data) = serialized_message
+            .get(DELETE_LINE_MESSAGE_HEADER)
         {
             self.handle_delete_line_message(&line_data)?;
         }
-        else if let Some(material_data) = serialized_message.get(ADD_MATERIAL_MESSAGE_HEADER)
+        else if let Some(material_data) = serialized_message
+            .get(ADD_MATERIAL_MESSAGE_HEADER)
         {
             self.handle_add_material_message(&material_data)?;
         }
-        else if let Some(material_data) = serialized_message.get(UPDATE_MATERIAL_MESSAGE_HEADER)
+        else if let Some(material_data) = serialized_message
+            .get(UPDATE_MATERIAL_MESSAGE_HEADER)
         {
             self.handle_update_material_message(&material_data)?;
         }
-        else if let Some(material_data) = serialized_message.get(DELETE_MATERIAL_MESSAGE_HEADER)
+        else if let Some(material_data) = serialized_message
+            .get(DELETE_MATERIAL_MESSAGE_HEADER)
         {
             self.handle_delete_material_message(&material_data)?;
+        }
+        else if let Some(truss_section_data) = serialized_message
+            .get(ADD_TRUSS_SECTION_MESSAGE_HEADER)
+        {
+            self.handle_add_truss_section_message(&truss_section_data)?;
+        }
+        else if let Some(truss_section_data) = serialized_message
+            .get(UPDATE_TRUSS_SECTION_MESSAGE_HEADER)
+        {
+            self.handle_update_truss_section_message(&truss_section_data)?;
+        }
+        else if let Some(truss_section_data) = serialized_message
+            .get(DELETE_TRUSS_SECTION_MESSAGE_HEADER)
+        {
+            self.handle_delete_truss_section_message(&truss_section_data)?;
         }
         else if let Some(undo_data) = serialized_message.get(UNDO_MESSAGE_HEADER)
         {
@@ -562,12 +652,14 @@ impl ActionsRouter
         else if let Some(selected_point_number) =
             serialized_message.get(SELECTED_POINT_NUMBER_MESSAGE_HEADER)
         {
-            self.handle_selected_point_number_message(&selected_point_number, show_object_info_handle)?;
+            self.handle_selected_point_number_message(&selected_point_number,
+                show_object_info_handle)?;
         }
         else if let Some(selected_line_number) =
             serialized_message.get(SELECTED_LINE_NUMBER_MESSAGE_HEADER)
         {
-            self.handle_selected_line_number_message(&selected_line_number, show_object_info_handle)?;
+            self.handle_selected_line_number_message(&selected_line_number,
+                show_object_info_handle)?;
         }
         else if let Some(view) = serialized_message.get(CHANGE_VIEW_MESSAGE_HEADER)
         {
@@ -597,7 +689,8 @@ impl ActionsRouter
             log(&format!("Actions router undo actions: Action id: {:?}, action type: {:?}",
                 action_id, action_type));
         }
-        log(&format!("Actions router: The number of undo actions: {}", self.undo_actions.len()));
+        log(&format!("Actions router: The number of undo actions: {}",
+            self.undo_actions.len()));
         Ok(())
     }
 

@@ -4,6 +4,7 @@ use wasm_bindgen::prelude::*;
 use crate::ActionsRouter;
 use crate::{Action};
 use crate::{ActionType, PropertiesActionType};
+use crate::external_functions::common::log;
 
 
 impl ActionsRouter
@@ -94,6 +95,134 @@ impl ActionsRouter
         let name = material_data["name"].to_string();
         let is_action_id_should_be_increased = true;
         let action_type = ActionType::PropertiesActionType(PropertiesActionType::DeleteMaterial(
+            name, is_action_id_should_be_increased));
+        let action = Action::create(action_id, action_type);
+        let add_to_active_actions = true;
+        self.current_action = Some((action, add_to_active_actions));
+        Ok(())
+    }
+
+
+    pub(super) fn handle_add_truss_section_message(&mut self, truss_section_data: &Value)
+        -> Result<(), JsValue>
+    {
+        let action_id = truss_section_data["actionId"].to_string()
+            .parse::<u32>()
+            .or(Err(JsValue::from("Actions router: Add truss section action: Action id could \
+                not be converted to u32!")))?;
+        let name = truss_section_data["name"].to_string();
+        let area = truss_section_data["area"].as_str()
+            .ok_or(JsValue::from("Actions router: Add truss section action: \
+                Area value could not be extracted!"))?
+            .parse::<f64>()
+            .or(Err(JsValue::from("Actions router: Add truss section action: \
+                Area value could not be converted to f64!")))?;
+        let area2_value = truss_section_data["area2"].as_str()
+            .ok_or(JsValue::from("Actions router: Add truss section action: Area 2 value \
+                could not be extracted!"))?;
+        let area2 =
+            {
+                if area2_value.is_empty()
+                {
+                    None
+                }
+                else
+                {
+                    let converted_area2 = area2_value.parse::<f64>()
+                        .or(Err(JsValue::from("Actions router: Add truss section action: \
+                            Area 2 value could not be converted to f64!")))?;
+                    Some(converted_area2)
+                }
+            };
+        self.undo_actions.clear();
+        let is_action_id_should_be_increased = true;
+        let action_type = ActionType::PropertiesActionType(PropertiesActionType::AddTrussSection(
+                name, area, area2, is_action_id_should_be_increased));
+        let action = Action::create(action_id, action_type);
+        let add_to_active_actions = true;
+        self.current_action = Some((action, add_to_active_actions));
+        Ok(())
+    }
+
+
+    pub(super) fn handle_update_truss_section_message(&mut self, truss_section_data: &Value)
+        -> Result<(), JsValue>
+    {
+        let action_id = truss_section_data["actionId"].to_string()
+            .parse::<u32>()
+            .or(Err(JsValue::from("Actions router: Update truss section action: \
+                Action id could not be converted to u32!")))?;
+        let name = truss_section_data["name"].to_string();
+        let old_area = truss_section_data["old_truss_section_values"]["area"]
+            .to_string()
+            .parse::<f64>()
+            .or(Err(JsValue::from("Actions router: Update truss section action: \
+                Truss section old Area value could not be converted to f64!")))?;
+        let old_area2 =
+            {
+                if truss_section_data["old_truss_section_values"]["area2"].is_null()
+                {
+                    None
+                }
+                else
+                {
+                    let converted_area2 =
+                        truss_section_data["old_truss_section_values"]["area2"]
+                            .to_string()
+                            .parse::<f64>()
+                            .or(Err(JsValue::from("Actions router: Update material action: \
+                                Truss section old Area 2 value could not be converted to f64!")))?;
+                    Some(converted_area2)
+                }
+            };
+        let new_area = truss_section_data["new_truss_section_values"]["area"]
+            .as_str()
+            .ok_or(JsValue::from("Actions router: Update truss section action: \
+                Material new Area value could not be extracted!"))?
+            .parse::<f64>()
+            .or(Err(JsValue::from("Actions router: Update truss section action: \
+                Material new Area value could not be converted to f64!")))?;
+        let new_area2 =
+            {
+                let new_area2_value = truss_section_data["new_truss_section_values"]["area2"]
+                    .as_str()
+                    .ok_or(JsValue::from("Actions router: Update truss section \
+                        action: Truss section new Area 2 value could not be extracted!"))?;
+                if new_area2_value.is_empty()
+                {
+                    None
+                }
+                else
+                {
+                    let converted_area2 = new_area2_value.parse::<f64>()
+                        .or(Err(JsValue::from("Actions router: Update truss section \
+                            action: Truss section new Area 2 value could not be converted \
+                            to f64!")))?;
+                    Some(converted_area2)
+                }
+            };
+        self.undo_actions.clear();
+        let is_action_id_should_be_increased = true;
+        let action_type = ActionType::PropertiesActionType(PropertiesActionType::UpdateTrussSection(
+            name, old_area, old_area2, new_area, new_area2, is_action_id_should_be_increased));
+        let action = Action::create(action_id, action_type);
+        let add_to_active_actions = true;
+        self.current_action = Some((action, add_to_active_actions));
+        Ok(())
+    }
+
+
+    pub(super) fn handle_delete_truss_section_message(&mut self, truss_section_data: &Value)
+        -> Result<(), JsValue>
+    {
+        let action_id = truss_section_data["actionId"].to_string()
+            .parse::<u32>()
+            .or(Err(JsValue::from("Actions router: Delete truss section action: \
+                Action id could not be converted to u32!")))?;
+        self.undo_actions.clear();
+        let name = truss_section_data["name"].to_string();
+        let is_action_id_should_be_increased = true;
+        let action_type = ActionType::PropertiesActionType(PropertiesActionType::DeleteTrussSection(
             name, is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
         let add_to_active_actions = true;

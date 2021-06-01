@@ -42,3 +42,35 @@ export function undoDeleteMaterialFromProperties(actionId, name, isActionIdShoul
         throw error;
     }
 }
+
+export function addTrussSectionToProperties(actionId, name, area, area2, isActionIdShouldBeIncreased) 
+{
+    const trussSectionData = { "actionId": actionId, "name": name, "area": area,
+        "area2": area2, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
+    try {
+        communicatorWithProperties.addTrussSectionToProperties = trussSectionData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function updateTrussSectionInProperties(actionId, name, area, area2, isActionIdShouldBeIncreased) 
+{
+    const trussSectionData = { "actionId": actionId, "name": name, "area": area,
+        "area2": area2, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
+    try {
+        communicatorWithProperties.updateTrussSectionInProperties = trussSectionData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function deleteTrussSectionFromProperties(actionId, name, isActionIdShouldBeIncreased) 
+{
+    const trussSectionData = { "actionId": actionId, "name": name, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
+    try {
+        communicatorWithProperties.deleteTrussSectionFromProperties = trussSectionData;
+    } catch (error) {
+        throw error;
+    }
+}

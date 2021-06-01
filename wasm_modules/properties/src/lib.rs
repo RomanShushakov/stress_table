@@ -10,6 +10,10 @@ const ADD_MATERIAL_EVENT_NAME: &str = "add_material_server_message";
 const UPDATE_MATERIAL_EVENT_NAME: &str = "update_material_server_message";
 const DELETE_MATERIAL_EVENT_NAME: &str = "delete_material_server_message";
 
+const ADD_TRUSS_SECTION_EVENT_NAME: &str = "add_truss_section_server_message";
+const UPDATE_TRUSS_SECTION_EVENT_NAME: &str = "update_truss_section_server_message";
+const DELETE_TRUSS_SECTION_EVENT_NAME: &str = "delete_truss_section_server_message";
+
 
 #[wasm_bindgen]
 extern "C"
@@ -102,17 +106,106 @@ impl DeletedMaterial
 }
 
 
+#[derive(Debug, Clone, PartialEq)]
+struct CrossSectionData
+{
+    numerical_data: Vec<f64>,
+    optional_data: Vec<Option<f64>>,
+}
+
+
+impl CrossSectionData
+{
+    fn create(numerical_data: Vec<f64>, optional_data: Vec<Option<f64>>) -> Self
+    {
+        CrossSectionData { numerical_data, optional_data }
+    }
+}
+
+
+#[derive(Debug, Clone)]
+struct CrossSection
+{
+    cross_section_data: CrossSectionData,
+}
+
+
+impl CrossSection
+{
+    fn create(cross_section_data: CrossSectionData) -> Self
+    {
+        CrossSection { cross_section_data }
+    }
+
+
+    fn data_same(&self, cross_section_data: &CrossSectionData) -> bool
+    {
+        self.cross_section_data == *cross_section_data
+    }
+
+
+    fn update(&mut self, cross_section_data: CrossSectionData)
+    {
+        self.cross_section_data = cross_section_data;
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+enum CrossSectionType
+{
+    Truss,
+    Beam,
+}
+
+
+#[derive(Debug, Hash, PartialEq, Eq, Clone)]
+struct CrossSectionKey
+{
+    name: String,
+    cross_section_type: CrossSectionType
+}
+
+
+impl CrossSectionKey
+{
+    fn create(name: String, cross_section_type: CrossSectionType) -> Self
+    {
+        CrossSectionKey { name, cross_section_type }
+    }
+}
+
+
+#[derive(Debug, Clone)]
+struct DeletedCrossSection
+{
+    cross_section_key: CrossSectionKey,
+    cross_section: CrossSection,
+}
+
+
+impl DeletedCrossSection
+{
+    fn create(cross_section_key: CrossSectionKey, cross_section: CrossSection) -> Self
+    {
+        DeletedCrossSection { cross_section_key, cross_section }
+    }
+}
+
+
 struct Property
 {
     material_name: String,
+    cross_section_key: CrossSectionKey,
+    cross_section_orientation: Option<[f64; 3]>
 }
 
 
 impl Property
 {
-    fn create(material_name: String) -> Self
+    fn create(material_name: String, cross_section_key: CrossSectionKey,
+        cross_section_orientation: Option<[f64; 3]>) -> Self
     {
-        Property { material_name }
+        Property { material_name, cross_section_key, cross_section_orientation }
     }
 }
 
@@ -123,6 +216,8 @@ pub struct Properties
     properties: HashMap<String, Property>,  // { property_name: Property }
     materials: HashMap<String, Material>,   // { material_name: Material }
     deleted_materials: HashMap<u32, DeletedMaterial>,   // { action_id: DeletedMaterial }
+    cross_sections: HashMap<CrossSectionKey, CrossSection>,
+    deleted_cross_sections: HashMap<u32, DeletedCrossSection>,   // { action_id: DeletedCrossSection }
 }
 
 
@@ -134,7 +229,10 @@ impl Properties
         let properties = HashMap::new();
         let materials = HashMap::new();
         let deleted_materials = HashMap::new();
-        Properties { properties, materials, deleted_materials }
+        let cross_sections = HashMap::new();
+        let deleted_cross_sections = HashMap::new();
+        Properties { properties, materials, deleted_materials, cross_sections,
+            deleted_cross_sections }
     }
 
 
@@ -151,10 +249,24 @@ impl Properties
     }
 
 
+    fn clear_deleted_cross_sections_by_action_id(&mut self, action_id: u32)
+    {
+        for action_id in self.deleted_cross_sections.clone()
+            .keys()
+            .filter(|deletion_action_id| **deletion_action_id >= action_id)
+            .collect::<Vec<&u32>>()
+            .iter()
+        {
+            let _ = self.deleted_cross_sections.remove(&action_id);
+        }
+    }
+
+
     pub fn add_material(&mut self, action_id: u32, name: String, young_modulus: f64,
         poisson_ratio: f64, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_deleted_materials_by_action_id(action_id);
+        self.clear_deleted_cross_sections_by_action_id(action_id);
         if self.materials.contains_key(&name)
         {
             let error_message = &format!("Properties: Add material action: Material with \
@@ -175,8 +287,10 @@ impl Properties
             "poisson_ratio": poisson_ratio },
             "is_action_id_should_be_increased": is_action_id_should_be_increased });
         dispatch_custom_event(detail, ADD_MATERIAL_EVENT_NAME, EVENT_TARGET)?;
-        log(&format!("Properties: Materials: {:?}, deleted materials: {:?}",
-            self.materials, self.deleted_materials));
+        log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
+            cross sections: {:?}, deleted cross sections: {:?}",
+            self.materials, self.deleted_materials,
+            self.cross_sections, self.deleted_cross_sections));
         Ok(())
     }
 
@@ -185,6 +299,7 @@ impl Properties
         poisson_ratio: f64, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_deleted_materials_by_action_id(action_id);
+        self.clear_deleted_cross_sections_by_action_id(action_id);
         if self.materials.values().position(|material|
             material.data_same(young_modulus, poisson_ratio)).is_some()
         {
@@ -200,8 +315,10 @@ impl Properties
                 "young_modulus": young_modulus, "poisson_ratio": poisson_ratio },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, UPDATE_MATERIAL_EVENT_NAME, EVENT_TARGET)?;
-            log(&format!("Properties: Materials: {:?}, deleted materials: {:?}",
-                self.materials, self.deleted_materials));
+            log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
+                cross sections: {:?}, deleted cross sections: {:?}",
+                self.materials, self.deleted_materials,
+                self.cross_sections, self.deleted_cross_sections));
             Ok(())
         }
         else
@@ -217,6 +334,7 @@ impl Properties
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_deleted_materials_by_action_id(action_id);
+        self.clear_deleted_cross_sections_by_action_id(action_id);
         if let Some((material_name, material)) = self.materials.remove_entry(&name)
         {
             let deleted_material = DeletedMaterial::create(material_name, material);
@@ -224,8 +342,10 @@ impl Properties
             let detail = json!({ "material_data": { "name": name },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, DELETE_MATERIAL_EVENT_NAME, EVENT_TARGET)?;
-            log(&format!("Properties: Materials: {:?}, deleted materials: {:?}",
-                self.materials, self.deleted_materials));
+            log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
+                cross sections: {:?}, deleted cross sections: {:?}",
+                self.materials, self.deleted_materials,
+                self.cross_sections, self.deleted_cross_sections));
             Ok(())
         }
         else
@@ -256,14 +376,133 @@ impl Properties
             dispatch_custom_event(detail, ADD_MATERIAL_EVENT_NAME, EVENT_TARGET)?;
             self.materials.insert(deleted_material_name, Material::create(
                 young_modulus, poisson_ratio));
-            log(&format!("Properties: Materials: {:?}, deleted materials: {:?}",
-                self.materials, self.deleted_materials));
+            log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
+                cross sections: {:?}, deleted cross sections: {:?}",
+                self.materials, self.deleted_materials,
+                self.cross_sections, self.deleted_cross_sections));
             Ok(())
         }
         else
         {
             let error_message = &format!("Properties: Undo delete material action: \
                 Material with name {} does not exist!", name);
+            return Err(JsValue::from(error_message));
+        }
+    }
+
+
+    pub fn add_truss_section(&mut self, action_id: u32, name: String, area: f64,
+        area2: Option<f64>, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.clear_deleted_materials_by_action_id(action_id);
+        self.clear_deleted_cross_sections_by_action_id(action_id);
+        let cross_section_type = CrossSectionType::Truss;
+        let cross_section_key = CrossSectionKey::create(
+            name.clone(), cross_section_type);
+        if self.cross_sections.contains_key(&cross_section_key)
+        {
+            let error_message = &format!("Properties: Add cross section action: \
+                Truss cross section with name {} does already exist!", name);
+            return Err(JsValue::from(error_message));
+        }
+        let cross_section_numerical_data = vec![area];
+        let cross_section_optional_data = vec![area2];
+        let cross_section_data = CrossSectionData::create(
+            cross_section_numerical_data, cross_section_optional_data);
+        if self.cross_sections.values().position(|cross_section|
+            cross_section.data_same(&cross_section_data)).is_some()
+        {
+            let error_message = &format!("Properties: Add cross section action: \
+                Cross section with Area {} and Area 2 {:?} does already exist!",
+                    area, area2);
+            return Err(JsValue::from(error_message));
+        }
+        let cross_section = CrossSection::create(cross_section_data);
+        self.cross_sections.insert(cross_section_key, cross_section);
+        let detail = json!({ "truss_section_data": { "name": name, "area": area,
+            "area2": area2 },
+            "is_action_id_should_be_increased": is_action_id_should_be_increased });
+        dispatch_custom_event(detail, ADD_TRUSS_SECTION_EVENT_NAME,
+            EVENT_TARGET)?;
+        log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
+            cross sections: {:?}, deleted cross sections: {:?}",
+            self.materials, self.deleted_materials,
+            self.cross_sections, self.deleted_cross_sections));
+        Ok(())
+    }
+
+
+    pub fn update_truss_section(&mut self, action_id: u32, name: String, area: f64,
+        area2: Option<f64>, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.clear_deleted_materials_by_action_id(action_id);
+        self.clear_deleted_cross_sections_by_action_id(action_id);
+        let cross_section_type = CrossSectionType::Truss;
+        let cross_section_key = CrossSectionKey::create(
+            name.clone(), cross_section_type);
+        let cross_section_numerical_data = vec![area];
+        let cross_section_optional_data = vec![area2];
+        let cross_section_data = CrossSectionData::create(
+            cross_section_numerical_data, cross_section_optional_data);
+        if self.cross_sections.values().position(|cross_section|
+            cross_section.data_same(&cross_section_data)).is_some()
+        {
+            let error_message = &format!("Properties: Update truss section action: \
+                Truss section with Area {} and Area 2 {:?} does already exist!",
+                    area, area2);
+            return Err(JsValue::from(error_message));
+        }
+        if let Some(truss_section) = self.cross_sections.get_mut(&cross_section_key)
+        {
+            truss_section.update(cross_section_data);
+            let detail = json!({ "truss_section_data": { "name": name,
+                "area": area, "area2": area2 },
+                "is_action_id_should_be_increased": is_action_id_should_be_increased });
+            dispatch_custom_event(detail, UPDATE_TRUSS_SECTION_EVENT_NAME,
+                EVENT_TARGET)?;
+            log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
+                cross sections: {:?}, deleted cross sections: {:?}",
+                self.materials, self.deleted_materials,
+                self.cross_sections, self.deleted_cross_sections));
+            Ok(())
+        }
+        else
+        {
+            let error_message = format!("Properties: Update truss section action: \
+                The truss section with name {} could not be updated because it does not exist!",
+                name);
+            Err(JsValue::from(&error_message))
+        }
+    }
+
+    pub fn delete_truss_section(&mut self, action_id: u32, name: String,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.clear_deleted_materials_by_action_id(action_id);
+        self.clear_deleted_cross_sections_by_action_id(action_id);
+        let cross_section_type = CrossSectionType::Truss;
+        let cross_section_key = CrossSectionKey::create(
+            name.clone(), cross_section_type);
+        if let Some((cross_section_key, cross_section)) =
+            self.cross_sections.remove_entry(&cross_section_key)
+        {
+            let deleted_cross_section = DeletedCrossSection::create(
+                cross_section_key, cross_section);
+            self.deleted_cross_sections.insert(action_id, deleted_cross_section);
+            let detail = json!({ "truss_section_data": { "name": name },
+                "is_action_id_should_be_increased": is_action_id_should_be_increased });
+            dispatch_custom_event(detail, DELETE_TRUSS_SECTION_EVENT_NAME,
+                EVENT_TARGET)?;
+            log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
+                cross sections: {:?}, deleted cross sections: {:?}",
+                self.materials, self.deleted_materials,
+                self.cross_sections, self.deleted_cross_sections));
+            Ok(())
+        }
+        else
+        {
+            let error_message = &format!("Properties: Delete truss section action: \
+                Truss section with name {} does not exist!", name);
             return Err(JsValue::from(error_message));
         }
     }

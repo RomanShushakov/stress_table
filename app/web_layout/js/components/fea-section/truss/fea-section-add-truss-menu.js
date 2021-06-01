@@ -258,8 +258,12 @@ class FeaSectionAddTrussMenu extends HTMLElement {
         });
 
         this.shadowRoot.querySelector(".area").addEventListener("click", () => {
-            const inputtedYoungModulus = this.shadowRoot.querySelector(".area");
-            this.dropHighlight(inputtedYoungModulus);
+            const inputtedArea = this.shadowRoot.querySelector(".area");
+            this.dropHighlight(inputtedArea);
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+        });
+
+        this.shadowRoot.querySelector(".area2").addEventListener("click", () => {
             this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
         });
     }
@@ -362,7 +366,7 @@ class FeaSectionAddTrussMenu extends HTMLElement {
 
         const trussSectionDataInProps = this.props.trussSections
             .find(trussSection => trussSection.area == areaField.value && 
-                trussSection.area2 == area2Field.value);
+                (trussSection.area2 == area2Field.value || (trussSection.area2 === null && area2Field.value === "")));
         if (trussSectionDataInProps != null) {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 

@@ -1,0 +1,192 @@
+use serde_json::json;
+use wasm_bindgen::prelude::*;
+
+use crate::{Geometry, Point, DeletedPoint, Line, DeletedLine};
+use crate::{log, dispatch_custom_event};
+use crate::
+{
+    EVENT_TARGET, ADD_POINT_EVENT_NAME, UPDATE_POINT_EVENT_NAME, DELETE_POINT_EVENT_NAME,
+    ADD_LINE_EVENT_NAME, DELETE_LINE_EVENT_NAME
+};
+
+
+#[wasm_bindgen]
+impl Geometry
+{
+    pub fn add_point(&mut self, action_id: u32, number: u32, x: f64, y: f64, z: f64,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.clear_deleted_lines_by_action_id(action_id);
+        self.clear_deleted_points_by_action_id(action_id);
+        if self.points.contains_key(&number)
+        {
+            let error_message = &format!("Geometry: Add point action: Point with \
+                number {} does already exist!", number);
+            return Err(JsValue::from(error_message));
+        }
+        if self.points.values().position(|point|
+            point.coordinates_same(x, y, z)).is_some()
+        {
+            let error_message = &format!("Geometry: Add point action: Point with \
+                coordinates {}, {}, {} does already exist!", x, y, z);
+            return Err(JsValue::from(error_message));
+        }
+        let point = Point::create(x, y, z);
+        self.points.insert(number, point);
+        let detail = json!({ "point_data": { "number": number, "x": x, "y": y, "z": z },
+            "is_action_id_should_be_increased": is_action_id_should_be_increased });
+        dispatch_custom_event(detail, ADD_POINT_EVENT_NAME, EVENT_TARGET)?;
+        log(&format!("Geometry: Points: {:?}, Lines: {:?}, Points in \
+            lines: {:?}, Deleted points: {:?}, Deleted lines {:?}", self.points,
+            self.lines, self.points_in_lines, self.deleted_points, self.deleted_lines));
+        Ok(())
+    }
+
+
+    pub fn update_point(&mut self, action_id: u32, number: u32, x: f64, y: f64, z: f64,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.clear_deleted_lines_by_action_id(action_id);
+        self.clear_deleted_points_by_action_id(action_id);
+        if self.points.values().position(|point| point.coordinates_same(x, y, z)).is_some()
+        {
+            let error_message = &format!("Geometry: Update point action: Point with \
+                coordinates {}, {}, {} does already exist!", x, y, z);
+            return Err(JsValue::from(error_message));
+        }
+
+        if let Some(point) = self.points.get_mut(&number)
+        {
+            point.update(x, y, z);
+            let detail = json!({ "point_data": { "number": number, "x": x, "y": y, "z": z },
+                "is_action_id_should_be_increased": is_action_id_should_be_increased });
+            dispatch_custom_event(detail, UPDATE_POINT_EVENT_NAME, EVENT_TARGET)?;
+            log(&format!("Geometry: Points: {:?}, Lines: {:?}, Points in \
+                lines: {:?}, Deleted points: {:?}, Deleted lines {:?}", self.points,
+                self.lines, self.points_in_lines, self.deleted_points, self.deleted_lines));
+            Ok(())
+        }
+        else
+        {
+            let error_message = format!("Geometry: Update point action: \
+                The point with number {} could not be updated because it does not exist!", number);
+            Err(JsValue::from(&error_message))
+        }
+    }
+
+
+    pub fn delete_point(&mut self, action_id: u32, number: u32,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.clear_deleted_lines_by_action_id(action_id);
+        self.clear_deleted_points_by_action_id(action_id);
+        if let Some(lines_numbers) = self.points_in_lines.remove(&number)
+        {
+            let mut current_deleted_lines = Vec::new();
+            for line_number in lines_numbers.iter()
+            {
+                let line = self.lines.remove(&line_number).unwrap();
+                let deleted_line = DeletedLine::create(*line_number, line);
+                current_deleted_lines.push(deleted_line);
+                let detail = json!({ "line_data": { "number": line_number },
+                    "is_action_id_should_be_increased": false });
+                dispatch_custom_event(detail, DELETE_LINE_EVENT_NAME, EVENT_TARGET)?;
+            }
+            if !current_deleted_lines.is_empty()
+            {
+                self.deleted_lines.insert(action_id, current_deleted_lines);
+            }
+        }
+        if let Some((point_number, point)) = self.points.remove_entry(&number)
+        {
+            let deleted_point = DeletedPoint::create(point_number, point);
+            self.deleted_points.insert(action_id, deleted_point);
+            let detail = json!({ "point_data": { "number": number },
+                "is_action_id_should_be_increased": is_action_id_should_be_increased });
+            dispatch_custom_event(detail, DELETE_POINT_EVENT_NAME, EVENT_TARGET)?;
+            log(&format!("Geometry: Points: {:?}, Lines: {:?}, Points in \
+                lines: {:?}, Deleted points: {:?}, Deleted lines {:?}", self.points,
+                self.lines, self.points_in_lines, self.deleted_points, self.deleted_lines));
+            Ok(())
+        }
+        else
+        {
+            let error_message = &format!("Geometry: Delete point action: Point with \
+                number {} does not exist!", number);
+            return Err(JsValue::from(error_message));
+        }
+    }
+
+
+    pub fn undo_delete_point(&mut self, action_id: u32, number: u32,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        if let Some(deleted_point) = self.deleted_points.remove(&action_id)
+        {
+            let (deleted_point_number, x, y, z) =
+                deleted_point.extract_number_and_coordinates();
+            if deleted_point_number != number
+            {
+                let error_message = &format!("Geometry: Undo delete point action: Point with \
+                    number {} does not exist!", number);
+                return Err(JsValue::from(error_message));
+            }
+            let detail = json!({ "point_data": { "number": deleted_point_number,
+                    "x": x, "y": y, "z": z },
+                "is_action_id_should_be_increased": is_action_id_should_be_increased });
+            dispatch_custom_event(detail, ADD_POINT_EVENT_NAME, EVENT_TARGET)?;
+            self.points.insert(deleted_point_number, Point::create(x, y, z));
+            if let Some(deleted_lines) = self.deleted_lines.remove(&action_id)
+            {
+                for deleted_line in &deleted_lines
+                {
+                    let (number, start_point_number, end_point_number) =
+                        deleted_line.extract_number_and_points_numbers();
+                    let detail = json!({ "line_data": { "number": number,
+                            "start_point_number": start_point_number,
+                            "end_point_number": end_point_number },
+                        "is_action_id_should_be_increased": is_action_id_should_be_increased });
+                    dispatch_custom_event(detail, ADD_LINE_EVENT_NAME, EVENT_TARGET)?;
+                    self.lines.insert(deleted_line.extract_number(),
+                        Line::create(start_point_number, end_point_number));
+                    if let Some(line_numbers) = self.points_in_lines
+                        .get_mut(&start_point_number)
+                    {
+                        if line_numbers.iter().position(|line_number| *line_number == number)
+                            .is_none()
+                        {
+                            line_numbers.push(number);
+                        }
+                    }
+                    else
+                    {
+                        self.points_in_lines.insert(start_point_number, vec![number]);
+                    }
+                    if let Some(line_numbers) = self.points_in_lines
+                        .get_mut(&end_point_number)
+                    {
+                        if line_numbers.iter().position(|line_number| *line_number == number)
+                            .is_none()
+                        {
+                            line_numbers.push(number);
+                        }
+                    }
+                    else
+                    {
+                        self.points_in_lines.insert(end_point_number, vec![number]);
+                    }
+                }
+            }
+            log(&format!("Geometry: Points: {:?}, Lines: {:?}, Points in \
+                lines: {:?}, Deleted points: {:?}, Deleted lines {:?}", self.points,
+                self.lines, self.points_in_lines, self.deleted_points, self.deleted_lines));
+            Ok(())
+        }
+        else
+        {
+            let error_message = &format!("Geometry: Undo delete point action: Point with \
+                number {} does not exist!", number);
+            return Err(JsValue::from(error_message));
+        }
+    }
+}

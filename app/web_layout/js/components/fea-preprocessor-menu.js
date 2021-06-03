@@ -8,6 +8,9 @@ class FeaPreprocessorMenu extends HTMLElement {
             lines: new Map(),   // map: { number: u32, startPointNumber: u32, endPointNumber: u32 }, ...};
             materials: [],      // array of: [{ name: String, youngModulus: f64, poissonRatio: f64 }, ...];
             trussSections: [],  // array of: [{ name: String, area: f64, area2: f64 or null }];
+            beamSections: [],   // array of: [{ name: String, area: f64, I11: f64, I22: f64, I12: f64, It: f64,
+                                //              area2: f64 or null, I11_2: f64 or null, I22_2: f64 or null
+                                //              I12_2: f64 or null, It: f64 or null }];
         };
 
         this.state = {
@@ -36,6 +39,10 @@ class FeaPreprocessorMenu extends HTMLElement {
             ],
 
             childrenNamesForTrussSectionCrud: [
+                "fea-section-menu",
+            ],
+
+            childrenNamesForBeamSectionCrud: [
                 "fea-section-menu",
             ],
         };
@@ -174,6 +181,36 @@ class FeaPreprocessorMenu extends HTMLElement {
         this.deleteTrussSectionFromChildren(trussSection);
     }
 
+    set addBeamSectionToClient(beamSection) {
+        this.props.beamSections.push(beamSection);
+        this.props.beamSections.sort((a, b) => a.name - b.name);
+        this.addBeamSectionToChildren(beamSection);
+    }
+
+    set updateBeamSectionInClient(beamSection) {
+        let beamSectionInProps = this.props.beamSections
+            .find(existedBeamSection => existedBeamSection.name == beamSection.name);
+        beamSectionInProps.area = beamSection.area;
+        beamSectionInProps.I11 = beamSection.I11;
+        beamSectionInProps.I22 = beamSection.I22;
+        beamSectionInProps.I12 = beamSection.I12;
+        beamSectionInProps.It = beamSection.It;
+        beamSectionInProps.area2 = beamSection.area2;
+        beamSectionInProps.I11_2 = beamSection.I11_2;
+        beamSectionInProps.I22_2 = beamSection.I22_2;
+        beamSectionInProps.I12_2 = beamSection.I12_2;
+        beamSectionInProps.It_2 = beamSection.It_2;
+        this.updateBeamSectionInChildren(beamSection);
+    }
+
+    set deleteBeamSectionFromClient(beamSection) {
+        let beamSectionIndexInProps = this.props.beamSections
+            .findIndex(existedBeamSection => existedBeamSection.name == beamSection.name);
+        this.props.beamSections.splice(beamSectionIndexInProps, 1);
+        this.props.beamSections.sort((a, b) => a.name - b.name);
+        this.deleteBeamSectionFromChildren(beamSection);
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {
@@ -236,6 +273,10 @@ class FeaPreprocessorMenu extends HTMLElement {
                 for (let i = 0; i < this.props.trussSections.length; i++) {
                     const trussSection = this.props.trussSections[i];
                     this.querySelector("fea-section-menu").addTrussSectionToClient = trussSection;
+                }
+                for (let i = 0; i < this.props.beamSections.length; i++) {
+                    const beamSection = this.props.beamSections[i];
+                    this.querySelector("fea-section-menu").addBeamSectionToClient = beamSection;
                 }
                 break;
         }
@@ -368,6 +409,30 @@ class FeaPreprocessorMenu extends HTMLElement {
         for (let i = 0; i < this.state.childrenNamesForTrussSectionCrud.length; i++) {
             if (this.querySelector(this.state.childrenNamesForTrussSectionCrud[i]) !== null) {
                 this.querySelector(this.state.childrenNamesForTrussSectionCrud[i]).deleteTrussSectionFromClient = trussSection;
+            }
+        } 
+    }
+
+    addBeamSectionToChildren(beamSection) {
+        for (let i = 0; i < this.state.childrenNamesForBeamSectionCrud.length; i++) {
+            if (this.querySelector(this.state.childrenNamesForBeamSectionCrud[i]) !== null) {
+                this.querySelector(this.state.childrenNamesForBeamSectionCrud[i]).addBeamSectionToClient = beamSection;
+            }
+        } 
+    }
+
+    updateBeamSectionInChildren(beamSection) {
+        for (let i = 0; i < this.state.childrenNamesForBeamSectionCrud.length; i++) {
+            if (this.querySelector(this.state.childrenNamesForBeamSectionCrud[i]) !== null) {
+                this.querySelector(this.state.childrenNamesForBeamSectionCrud[i]).updateBeamSectionInClient = beamSection;
+            }
+        } 
+    }
+
+    deleteBeamSectionFromChildren(beamSection) {
+        for (let i = 0; i < this.state.childrenNamesForBeamSectionCrud.length; i++) {
+            if (this.querySelector(this.state.childrenNamesForBeamSectionCrud[i]) !== null) {
+                this.querySelector(this.state.childrenNamesForBeamSectionCrud[i]).deleteBeamSectionFromClient = beamSection;
             }
         } 
     }

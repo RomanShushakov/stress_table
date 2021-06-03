@@ -44,8 +44,8 @@ class FeaApp extends HTMLElement {
 
         window.addEventListener("resize", () => this.updateCanvasSize());
 
-        this.addEventListener("activate-postprocessor", () => this.activatePostprocessor());
         this.addEventListener("activate-preprocessor-menu", () => this.activatePreprocessorMenu());
+        this.addEventListener("activate-postprocessor", () => this.activatePostprocessor());
 
         this.addEventListener("clientMessage", (event) => this.handleClientMessage(event));
 
@@ -95,7 +95,7 @@ class FeaApp extends HTMLElement {
         this.append(feaPreprocessorMenu);
         this.updatePreprocessorMenuActionId();
         if (this.state.actionId !== 1) {
-            this.state.actionsRouter.add_whole_geometry_to_preprocessor();
+            this.state.actionsRouter.extract_geometry();
         }
         this.updateCanvasSize();
     }

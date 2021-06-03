@@ -156,7 +156,7 @@ impl Geometry
     }
 
 
-    pub fn add_whole_geometry_to_preprocessor(&self, is_action_id_should_be_increased: bool)
+    pub fn extract_geometry(&self, is_action_id_should_be_increased: bool)
         -> Result<(), JsValue>
     {
         for (point_number, point) in self.points.iter()

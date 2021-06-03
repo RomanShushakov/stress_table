@@ -27,11 +27,18 @@ import FeaMaterialDeleteMaterialMenu from "./components/fea-material/fea-materia
 
 import FeaSectionMenu from "./components/fea-section/fea-section-menu.js";
 import FeaSectionMenuButtons from "./components/fea-section/fea-section-menu-buttons.js";
+
 import FeaSectionTrussMenu from "./components/fea-section/truss/fea-section-truss-menu.js";
 import FeaSectionTrussMenuButtons from "./components/fea-section/truss/fea-section-truss-menu-buttons.js";
 import FeaSectionAddTrussMenu from "./components/fea-section/truss/fea-section-add-truss-menu.js";
 import FeaSectionUpdateTrussMenu from "./components/fea-section/truss/fea-section-update-truss-menu.js";
 import FeaSectionDeleteTrussMenu from "./components/fea-section/truss/fea-section-delete-truss-menu.js";
+
+import FeaSectionBeamMenu from "./components/fea-section/beam/fea-section-beam-menu.js";
+import FeaSectionBeamMenuButtons from "./components/fea-section/beam/fea-section-beam-menu-buttons.js";
+import FeaSectionAddBeamMenu from "./components/fea-section/beam/fea-section-add-beam-menu.js";
+import FeaSectionUpdateBeamMenu from "./components/fea-section/beam/fea-section-update-beam-menu.js";
+import FeaSectionDeleteBeamMenu from "./components/fea-section/beam/fea-section-delete-beam-menu.js";
 
 
 customElements.define("fea-app", FeaApp);
@@ -63,8 +70,15 @@ customElements.define("fea-material-delete-material-menu", FeaMaterialDeleteMate
 
 customElements.define("fea-section-menu", FeaSectionMenu);
 customElements.define("fea-section-menu-buttons", FeaSectionMenuButtons);
+
 customElements.define("fea-section-truss-menu", FeaSectionTrussMenu);
 customElements.define("fea-section-truss-menu-buttons", FeaSectionTrussMenuButtons);
 customElements.define("fea-section-add-truss-menu", FeaSectionAddTrussMenu);
 customElements.define("fea-section-update-truss-menu", FeaSectionUpdateTrussMenu);
 customElements.define("fea-section-delete-truss-menu", FeaSectionDeleteTrussMenu);
+
+customElements.define("fea-section-beam-menu", FeaSectionBeamMenu);
+customElements.define("fea-section-beam-menu-buttons", FeaSectionBeamMenuButtons);
+customElements.define("fea-section-add-beam-menu", FeaSectionAddBeamMenu);
+customElements.define("fea-section-update-beam-menu", FeaSectionUpdateBeamMenu);
+customElements.define("fea-section-delete-beam-menu", FeaSectionDeleteBeamMenu);

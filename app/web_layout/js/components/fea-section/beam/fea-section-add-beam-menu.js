@@ -1,0 +1,965 @@
+class FeaSectionAddBeamMenu extends HTMLElement {
+    constructor() {
+        super();
+
+        this.props = {
+            actionId: null,     // u32;
+            beamSections: [],   // array of: [{ name: String, area: f64, I11: f64, I22: f64, I12: f64, It: f64,
+                                //              area2: f64 or null, I11_2: f64 or null, I22_2: f64 or null
+                                //              I12_2: f64 or null, It: f64 or null }];
+        };
+
+        this.state = {};
+
+        this.attachShadow({ mode: "open" });
+
+        this.shadowRoot.innerHTML = `
+            <style>
+                :host {
+                    display: flex;
+                }
+
+                .wrapper {
+                    display: flex;
+                    flex-direction: column;
+                    background-color: #3b4453;
+                    padding: 0rem;
+                    margin-top: 1rem;
+                    align-items: center;
+                }
+
+                .beam-section-name-field-content {
+                    display: flex;
+                    flex-direction: row;
+                    background-color: #3b4453;
+                    padding: 0rem;
+                    margin: 0rem;
+                }
+
+                .beam-section-name-caption {
+                    margin: 0rem;
+                    padding: 0rem;
+                    color: #D9D9D9;
+                    font-size: 85%;
+                    width: 6rem;
+                }
+
+                .beam-section-name {
+                    margin-top: 0rem;
+                    margin-bottom: 0rem;
+                    margin-left: 1rem;
+                    margin-right: 0rem;
+                    padding: 0rem;
+                    width: 5rem;
+                    background-color: #3b4453;
+                    border: #4a5060;
+                    border-bottom: 0.1rem solid #4a5060;
+                    outline: none;
+                    color: #D9D9D9;
+                }
+
+                .beam-section-name:hover {
+                    box-shadow: 0rem 0.15rem 0rem #4a5060;
+                }
+
+                .beam-section-name:focus {
+                    box-shadow: 0rem 0.15rem 0rem #4a5060;
+                }
+
+                .area-field-content {
+                    display: flex;
+                    flex-direction: row;
+                    background-color: #3b4453;
+                    padding: 0rem;
+                    margin-top: 1rem;
+                }
+
+                .area-caption {
+                    margin: 0rem;
+                    padding: 0rem;
+                    color: #D9D9D9;
+                    font-size: 85%;
+                    width: 6rem;
+                }
+
+                .area {
+                    margin-top: 0rem;
+                    margin-bottom: 0rem;
+                    margin-left: 1rem;
+                    margin-right: 0rem;
+                    padding: 0rem;
+                    width: 5rem;
+                    background-color: #3b4453;
+                    border: #4a5060;
+                    border-bottom: 0.1rem solid #4a5060;
+                    outline: none;
+                    color: #D9D9D9;
+                }
+
+                .area[type=number]::-webkit-outer-spin-button,
+                .area[type=number]::-webkit-inner-spin-button {
+                    -webkit-appearance: none;
+                    margin: 0;
+                }
+
+                .area[type=number] {
+                    -moz-appearance: textfield;
+                }
+
+                .area:hover {
+                    box-shadow: 0rem 0.15rem 0rem #4a5060;
+                }
+
+                .area:focus {
+                    box-shadow: 0rem 0.15rem 0rem #4a5060;
+                }
+
+                .I11-field-content {
+                    display: flex;
+                    flex-direction: row;
+                    background-color: #3b4453;
+                    padding: 0rem;
+                    margin-top: 1rem;
+                }
+
+                .I11-caption {
+                    margin: 0rem;
+                    padding: 0rem;
+                    color: #D9D9D9;
+                    font-size: 85%;
+                    width: 6rem;
+                }
+
+                .I11 {
+                    margin-top: 0rem;
+                    margin-bottom: 0rem;
+                    margin-left: 1rem;
+                    margin-right: 0rem;
+                    padding: 0rem;
+                    width: 5rem;
+                    background-color: #3b4453;
+                    border: #4a5060;
+                    border-bottom: 0.1rem solid #4a5060;
+                    outline: none;
+                    color: #D9D9D9;
+                }
+
+                .I11[type=number]::-webkit-outer-spin-button,
+                .I11[type=number]::-webkit-inner-spin-button {
+                    -webkit-appearance: none;
+                    margin: 0;
+                }
+
+                .I11[type=number] {
+                    -moz-appearance: textfield;
+                }
+
+                .I11:hover {
+                    box-shadow: 0rem 0.15rem 0rem #4a5060;
+                }
+
+                .I11:focus {
+                    box-shadow: 0rem 0.15rem 0rem #4a5060;
+                }
+
+                .I22-field-content {
+                    display: flex;
+                    flex-direction: row;
+                    background-color: #3b4453;
+                    padding: 0rem;
+                    margin-top: 1rem;
+                }
+
+                .I22-caption {
+                    margin: 0rem;
+                    padding: 0rem;
+                    color: #D9D9D9;
+                    font-size: 85%;
+                    width: 6rem;
+                }
+
+                .I22 {
+                    margin-top: 0rem;
+                    margin-bottom: 0rem;
+                    margin-left: 1rem;
+                    margin-right: 0rem;
+                    padding: 0rem;
+                    width: 5rem;
+                    background-color: #3b4453;
+                    border: #4a5060;
+                    border-bottom: 0.1rem solid #4a5060;
+                    outline: none;
+                    color: #D9D9D9;
+                }
+
+                .I22[type=number]::-webkit-outer-spin-button,
+                .I22[type=number]::-webkit-inner-spin-button {
+                    -webkit-appearance: none;
+                    margin: 0;
+                }
+
+                .I22[type=number] {
+                    -moz-appearance: textfield;
+                }
+
+                .I22:hover {
+                    box-shadow: 0rem 0.15rem 0rem #4a5060;
+                }
+
+                .I22:focus {
+                    box-shadow: 0rem 0.15rem 0rem #4a5060;
+                }
+
+                .I12-field-content {
+                    display: flex;
+                    flex-direction: row;
+                    background-color: #3b4453;
+                    padding: 0rem;
+                    margin-top: 1rem;
+                }
+
+                .I12-caption {
+                    margin: 0rem;
+                    padding: 0rem;
+                    color: #D9D9D9;
+                    font-size: 85%;
+                    width: 6rem;
+                }
+
+                .I12 {
+                    margin-top: 0rem;
+                    margin-bottom: 0rem;
+                    margin-left: 1rem;
+                    margin-right: 0rem;
+                    padding: 0rem;
+                    width: 5rem;
+                    background-color: #3b4453;
+                    border: #4a5060;
+                    border-bottom: 0.1rem solid #4a5060;
+                    outline: none;
+                    color: #D9D9D9;
+                }
+
+                .I12[type=number]::-webkit-outer-spin-button,
+                .I12[type=number]::-webkit-inner-spin-button {
+                    -webkit-appearance: none;
+                    margin: 0;
+                }
+
+                .I12[type=number] {
+                    -moz-appearance: textfield;
+                }
+
+                .I12:hover {
+                    box-shadow: 0rem 0.15rem 0rem #4a5060;
+                }
+
+                .I12:focus {
+                    box-shadow: 0rem 0.15rem 0rem #4a5060;
+                }
+
+                .It-field-content {
+                    display: flex;
+                    flex-direction: row;
+                    background-color: #3b4453;
+                    padding: 0rem;
+                    margin-top: 1rem;
+                }
+
+                .It-caption {
+                    margin: 0rem;
+                    padding: 0rem;
+                    color: #D9D9D9;
+                    font-size: 85%;
+                    width: 6rem;
+                }
+
+                .It {
+                    margin-top: 0rem;
+                    margin-bottom: 0rem;
+                    margin-left: 1rem;
+                    margin-right: 0rem;
+                    padding: 0rem;
+                    width: 5rem;
+                    background-color: #3b4453;
+                    border: #4a5060;
+                    border-bottom: 0.1rem solid #4a5060;
+                    outline: none;
+                    color: #D9D9D9;
+                }
+
+                .It[type=number]::-webkit-outer-spin-button,
+                .It[type=number]::-webkit-inner-spin-button {
+                    -webkit-appearance: none;
+                    margin: 0;
+                }
+
+                .It[type=number] {
+                    -moz-appearance: textfield;
+                }
+
+                .It:hover {
+                    box-shadow: 0rem 0.15rem 0rem #4a5060;
+                }
+
+                .It:focus {
+                    box-shadow: 0rem 0.15rem 0rem #4a5060;
+                }
+
+                .area2-field-content {
+                    display: flex;
+                    flex-direction: row;
+                    background-color: #3b4453;
+                    padding: 0rem;
+                    margin-top: 1rem;
+                }
+
+                .area2-caption {
+                    margin: 0rem;
+                    padding: 0rem;
+                    color: #D9D9D9;
+                    font-size: 85%;
+                    width: 6rem;
+                }
+
+                .area2 {
+                    margin-top: 0rem;
+                    margin-bottom: 0rem;
+                    margin-left: 1rem;
+                    margin-right: 0rem;
+                    padding: 0rem;
+                    width: 5rem;
+                    background-color: #3b4453;
+                    border: #4a5060;
+                    border-bottom: 0.1rem solid #4a5060;
+                    outline: none;
+                    color: #D9D9D9;
+                }
+
+                .area2[type=number]::-webkit-outer-spin-button,
+                .area2[type=number]::-webkit-inner-spin-button {
+                    -webkit-appearance: none;
+                    margin: 0;
+                }
+
+                .area2[type=number] {
+                    -moz-appearance: textfield;
+                }
+
+                .area2:hover {
+                    box-shadow: 0rem 0.15rem 0rem #4a5060;
+                }
+
+                .area2:focus {
+                    box-shadow: 0rem 0.15rem 0rem #4a5060;
+                }
+
+                .I11_2-field-content {
+                    display: flex;
+                    flex-direction: row;
+                    background-color: #3b4453;
+                    padding: 0rem;
+                    margin-top: 1rem;
+                }
+
+                .I11_2-caption {
+                    margin: 0rem;
+                    padding: 0rem;
+                    color: #D9D9D9;
+                    font-size: 85%;
+                    width: 6rem;
+                }
+
+                .I11_2 {
+                    margin-top: 0rem;
+                    margin-bottom: 0rem;
+                    margin-left: 1rem;
+                    margin-right: 0rem;
+                    padding: 0rem;
+                    width: 5rem;
+                    background-color: #3b4453;
+                    border: #4a5060;
+                    border-bottom: 0.1rem solid #4a5060;
+                    outline: none;
+                    color: #D9D9D9;
+                }
+
+                .I11_2[type=number]::-webkit-outer-spin-button,
+                .I11_2[type=number]::-webkit-inner-spin-button {
+                    -webkit-appearance: none;
+                    margin: 0;
+                }
+
+                .I11_2[type=number] {
+                    -moz-appearance: textfield;
+                }
+
+                .I11_2:hover {
+                    box-shadow: 0rem 0.15rem 0rem #4a5060;
+                }
+
+                .I11_2:focus {
+                    box-shadow: 0rem 0.15rem 0rem #4a5060;
+                }
+
+                .I22_2-field-content {
+                    display: flex;
+                    flex-direction: row;
+                    background-color: #3b4453;
+                    padding: 0rem;
+                    margin-top: 1rem;
+                }
+
+                .I22_2-caption {
+                    margin: 0rem;
+                    padding: 0rem;
+                    color: #D9D9D9;
+                    font-size: 85%;
+                    width: 6rem;
+                }
+
+                .I22_2 {
+                    margin-top: 0rem;
+                    margin-bottom: 0rem;
+                    margin-left: 1rem;
+                    margin-right: 0rem;
+                    padding: 0rem;
+                    width: 5rem;
+                    background-color: #3b4453;
+                    border: #4a5060;
+                    border-bottom: 0.1rem solid #4a5060;
+                    outline: none;
+                    color: #D9D9D9;
+                }
+
+                .I22_2[type=number]::-webkit-outer-spin-button,
+                .I22_2[type=number]::-webkit-inner-spin-button {
+                    -webkit-appearance: none;
+                    margin: 0;
+                }
+
+                .I22_2[type=number] {
+                    -moz-appearance: textfield;
+                }
+
+                .I22_2:hover {
+                    box-shadow: 0rem 0.15rem 0rem #4a5060;
+                }
+
+                .I22_2:focus {
+                    box-shadow: 0rem 0.15rem 0rem #4a5060;
+                }
+
+                .I12_2-field-content {
+                    display: flex;
+                    flex-direction: row;
+                    background-color: #3b4453;
+                    padding: 0rem;
+                    margin-top: 1rem;
+                }
+
+                .I12_2-caption {
+                    margin: 0rem;
+                    padding: 0rem;
+                    color: #D9D9D9;
+                    font-size: 85%;
+                    width: 6rem;
+                }
+
+                .I12_2 {
+                    margin-top: 0rem;
+                    margin-bottom: 0rem;
+                    margin-left: 1rem;
+                    margin-right: 0rem;
+                    padding: 0rem;
+                    width: 5rem;
+                    background-color: #3b4453;
+                    border: #4a5060;
+                    border-bottom: 0.1rem solid #4a5060;
+                    outline: none;
+                    color: #D9D9D9;
+                }
+
+                .I12_2[type=number]::-webkit-outer-spin-button,
+                .I12_2[type=number]::-webkit-inner-spin-button {
+                    -webkit-appearance: none;
+                    margin: 0;
+                }
+
+                .I12_2[type=number] {
+                    -moz-appearance: textfield;
+                }
+
+                .I12_2:hover {
+                    box-shadow: 0rem 0.15rem 0rem #4a5060;
+                }
+
+                .I12_2:focus {
+                    box-shadow: 0rem 0.15rem 0rem #4a5060;
+                }
+
+                .It_2-field-content {
+                    display: flex;
+                    flex-direction: row;
+                    background-color: #3b4453;
+                    padding: 0rem;
+                    margin-top: 1rem;
+                }
+
+                .It_2-caption {
+                    margin: 0rem;
+                    padding: 0rem;
+                    color: #D9D9D9;
+                    font-size: 85%;
+                    width: 6rem;
+                }
+
+                .It_2 {
+                    margin-top: 0rem;
+                    margin-bottom: 0rem;
+                    margin-left: 1rem;
+                    margin-right: 0rem;
+                    padding: 0rem;
+                    width: 5rem;
+                    background-color: #3b4453;
+                    border: #4a5060;
+                    border-bottom: 0.1rem solid #4a5060;
+                    outline: none;
+                    color: #D9D9D9;
+                }
+
+                .It_2[type=number]::-webkit-outer-spin-button,
+                .It_2[type=number]::-webkit-inner-spin-button {
+                    -webkit-appearance: none;
+                    margin: 0;
+                }
+
+                .It_2[type=number] {
+                    -moz-appearance: textfield;
+                }
+
+                .It_2:hover {
+                    box-shadow: 0rem 0.15rem 0rem #4a5060;
+                }
+
+                .It_2:focus {
+                    box-shadow: 0rem 0.15rem 0rem #4a5060;
+                }
+
+                .apply-cancel-buttons {
+                    margin-top: 1rem;
+                    margin-bottom: 0rem;
+                    margin-left: 0rem;
+                    margin-right: 0rem;
+                    padding: 0rem;
+                }
+
+                .apply-button {
+                    background: #0996d7;
+                    border: 0.2rem solid #3b4453;
+                    border-radius: 0.3rem;
+                    color: #D9D9D9;
+                    padding: 0rem;
+                    margin: 0rem;
+                    width: 4rem;
+                    height: 1.7rem;
+                }
+
+                .apply-button:hover {
+                    border: 0.2rem solid #4a5060;
+                }
+
+                .cancel-button {
+                    background: #0996d7;
+                    border: 0.2rem solid #3b4453;
+                    border-radius: 0.3rem;
+                    color: #D9D9D9;
+                    padding: 0rem;
+                    margin: 0rem;
+                    width: 4rem;
+                    height: 1.7rem;
+                }
+
+                .cancel-button:hover {
+                    border: 0.2rem solid #4a5060;
+                }
+
+                .analysis-info {
+                    display: flex;
+                    margin: 0rem;
+                    padding: 0rem;
+                }
+
+                .analysis-info-message {
+                    margin-top: 1rem;
+                    margin-bottom: 0rem;
+                    margin-left: 0rem;
+                    margin-right: 0rem;
+                    padding: 0rem;
+                    color: #D9D9D9;
+                    font-size: 80%;
+                    width: 12rem;
+                }
+
+                .highlighted {
+                    box-shadow: 0rem 0.1rem 0rem #72C5FF;
+                }
+            </style>
+
+            <div class=wrapper>
+                <div class="beam-section-name-field-content">
+                    <p class="beam-section-name-caption">Section name</p>
+                    <input class="beam-section-name" type="text"/>
+                </div>
+
+                <div class="area-field-content">
+                    <p class="area-caption">Area</p>
+                    <input class="area" type="number"/>
+                </div>
+
+                <div class="I11-field-content">
+                    <p class="I11-caption">I11</p>
+                    <input class="I11" type="number"/>
+                </div>
+
+                <div class="I22-field-content">
+                    <p class="I22-caption">I22</p>
+                    <input class="I22" type="number"/>
+                </div>
+
+                <div class="I12-field-content">
+                    <p class="I12-caption">I12</p>
+                    <input class="I12" type="number"/>
+                </div>
+
+                <div class="It-field-content">
+                    <p class="It-caption">It</p>
+                    <input class="It" type="number"/>
+                </div>
+
+                <div class="area2-field-content">
+                    <p class="area2-caption">Area 2 (optional)</p>
+                    <input class="area2" type="number"/>
+                </div>
+
+                <div class="I11_2-field-content">
+                    <p class="I11_2-caption">I11 2 (optional)</p>
+                    <input class="I11_2" type="number"/>
+                </div>
+
+                <div class="I22_2-field-content">
+                    <p class="I22_2-caption">I22  2 (optional)</p>
+                    <input class="I22_2" type="number"/>
+                </div>
+
+                <div class="I12_2-field-content">
+                    <p class="I12_2-caption">I12 2 (optional)</p>
+                    <input class="I12_2" type="number"/>
+                </div>
+
+                <div class="It_2-field-content">
+                    <p class="It_2-caption">It 2 (optional)</p>
+                    <input class="It_2" type="number"/>
+                </div>
+
+                <div class="apply-cancel-buttons">
+                    <button class="apply-button">Apply</button>
+                    <button class="cancel-button">Cancel</button>
+                </div>
+
+                <div class="analysis-info">
+                    <p class="analysis-info-message"></p>
+                </div>
+            </div>
+        `;
+
+         this.shadowRoot.querySelector(".apply-button").addEventListener("click", () => this.addBeamSection());
+
+         this.shadowRoot.querySelector(".cancel-button").addEventListener("click", () => this.cancelBeamSectionAddition());
+
+         this.shadowRoot.querySelector(".beam-section-name").addEventListener("click", () => {
+            const highlightedElement = this.shadowRoot.querySelector(".beam-section-name");
+            this.dropHighlight(highlightedElement);
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+        });
+
+        this.shadowRoot.querySelector(".area").addEventListener("click", () => {
+            const inputtedArea = this.shadowRoot.querySelector(".area");
+            this.dropHighlight(inputtedArea);
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+        });
+
+        this.shadowRoot.querySelector(".I11").addEventListener("click", () => {
+            const inputtedI11 = this.shadowRoot.querySelector(".I11");
+            this.dropHighlight(inputtedI11);
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+        });
+
+        this.shadowRoot.querySelector(".I22").addEventListener("click", () => {
+            const inputtedI22 = this.shadowRoot.querySelector(".I22");
+            this.dropHighlight(inputtedI22);
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+        });
+
+        this.shadowRoot.querySelector(".I12").addEventListener("click", () => {
+            const inputtedI12 = this.shadowRoot.querySelector(".I12");
+            this.dropHighlight(inputtedI12);
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+        });
+
+        this.shadowRoot.querySelector(".It").addEventListener("click", () => {
+            const inputtedIt = this.shadowRoot.querySelector(".It");
+            this.dropHighlight(inputtedIt);
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+        });
+
+        this.shadowRoot.querySelector(".area2").addEventListener("click", () => {
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+        });
+
+        this.shadowRoot.querySelector(".I11_2").addEventListener("click", () => {
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+        });
+
+        this.shadowRoot.querySelector(".I22_2").addEventListener("click", () => {
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+        });
+
+        this.shadowRoot.querySelector(".I12_2").addEventListener("click", () => {
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+        });
+
+        this.shadowRoot.querySelector(".It_2").addEventListener("click", () => {
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+        });
+    }
+
+    set actionId(value) {
+        this.props.actionId = value;
+    }
+
+    set addBeamSectionToClient(beamSection) {
+        this.props.beamSections.push(beamSection);
+        this.props.beamSections.sort((a, b) => a.name - b.name);
+        this.defineNewBeamSectionName();
+    }
+
+    set updateBeamSectionInClient(beamSection) {
+        let beamSectionInProps = this.props.beamSections
+            .find(existedBeamSection => existedBeamSection.name == beamSection.name);
+        beamSectionInProps.area = beamSection.area;
+        beamSectionInProps.I11 = beamSection.I11;
+        beamSectionInProps.I22 = beamSection.I22;
+        beamSectionInProps.I12 = beamSection.I12;
+        beamSectionInProps.It = beamSection.It;
+        beamSectionInProps.area2 = beamSection.area2;
+        beamSectionInProps.I11_2 = beamSection.I11_2;
+        beamSectionInProps.I22_2 = beamSection.I22_2;
+        beamSectionInProps.I12_2 = beamSection.I12_2;
+        beamSectionInProps.It_2 = beamSection.It_2;
+    }
+
+    set deleteBeamSectionFromClient(beamSection) {
+        let beamSectionIndexInProps = this.props.beamSections
+            .findIndex(existedBeamSection => existedBeamSection.name == beamSection.name);
+        this.props.beamSections.splice(beamSectionIndexInProps, 1);
+        this.props.beamSections.sort((a, b) => a.name - b.name);
+        this.defineNewBeamSectionName();
+    }
+
+    connectedCallback() {
+        Object.keys(this.props).forEach((propName) => {
+            if (this.hasOwnProperty(propName)) {
+                let value = this[propName];
+                delete this[propName];
+                this[propName] = value;
+            }
+        });
+        this.defineNewBeamSectionName();
+    }
+
+    disconnectedCallback() {
+    }
+
+    static get observedAttributes() {
+        return [];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+    }
+
+    adoptedCallback() {
+    }
+
+    defineNewBeamSectionName() {
+        const newBeamSectionName = "beam1";
+        this.shadowRoot.querySelector(".beam-section-name").value = newBeamSectionName;
+        this.shadowRoot.querySelector(".area").value = 1;
+        this.shadowRoot.querySelector(".I11").value = 1;
+        this.shadowRoot.querySelector(".I22").value = 1;
+        this.shadowRoot.querySelector(".I12").value = 0;
+        this.shadowRoot.querySelector(".It").value = 1;
+        this.shadowRoot.querySelector(".area2").value = null;
+        this.shadowRoot.querySelector(".I11_2").value = null;
+        this.shadowRoot.querySelector(".I22_2").value = null;
+        this.shadowRoot.querySelector(".I12_2").value = null;
+        this.shadowRoot.querySelector(".It_2").value = null;
+    }
+
+
+    addBeamSection() {
+        const newBeamSectionNameField = this.shadowRoot.querySelector(".beam-section-name");
+        if (newBeamSectionNameField.value === "") {
+            if (newBeamSectionNameField.classList.contains("highlighted") === false) {
+                newBeamSectionNameField.classList.add("highlighted");
+            }
+        }
+
+        const areaField = this.shadowRoot.querySelector(".area");
+        if (areaField.value === "") {
+            if (areaField.classList.contains("highlighted") === false) {
+                areaField.classList.add("highlighted");
+            }
+        }
+
+        const I11Field = this.shadowRoot.querySelector(".I11");
+        if (I11Field.value === "") {
+            if (I11Field.classList.contains("highlighted") === false) {
+                I11Field.classList.add("highlighted");
+            }
+        }
+
+        const I22Field = this.shadowRoot.querySelector(".I22");
+        if (I22Field.value === "") {
+            if (I22Field.classList.contains("highlighted") === false) {
+                I22Field.classList.add("highlighted");
+            }
+        }
+
+        const I12Field = this.shadowRoot.querySelector(".I12");
+        if (I12Field.value === "") {
+            if (I12Field.classList.contains("highlighted") === false) {
+                I12Field.classList.add("highlighted");
+            }
+        }
+
+        const ItField = this.shadowRoot.querySelector(".It");
+        if (ItField.value === "") {
+            if (ItField.classList.contains("highlighted") === false) {
+                ItField.classList.add("highlighted");
+            }
+        }
+        
+        const area2Field = this.shadowRoot.querySelector(".area2");
+
+        const I11_2Field = this.shadowRoot.querySelector(".I11_2");
+
+        const I22_2Field = this.shadowRoot.querySelector(".I22_2");
+
+        const I12_2Field = this.shadowRoot.querySelector(".I12_2");
+
+        const It_2Field = this.shadowRoot.querySelector(".It_2");
+
+        if (newBeamSectionNameField.value === "" || areaField.value === "") {
+            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
+                    "Note: The highlighted fields should be filled!";
+                return;
+            } else {
+                return;
+            }
+        }
+
+        const beamSectionNameInProps = this.props.beamSections
+            .find(beamSection => beamSection.name == `"${newBeamSectionNameField.value}"`);
+        if (beamSectionNameInProps != null) {
+            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
+                    "Note: The beam section with the same name does already exist!";
+                return;
+            } else {
+                return;
+            }
+        }
+
+        const beamSectionDataInProps = this.props.beamSections
+            .find(beamSection => beamSection.area == areaField.value && 
+                beamSection.I11 == I11Field.value && beamSection.I22 == I22Field.value && 
+                beamSection.I12 == I12Field.value && beamSection.It == ItField.value &&
+                (beamSection.area2 == area2Field.value || (beamSection.area2 === null && area2Field.value === "")) &&
+                (beamSection.I11_2 == I11_2Field.value || (beamSection.I11_2 === null && I11_2Field.value === "")) &&
+                (beamSection.I22_2 == I22_2Field.value || (beamSection.I22_2 === null && I22_2Field.value === "")) &&
+                (beamSection.I12_2 == I12_2Field.value || (beamSection.I12_2 === null && I12_2Field.value === "")) &&
+                (beamSection.It_2 == It_2Field.value || (beamSection.It_2 === null && It_2Field.value === "")));
+        if (beamSectionDataInProps != null) {
+            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
+                    "Note: The beam section with the same data does already exist!";
+                return;
+            } else {
+                return;
+            }
+        }
+
+        if (this.isNumeric(areaField.value) === false || this.isNumeric(I11Field.value) === false ||
+            this.isNumeric(I22Field.value) === false || this.isNumeric(I12Field.value) === false ||
+            this.isNumeric(ItField.value) === false) {
+            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
+                    "Note: Only numbers could be used as input values for Area, I11, I22, I12 and It!";
+                return;
+            } else {
+                return;
+            }
+        }
+
+        const message = {"add_beam_section": {
+            "actionId": this.props.actionId,
+            "name": newBeamSectionNameField.value, 
+            "area": areaField.value, "I11": I11Field.value, "I22": I22Field.value, 
+            "I12": I12Field.value, "It": ItField.value, "area2":  area2Field.value,
+            "I11_2": I11_2Field.value, "I22_2": I12_2Field.value, "I12_2": I12_2Field.value,
+            "It_2": It_2Field.value,
+        }};
+
+        this.dispatchEvent(new CustomEvent("clientMessage", {
+            bubbles: true,
+            composed: true,
+            detail: {
+                message: message,
+            },
+        }));
+    }
+
+    cancelBeamSectionAddition() {
+        this.defineNewBeamSectionName();
+        const newBeamSectionNameField = this.shadowRoot.querySelector(".beam-section-name");
+        this.dropHighlight(newBeamSectionNameField);
+        const inputtedAreaField = this.shadowRoot.querySelector(".area");
+        this.dropHighlight(inputtedAreaField);
+        const inputtedI11Field = this.shadowRoot.querySelector(".I11");
+        this.dropHighlight(inputtedI11Field);
+        const inputtedI22Field = this.shadowRoot.querySelector(".I22");
+        this.dropHighlight(inputtedI22Field);
+        const inputtedI12Field = this.shadowRoot.querySelector(".I12");
+        this.dropHighlight(inputtedI12Field);
+        const inputtedItField = this.shadowRoot.querySelector(".It");
+        this.dropHighlight(inputtedItField);
+        this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+    }
+
+    dropHighlight(highlightedElement) {
+        if (highlightedElement.classList.contains("highlighted") === true) {
+            highlightedElement.classList.remove("highlighted");
+        }
+    }
+
+    isNumeric(str) {
+        if (typeof str != "string") {
+            return false;
+        }
+        return !isNaN(str) && !isNaN(parseFloat(str));
+    }
+}
+
+export default FeaSectionAddBeamMenu;

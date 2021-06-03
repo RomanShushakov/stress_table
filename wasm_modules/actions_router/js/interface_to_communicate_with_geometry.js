@@ -111,9 +111,9 @@ export function showLineInfoFromGeometry(number)
     }
 }
 
-export function addWholeGeometryToPreprocessor(isActionIdShouldBeIncreased) 
+export function extractGeometry(isActionIdShouldBeIncreased) 
 {
-    communicatorWithGeometry.addWholeGeometryToPreprocessor = isActionIdShouldBeIncreased;
+    communicatorWithGeometry.extractGeometry = isActionIdShouldBeIncreased;
 }
 
 export function clearGeometryModuleByActionId(actionId) {

@@ -403,7 +403,6 @@ class FeaSectionUpdateTrussMenu extends HTMLElement {
         this.shadowRoot.querySelector(".area").value = trussSectionInProps.area;
         this.dropHighlight(this.shadowRoot.querySelector(".area"));
         this.shadowRoot.querySelector(".area2").value = trussSectionInProps.area2;
-        this.dropHighlight(this.shadowRoot.querySelector(".area2"));
         this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
     }
 
@@ -446,11 +445,11 @@ class FeaSectionUpdateTrussMenu extends HTMLElement {
             }
         }
 
-        const trussSEctionDataInProps = this.props.trussSections
+        const trussSectionDataInProps = this.props.trussSections
             .find(trussSection => trussSection.area == inputtedAreaField.value && 
                 (trussSection.area2 == inputtedArea2Field.value || 
                     (trussSection.area2 === null && inputtedArea2Field.value === "")));
-        if (trussSEctionDataInProps != null) {
+        if (trussSectionDataInProps != null) {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
                     "Note: The truss section with the same data does already exist!";
@@ -498,8 +497,8 @@ class FeaSectionUpdateTrussMenu extends HTMLElement {
             this.defineTrussSectionNameOptions();
         }
         this.shadowRoot.querySelector(".truss-section-name-filter").value = null;
-        const selectedTrussSEctionNameForUpdateField = this.shadowRoot.querySelector(".truss-section-name");
-        this.dropHighlight(selectedTrussSEctionNameForUpdateField);
+        const selectedTrussSectionNameForUpdateField = this.shadowRoot.querySelector(".truss-section-name");
+        this.dropHighlight(selectedTrussSectionNameForUpdateField);
         const inputtedAreaField = this.shadowRoot.querySelector(".area");
         this.dropHighlight(inputtedAreaField);
         this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";

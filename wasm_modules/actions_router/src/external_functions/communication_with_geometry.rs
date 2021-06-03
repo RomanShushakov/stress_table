@@ -39,8 +39,8 @@ extern "C"
     #[wasm_bindgen(js_name = clearGeometryModuleByActionId)]
     pub fn clear_geometry_module_by_action_id(action_id: u32);
 
-    #[wasm_bindgen(js_name = addWholeGeometryToPreprocessor)]
-    pub fn add_whole_geometry_to_preprocessor(is_action_id_should_be_increased: bool);
+    #[wasm_bindgen(js_name = extractGeometry)]
+    pub fn extract_geometry(is_action_id_should_be_increased: bool);
 
     #[wasm_bindgen(js_name = showPointInfo, catch)]
     pub fn show_point_info(number: u32) -> Result<JsValue, JsValue>;

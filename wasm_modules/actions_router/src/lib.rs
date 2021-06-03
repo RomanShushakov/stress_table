@@ -10,7 +10,7 @@ use external_functions::communication_with_geometry::
     add_line_to_geometry, update_line_in_geometry,
     delete_line_from_geometry, restore_line_in_geometry,
     show_point_info, show_line_info_from_geometry,
-    add_whole_geometry_to_preprocessor, clear_geometry_module_by_action_id
+    extract_geometry, clear_geometry_module_by_action_id
 };
 
 
@@ -752,9 +752,9 @@ impl ActionsRouter
     }
 
 
-    pub fn add_whole_geometry_to_preprocessor(&self)
+    pub fn extract_geometry(&self)
     {
         let is_action_id_should_be_increased = false;
-        add_whole_geometry_to_preprocessor(is_action_id_should_be_increased);
+        extract_geometry(is_action_id_should_be_increased);
     }
 }

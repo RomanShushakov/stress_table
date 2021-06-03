@@ -107,8 +107,8 @@ class CommunicatorWithGeometry {
         return objectInfo;
     }
 
-    set addWholeGeometryToPreprocessor(isActionIdShouldBeIncreased) {
-        this.state.geometry.add_whole_geometry_to_preprocessor(isActionIdShouldBeIncreased);
+    set extractGeometry(isActionIdShouldBeIncreased) {
+        this.state.geometry.ectract_geometry(isActionIdShouldBeIncreased);
     }
 
     set clearGeometryModuleByActionId(actionId) {

@@ -19,6 +19,8 @@ const ADD_TRUSS_SECTION_EVENT_NAME: &str = "add_truss_section_server_message";
 const UPDATE_TRUSS_SECTION_EVENT_NAME: &str = "update_truss_section_server_message";
 const DELETE_TRUSS_SECTION_EVENT_NAME: &str = "delete_truss_section_server_message";
 
+const ADD_BEAM_SECTION_EVENT_NAME: &str = "add_beam_section_server_message";
+
 
 #[wasm_bindgen]
 extern "C"
@@ -417,5 +419,51 @@ impl Properties
                 Truss section with name {} does not exist!", name);
             return Err(JsValue::from(error_message));
         }
+    }
+
+
+    pub fn add_beam_section(&mut self, action_id: u32, name: &str, area: f64,
+        i11: f64, i22: f64, i12: f64, it: f64, area2: Option<f64>, i11_2: Option<f64>,
+        i22_2: Option<f64>, i12_2: Option<f64>, it_2: Option<f64>,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.clear_deleted_materials_by_action_id(action_id);
+        self.clear_deleted_cross_sections_by_action_id(action_id);
+        let cross_section_type = CrossSectionType::Beam;
+        let cross_section_key = CrossSectionKey::create(
+            name, cross_section_type);
+        if self.cross_sections.contains_key(&cross_section_key)
+        {
+            let error_message = &format!("Properties: Add cross section action: \
+                Beam cross section with name {} does already exist!", name);
+            return Err(JsValue::from(error_message));
+        }
+        let cross_section_numerical_data = vec![area, i11, i22, i12, it];
+        let cross_section_optional_data = vec![area2, i11_2, i22_2, i12_2, it_2];
+        if self.cross_sections.values().position(|cross_section|
+            cross_section
+                .data_same(&cross_section_numerical_data, &cross_section_optional_data))
+                .is_some()
+        {
+            let error_message = &format!("Properties: Add cross section action: \
+                Cross section with Area {}, I11 {}, I22 {}, I12 {}, It {}, Area 2 {:?}, \
+                I11 2 {:?}, I22 2 {:?}, I12 2 {:?}, It 2 {:?} does already exist!",
+                area, i11, i22, i12, it, area2, i11_2, i22_2, i12_2, it_2);
+            return Err(JsValue::from(error_message));
+        }
+        let cross_section = CrossSection::create(cross_section_numerical_data,
+            cross_section_optional_data);
+        self.cross_sections.insert(cross_section_key, cross_section);
+        let detail = json!({ "truss_section_data": { "name": name, "area": area,
+            "i11": i11, "i22": i22, "i12": i12, "it": it, "area2": area2, "i11_2": i11_2,
+            "i22_2": i22_2, "i12_2": i12_2, "it_2": it_2 },
+            "is_action_id_should_be_increased": is_action_id_should_be_increased });
+        dispatch_custom_event(detail, ADD_BEAM_SECTION_EVENT_NAME,
+            EVENT_TARGET)?;
+        log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
+            cross sections: {:?}, deleted cross sections: {:?}",
+            self.materials, self.deleted_materials,
+            self.cross_sections, self.deleted_cross_sections));
+        Ok(())
     }
 }

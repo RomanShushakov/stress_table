@@ -20,6 +20,7 @@ use external_functions::communication_with_properties::
     delete_material_from_properties, restore_material_in_properties,
     add_truss_section_to_properties, update_truss_section_in_properties,
     delete_truss_section_from_properties, restore_truss_section_in_properties,
+    add_beam_section_to_properties,
     clear_properties_module_by_action_id,
 };
 
@@ -46,6 +47,8 @@ const DELETE_MATERIAL_MESSAGE_HEADER: &str = "delete_material";
 const ADD_TRUSS_SECTION_MESSAGE_HEADER: &str = "add_truss_section";
 const UPDATE_TRUSS_SECTION_MESSAGE_HEADER: &str = "update_truss_section";
 const DELETE_TRUSS_SECTION_MESSAGE_HEADER: &str = "delete_truss_section";
+
+const ADD_BEAM_SECTION_MESSAGE_HEADER: &str = "add_beam_section";
 
 const UNDO_MESSAGE_HEADER: &str = "undo";
 const REDO_MESSAGE_HEADER: &str = "redo";
@@ -284,6 +287,7 @@ impl ActionsRouter
                                     self.current_action = Some((action, add_to_active_actions));
                                 },
                             PropertiesActionType::RestoreTrussSection(_, _) => (),
+                            PropertiesActionType::AddBeamSection(_, _, _, _, _, _, _, _, _, _, _, _) => (),
                         }
                     }
             }
@@ -626,6 +630,30 @@ impl ActionsRouter
                                         self.active_actions.push(action.clone());
                                     }
                                 },
+                            PropertiesActionType::AddBeamSection(
+                                beam_section_name,
+                                area,
+                                i11,
+                                i22,
+                                i12,
+                                it,
+                                area2,
+                                i11_2,
+                                i22_2,
+                                i12_2,
+                                it_2,
+                                is_action_id_should_be_increased) =>
+                                {
+                                    clear_geometry_module_by_action_id(action_id);
+                                    add_beam_section_to_properties(action_id,
+                                        beam_section_name,
+                                        *area, *i11, *i22, *i12, *it, *area2, *i11_2, *i22_2,
+                                        *i12_2, *it_2, *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions == true
+                                    {
+                                        self.active_actions.push(action.clone());
+                                    }
+                                },
                         }
                     }
             }
@@ -697,6 +725,11 @@ impl ActionsRouter
             .get(DELETE_TRUSS_SECTION_MESSAGE_HEADER)
         {
             self.handle_delete_truss_section_message(&truss_section_data)?;
+        }
+        else if let Some(beam_section_data) = serialized_message
+            .get(ADD_BEAM_SECTION_MESSAGE_HEADER)
+        {
+            self.handle_add_beam_section_message(&beam_section_data)?;
         }
         else if let Some(undo_data) = serialized_message.get(UNDO_MESSAGE_HEADER)
         {

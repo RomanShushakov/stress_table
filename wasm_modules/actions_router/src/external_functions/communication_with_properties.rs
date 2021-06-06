@@ -36,6 +36,12 @@ extern "C"
     pub fn restore_truss_section_in_properties(action_id: u32, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
+    #[wasm_bindgen(js_name = addBeamSectionToProperties, catch)]
+    pub fn add_beam_section_to_properties(action_id: u32, name: &str,
+        area: f64, i11: f64, i22: f64, i12: f64, it: f64, area2: Option<f64>,
+        i11_2: Option<f64>, i22_2: Option<f64>, i12_2: Option<f64>, it_2: Option<f64>,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
+
     #[wasm_bindgen(js_name = clearPropertiesModuleByActionId)]
     pub fn clear_properties_module_by_action_id(action_id: u32);
 }

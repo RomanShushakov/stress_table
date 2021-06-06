@@ -42,6 +42,8 @@ class FeaApp extends HTMLElement {
             </div>
         `;
 
+        window.addEventListener("load", () => {console.log("Cache loaded")});
+
         window.addEventListener("resize", () => this.updateCanvasSize());
 
         this.addEventListener("activate-preprocessor-menu", () => this.activatePreprocessorMenu());
@@ -64,6 +66,8 @@ class FeaApp extends HTMLElement {
         this.addEventListener("add_truss_section_server_message", (event) => this.handleAddTrussSectionServerMessage(event));
         this.addEventListener("update_truss_section_server_message", (event) => this.handleUpdateTrussSectionServerMessage(event));
         this.addEventListener("delete_truss_section_server_message", (event) => this.handleDeleteTrussSectionServerMessage(event));
+
+        this.addEventListener("add_beam_section_server_message", (event) => this.handleAddBeamSectionServerMessage(event));
 
         this.addEventListener("decreaseActionId", (event) => this.handleDecreaseActionIdMessage(event));
     }
@@ -312,6 +316,28 @@ class FeaApp extends HTMLElement {
         }
         const trussSection = { number: event.detail.truss_section_data.name };
         this.querySelector("fea-preprocessor-menu").deleteTrussSectionFromClient = trussSection;
+        event.stopPropagation();
+    }
+
+    handleAddBeamSectionServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;
+            this.updatePreprocessorMenuActionId();
+            this.updateTitleBarActionId();
+        }
+        const beamSection = { 
+            name: event.detail.truss_section_data.name,
+            area: event.detail.truss_section_data.area,
+            I11: event.detail.truss_section_data.i11,
+            I22: event.detail.truss_section_data.i22,
+            I12: event.detail.truss_section_data.i12,
+            It: event.detail.truss_section_data.it,
+            area2: event.detail.truss_section_data.area2,
+            I11_2: event.detail.truss_section_data.i11_2,
+            I22_2: event.detail.truss_section_data.i22_2,
+            I12_2: event.detail.truss_section_data.i12_2,
+            It_2: event.detail.truss_section_data.it_2 };
+        this.querySelector("fea-preprocessor-menu").addBeamSectionToClient = beamSection;
         event.stopPropagation();
     }
 

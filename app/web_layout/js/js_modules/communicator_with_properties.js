@@ -85,6 +85,17 @@ class CommunicatorWithProperties {
         }
     }
 
+    set addBeamSectionToProperties(beamSectionData) {
+        try {
+            this.state.properties.add_beam_section(beamSectionData.actionId, beamSectionData.name, 
+                beamSectionData.area, beamSectionData.I11, beamSectionData.I22, beamSectionData.I12,
+                beamSectionData.It, beamSectionData.area2, beamSectionData.I11_2, beamSectionData.I22_2,
+                beamSectionData.I12_2, beamSectionData.It_2, beamSectionData.isActionIdShouldBeIncreased);
+        } catch (error) {
+            throw error;
+        }
+    }
+
     set clearPropertiesModuleByActionId(actionId) {
         this.state.properties.clear_properties_module_by_action_id(actionId);
     }

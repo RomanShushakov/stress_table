@@ -229,4 +229,139 @@ impl ActionsRouter
         self.current_action = Some((action, add_to_active_actions));
         Ok(())
     }
+
+
+    pub(super) fn handle_add_beam_section_message(&mut self, beam_section_data: &Value)
+        -> Result<(), JsValue>
+    {
+        let action_id = beam_section_data["actionId"].to_string()
+            .parse::<u32>()
+            .or(Err(JsValue::from("Actions router: Add beam section action: Action id could \
+                not be converted to u32!")))?;
+        let name = beam_section_data["name"].to_string();
+        let area = beam_section_data["area"].as_str()
+            .ok_or(JsValue::from("Actions router: Add beam section action: \
+                Area value could not be extracted!"))?
+            .parse::<f64>()
+            .or(Err(JsValue::from("Actions router: Add beam section action: \
+                Area value could not be converted to f64!")))?;
+        let i11 = beam_section_data["I11"].as_str()
+            .ok_or(JsValue::from("Actions router: Add beam section action: \
+                I11 value could not be extracted!"))?
+            .parse::<f64>()
+            .or(Err(JsValue::from("Actions router: Add beam section action: \
+                I11 value could not be converted to f64!")))?;
+        let i22 = beam_section_data["I22"].as_str()
+            .ok_or(JsValue::from("Actions router: Add beam section action: \
+                I22 value could not be extracted!"))?
+            .parse::<f64>()
+            .or(Err(JsValue::from("Actions router: Add beam section action: \
+                I22 value could not be converted to f64!")))?;
+        let i12 = beam_section_data["I12"].as_str()
+            .ok_or(JsValue::from("Actions router: Add beam section action: \
+                I12 value could not be extracted!"))?
+            .parse::<f64>()
+            .or(Err(JsValue::from("Actions router: Add beam section action: \
+                I12 value could not be converted to f64!")))?;
+        let it = beam_section_data["It"].as_str()
+            .ok_or(JsValue::from("Actions router: Add beam section action: \
+                It value could not be extracted!"))?
+            .parse::<f64>()
+            .or(Err(JsValue::from("Actions router: Add beam section action: \
+                It value could not be converted to f64!")))?;
+        let area2_value = beam_section_data["area2"].as_str()
+            .ok_or(JsValue::from("Actions router: Add beam section action: Area 2 value \
+                could not be extracted!"))?;
+        let area2 =
+            {
+                if area2_value.is_empty()
+                {
+                    None
+                }
+                else
+                {
+                    let converted_area2 = area2_value.parse::<f64>()
+                        .or(Err(JsValue::from("Actions router: Add beam section action: \
+                            Area 2 value could not be converted to f64!")))?;
+                    Some(converted_area2)
+                }
+            };
+        let i11_2_value = beam_section_data["I11_2"].as_str()
+            .ok_or(JsValue::from("Actions router: Add beam section action: I11 2 value \
+                could not be extracted!"))?;
+        let i11_2 =
+            {
+                if i11_2_value.is_empty()
+                {
+                    None
+                }
+                else
+                {
+                    let converted_i11_2 = i11_2_value.parse::<f64>()
+                        .or(Err(JsValue::from("Actions router: Add beam section action: \
+                            I11 2 value could not be converted to f64!")))?;
+                    Some(converted_i11_2)
+                }
+            };
+        let i22_2_value = beam_section_data["I22_2"].as_str()
+            .ok_or(JsValue::from("Actions router: Add beam section action: I22 2 value \
+                could not be extracted!"))?;
+        let i22_2 =
+            {
+                if i22_2_value.is_empty()
+                {
+                    None
+                }
+                else
+                {
+                    let converted_i22_2 = i22_2_value.parse::<f64>()
+                        .or(Err(JsValue::from("Actions router: Add beam section action: \
+                            I22 2 value could not be converted to f64!")))?;
+                    Some(converted_i22_2)
+                }
+            };
+        let i12_2_value = beam_section_data["I12_2"].as_str()
+            .ok_or(JsValue::from("Actions router: Add beam section action: I12 2 value \
+                could not be extracted!"))?;
+        let i12_2 =
+            {
+                if i12_2_value.is_empty()
+                {
+                    None
+                }
+                else
+                {
+                    let converted_i12_2 = i12_2_value.parse::<f64>()
+                        .or(Err(JsValue::from("Actions router: Add beam section action: \
+                            I12 2 value could not be converted to f64!")))?;
+                    Some(converted_i12_2)
+                }
+            };
+        let it_2_value = beam_section_data["It_2"].as_str()
+            .ok_or(JsValue::from("Actions router: Add beam section action: It 2 value \
+                could not be extracted!"))?;
+        let it_2 =
+            {
+                if it_2_value.is_empty()
+                {
+                    None
+                }
+                else
+                {
+                    let converted_it_2 = it_2_value.parse::<f64>()
+                        .or(Err(JsValue::from("Actions router: Add beam section action: \
+                            It 2 value could not be converted to f64!")))?;
+                    Some(converted_it_2)
+                }
+            };
+        self.undo_actions.clear();
+        let is_action_id_should_be_increased = true;
+        let action_type = ActionType::PropertiesActionType(PropertiesActionType::AddBeamSection(
+                name, area, i11, i22, i12, it,
+                area2, i11_2, i22_2, i12_2, it_2, is_action_id_should_be_increased));
+        let action = Action::create(action_id, action_type);
+        let add_to_active_actions = true;
+        self.current_action = Some((action, add_to_active_actions));
+        Ok(())
+    }
 }

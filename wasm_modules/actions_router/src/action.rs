@@ -91,6 +91,10 @@ pub enum PropertiesActionType
 
     // ( name, is_action_id_should_be_increased )
     RestoreTrussSection(String, bool),
+
+    // ( name, area, I11, I22, I12, It, area2, I11_2, I22_2, I12_2, It_2, is_action_id_should_be_increased )
+    AddBeamSection(String, f64, f64, f64, f64, f64,
+        Option<f64>, Option<f64>, Option<f64>, Option<f64>, Option<f64>, bool),
 }
 
 

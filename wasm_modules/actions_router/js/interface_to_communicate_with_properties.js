@@ -85,6 +85,20 @@ export function restoreTrussSectionInProperties(actionId, name, isActionIdShould
     }
 }
 
+export function addBeamSectionToProperties(actionId, name, area, I11, I22, I12, It, 
+    area2, I11_2, I22_2, I12_2, It_2, isActionIdShouldBeIncreased) 
+{
+    const beamSectionData = { "actionId": actionId, "name": name, "area": area,
+        "I11": I11, "I22": I22, "I12": I12, "It": It, "area2": area2, "I11_2": I11_2,
+        "I22_2": I22_2, "I12_2": I12_2, "It_2": It_2,
+        "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
+    try {
+        communicatorWithProperties.addBeamSectionToProperties = beamSectionData;
+    } catch (error) {
+        throw error;
+    }
+}
+
 export function clearPropertiesModuleByActionId(actionId) {
     communicatorWithProperties.clearPropertiesModuleByActionId = actionId;
 }

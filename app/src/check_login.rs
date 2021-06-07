@@ -5,7 +5,7 @@ use actix_web::dev::{ServiceRequest, ServiceResponse};
 use actix_web::{http, Error, HttpResponse};
 use futures::future::{ok, Either, Ready};
 
-use actix_session::{Session, UserSession};
+use actix_session::{UserSession};
 
 
 pub struct CheckLogin;
@@ -19,9 +19,10 @@ where
     type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
     type Error = Error;
-    type InitError = ();
     type Transform = CheckLoginMiddleware<S>;
+    type InitError = ();
     type Future = Ready<Result<Self::Transform, Self::InitError>>;
+
 
     fn new_transform(&self, service: S) -> Self::Future
     {
@@ -29,10 +30,12 @@ where
     }
 }
 
+
 pub struct CheckLoginMiddleware<S>
 {
     service: S,
 }
+
 
 impl<S, B> Service for CheckLoginMiddleware<S>
 where
@@ -65,19 +68,12 @@ where
         }
         else
         {
-            if req.path() == "/auth"
-            {
-                Either::Left(self.service.call(req))
-            }
-            else
-            {
-                Either::Right(ok(req.into_response(
-                    HttpResponse::Found()
-                        .header(http::header::LOCATION, "/auth")
-                        .finish()
-                        .into_body(),
-                )))
-            }
+            Either::Right(ok(req.into_response(
+                HttpResponse::Found()
+                    .header(http::header::LOCATION, "/auth")
+                    .finish()
+                    .into_body(),
+            )))
         }
     }
 }

@@ -7,11 +7,9 @@ const authMenuContainer = document.querySelector(".auth-menu-container");
 
 const signInButton = document.querySelector(".sign-in-menu-button");
 
-const backButton = document.querySelector(".back");
+document.addEventListener("activateAuthMenu", (event) => activateAuthMenu(event));
 
 signInButton.addEventListener("click", () => activateLoginMenu());
-
-backButton.addEventListener("click", () => activateAuthMenu());
 
 function activateLoginMenu() {
     mainContainer.innerHTML = "";
@@ -20,7 +18,8 @@ function activateLoginMenu() {
 }
 
 
-function activateAuthMenu() {
+function activateAuthMenu(event) {
     mainContainer.innerHTML = "";
     mainContainer.append(authMenuContainer);
+    event.stopPropagation();
 }

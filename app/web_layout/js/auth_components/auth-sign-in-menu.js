@@ -2,8 +2,7 @@ class AuthSignInMenu extends HTMLElement {
     constructor() {
         super();
 
-        this.props = {
-        };
+        this.props = {};
 
         this.state = {};
 
@@ -18,101 +17,141 @@ class AuthSignInMenu extends HTMLElement {
                 .wrapper {
                     display: flex;
                     flex-direction: column;
-                    background-color: #3b4453;
                     padding: 0rem;
-                    margin-top: 1rem;
-                    align-items: center;
+                    margin: 0rem;
                 }
 
-                .material-name-field-content {
+                .sign-in-menu-header-content {
+                    margin-top: 1rem;
                     display: flex;
                     flex-direction: row;
-                    background-color: #3b4453;
-                    padding: 0rem;
-                    margin: 0rem;
-                    align-items: center;
                 }
 
-                .material-name-caption {
+                .back-button {
                     margin: 0rem;
                     padding: 0rem;
-                    color: #D9D9D9;
+                    border: #ffffff;
+                }
+
+                .back-button-icon-content {
+                    margin: 0rem;
+                    padding: 0rem;
+                    background: #ffffff;
+                }
+
+                .back-button-icon {
+                    width: 1rem;
+                    height: 1rem;
+                }
+
+                .back-button-icon-caption {
+                    color: #3a3e5d;
+                    margin: 0rem;
+                    padding: 0rem;
                     font-size: 85%;
-                    width: 6rem;
                 }
 
-                .material-name-select-filter-content {
+                .sign-in-caption {
                     margin-top: 0rem;
-                    margin-bottom: 0rem;
-                    margin-left: 1rem;
-                    margin-right: 0rem;
-                    padding: 0rem;
+                    margin-bottom: 0;
+                    margin-left: 4rem;
+                    margin-right: 0;
+                    padding: 0;
+                    color: #3a3e5d;
+                    font-size: 125%;
+                }
+
+                .email-field-content {
                     display: flex;
                     flex-direction: column;
-                }
-
-                .material-name-filter-label {
-                    position: relative;
-                }
-                  
-                .material-name-filter-label:before {
-                    content: "";
-                    position: absolute;
-                    left: 0rem;
-                    top: 0rem;
-                    bottom: 0rem;
-                    width: 0.8rem;
-                    background: url('data:image/svg+xml,<svg width="19" height="17" viewBox="0 0 19 17" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.1182 13.15L7.48598 16L7.48598 6.25L2 0.999999L17 1L12.1182 6.25L12.1182 13.15Z" fill="rgb(112, 112, 114)" stroke="rgb(112, 112, 114)"/></svg>') center / contain no-repeat;
-                }
-
-                .material-name-filter {
-                    margin-top: 0rem;
+                    padding: 0rem;
+                    margin-top: 1rem;
                     margin-bottom: 0rem;
                     margin-left: 0rem;
                     margin-right: 0rem;
-                    padding-left: 1.3rem;
-                    width: 3.5rem;
-                    background-color: #3b4453;
-                    border: #4a5060;
-                    border-bottom: 0.1rem solid #4a5060;
-                    outline: none;
-                    color: #D9D9D9;
                 }
 
-                .material-name-filter::placeholder {
+                .email-caption {
+                    margin: 0rem;
+                    padding-top: 0rem;
+                    padding-bottom: 0rem;
+                    padding-left: 0.3rem;
+                    padding-right: 0rem;
+                    color: #9096aa;
                     font-size: 85%;
                 }
 
-                .material-name-filter:hover {
-                    box-shadow: 0rem 0.15rem 0rem #4a5060;
-                }
-
-                .material-name-filter:focus {
-                    box-shadow: 0rem 0.15rem 0rem #4a5060;
-                }
-
-                .material-name {
-                    width: 5rem;
-                    margin-top: 0.5rem;
-                    background-color: #3b4453;
-                    border: #4a5060;
-                    border-bottom: 0.1rem solid #4a5060;
+                .email {
+                    margin-top: 0.3rem;
+                    margin-bottom: 0rem;
+                    margin-left: 0rem;
+                    margin-right: 0rem;
+                    padding-top: 0rem;
+                    padding-bottom: 0rem;
+                    padding-left: 0.3rem;
+                    padding-right: 0rem;
+                    height: 2rem;
+                    border: 0.1rem solid #bfbfbf;
+                    border-radius: 0.3rem;
                     outline: none;
-                    color: #D9D9D9;
-                    -webkit-appearance: none;
-                    -moz-appearance: none;
-                    background: url('data:image/svg+xml,<svg width="4" height="4" viewBox="0 0 4 4" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1L2 2L3 1" stroke="rgb(112, 112, 114)" stroke-width="0.5"/></svg>') right / contain no-repeat;
+                    color: #9096aa;
                 }
 
-                .material-name option {
-                    background-color: #484f60;
+                .email:hover {
+                    box-shadow: 0 0 0.2rem #bfbfbf;
                 }
 
-                .material-name:hover {
-                    box-shadow: 0rem 0.15rem 0rem #4a5060;
+                .email:focus {
+                    border: 0.1rem solid #0996d7;
+                    box-shadow: 0 0 0.2rem #0996d7;
                 }
 
-                .apply-cancel-buttons {
+                .password-field-content {
+                    display: flex;
+                    flex-direction: column;
+                    padding: 0rem;
+                    margin-top: 0.5rem;
+                    margin-bottom: 0rem;
+                    margin-left: 0rem;
+                    margin-right: 0rem;
+                }
+
+                .password-caption {
+                    margin: 0rem;
+                    padding-top: 0rem;
+                    padding-bottom: 0rem;
+                    padding-left: 0.3rem;
+                    padding-right: 0rem;
+                    color: #9096aa;
+                    font-size: 85%;
+                }
+
+                .password {
+                    margin-top: 0.3rem;
+                    margin-bottom: 0rem;
+                    margin-left: 0rem;
+                    margin-right: 0rem;
+                    padding-top: 0rem;
+                    padding-bottom: 0rem;
+                    padding-left: 0.3rem;
+                    padding-right: 0rem;
+                    height: 2rem;
+                    border: 0.1rem solid #bfbfbf;
+                    border-radius: 0.3rem;
+                    outline: none;
+                    color: #9096aa;
+                }
+
+                .password:hover {
+                    box-shadow: 0 0 0.2rem #bfbfbf;
+                }
+
+                .password:focus {
+                    border: 0.1rem solid #0996d7;
+                    box-shadow: 0 0 0.2rem #0996d7;
+                }
+
+                .sign-in-menu-buttons {
                     margin-top: 1rem;
                     margin-bottom: 0rem;
                     margin-left: 0rem;
@@ -120,120 +159,106 @@ class AuthSignInMenu extends HTMLElement {
                     padding: 0rem;
                 }
 
-                .apply-button {
+                .sign-in-button {
+                    margin-top: 0rem;
+                    margin-bottom: 0;
+                    margin-left: 0;
+                    margin-right: 0;
+                    width: 15rem;
+                    height: 2rem;
                     background: #0996d7;
-                    border: 0.2rem solid #3b4453;
-                    border-radius: 0.3rem;
-                    color: #D9D9D9;
-                    padding: 0rem;
-                    margin: 0rem;
-                    width: 4rem;
-                    height: 1.7rem;
+                    color: #fffdf2;
+                    border: 0.1rem solid;
+                    border-radius: 0.2rem; 
+                    border-color: #0996d7;
                 }
 
-                .apply-button:hover {
-                    border: 0.2rem solid #4a5060;
+                .sign-in-button:hover {
+                    box-shadow: 0 0 0.2rem #bfbfbf;
                 }
 
-                .cancel-button {
-                    background: #0996d7;
-                    border: 0.2rem solid #3b4453;
-                    border-radius: 0.3rem;
-                    color: #D9D9D9;
-                    padding: 0rem;
-                    margin: 0rem;
-                    width: 4rem;
-                    height: 1.7rem;
+                .sign-in-button:focus {
+                    box-shadow: 0 0 0.4rem #bfbfbf;
                 }
 
-                .cancel-button:hover {
-                    border: 0.2rem solid #4a5060;
-                }
-
-                .analysis-info {
+                .auth-info {
                     display: flex;
                     margin: 0rem;
                     padding: 0rem;
                 }
 
-                .analysis-info-message {
+                .auth-info-message {
                     margin-top: 1rem;
                     margin-bottom: 0rem;
                     margin-left: 0rem;
                     margin-right: 0rem;
                     padding: 0rem;
-                    color: #D9D9D9;
+                    color: #9096aa;
                     font-size: 80%;
-                    width: 12rem;
+                    width: 15rem;
                 }
 
                 .highlighted {
-                    box-shadow: 0rem 0.1rem 0rem #72C5FF;
+                    border: 0.1rem solid #0996d7;
+                    box-shadow: 0 0 0.2rem #0996d7;
                 }
             </style>
 
             <div class=wrapper>
 
-                <div class="material-name-field-content">
-                    <p class="material-name-caption">Material name</p>
-                    <div class="material-name-select-filter-content">
-                        <label class="material-name-filter-label">
-                            <input class="material-name-filter" type="text" placeholder="Filter..."/>
-                        </label>
-                        <select class="material-name"></select>
-                    </div>
+                <div class=sign-in-menu-header-content>
+                    <button class="back-button">
+                        <div class="back-button-icon-content">
+                            <svg class="back-button-icon" width="20" height="21" viewBox="0 0 20 21" fill="none" 
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <title>Back</title>
+                                <path d="M10.5 1.30761L1.30762 10.5L10.5 19.6924" stroke="#0996D7" stroke-width="3"/>
+                            </svg>
+                            <p class="back-button-icon-caption">Back</p>
+                        </div>
+                    </button>
+                    <p class="sign-in-caption">Sign in</p>
+                </div>
+                
+                <div class="email-field-content">
+                    <p class="email-caption">Email</p>
+                    <input class="email" type="text" placeholder="name@example.com"/>
                 </div>
 
-                <div class="apply-cancel-buttons">
-                    <button class="apply-button">Apply</button>
-                    <button class="cancel-button">Cancel</button>
+                <div class="password-field-content">
+                    <p class="password-caption">Password</p>
+                    <input class="password" type="password"/>
+                </div>
+                
+                <div class="sign-in-menu-buttons">
+                    <button class="sign-in-button">Sign in</button>
                 </div>
 
-                <div class="analysis-info">
-                    <p class="analysis-info-message"></p>
+                <div class="auth-info">
+                    <p class="auth-info-message"></p>
                 </div>
             </div>
         `;
 
-        this.shadowRoot.querySelector(".apply-button").addEventListener("click", () => this.deleteMaterial());
+        this.shadowRoot.querySelector(".sign-in-button").addEventListener("click", () => this.signIn());
 
-        this.shadowRoot.querySelector(".cancel-button").addEventListener("click", () => this.cancelMaterialDelete());
+        this.shadowRoot.querySelector(".back-button").addEventListener("click", () => this.back());
 
-        this.shadowRoot.querySelector(".material-name-filter").addEventListener("keyup", () => {
-            this.filter(
-                this.shadowRoot.querySelector(".material-name-filter").value,
-                this.shadowRoot.querySelector(".material-name"));
+        this.shadowRoot.querySelector(".email").addEventListener("click", () => {
+            const inputtedEmail = this.shadowRoot.querySelector(".email");
+            this.dropHighlight(inputtedEmail);
+            this.shadowRoot.querySelector(".auth-info-message").innerHTML = "";
+        });
+
+        this.shadowRoot.querySelector(".password").addEventListener("click", () => {
+            const inputtedPassword = this.shadowRoot.querySelector(".password");
+            this.dropHighlight(inputtedPassword);
+            this.shadowRoot.querySelector(".auth-info-message").innerHTML = "";
         });
     }
 
-    set actionId(value) {
-        this.props.actionId = value;
-    }
-
-    set addMaterialToClient(material) {
-        this.props.materials.push(material);
-        this.props.materials.sort((a, b) => a.name - b.name);
-        this.defineMaterialNameOptions();
-    }
-
-    set updateMaterialInClient(_material) {
-    }
-
-    set deleteMaterialFromClient(material) {
-        let materialIndexInProps = this.props.materials.findIndex(existedMaterial => existedMaterial.name == material.name);
-        this.props.materials.splice(materialIndexInProps, 1);
-        this.props.materials.sort((a, b) => a.name - b.name);
-        this.defineMaterialNameOptions();
-    }
-
     connectedCallback() {
-        Object.keys(this.props).forEach((propName) => {
-            if (this.hasOwnProperty(propName)) {
-                let value = this[propName];
-                delete this[propName];
-                this[propName] = value;
-            }
-        }); 
     }
 
     disconnectedCallback() {
@@ -249,71 +274,80 @@ class AuthSignInMenu extends HTMLElement {
     adoptedCallback() {
     }
 
-    defineMaterialNameOptions() {
-        const materialDeleteNameSelect = this.shadowRoot.querySelector(".material-name");
-        for (let i = materialDeleteNameSelect.length - 1; i >= 0; i--) {
-            materialDeleteNameSelect.options[i] = null;
-        }
-        for (let i = 0; i < this.props.materials.length; i++) {
-            let deleteOption = document.createElement("option");
-            deleteOption.value = this.props.materials[i].name.replace(/['"]+/g, "");
-            deleteOption.innerHTML = this.props.materials[i].name.replace(/['"]+/g, "");
-            materialDeleteNameSelect.appendChild(deleteOption);
-        }
-    }
-
-    filter(keywordField, selectField) {
-        for (let i = 0; i < selectField.length; i++) {
-            let txt = selectField.options[i].value;
-            if (txt.substring(0, keywordField.length).toLowerCase() !== keywordField.toLowerCase() && keywordField.trim() !== "") {
-                selectField.options[i].style.display = "none";
-            } else {
-                selectField.options[i].style.display = "list-item";
-            }
-        }
-    }
-
-    deleteMaterial() {
-        const selectedMaterialNameField = this.shadowRoot.querySelector(".material-name");
-        if (selectedMaterialNameField.value == "") {
-            if (selectedMaterialNameField.classList.contains("highlighted") === false) {
-                selectedMaterialNameField.classList.add("highlighted");
-            }
-        }
-
-        if (selectedMaterialNameField.value === "") {
-            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "Note: The highlighted fields should be filled!";
-                return;
-            } else {
-                return;
-            }
-        }
-
-        const deletedMaterialData = this.props.materials.find(material => material.name == `"${selectedMaterialNameField.value}"`);
-        const message = {"delete_material": { "actionId": this.props.actionId, "name": deletedMaterialData.name.replace(/['"]+/g, "") }};
-        this.dispatchEvent(new CustomEvent("clientMessage", {
-            bubbles: true,
-            composed: true,
-            detail: {
-                message: message,
+    async postData(url = "", data = {}) {
+        const response = await fetch(url, {
+            method: "POST",
+            mode: "cors",
+            cache: "no-cache",
+            credentials: "same-origin",
+            headers: {
+                "Content-Type": "application/json"
             },
-        }));
-
-        this.shadowRoot.querySelector(".material-name-filter").value = null;
+            redirect: "follow",
+            referrerPolicy: "no-referrer",
+            body: JSON.stringify(data)
+        });
+        return response.json();
     }
+  
+    signIn() {
+        const emailField = this.shadowRoot.querySelector(".email");
+        if (emailField.value === "") {
+            if (emailField.classList.contains("highlighted") === false) {
+                emailField.classList.add("highlighted");
+            }
+        }
+        const passwordField = this.shadowRoot.querySelector(".password");
+        if (passwordField.value === "") {
+            if (passwordField.classList.contains("highlighted") === false) {
+                passwordField.classList.add("highlighted");
+            }
+        }
 
-    cancelMaterialDelete() {
-        this.shadowRoot.querySelector(".material-name-filter").value = null;
-        const selectedMaterialNameForDeleteField = this.shadowRoot.querySelector(".material-name");
-        this.dropHighlight(selectedMaterialNameForDeleteField);
-        this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+        if (emailField.value === "" || passwordField.value === "") {
+            if (this.shadowRoot.querySelector(".auth-info-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".auth-info-message").innerHTML = 
+                    "Note: The highlighted fields should be filled!";
+                return;
+            } else {
+                return;
+            }
+        }
+
+        if (this.validateEmail(emailField.value) === false) {
+            if (this.shadowRoot.querySelector(".auth-info-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".auth-info-message").innerHTML = 
+                    "Note: This email is not recognized!";
+                emailField.classList.add("highlighted");
+                return;
+            } else {
+                return;
+            }
+        }
+
+        this.postData("/auth/login", { email: emailField.value, password: passwordField.value })
+            .then(data => {
+                console.log(data);
+        });
     }
 
     dropHighlight(highlightedElement) {
         if (highlightedElement.classList.contains("highlighted") === true) {
             highlightedElement.classList.remove("highlighted");
         }
+    }
+
+    validateEmail(email) {
+        const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        return re.test(String(email).toLowerCase());
+    }
+
+
+    back() {
+        this.dispatchEvent(new CustomEvent("activateAuthMenu", {
+            bubbles: true,
+            composed: true,
+        }));
     }
 }
 

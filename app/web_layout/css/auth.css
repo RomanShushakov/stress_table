@@ -8,5 +8,79 @@ body {
     margin: 0;
     padding: 0;
     font: sans-serif;
-    background: #212830;
+    background: #ffffff;
+}
+
+
+.main-container {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.auth-menu-container {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+
+.auth-menu-caption {
+    margin-top: 1rem;
+    margin-bottom: 0;
+    margin-left: 0;
+    margin-right: 0;
+    padding: 0;
+    color: #3a3e5d;
+    font-size: 150%;
+}
+
+
+.sign-in-menu-button {
+    margin-top: 1rem;
+    margin-bottom: 0;
+    margin-left: 0;
+    margin-right: 0;
+    width: 15rem;
+    height: 2rem;
+    background: #0996d7;
+    color: #fffdf2;
+    border: 0.1rem solid;
+    border-radius: 0.2rem; 
+    border-color: #0996d7;
+}
+
+.sign-in-menu-button:hover {
+    box-shadow: 0 0 0.2rem #bfbfbf;
+}
+
+.sign-in-menu-button:focus {
+    box-shadow: 0 0 0.4rem #bfbfbf;
+}
+
+.create-account-menu-button {
+    margin-top: 1rem;
+    margin-bottom: 0;
+    margin-left: 0;
+    margin-right: 0;
+    width: 15rem;
+    height: 2rem;
+    background: #ffffff;
+    color: #3a3e5d;
+    border: 0.1rem solid;
+    border-radius: 0.2rem; 
+    border-color: #bfbfbf;
+}
+
+.create-account-menu-button:hover {
+    box-shadow: 0 0 0.2rem #bfbfbf;
+}
+
+
+.create-account-menu-button:focus {
+    box-shadow: 0 0 0.4rem #bfbfbf;
 }

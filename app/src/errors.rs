@@ -27,6 +27,15 @@ impl ResponseError for MyError
                 {
                     HttpResponse::InternalServerError().body(err.to_string())
                 },
+            MyError::PGError(ref err) =>
+                {
+                    if err.to_string().contains("users_email_key")
+                    {
+                        let error_message = "The inputted email is already in use.";
+                        return HttpResponse::InternalServerError().body(error_message);
+                    }
+                    HttpResponse::InternalServerError().finish()
+                },
             _ => HttpResponse::InternalServerError().finish(),
         }
     }

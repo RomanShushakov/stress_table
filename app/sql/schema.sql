@@ -1,11 +1,17 @@
-DROP SCHEMA IF EXISTS actix_pg_db_test CASCADE;
-CREATE SCHEMA actix_pg_db_test;
+DROP SCHEMA IF EXISTS stress_table_schema CASCADE;
+CREATE SCHEMA stress_table_schema AUTHORIZATION stress_table_user;
 
-CREATE TABLE actix_pg_db_test.users (
-	id  BIGSERIAL PRIMARY KEY,
-	email       VARCHAR(200) NOT NULL,
-	first_name  VARCHAR(200) NOT NULL,
-	last_name   VARCHAR(200) NOT NULL,
-	username    VARCHAR(50) UNIQUE NOT NULL,
-	UNIQUE (username)
+CREATE TABLE stress_table_schema.users (
+	id uuid NOT NULL,
+	first_name VARCHAR(50) NOT NULL,
+	last_name VARCHAR(50) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    password VARCHAR(100) NOT NULL,
+    is_active BOOLEAN NOT NULL,
+    is_superuser BOOLEAN NOT NULL,
+    username VARCHAR(2) NOT NULL,
+	PRIMARY KEY (id),
+	UNIQUE (email)
 );
+
+ALTER TABLE stress_table_schema.users OWNER TO stress_table_user;

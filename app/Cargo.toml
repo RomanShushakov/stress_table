@@ -20,9 +20,14 @@ rand = "0.8.3"
 serde = { version = "1.0.126", features = ["derive"] }
 serde_json = "1.0.64"
 
-tokio-postgres = "0.5.5"
+tokio-postgres = { version = "0.5.5", features = ["with-uuid-0_8"] }
 deadpool-postgres = "0.5.6"
 tokio-pg-mapper = "0.1.8"
 tokio-pg-mapper-derive = "0.1.5"
 config = "0.11.0"
 derive_more = "0.99.14"
+
+uuid = { version = "0.8.2", features = ["serde", "v4"] }
+rust-crypto = "0.2.36"
+
+askama = "0.10.5"

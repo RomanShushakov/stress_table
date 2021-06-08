@@ -60,7 +60,24 @@ where
 
         let auth_status = session.get::<bool>("auth").unwrap();
 
-        let is_logged_in = if let Some(_status) = auth_status { true } else { false };
+        let is_logged_in =
+            {
+                if let Some(status) = auth_status
+                {
+                    if status
+                    {
+                        true
+                    }
+                    else
+                    {
+                        false
+                    }
+                }
+                else
+                {
+                    false
+                }
+            };
 
         if is_logged_in
         {

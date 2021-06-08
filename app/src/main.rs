@@ -5,8 +5,8 @@ use actix_redis::RedisSession;
 use actix_session::Session;
 use std::path::PathBuf;
 use rand::Rng;
-
 use tokio_postgres::NoTls;
+use askama::Template;
 
 
 mod check_login;
@@ -21,17 +21,20 @@ mod errors;
 mod db;
 
 mod handlers;
-use handlers::add_user;
+use handlers::{register, login, logout};
+
+mod templates;
 
 
-async fn index(_req: HttpRequest) -> Result<NamedFile>
+async fn index(_req: HttpRequest, session: Session) -> Result<HttpResponse>
 {
-    let index_path: PathBuf = "./web_layout/index.html".parse().unwrap();
-    Ok(NamedFile::open(index_path)?)
+    let username: String = session.get::<String>("username").unwrap().unwrap();
+    let index = templates::AuthorizedUserInfo { username: &username }.render().unwrap();
+    Ok(HttpResponse::Ok().content_type("text/html").body(index))
 }
 
 
-async fn files(req: HttpRequest) -> Result<NamedFile>
+async fn files(req: HttpRequest, _session: Session) -> Result<NamedFile>
 {
     let mut path = PathBuf::new();
     let prefix_path = "./web_layout";
@@ -42,44 +45,10 @@ async fn files(req: HttpRequest) -> Result<NamedFile>
 }
 
 
-async fn auth(_req: HttpRequest) -> Result<NamedFile>
+async fn auth(_req: HttpRequest, _session: Session) -> Result<NamedFile>
 {
     let auth_path: PathBuf = "./web_layout/auth.html".parse().unwrap();
     Ok(NamedFile::open(auth_path)?)
-}
-
-
-async fn login(session: Session) -> Result<HttpResponse>
-{
-    // let id = user_id.into_inner().user_id;
-    // session.set("user_id", &id)?;
-    session.set("auth", true)?;
-    session.renew();
-
-    // let counter: Vec<i32> = session
-    //     .get::<Vec<i32>>("counter")
-    //     .unwrap_or(Some(vec![0]))
-    //     .unwrap_or(vec![0]);
-
-    Ok("Ok".into())
-}
-
-
-async fn logout(session: Session) -> Result<HttpResponse>
-{
-    let auth_status: Option<bool> = session.get("auth")?;
-    if let Some(_status) = auth_status
-    {
-        session.purge();
-        Ok(HttpResponse::Found()
-            .header(http::header::LOCATION, "/auth")
-            .finish()
-            .into_body())
-    }
-    else
-    {
-        Ok("Could not log out anonymous user".into())
-    }
 }
 
 
@@ -103,11 +72,11 @@ async fn main() -> std::io::Result<()>
             App::new()
                 .data(pool.clone())
                 .wrap(RedisSession::new(&redis_addr, &private_key).ttl(259200))
-                .service(resource("/users").route(post().to(add_user)))
                 .service(scope("/auth")
                     .route("", get().to(auth))
-                    .route("/login", get().to(login))
-                    .route("/logout", get().to(logout))
+                    .route("/register", post().to(register))
+                    .route("/login", post().to(login))
+                    .route("/logout", post().to(logout))
                     .route("/{file_path:.*}", get().to(files))
                 )
                 .service(scope("/")

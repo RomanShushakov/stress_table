@@ -37,10 +37,7 @@ pub async fn login(user_data_from_client_for_login: web::Json<UserDataFromClient
     session.set("auth", true)?;
     session.renew();
 
-    Ok(HttpResponse::Found()
-        .header(http::header::LOCATION, "/")
-        .finish()
-        .into_body())
+    Ok(HttpResponse::Ok().finish())
 }
 
 

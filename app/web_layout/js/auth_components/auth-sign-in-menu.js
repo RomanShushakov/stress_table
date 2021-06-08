@@ -277,17 +277,17 @@ class AuthSignInMenu extends HTMLElement {
     async postData(url = "", data = {}) {
         const response = await fetch(url, {
             method: "POST",
-            mode: "cors",
-            cache: "no-cache",
-            credentials: "same-origin",
+            // mode: "cors",
+            // cache: "no-cache",
+            // credentials: "same-origin",
             headers: {
                 "Content-Type": "application/json"
             },
-            redirect: "follow",
-            referrerPolicy: "no-referrer",
+            // redirect: "follow",
+            // referrerPolicy: "no-referrer",
             body: JSON.stringify(data)
         });
-        return response.json();
+        return response;
     }
   
     signIn() {
@@ -326,8 +326,18 @@ class AuthSignInMenu extends HTMLElement {
         }
 
         this.postData("/auth/login", { email: emailField.value, password: passwordField.value })
-            .then(data => {
-                console.log(data);
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = "/";
+                } else {
+                    if (this.shadowRoot.querySelector(".auth-info-message").innerHTML === "") {
+                        this.shadowRoot.querySelector(".auth-info-message").innerHTML = 
+                            "Note: You input incorrect username or password!";
+                        return;
+                    } else {
+                        return;
+                    }
+                }  
         });
     }
 

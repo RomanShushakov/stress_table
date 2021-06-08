@@ -8,6 +8,7 @@
 
 .vscode
 .idea
+.env
 
 /wasm_modules/renderer/.idea
 /wasm_modules/renderer/Cargo.lock

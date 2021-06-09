@@ -1,5 +1,5 @@
 use actix_web::{HttpServer, App, Result, HttpResponse, HttpRequest, http};
-use actix_web::web::{get, post, scope, resource};
+use actix_web::web::{get, post, scope, resource, Payload, BytesMut};
 use actix_files::{NamedFile};
 use actix_redis::RedisSession;
 use actix_session::Session;
@@ -22,6 +22,7 @@ mod db;
 
 mod handlers;
 use handlers::{register, login, logout};
+use futures::StreamExt;
 
 mod templates;
 
@@ -52,6 +53,13 @@ async fn auth(_req: HttpRequest, _session: Session) -> Result<NamedFile>
 }
 
 
+async fn update_cache(session: Session, body: String) -> Result<HttpResponse>
+{
+    println!("{:?}", body);
+    Ok(HttpResponse::Ok().finish())
+}
+
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()>
 {
@@ -72,6 +80,9 @@ async fn main() -> std::io::Result<()>
             App::new()
                 .data(pool.clone())
                 .wrap(RedisSession::new(&redis_addr, &private_key).ttl(259200))
+                .service(scope("/cache")
+                    .route("/update", post().to(update_cache))
+                )
                 .service(scope("/auth")
                     .route("", get().to(auth))
                     .route("/register", post().to(register))

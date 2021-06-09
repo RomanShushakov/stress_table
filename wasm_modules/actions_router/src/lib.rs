@@ -1,6 +1,11 @@
 use serde_json::Value;
 use wasm_bindgen::prelude::*;
 
+use serde::{Deserialize, Serialize};
+use wasm_bindgen::JsCast;
+use wasm_bindgen_futures::{JsFuture, spawn_local};
+use web_sys::{Request, RequestInit, Response};
+
 mod external_functions;
 use external_functions::common::log;
 use external_functions::communication_with_geometry::
@@ -58,6 +63,28 @@ const SELECTED_LINE_NUMBER_MESSAGE_HEADER: &str = "selected_line_number";
 
 const CHANGE_VIEW_MESSAGE_HEADER: &str = "change_view";
 
+
+async fn add_to_cache(message: JsValue) -> Result<(), JsValue>
+{
+    let msg =  js_sys::JSON::stringify(&message)?;
+    let mut opts = RequestInit::new();
+    opts.method("POST");
+    opts.body(Some(&msg));
+    let url = "/cache/update";
+    let request = Request::new_with_str_and_init(&url, &opts)?;
+    request
+        .headers()
+        .set("Content-Type", "text/plain")?;
+    let window = web_sys::window().unwrap();
+    let resp_value = JsFuture::from(window.fetch_with_request(&request)).await?;
+    let resp: Response = resp_value.dyn_into().unwrap();
+    if resp.ok()
+    {
+        log("Cache updated");
+        return Ok(());
+    }
+    Err(JsValue::from("Actions router: Update cache: Message could not be cached!"))
+}
 
 
 #[wasm_bindgen]
@@ -761,6 +788,11 @@ impl ActionsRouter
             return Err(JsValue::from(error_message));
         }
         self.handle_current_action()?;
+
+        spawn_local(async
+            {
+                add_to_cache(message).await.unwrap_throw();
+            });
 
         for action in &self.active_actions
         {

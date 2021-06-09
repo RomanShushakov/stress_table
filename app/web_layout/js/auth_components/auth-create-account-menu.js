@@ -441,6 +441,17 @@ class AuthCreateAccountMenu extends HTMLElement {
 
     adoptedCallback() {
     }
+
+    async postData(url = "", data = {}) {
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        });
+        return response;
+    }
   
     createAccount() {
         const firstNameField = this.shadowRoot.querySelector(".first-name");
@@ -523,10 +534,25 @@ class AuthCreateAccountMenu extends HTMLElement {
             }
         }
 
-        this.dispatchEvent(new CustomEvent("activateSignInMenu", {
-            bubbles: true,
-            composed: true,
-        }));
+        this.postData("/auth/register", { first_name: firstNameField.value, last_name: lastNameField.value,
+            email: emailField.value, password: passwordField.value })
+            .then(response => {
+                if (response.ok) {
+                    this.dispatchEvent(new CustomEvent("activateSignInMenu", {
+                        bubbles: true,
+                        composed: true,
+                    }));
+                } else {
+                    if (this.shadowRoot.querySelector(".auth-info-message").innerHTML === "") {
+                        this.shadowRoot.querySelector(".auth-info-message").innerHTML = 
+                            "Note: The email address is already in use!";
+                        emailField.classList.add("highlighted");
+                        return;
+                    } else {
+                        return;
+                    }
+                }  
+        });
     }
 
     dropHighlight(highlightedElement) {

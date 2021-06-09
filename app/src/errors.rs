@@ -31,7 +31,7 @@ impl ResponseError for MyError
                 {
                     if err.to_string().contains("users_email_key")
                     {
-                        let error_message = "The inputted email is already in use.";
+                        let error_message = "The email address is already in use.";
                         return HttpResponse::InternalServerError().body(error_message);
                     }
                     HttpResponse::InternalServerError().finish()

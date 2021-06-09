@@ -820,7 +820,7 @@ impl ActionsRouter
         }
         log(&format!("Actions router: The number of undo actions: {}",
             self.undo_actions.len()));
-        
+
         Ok(())
     }
 

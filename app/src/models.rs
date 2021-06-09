@@ -100,3 +100,10 @@ pub struct AuthorizedUserInfo
 {
     pub username: String,
 }
+
+
+#[derive(Serialize)]
+pub struct Messages
+{
+    pub messages: Vec<String>
+}

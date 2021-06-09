@@ -1,8 +1,9 @@
-use crate::errors::MyError;
-use crate::models::{UserDataFromClientForRegistration, User, UserDataFromClientForLogin, UserDataForLogin};
 use deadpool_postgres::Client;
 use tokio_pg_mapper::FromTokioPostgresRow;
 use uuid::Uuid;
+
+use crate::errors::MyError;
+use crate::models::{UserDataFromClientForRegistration, User, UserDataFromClientForLogin, UserDataForLogin};
 
 
 pub async fn add_user(client: &Client,

@@ -1,5 +1,6 @@
-use crate::models;
 use askama::Template;
+
+use crate::models;
 
 
 #[derive(Template)]

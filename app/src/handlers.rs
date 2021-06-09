@@ -1,10 +1,10 @@
-use actix_web::{web, Error, HttpResponse, Result, http};
+use actix_web::{web, HttpResponse, Result, http};
 use actix_session::Session;
 use deadpool_postgres::{Client, Pool};
 
 use crate::db;
 use crate::errors::MyError;
-use crate::models::{UserDataFromClientForRegistration, UserDataFromClientForLogin};
+use crate::models::{UserDataFromClientForRegistration, UserDataFromClientForLogin, Messages};
 
 
 pub async fn register(user_data_from_client_for_registration: web::Json<UserDataFromClientForRegistration>,
@@ -59,4 +59,24 @@ pub async fn logout(session: Session) -> Result<HttpResponse>
     {
         Ok("Could not log out anonymous user".into())
     }
+}
+
+
+pub async fn update_cache(session: Session, message: String) -> Result<HttpResponse>
+{
+    let messages: Vec<String> = session
+        .get::<Vec<String>>("messages")
+        .unwrap_or(Some(Vec::new()))
+        .map_or(vec![message.clone()], |mut inner| { inner.push(message); inner });
+    session.set("messages", messages.clone())?;
+    Ok(HttpResponse::Ok().finish())
+}
+
+
+pub async fn load_cache(session: Session) -> Result<HttpResponse>
+{
+    let messages: Vec<String> = session.get::<Vec<String>>("messages")
+        .or(Err(MyError::GetMessagesError))?
+        .unwrap_or(Vec::new());
+    Ok(HttpResponse::Ok().json(Messages { messages }))
 }

@@ -43,7 +43,7 @@ class FeaApp extends HTMLElement {
             </div>
         `;
 
-        window.addEventListener("load", () => {console.log("Cache loaded")});
+        window.addEventListener("load", () => this.handleLoadCache());
 
         window.addEventListener("resize", () => this.updateCanvasSize());
 
@@ -70,7 +70,7 @@ class FeaApp extends HTMLElement {
 
         this.addEventListener("add_beam_section_server_message", (event) => this.handleAddBeamSectionServerMessage(event));
 
-        this.addEventListener("decreaseActionId", (event) => this.handleDecreaseActionIdMessage(event));
+        this.addEventListener("decreaseActionId", (_event) => this.handleDecreaseActionIdMessage());
     }
 
     async connectedCallback() {
@@ -120,11 +120,44 @@ class FeaApp extends HTMLElement {
         this.updateCanvasSize();
     }
 
+    async getData(url = "") {
+        const response = await fetch(url, {
+            method: "get"
+        });
+        return response;
+    }
+
+    handleLoadCache() {
+        this.getData("/cache/load")
+            .then(response => {
+                if (response.ok) {
+                    response.json()
+                        .then(data => {
+                            for (let i = 0; i < data.messages.length; i++) {
+                                const toCache = false;
+                                const currentMessage = JSON.parse(data.messages[i]);
+                                if ("undo" in currentMessage) {
+                                    this.handleDecreaseActionIdMessage();
+                                } 
+                                this.state.actionsRouter.handle_message(
+                                    currentMessage,
+                                    (objectInfo) => this.showObjectInfo(objectInfo),
+                                    (selectedView) => this.changeView(selectedView),
+                                    toCache);
+                            } 
+                        })
+                }
+        }); 
+    }
+
     handleClientMessage(event) {
+        const toCache = true;
+        const message = event.detail.message;
         this.state.actionsRouter.handle_message(
-            event.detail.message,
+            message,
             (objectInfo) => this.showObjectInfo(objectInfo),
-            (selectedView) => this.changeView(selectedView));
+            (selectedView) => this.changeView(selectedView),
+            toCache);
         event.stopPropagation();
     }
 

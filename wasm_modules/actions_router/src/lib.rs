@@ -691,10 +691,11 @@ impl ActionsRouter
 
 
     pub fn handle_message(&mut self, message: JsValue, show_object_info_handle: &js_sys::Function,
-        change_view_handle: &js_sys::Function) -> Result<(), JsValue>
+        change_view_handle: &js_sys::Function, to_cache: bool) -> Result<(), JsValue>
     {
         let serialized_message: Value = message.into_serde().or(Err(JsValue::from(
             "Actions router: Message could not be serialized!")))?;
+        let mut is_auxiliary = false;
         if let Some(point_data) = serialized_message.get(ADD_POINT_MESSAGE_HEADER)
         {
             self.handle_add_point_message(&point_data)?;
@@ -771,16 +772,19 @@ impl ActionsRouter
         {
             self.handle_selected_point_number_message(&selected_point_number,
                 show_object_info_handle)?;
+            is_auxiliary = true;
         }
         else if let Some(selected_line_number) =
             serialized_message.get(SELECTED_LINE_NUMBER_MESSAGE_HEADER)
         {
             self.handle_selected_line_number_message(&selected_line_number,
                 show_object_info_handle)?;
+            is_auxiliary = true;
         }
         else if let Some(view) = serialized_message.get(CHANGE_VIEW_MESSAGE_HEADER)
         {
             self.handle_change_view_message(&view, change_view_handle);
+            is_auxiliary = true;
         }
         else
         {
@@ -789,10 +793,13 @@ impl ActionsRouter
         }
         self.handle_current_action()?;
 
-        spawn_local(async
+        if to_cache && !is_auxiliary
+        {
+            spawn_local(async
             {
                 add_to_cache(message).await.unwrap_throw();
             });
+        }
 
         for action in &self.active_actions
         {
@@ -813,6 +820,7 @@ impl ActionsRouter
         }
         log(&format!("Actions router: The number of undo actions: {}",
             self.undo_actions.len()));
+        
         Ok(())
     }
 

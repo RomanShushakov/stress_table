@@ -273,22 +273,6 @@ class AuthSignInMenu extends HTMLElement {
 
     adoptedCallback() {
     }
-
-    async postData(url = "", data = {}) {
-        const response = await fetch(url, {
-            method: "POST",
-            mode: "cors",
-            cache: "no-cache",
-            credentials: "same-origin",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            redirect: "follow",
-            referrerPolicy: "no-referrer",
-            body: JSON.stringify(data)
-        });
-        return response.json();
-    }
   
     signIn() {
         const emailField = this.shadowRoot.querySelector(".email");
@@ -324,11 +308,6 @@ class AuthSignInMenu extends HTMLElement {
                 return;
             }
         }
-
-        this.postData("/auth/login", { email: emailField.value, password: passwordField.value })
-            .then(data => {
-                console.log(data);
-        });
     }
 
     dropHighlight(highlightedElement) {

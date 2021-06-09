@@ -1,4 +1,5 @@
 import FeaApp from "./components/fea-app.js";
+import FeaAppMenuBar from "./components/fea-app-menu-bar.js";
 import FeaAppToolBar from "./components/fea-app-tool-bar.js";
 
 import FeaRenderer from "./components/fea-renderer.js";
@@ -42,6 +43,7 @@ import FeaSectionDeleteBeamMenu from "./components/fea-section/beam/fea-section-
 
 
 customElements.define("fea-app", FeaApp);
+customElements.define("fea-app-menu-bar", FeaAppMenuBar);
 customElements.define("fea-app-tool-bar", FeaAppToolBar);
 
 customElements.define("fea-renderer", FeaRenderer);

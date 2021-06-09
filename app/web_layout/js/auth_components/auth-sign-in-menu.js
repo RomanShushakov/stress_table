@@ -323,7 +323,7 @@ class AuthSignInMenu extends HTMLElement {
         this.postData("/auth/login", { email: emailField.value, password: passwordField.value })
             .then(response => {
                 if (response.ok) {
-                    window.location.href = "/";
+                    window.location.href = response.url;
                 } else {
                     if (this.shadowRoot.querySelector(".auth-info-message").innerHTML === "") {
                         this.shadowRoot.querySelector(".auth-info-message").innerHTML = 
@@ -346,7 +346,6 @@ class AuthSignInMenu extends HTMLElement {
         const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
         return re.test(String(email).toLowerCase());
     }
-
 
     back() {
         this.dispatchEvent(new CustomEvent("activateAuthMenu", {

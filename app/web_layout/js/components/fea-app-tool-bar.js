@@ -171,7 +171,7 @@ class FeaAppToolBar extends HTMLElement {
                     height: 2.1rem;
                 }
 
-                .title-bars {
+                .tool-bars {
                     display: flex;
                     list-style-type: none;
                     padding: 0rem;
@@ -180,7 +180,7 @@ class FeaAppToolBar extends HTMLElement {
             </style>
             <div class="wrapper">
                 <nav>
-                    <ul class="title-bars">
+                    <ul class="tool-bars">
                         <li>
                             <button class="save-button">
                                 <svg class="save-button-icon" width="22" height="25" viewBox="0 0 22 25" fill="none" 

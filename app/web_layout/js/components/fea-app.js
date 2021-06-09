@@ -34,6 +34,7 @@ class FeaApp extends HTMLElement {
                 }
             </style>
             <div class="main-window">
+                <fea-app-menu-bar username="${this.getAttribute("username")}"></fea-app-menu-bar>
                 <fea-app-tool-bar></fea-app-tool-bar>
                 <div class="wrapper">
                     <fea-renderer></fea-renderer>
@@ -82,7 +83,7 @@ class FeaApp extends HTMLElement {
     }
     
     static get observedAttributes() {
-        return [];
+        return ["username"];
     }
     
     attributeChangedCallback(name, oldValue, newValue) {
@@ -352,11 +353,13 @@ class FeaApp extends HTMLElement {
     updateCanvasSize() {
         if (this.querySelector("fea-postprocessor") !== null) {
             const canvasWidth = window.innerWidth - this.querySelector("fea-postprocessor").offsetWidth - 15;
-            const canvasHeight = window.innerHeight - this.shadowRoot.querySelector("fea-app-tool-bar").offsetHeight - 40;
+            const canvasHeight = window.innerHeight - this.shadowRoot.querySelector("fea-app-tool-bar").offsetHeight - 
+                this.shadowRoot.querySelector("fea-app-menu-bar").offsetHeight - 40;
             this.shadowRoot.querySelector("fea-renderer").canvasSize = { "width": canvasWidth, "height": canvasHeight };
         } else if (this.querySelector("fea-preprocessor-menu") !== null) {
             const canvasWidth = window.innerWidth - this.querySelector("fea-preprocessor-menu").offsetWidth - 15;
-            const canvasHeight = window.innerHeight - this.shadowRoot.querySelector("fea-app-tool-bar").offsetHeight - 40;
+            const canvasHeight = window.innerHeight - this.shadowRoot.querySelector("fea-app-tool-bar").offsetHeight - 
+                this.shadowRoot.querySelector("fea-app-menu-bar").offsetHeight - 40;
             this.shadowRoot.querySelector("fea-renderer").canvasSize = { "width": canvasWidth, "height": canvasHeight };
         } else {
             this.shadowRoot.querySelector("fea-renderer").canvasSize = { "width":  window.innerWidth, "height": window.innerHeight };

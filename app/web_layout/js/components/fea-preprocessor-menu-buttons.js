@@ -370,10 +370,6 @@ class FeaPreprocessorMenuButtons extends HTMLElement {
                 .active {
                     background: #3b4453;
                 }
-
-                .hidden {
-                    display: none;
-                }
             </style>
             <div class="wrapper">
                 <button class="geometry-menu-button">

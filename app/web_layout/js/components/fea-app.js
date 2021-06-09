@@ -34,7 +34,7 @@ class FeaApp extends HTMLElement {
                 }
             </style>
             <div class="main-window">
-                <fea-app-title-bar></fea-app-title-bar>
+                <fea-app-tool-bar></fea-app-tool-bar>
                 <div class="wrapper">
                     <fea-renderer></fea-renderer>
                     <slot></slot>
@@ -75,7 +75,7 @@ class FeaApp extends HTMLElement {
     async connectedCallback() {
         this.state.actionsRouter = await initializeActionsRouter();
         this.activatePreprocessorMenu();
-        this.updateTitleBarActionId();
+        this.updateToolBarActionId();
     }
 
     disconnectedCallback() {
@@ -108,8 +108,8 @@ class FeaApp extends HTMLElement {
         this.querySelector("fea-preprocessor-menu").actionId = this.state.actionId;
     }
 
-    updateTitleBarActionId() {
-        this.shadowRoot.querySelector("fea-app-title-bar").actionId = this.state.actionId;
+    updateToolBarActionId() {
+        this.shadowRoot.querySelector("fea-app-tool-bar").actionId = this.state.actionId;
     }
 
     activatePostprocessor() {
@@ -163,7 +163,7 @@ class FeaApp extends HTMLElement {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
             this.updatePreprocessorMenuActionId();
-            this.updateTitleBarActionId();
+            this.updateToolBarActionId();
         }
         const point = { 
             number: event.detail.point_data.number, x: event.detail.point_data.x,
@@ -177,7 +177,7 @@ class FeaApp extends HTMLElement {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
             this.updatePreprocessorMenuActionId();
-            this.updateTitleBarActionId();
+            this.updateToolBarActionId();
         }
         const point = { number: event.detail.point_data.number, x: event.detail.point_data.x,
             y: event.detail.point_data.y, z: event.detail.point_data.z };
@@ -190,7 +190,7 @@ class FeaApp extends HTMLElement {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
             this.updatePreprocessorMenuActionId();
-            this.updateTitleBarActionId();
+            this.updateToolBarActionId();
         }
         const point = { number: event.detail.point_data.number };
         this.querySelector("fea-preprocessor-menu").deletePointFromClient = point;
@@ -202,7 +202,7 @@ class FeaApp extends HTMLElement {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
             this.updatePreprocessorMenuActionId();
-            this.updateTitleBarActionId();
+            this.updateToolBarActionId();
         }
         const line = { 
             number: event.detail.line_data.number,
@@ -217,7 +217,7 @@ class FeaApp extends HTMLElement {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
             this.updatePreprocessorMenuActionId();
-            this.updateTitleBarActionId();
+            this.updateToolBarActionId();
         }
         const line = { 
             number: event.detail.line_data.number,
@@ -232,7 +232,7 @@ class FeaApp extends HTMLElement {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
             this.updatePreprocessorMenuActionId();
-            this.updateTitleBarActionId();
+            this.updateToolBarActionId();
         }
         const line = { number: event.detail.line_data.number };
         this.querySelector("fea-preprocessor-menu").deleteLineFromClient = line;
@@ -244,7 +244,7 @@ class FeaApp extends HTMLElement {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
             this.updatePreprocessorMenuActionId();
-            this.updateTitleBarActionId();
+            this.updateToolBarActionId();
         }
         const material = { 
             name: event.detail.material_data.name,
@@ -259,7 +259,7 @@ class FeaApp extends HTMLElement {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
             this.updatePreprocessorMenuActionId();
-            this.updateTitleBarActionId();
+            this.updateToolBarActionId();
         }
         const material = { 
             name: event.detail.material_data.name,
@@ -273,7 +273,7 @@ class FeaApp extends HTMLElement {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
             this.updatePreprocessorMenuActionId();
-            this.updateTitleBarActionId();
+            this.updateToolBarActionId();
         }
         const material = { number: event.detail.material_data.name };
         this.querySelector("fea-preprocessor-menu").deleteMaterialFromClient = material;
@@ -284,7 +284,7 @@ class FeaApp extends HTMLElement {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
             this.updatePreprocessorMenuActionId();
-            this.updateTitleBarActionId();
+            this.updateToolBarActionId();
         }
         const trussSection = { 
             name: event.detail.truss_section_data.name,
@@ -298,7 +298,7 @@ class FeaApp extends HTMLElement {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
             this.updatePreprocessorMenuActionId();
-            this.updateTitleBarActionId();
+            this.updateToolBarActionId();
         }
         const trussSection = { 
             name: event.detail.truss_section_data.name,
@@ -312,7 +312,7 @@ class FeaApp extends HTMLElement {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
             this.updatePreprocessorMenuActionId();
-            this.updateTitleBarActionId();
+            this.updateToolBarActionId();
         }
         const trussSection = { number: event.detail.truss_section_data.name };
         this.querySelector("fea-preprocessor-menu").deleteTrussSectionFromClient = trussSection;
@@ -323,7 +323,7 @@ class FeaApp extends HTMLElement {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
             this.updatePreprocessorMenuActionId();
-            this.updateTitleBarActionId();
+            this.updateToolBarActionId();
         }
         const beamSection = { 
             name: event.detail.truss_section_data.name,
@@ -346,17 +346,17 @@ class FeaApp extends HTMLElement {
         if (this.querySelector("fea-preprocessor-menu") !== null) {
             this.updatePreprocessorMenuActionId();
         }
-        this.updateTitleBarActionId();
+        this.updateToolBarActionId();
     }
 
     updateCanvasSize() {
         if (this.querySelector("fea-postprocessor") !== null) {
             const canvasWidth = window.innerWidth - this.querySelector("fea-postprocessor").offsetWidth - 15;
-            const canvasHeight = window.innerHeight - this.shadowRoot.querySelector("fea-app-title-bar").offsetHeight - 40;
+            const canvasHeight = window.innerHeight - this.shadowRoot.querySelector("fea-app-tool-bar").offsetHeight - 40;
             this.shadowRoot.querySelector("fea-renderer").canvasSize = { "width": canvasWidth, "height": canvasHeight };
         } else if (this.querySelector("fea-preprocessor-menu") !== null) {
             const canvasWidth = window.innerWidth - this.querySelector("fea-preprocessor-menu").offsetWidth - 15;
-            const canvasHeight = window.innerHeight - this.shadowRoot.querySelector("fea-app-title-bar").offsetHeight - 40;
+            const canvasHeight = window.innerHeight - this.shadowRoot.querySelector("fea-app-tool-bar").offsetHeight - 40;
             this.shadowRoot.querySelector("fea-renderer").canvasSize = { "width": canvasWidth, "height": canvasHeight };
         } else {
             this.shadowRoot.querySelector("fea-renderer").canvasSize = { "width":  window.innerWidth, "height": window.innerHeight };

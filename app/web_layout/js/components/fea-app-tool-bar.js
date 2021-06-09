@@ -1,4 +1,4 @@
-class FeaAppTitleBar extends HTMLElement {
+class FeaAppToolBar extends HTMLElement {
     constructor() {
         super();
 
@@ -502,4 +502,4 @@ class FeaAppTitleBar extends HTMLElement {
     }
 }
 
-export default FeaAppTitleBar;
+export default FeaAppToolBar;

@@ -1,6 +1,24 @@
-/app/target
+.vscode
+.idea
+.env
+
 /app/.idea
+/app/Cargo.lock
+/app/target
 /app/web_layout/wasm/
 
-/yew_app/target
-/yew_app/.idea
+/wasm_modules/renderer/.idea
+/wasm_modules/renderer/Cargo.lock
+/wasm_modules/renderer/target
+
+/wasm_modules/actions_router/.idea
+/wasm_modules/actions_router/Cargo.lock
+/wasm_modules/actions_router/target
+
+/wasm_modules/geometry/.idea
+/wasm_modules/geometry/Cargo.lock
+/wasm_modules/geometry/target
+
+/wasm_modules/properties/.idea
+/wasm_modules/properties/Cargo.lock
+/wasm_modules/properties/target

@@ -43,8 +43,6 @@ class FeaApp extends HTMLElement {
             </div>
         `;
 
-        window.addEventListener("load", () => this.handleLoadCache());
-
         window.addEventListener("resize", () => this.updateCanvasSize());
 
         this.addEventListener("activate-preprocessor-menu", () => this.activatePreprocessorMenu());
@@ -77,6 +75,7 @@ class FeaApp extends HTMLElement {
         this.state.actionsRouter = await initializeActionsRouter();
         this.activatePreprocessorMenu();
         this.updateToolBarActionId();
+        this.handleLoadCache();
     }
 
     disconnectedCallback() {
@@ -127,7 +126,7 @@ class FeaApp extends HTMLElement {
         return response;
     }
 
-    handleLoadCache() {
+    handleLoadCache() {       
         this.getData("/cache/load")
             .then(response => {
                 if (response.ok) {

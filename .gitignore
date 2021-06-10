@@ -1,14 +1,10 @@
-/app/.idea
-/app/Cargo.lock
-/app/target
-
-/yew_app/.idea
-/yew_app/Cargo.lock
-/yew_app/target
-
 .vscode
 .idea
 .env
+
+/app/.idea
+/app/Cargo.lock
+/app/target
 
 /wasm_modules/renderer/.idea
 /wasm_modules/renderer/Cargo.lock

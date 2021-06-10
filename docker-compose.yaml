@@ -4,15 +4,48 @@ networks:
   app_net:
     driver: bridge
 
+volumes:
+  postgres_db_volume:
+
 services:
+  redis:
+    image: redis:6.2.4
+    container_name: redis
+    networks:
+      - app_net
+    restart: always
+
+  postgres_db:
+    image: postgres:13.3
+    container_name: postgres_db
+    networks:
+      - app_net
+    restart: always
+    volumes:
+      - ./app/sql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - postgres_db_volume:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: stress_table_pass
+      POSTGRES_USER: stress_table_user 
+      POSTGRES_DB: stress_table_db
+
   app:
     build: .
-    container_name: fea_truss_demo
-    command: bash -c "cd yew_app &&
-                      wasm-pack build --target web --out-name wasm --out-dir ../app/web_layout/wasm &&
-                      cd ../app &&
-                      cargo run --release"
+    container_name: stress_table_app
+    environment:
+      SERVER_ADDR: 0.0.0.0:8080
+      REDIS_ADDR: redis:6379
+      PG.USER: stress_table_user
+      PG.PASSWORD: stress_table_pass
+      PG.HOST: postgres_db
+      PG.PORT: 5432
+      PG.DBNAME: stress_table_db
+      PG.POOL.MAX_SIZE: 16
+    command: bash -c "cd ./app && cargo run --release"
     networks:
       - app_net
     ports:
       - 8080:8080
+    depends_on:
+      - redis
+      - postgres_db

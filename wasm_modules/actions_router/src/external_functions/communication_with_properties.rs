@@ -38,8 +38,20 @@ extern "C"
 
     #[wasm_bindgen(js_name = addBeamSectionToProperties, catch)]
     pub fn add_beam_section_to_properties(action_id: u32, name: &str,
-        area: f64, i11: f64, i22: f64, i12: f64, it: f64, area2: Option<f64>,
-        i11_2: Option<f64>, i22_2: Option<f64>, i12_2: Option<f64>, it_2: Option<f64>,
+        area: f64, i11: f64, i22: f64, i12: f64, it: f64, is_action_id_should_be_increased: bool)
+        -> Result<(), JsValue>;
+
+    #[wasm_bindgen(js_name = updateBeamSectionInProperties, catch)]
+    pub fn update_beam_section_in_properties(action_id: u32, name: &str,
+        area: f64, i11: f64, i22: f64, i12: f64, it: f64, is_action_id_should_be_increased: bool)
+        -> Result<(), JsValue>;
+
+    #[wasm_bindgen(js_name = deleteBeamSectionFromProperties, catch)]
+    pub fn delete_beam_section_from_properties(action_id: u32, name: &str,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
+
+    #[wasm_bindgen(js_name = restoreBeamSectionInProperties, catch)]
+    pub fn restore_beam_section_in_properties(action_id: u32, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
     #[wasm_bindgen(js_name = clearPropertiesModuleByActionId)]

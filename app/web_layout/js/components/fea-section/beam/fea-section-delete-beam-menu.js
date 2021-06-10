@@ -4,9 +4,7 @@ class FeaSectionDeleteBeamMenu extends HTMLElement {
 
         this.props = {
             actionId: null,     // u32;
-            beamSections: [],   // array of: [{ name: String, area: f64, I11: f64, I22: f64, I12: f64, It: f64,
-                                //              area2: f64 or null, I11_2: f64 or null, I22_2: f64 or null
-                                //              I12_2: f64 or null, It: f64 or null }];
+            beamSections: [],   // array of: [{ name: String, area: f64, I11: f64, I22: f64, I12: f64, It: f64 }];
         };
 
         this.state = {};

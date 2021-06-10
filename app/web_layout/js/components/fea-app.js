@@ -67,6 +67,8 @@ class FeaApp extends HTMLElement {
         this.addEventListener("delete_truss_section_server_message", (event) => this.handleDeleteTrussSectionServerMessage(event));
 
         this.addEventListener("add_beam_section_server_message", (event) => this.handleAddBeamSectionServerMessage(event));
+        this.addEventListener("update_beam_section_server_message", (event) => this.handleUpdateBeamSectionServerMessage(event));
+        this.addEventListener("delete_beam_section_server_message", (event) => this.handleDeleteBeamSectionServerMessage(event));
 
         this.addEventListener("decreaseActionId", (_event) => this.handleDecreaseActionIdMessage());
     }
@@ -75,7 +77,7 @@ class FeaApp extends HTMLElement {
         this.state.actionsRouter = await initializeActionsRouter();
         this.activatePreprocessorMenu();
         this.updateToolBarActionId();
-        this.handleLoadCache();
+        // this.handleLoadCache();
     }
 
     disconnectedCallback() {
@@ -359,18 +361,41 @@ class FeaApp extends HTMLElement {
             this.updateToolBarActionId();
         }
         const beamSection = { 
-            name: event.detail.truss_section_data.name,
-            area: event.detail.truss_section_data.area,
-            I11: event.detail.truss_section_data.i11,
-            I22: event.detail.truss_section_data.i22,
-            I12: event.detail.truss_section_data.i12,
-            It: event.detail.truss_section_data.it,
-            area2: event.detail.truss_section_data.area2,
-            I11_2: event.detail.truss_section_data.i11_2,
-            I22_2: event.detail.truss_section_data.i22_2,
-            I12_2: event.detail.truss_section_data.i12_2,
-            It_2: event.detail.truss_section_data.it_2 };
+            name: event.detail.beam_section_data.name,
+            area: event.detail.beam_section_data.area,
+            I11: event.detail.beam_section_data.i11,
+            I22: event.detail.beam_section_data.i22,
+            I12: event.detail.beam_section_data.i12,
+            It: event.detail.beam_section_data.it };
         this.querySelector("fea-preprocessor-menu").addBeamSectionToClient = beamSection;
+        event.stopPropagation();
+    }
+
+    handleUpdateBeamSectionServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;
+            this.updatePreprocessorMenuActionId();
+            this.updateToolBarActionId();
+        }
+        const beamSection = { 
+            name: event.detail.beam_section_data.name,
+            area: event.detail.beam_section_data.area,
+            I11: event.detail.beam_section_data.i11,
+            I22: event.detail.beam_section_data.i22,
+            I12: event.detail.beam_section_data.i12,
+            It: event.detail.beam_section_data.it };
+        this.querySelector("fea-preprocessor-menu").updateBeamSectionInClient = beamSection;
+        event.stopPropagation();
+    }
+
+    handleDeleteBeamSectionServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;
+            this.updatePreprocessorMenuActionId();
+            this.updateToolBarActionId();
+        }
+        const beamSection = { number: event.detail.beam_section_data.name };
+        this.querySelector("fea-preprocessor-menu").deleteBeamSectionFromClient = beamSection;
         event.stopPropagation();
     }
 
@@ -385,13 +410,13 @@ class FeaApp extends HTMLElement {
     updateCanvasSize() {
         if (this.querySelector("fea-postprocessor") !== null) {
             const canvasWidth = window.innerWidth - this.querySelector("fea-postprocessor").offsetWidth - 15;
-            const canvasHeight = window.innerHeight - this.shadowRoot.querySelector("fea-app-tool-bar").offsetHeight - 
-                this.shadowRoot.querySelector("fea-app-menu-bar").offsetHeight - 40;
+            const canvasHeight = window.innerHeight - this.shadowRoot.querySelector("fea-app-menu-bar").offsetHeight - 
+                this.shadowRoot.querySelector("fea-app-tool-bar").offsetHeight - 40;
             this.shadowRoot.querySelector("fea-renderer").canvasSize = { "width": canvasWidth, "height": canvasHeight };
         } else if (this.querySelector("fea-preprocessor-menu") !== null) {
             const canvasWidth = window.innerWidth - this.querySelector("fea-preprocessor-menu").offsetWidth - 15;
-            const canvasHeight = window.innerHeight - this.shadowRoot.querySelector("fea-app-tool-bar").offsetHeight - 
-                this.shadowRoot.querySelector("fea-app-menu-bar").offsetHeight - 40;
+            const canvasHeight = window.innerHeight - this.shadowRoot.querySelector("fea-app-menu-bar").offsetHeight - 
+                this.shadowRoot.querySelector("fea-app-tool-bar").offsetHeight - 40;
             this.shadowRoot.querySelector("fea-renderer").canvasSize = { "width": canvasWidth, "height": canvasHeight };
         } else {
             this.shadowRoot.querySelector("fea-renderer").canvasSize = { "width":  window.innerWidth, "height": window.innerHeight };

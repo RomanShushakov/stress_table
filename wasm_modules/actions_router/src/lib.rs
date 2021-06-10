@@ -25,7 +25,8 @@ use external_functions::communication_with_properties::
     delete_material_from_properties, restore_material_in_properties,
     add_truss_section_to_properties, update_truss_section_in_properties,
     delete_truss_section_from_properties, restore_truss_section_in_properties,
-    add_beam_section_to_properties,
+    add_beam_section_to_properties, update_beam_section_in_properties,
+    delete_beam_section_from_properties, restore_beam_section_in_properties,
     clear_properties_module_by_action_id,
 };
 
@@ -54,6 +55,8 @@ const UPDATE_TRUSS_SECTION_MESSAGE_HEADER: &str = "update_truss_section";
 const DELETE_TRUSS_SECTION_MESSAGE_HEADER: &str = "delete_truss_section";
 
 const ADD_BEAM_SECTION_MESSAGE_HEADER: &str = "add_beam_section";
+const UPDATE_BEAM_SECTION_MESSAGE_HEADER: &str = "update_beam_section";
+const DELETE_BEAM_SECTION_MESSAGE_HEADER: &str = "delete_beam_section";
 
 const UNDO_MESSAGE_HEADER: &str = "undo";
 const REDO_MESSAGE_HEADER: &str = "redo";
@@ -314,7 +317,63 @@ impl ActionsRouter
                                     self.current_action = Some((action, add_to_active_actions));
                                 },
                             PropertiesActionType::RestoreTrussSection(_, _) => (),
-                            PropertiesActionType::AddBeamSection(_, _, _, _, _, _, _, _, _, _, _, _) => (),
+                            PropertiesActionType::AddBeamSection(
+                                beam_section_name,
+                                _area,
+                                _i11,
+                                _i22,
+                                _i12,
+                                _it,
+                                _is_action_id_should_be_increased) =>
+                                {
+                                    let is_action_id_should_be_increased = false;
+                                    let action_type = ActionType::PropertiesActionType(
+                                        PropertiesActionType::DeleteBeamSection(
+                                            beam_section_name.clone(),
+                                            is_action_id_should_be_increased));
+                                    let action = Action::create(action_id, action_type);
+                                    let add_to_active_actions = false;
+                                    self.current_action = Some((action, add_to_active_actions));
+                                },
+                            PropertiesActionType::UpdateBeamSection(
+                                beam_section_name,
+                                old_area,
+                                old_i11,
+                                old_i22,
+                                old_i12,
+                                old_it,
+                                new_area,
+                                new_i11,
+                                new_i22,
+                                new_i12,
+                                new_it,
+                                _is_action_id_should_be_increased) =>
+                                {
+                                    let is_action_id_should_be_increased = false;
+                                    let action_type = ActionType::PropertiesActionType(
+                                        PropertiesActionType::UpdateBeamSection(
+                                            beam_section_name.clone(),
+                                            *new_area, *new_i11, *new_i22, *new_i12, *new_it,
+                                            *old_area, *old_i11, *old_i22, *old_i12, *old_it,
+                                            is_action_id_should_be_increased));
+                                    let action = Action::create(action_id, action_type);
+                                    let add_to_active_actions = false;
+                                    self.current_action = Some((action, add_to_active_actions));
+                                },
+                            PropertiesActionType::DeleteBeamSection(
+                                beam_section_name,
+                                _is_action_id_should_be_increased) =>
+                                {
+                                    let is_action_id_should_be_increased = false;
+                                    let action_type = ActionType::PropertiesActionType(
+                                        PropertiesActionType::RestoreBeamSection(
+                                            beam_section_name.clone(),
+                                            is_action_id_should_be_increased));
+                                    let action = Action::create(action_id, action_type);
+                                    let add_to_active_actions = false;
+                                    self.current_action = Some((action, add_to_active_actions));
+                                },
+                            PropertiesActionType::RestoreBeamSection(_, _) => (),
                         }
                     }
             }
@@ -664,18 +723,62 @@ impl ActionsRouter
                                 i22,
                                 i12,
                                 it,
-                                area2,
-                                i11_2,
-                                i22_2,
-                                i12_2,
-                                it_2,
                                 is_action_id_should_be_increased) =>
                                 {
                                     clear_geometry_module_by_action_id(action_id);
                                     add_beam_section_to_properties(action_id,
                                         beam_section_name,
-                                        *area, *i11, *i22, *i12, *it, *area2, *i11_2, *i22_2,
-                                        *i12_2, *it_2, *is_action_id_should_be_increased)?;
+                                        *area, *i11, *i22, *i12, *it,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions == true
+                                    {
+                                        self.active_actions.push(action.clone());
+                                    }
+                                },
+                            PropertiesActionType::UpdateBeamSection(
+                                beam_section_name,
+                                _old_area,
+                                _old_i11,
+                                _old_i22,
+                                _old_i12,
+                                _old_it,
+                                new_area,
+                                new_i11,
+                                new_i22,
+                                new_i12,
+                                new_it,
+                                is_action_id_should_be_increased) =>
+                                {
+                                    clear_geometry_module_by_action_id(action_id);
+                                    update_beam_section_in_properties(action_id,
+                                        beam_section_name,
+                                        *new_area, *new_i11, *new_i22, *new_i12, *new_it,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions == true
+                                    {
+                                        self.active_actions.push(action.clone());
+                                    }
+                                },
+                            PropertiesActionType::DeleteBeamSection(
+                                beam_section_name,
+                                is_action_id_should_be_increased) =>
+                                {
+                                    clear_geometry_module_by_action_id(action_id);
+                                    delete_beam_section_from_properties(action_id,
+                                        beam_section_name,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions == true
+                                    {
+                                        self.active_actions.push(action.clone());
+                                    }
+                                },
+                            PropertiesActionType::RestoreBeamSection(
+                                beam_section_name,
+                                is_action_id_should_be_increased) =>
+                                {
+                                    restore_beam_section_in_properties(action_id,
+                                        beam_section_name,
+                                        *is_action_id_should_be_increased)?;
                                     if *add_to_active_actions == true
                                     {
                                         self.active_actions.push(action.clone());
@@ -758,6 +861,16 @@ impl ActionsRouter
             .get(ADD_BEAM_SECTION_MESSAGE_HEADER)
         {
             self.handle_add_beam_section_message(&beam_section_data)?;
+        }
+        else if let Some(beam_section_data) = serialized_message
+            .get(UPDATE_BEAM_SECTION_MESSAGE_HEADER)
+        {
+            self.handle_update_beam_section_message(&beam_section_data)?;
+        }
+        else if let Some(beam_section_data) = serialized_message
+            .get(DELETE_BEAM_SECTION_MESSAGE_HEADER)
+        {
+            self.handle_delete_beam_section_message(&beam_section_data)?;
         }
         else if let Some(undo_data) = serialized_message.get(UNDO_MESSAGE_HEADER)
         {

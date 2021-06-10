@@ -5,9 +5,7 @@ class FeaSectionMenu extends HTMLElement {
         this.props = {
             actionId: null,     // u32;
             trussSections: [],  // array of: [{ name: String, area: f64, area2: f64 or null }];
-            beamSections: [],   // array of: [{ name: String, area: f64, I11: f64, I22: f64, I12: f64, It: f64,
-                                //              area2: f64 or null, I11_2: f64 or null, I22_2: f64 or null
-                                //              I12_2: f64 or null, It: f64 or null }];
+            beamSections: [],   // array of: [{ name: String, area: f64, I11: f64, I22: f64, I12: f64, It: f64 }];
         };
 
         this.state = {
@@ -105,11 +103,6 @@ class FeaSectionMenu extends HTMLElement {
         beamSectionInProps.I22 = beamSection.I22;
         beamSectionInProps.I12 = beamSection.I12;
         beamSectionInProps.It = beamSection.It;
-        beamSectionInProps.area2 = beamSection.area2;
-        beamSectionInProps.I11_2 = beamSection.I11_2;
-        beamSectionInProps.I22_2 = beamSection.I22_2;
-        beamSectionInProps.I12_2 = beamSection.I12_2;
-        beamSectionInProps.It_2 = beamSection.It_2;
         this.updateBeamSectionInChildren(beamSection);
     }
 

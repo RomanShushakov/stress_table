@@ -4,9 +4,7 @@ class FeaSectionAddBeamMenu extends HTMLElement {
 
         this.props = {
             actionId: null,     // u32;
-            beamSections: [],   // array of: [{ name: String, area: f64, I11: f64, I22: f64, I12: f64, It: f64,
-                                //              area2: f64 or null, I11_2: f64 or null, I22_2: f64 or null
-                                //              I12_2: f64 or null, It: f64 or null }];
+            beamSections: [],   // array of: [{ name: String, area: f64, I11: f64, I22: f64, I12: f64, It: f64 }];
         };
 
         this.state = {};
@@ -306,246 +304,6 @@ class FeaSectionAddBeamMenu extends HTMLElement {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
-                .area2-field-content {
-                    display: flex;
-                    flex-direction: row;
-                    background-color: #3b4453;
-                    padding: 0rem;
-                    margin-top: 1rem;
-                }
-
-                .area2-caption {
-                    margin: 0rem;
-                    padding: 0rem;
-                    color: #D9D9D9;
-                    font-size: 85%;
-                    width: 6rem;
-                }
-
-                .area2 {
-                    margin-top: 0rem;
-                    margin-bottom: 0rem;
-                    margin-left: 1rem;
-                    margin-right: 0rem;
-                    padding: 0rem;
-                    width: 5rem;
-                    background-color: #3b4453;
-                    border: #4a5060;
-                    border-bottom: 0.1rem solid #4a5060;
-                    outline: none;
-                    color: #D9D9D9;
-                }
-
-                .area2[type=number]::-webkit-outer-spin-button,
-                .area2[type=number]::-webkit-inner-spin-button {
-                    -webkit-appearance: none;
-                    margin: 0;
-                }
-
-                .area2[type=number] {
-                    -moz-appearance: textfield;
-                }
-
-                .area2:hover {
-                    box-shadow: 0rem 0.15rem 0rem #4a5060;
-                }
-
-                .area2:focus {
-                    box-shadow: 0rem 0.15rem 0rem #4a5060;
-                }
-
-                .I11_2-field-content {
-                    display: flex;
-                    flex-direction: row;
-                    background-color: #3b4453;
-                    padding: 0rem;
-                    margin-top: 1rem;
-                }
-
-                .I11_2-caption {
-                    margin: 0rem;
-                    padding: 0rem;
-                    color: #D9D9D9;
-                    font-size: 85%;
-                    width: 6rem;
-                }
-
-                .I11_2 {
-                    margin-top: 0rem;
-                    margin-bottom: 0rem;
-                    margin-left: 1rem;
-                    margin-right: 0rem;
-                    padding: 0rem;
-                    width: 5rem;
-                    background-color: #3b4453;
-                    border: #4a5060;
-                    border-bottom: 0.1rem solid #4a5060;
-                    outline: none;
-                    color: #D9D9D9;
-                }
-
-                .I11_2[type=number]::-webkit-outer-spin-button,
-                .I11_2[type=number]::-webkit-inner-spin-button {
-                    -webkit-appearance: none;
-                    margin: 0;
-                }
-
-                .I11_2[type=number] {
-                    -moz-appearance: textfield;
-                }
-
-                .I11_2:hover {
-                    box-shadow: 0rem 0.15rem 0rem #4a5060;
-                }
-
-                .I11_2:focus {
-                    box-shadow: 0rem 0.15rem 0rem #4a5060;
-                }
-
-                .I22_2-field-content {
-                    display: flex;
-                    flex-direction: row;
-                    background-color: #3b4453;
-                    padding: 0rem;
-                    margin-top: 1rem;
-                }
-
-                .I22_2-caption {
-                    margin: 0rem;
-                    padding: 0rem;
-                    color: #D9D9D9;
-                    font-size: 85%;
-                    width: 6rem;
-                }
-
-                .I22_2 {
-                    margin-top: 0rem;
-                    margin-bottom: 0rem;
-                    margin-left: 1rem;
-                    margin-right: 0rem;
-                    padding: 0rem;
-                    width: 5rem;
-                    background-color: #3b4453;
-                    border: #4a5060;
-                    border-bottom: 0.1rem solid #4a5060;
-                    outline: none;
-                    color: #D9D9D9;
-                }
-
-                .I22_2[type=number]::-webkit-outer-spin-button,
-                .I22_2[type=number]::-webkit-inner-spin-button {
-                    -webkit-appearance: none;
-                    margin: 0;
-                }
-
-                .I22_2[type=number] {
-                    -moz-appearance: textfield;
-                }
-
-                .I22_2:hover {
-                    box-shadow: 0rem 0.15rem 0rem #4a5060;
-                }
-
-                .I22_2:focus {
-                    box-shadow: 0rem 0.15rem 0rem #4a5060;
-                }
-
-                .I12_2-field-content {
-                    display: flex;
-                    flex-direction: row;
-                    background-color: #3b4453;
-                    padding: 0rem;
-                    margin-top: 1rem;
-                }
-
-                .I12_2-caption {
-                    margin: 0rem;
-                    padding: 0rem;
-                    color: #D9D9D9;
-                    font-size: 85%;
-                    width: 6rem;
-                }
-
-                .I12_2 {
-                    margin-top: 0rem;
-                    margin-bottom: 0rem;
-                    margin-left: 1rem;
-                    margin-right: 0rem;
-                    padding: 0rem;
-                    width: 5rem;
-                    background-color: #3b4453;
-                    border: #4a5060;
-                    border-bottom: 0.1rem solid #4a5060;
-                    outline: none;
-                    color: #D9D9D9;
-                }
-
-                .I12_2[type=number]::-webkit-outer-spin-button,
-                .I12_2[type=number]::-webkit-inner-spin-button {
-                    -webkit-appearance: none;
-                    margin: 0;
-                }
-
-                .I12_2[type=number] {
-                    -moz-appearance: textfield;
-                }
-
-                .I12_2:hover {
-                    box-shadow: 0rem 0.15rem 0rem #4a5060;
-                }
-
-                .I12_2:focus {
-                    box-shadow: 0rem 0.15rem 0rem #4a5060;
-                }
-
-                .It_2-field-content {
-                    display: flex;
-                    flex-direction: row;
-                    background-color: #3b4453;
-                    padding: 0rem;
-                    margin-top: 1rem;
-                }
-
-                .It_2-caption {
-                    margin: 0rem;
-                    padding: 0rem;
-                    color: #D9D9D9;
-                    font-size: 85%;
-                    width: 6rem;
-                }
-
-                .It_2 {
-                    margin-top: 0rem;
-                    margin-bottom: 0rem;
-                    margin-left: 1rem;
-                    margin-right: 0rem;
-                    padding: 0rem;
-                    width: 5rem;
-                    background-color: #3b4453;
-                    border: #4a5060;
-                    border-bottom: 0.1rem solid #4a5060;
-                    outline: none;
-                    color: #D9D9D9;
-                }
-
-                .It_2[type=number]::-webkit-outer-spin-button,
-                .It_2[type=number]::-webkit-inner-spin-button {
-                    -webkit-appearance: none;
-                    margin: 0;
-                }
-
-                .It_2[type=number] {
-                    -moz-appearance: textfield;
-                }
-
-                .It_2:hover {
-                    box-shadow: 0rem 0.15rem 0rem #4a5060;
-                }
-
-                .It_2:focus {
-                    box-shadow: 0rem 0.15rem 0rem #4a5060;
-                }
-
                 .apply-cancel-buttons {
                     margin-top: 1rem;
                     margin-bottom: 0rem;
@@ -637,31 +395,6 @@ class FeaSectionAddBeamMenu extends HTMLElement {
                     <input class="It" type="number"/>
                 </div>
 
-                <div class="area2-field-content">
-                    <p class="area2-caption">Area 2 (optional)</p>
-                    <input class="area2" type="number"/>
-                </div>
-
-                <div class="I11_2-field-content">
-                    <p class="I11_2-caption">I11 2 (optional)</p>
-                    <input class="I11_2" type="number"/>
-                </div>
-
-                <div class="I22_2-field-content">
-                    <p class="I22_2-caption">I22  2 (optional)</p>
-                    <input class="I22_2" type="number"/>
-                </div>
-
-                <div class="I12_2-field-content">
-                    <p class="I12_2-caption">I12 2 (optional)</p>
-                    <input class="I12_2" type="number"/>
-                </div>
-
-                <div class="It_2-field-content">
-                    <p class="It_2-caption">It 2 (optional)</p>
-                    <input class="It_2" type="number"/>
-                </div>
-
                 <div class="apply-cancel-buttons">
                     <button class="apply-button">Apply</button>
                     <button class="cancel-button">Cancel</button>
@@ -712,26 +445,6 @@ class FeaSectionAddBeamMenu extends HTMLElement {
             this.dropHighlight(inputtedIt);
             this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
         });
-
-        this.shadowRoot.querySelector(".area2").addEventListener("click", () => {
-            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
-        });
-
-        this.shadowRoot.querySelector(".I11_2").addEventListener("click", () => {
-            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
-        });
-
-        this.shadowRoot.querySelector(".I22_2").addEventListener("click", () => {
-            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
-        });
-
-        this.shadowRoot.querySelector(".I12_2").addEventListener("click", () => {
-            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
-        });
-
-        this.shadowRoot.querySelector(".It_2").addEventListener("click", () => {
-            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
-        });
     }
 
     set actionId(value) {
@@ -752,11 +465,6 @@ class FeaSectionAddBeamMenu extends HTMLElement {
         beamSectionInProps.I22 = beamSection.I22;
         beamSectionInProps.I12 = beamSection.I12;
         beamSectionInProps.It = beamSection.It;
-        beamSectionInProps.area2 = beamSection.area2;
-        beamSectionInProps.I11_2 = beamSection.I11_2;
-        beamSectionInProps.I22_2 = beamSection.I22_2;
-        beamSectionInProps.I12_2 = beamSection.I12_2;
-        beamSectionInProps.It_2 = beamSection.It_2;
     }
 
     set deleteBeamSectionFromClient(beamSection) {
@@ -799,11 +507,6 @@ class FeaSectionAddBeamMenu extends HTMLElement {
         this.shadowRoot.querySelector(".I22").value = 1;
         this.shadowRoot.querySelector(".I12").value = 0;
         this.shadowRoot.querySelector(".It").value = 1;
-        this.shadowRoot.querySelector(".area2").value = null;
-        this.shadowRoot.querySelector(".I11_2").value = null;
-        this.shadowRoot.querySelector(".I22_2").value = null;
-        this.shadowRoot.querySelector(".I12_2").value = null;
-        this.shadowRoot.querySelector(".It_2").value = null;
     }
 
 
@@ -849,16 +552,6 @@ class FeaSectionAddBeamMenu extends HTMLElement {
                 ItField.classList.add("highlighted");
             }
         }
-        
-        const area2Field = this.shadowRoot.querySelector(".area2");
-
-        const I11_2Field = this.shadowRoot.querySelector(".I11_2");
-
-        const I22_2Field = this.shadowRoot.querySelector(".I22_2");
-
-        const I12_2Field = this.shadowRoot.querySelector(".I12_2");
-
-        const It_2Field = this.shadowRoot.querySelector(".It_2");
 
         if (newBeamSectionNameField.value === "" || areaField.value === "") {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
@@ -885,12 +578,7 @@ class FeaSectionAddBeamMenu extends HTMLElement {
         const beamSectionDataInProps = this.props.beamSections
             .find(beamSection => beamSection.area == areaField.value && 
                 beamSection.I11 == I11Field.value && beamSection.I22 == I22Field.value && 
-                beamSection.I12 == I12Field.value && beamSection.It == ItField.value &&
-                (beamSection.area2 == area2Field.value || (beamSection.area2 === null && area2Field.value === "")) &&
-                (beamSection.I11_2 == I11_2Field.value || (beamSection.I11_2 === null && I11_2Field.value === "")) &&
-                (beamSection.I22_2 == I22_2Field.value || (beamSection.I22_2 === null && I22_2Field.value === "")) &&
-                (beamSection.I12_2 == I12_2Field.value || (beamSection.I12_2 === null && I12_2Field.value === "")) &&
-                (beamSection.It_2 == It_2Field.value || (beamSection.It_2 === null && It_2Field.value === "")));
+                beamSection.I12 == I12Field.value && beamSection.It == ItField.value);
         if (beamSectionDataInProps != null) {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
@@ -917,9 +605,7 @@ class FeaSectionAddBeamMenu extends HTMLElement {
             "actionId": this.props.actionId,
             "name": newBeamSectionNameField.value, 
             "area": areaField.value, "I11": I11Field.value, "I22": I22Field.value, 
-            "I12": I12Field.value, "It": ItField.value, "area2":  area2Field.value,
-            "I11_2": I11_2Field.value, "I22_2": I12_2Field.value, "I12_2": I12_2Field.value,
-            "It_2": It_2Field.value,
+            "I12": I12Field.value, "It": ItField.value,
         }};
 
         this.dispatchEvent(new CustomEvent("clientMessage", {

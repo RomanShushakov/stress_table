@@ -84,15 +84,43 @@ export function restoreTrussSectionInProperties(actionId, name, isActionIdShould
     }
 }
 
-export function addBeamSectionToProperties(actionId, name, area, I11, I22, I12, It, 
-    area2, I11_2, I22_2, I12_2, It_2, isActionIdShouldBeIncreased) 
+export function addBeamSectionToProperties(actionId, name, area, I11, I22, I12, It, isActionIdShouldBeIncreased) 
 {
     const beamSectionData = { "actionId": actionId, "name": name, "area": area,
-        "I11": I11, "I22": I22, "I12": I12, "It": It, "area2": area2, "I11_2": I11_2,
-        "I22_2": I22_2, "I12_2": I12_2, "It_2": It_2,
-        "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
+        "I11": I11, "I22": I22, "I12": I12, "It": It, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
     try {
         communicatorWithProperties.addBeamSectionToProperties = beamSectionData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function updateBeamSectionInProperties(actionId, name, area, I11, I22, I12, It, isActionIdShouldBeIncreased) 
+{
+    const beamSectionData = { "actionId": actionId, "name": name, "area": area,
+        "I11": I11, "I22": I22, "I12": I12, "It": It, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
+    try {
+        communicatorWithProperties.updateBeamSectionInProperties = beamSectionData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function deleteBeamSectionFromProperties(actionId, name, isActionIdShouldBeIncreased) 
+{
+    const beamSectionData = { "actionId": actionId, "name": name, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
+    try {
+        communicatorWithProperties.deleteBeamSectionFromProperties = beamSectionData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function restoreBeamSectionInProperties(actionId, name, isActionIdShouldBeIncreased) 
+{
+    const beamSectionData = { "actionId": actionId, "name": name, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
+    try {
+        communicatorWithProperties.restoreBeamSectionInProperties = beamSectionData;
     } catch (error) {
         throw error;
     }

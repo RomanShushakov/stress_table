@@ -7,6 +7,14 @@ networks:
 volumes:
   postgres_db_volume:
 
+secrets:
+  psql_user: 
+    file: ./secrets/psql_user.txt
+  psql_pass:
+    file: ./secrets/psql_pass.txt
+  psql_db: 
+    file: ./secrets/psql_db.txt
+
 services:
   redis:
     image: redis:6.2.4
@@ -24,22 +32,27 @@ services:
     volumes:
       - ./app/sql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
       - postgres_db_volume:/var/lib/postgresql/data
+    secrets:
+      - psql_user
+      - psql_pass 
+      - psql_db
     environment:
-      POSTGRES_PASSWORD: stress_table_pass
-      POSTGRES_USER: stress_table_user 
-      POSTGRES_DB: stress_table_db
+      POSTGRES_USER_FILE: /run/secrets/psql_user
+      POSTGRES_PASSWORD_FILE: /run/secrets/psql_pass
+      POSTGRES_DB_FILE: /run/secrets/psql_db
 
   app:
     build: .
     container_name: stress_table_app
+    secrets:
+      - psql_user
+      - psql_pass 
+      - psql_db
     environment:
       SERVER_ADDR: 0.0.0.0:8080
       REDIS_ADDR: redis:6379
-      PG.USER: stress_table_user
-      PG.PASSWORD: stress_table_pass
       PG.HOST: postgres_db
       PG.PORT: 5432
-      PG.DBNAME: stress_table_db
       PG.POOL.MAX_SIZE: 16
     command: bash -c "cd ./app && cargo run --release"
     networks:

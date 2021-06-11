@@ -8,6 +8,10 @@
 /app/Cargo.lock
 /app/target
 
+/secrets/psql_user.txt
+/secrets/psql_pass.txt
+/secrets/psql_db.txt
+
 /wasm_modules/renderer/.idea
 /wasm_modules/renderer/Cargo.lock
 /wasm_modules/renderer/target

@@ -1,3 +1,13 @@
+FROM python:3.8.5
+
+RUN mkdir -p /app/
+
+WORKDIR /app/
+
+COPY ./secrets/app_secrets.py /app/
+
+ENTRYPOINT ["python", "./app_secrets.py"]
+
 FROM rust:1.52.1
 
 ENV USER=root

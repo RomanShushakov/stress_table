@@ -1,10 +1,9 @@
-class FeaPreprocessorMenu extends HTMLElement {
+class FeaPropertiesMenu extends HTMLElement {
     constructor() {
         super();
 
         this.props = {
             actionId: null,     // u32;
-            points: new Map(),  // map: { number: u32, { x: f64, y: f64, z: f64}, ... };
             lines: new Map(),   // map: { number: u32, startPointNumber: u32, endPointNumber: u32 }, ...};
             materials: [],      // array of: [{ name: String, youngModulus: f64, poissonRatio: f64 }, ...];
             trussSections: [],  // array of: [{ name: String, area: f64, area2: f64 or null }];
@@ -14,40 +13,37 @@ class FeaPreprocessorMenu extends HTMLElement {
         };
 
         this.state = {
-
             childrenNamesForActionIdUpdate: [
-                "fea-geometry-menu",
-                "fea-material-menu",
-                "fea-section-menu",
-                "fea-properties-menu",
-            ],
-
-            childrenNamesForPointCrud: [
-                "fea-geometry-menu",
+                "fea-properties-add-properties-menu",
+                "fea-properties-update-properties-menu",
+                "fea-properties-delete-properties-menu",
+                "fea-properties-assign-properties-menu",
             ],
 
             childrenNamesForLineCrud: [
-                "fea-geometry-menu",
-                "fea-properties-menu",
+                "fea-properties-assign-properties-menu",
             ],
 
             childrenNamesForMaterialCrud: [
-                "fea-material-menu",
-                "fea-properties-menu",
+                "fea-properties-add-properties-menu",
+                "fea-properties-update-properties-menu",
             ],
 
             childrenNamesForTrussSectionCrud: [
-                "fea-section-menu",
-                "fea-properties-menu",
+                "fea-properties-add-properties-menu",
+                "fea-properties-update-properties-menu",
             ],
 
             childrenNamesForBeamSectionCrud: [
-                "fea-section-menu",
-                "fea-properties-menu",
+                "fea-properties-add-properties-menu",
+                "fea-properties-update-properties-menu",
             ],
 
             childrenNamesForPropertiesCrud: [
-                "fea-properties-menu",
+                "fea-properties-add-properties-menu",
+                "fea-properties-update-properties-menu",
+                "fea-properties-delete-properties-menu",
+                "fea-properties-assign-properties-menu",
             ],
         };
 
@@ -56,21 +52,35 @@ class FeaPreprocessorMenu extends HTMLElement {
         this.shadowRoot.innerHTML = `
             <style>
                 :host {
-                    display: block;
+                    display: flex;
                 }
 
                 .wrapper {
-                    background-color: #2e3440;
                     display: flex;
-                    flex-direction: row;
+                    flex-direction: column;
+                    background-color: #3b4453;
+                    padding: 1rem;
+                }
+
+                .properties-menu-caption {
+                    margin: 0rem;
+                    padding-top: 0rem;
+                    padding-bottom: 0.3rem;
+                    padding-left: 0rem;
+                    padding-right: 0rem;
+                    color: #D9D9D9;
+                    border-bottom: 0.1rem solid #4a5060;
+                    font-size: 85%;
                 }
             </style>
+
             <div class=wrapper>
-                <fea-preprocessor-menu-buttons></fea-preprocessor-menu-buttons>
+                <p class="properties-menu-caption">Properties</p>
+                <fea-properties-menu-buttons></fea-properties-menu-buttons>
                 <slot></slot>
             </div>
         `;
-        
+
         this.addEventListener("activate-menu", (event) => this.activateMenu(event));
 
         this.addEventListener("deactivate-menu", (event) => this.deactivateMenu(event));
@@ -79,21 +89,6 @@ class FeaPreprocessorMenu extends HTMLElement {
     set actionId(value) {
         this.props.actionId = value;
         this.updateChildrenActionId();
-    }
-
-    set addPointToClient(point) {
-        this.props.points.set(point.number, {"x": point.x, "y": point.y, "z": point.z});
-        this.addPointToChildren(point);
-    }
-
-    set updatePointInClient(point) {
-        this.props.points.set(point.number, {"x": point.x, "y": point.y, "z": point.z});
-        this.updatePointInChildren(point);
-    }
-
-    set deletePointFromClient(point) {
-        this.props.points.delete(point.number);
-        this.deletePointFromChildren(point);
     }
 
     set addLineToClient(line) {
@@ -111,36 +106,6 @@ class FeaPreprocessorMenu extends HTMLElement {
         this.deleteLineFromChildren(line);
     }
 
-    delay(t, v) {
-        return new Promise(function(resolve) { 
-            setTimeout(resolve.bind(null, v), t)
-        });
-    }
-
-    set selectPointInClient(pointNumber) {
-        if (this.querySelector("fea-geometry-menu") === null) {
-            this.delay(0)
-                .then(() => { 
-                    this.shadowRoot.querySelector("fea-preprocessor-menu-buttons").toggleButton = "geometry-menu-button";
-                 })
-                .then(async () => { this.querySelector("fea-geometry-menu").selectPointInClient = pointNumber });
-        } else {
-            this.querySelector("fea-geometry-menu").selectPointInClient = pointNumber;
-        }
-    }
-
-    set selectLineInClient(lineNumber) {
-        if (this.querySelector("fea-geometry-menu") === null) {
-            this.delay(0)
-                .then(() => { 
-                    this.shadowRoot.querySelector("fea-preprocessor-menu-buttons").toggleButton = "geometry-menu-button";
-                 })
-                .then(async () => { this.querySelector("fea-geometry-menu").selectLineInClient = lineNumber });
-        } else {
-            this.querySelector("fea-geometry-menu").selectLineInClient = lineNumber;
-        }
-    }
-
     set addMaterialToClient(material) {
         this.props.materials.push(material);
         this.props.materials.sort((a, b) => a.name - b.name);
@@ -148,16 +113,14 @@ class FeaPreprocessorMenu extends HTMLElement {
     }
 
     set updateMaterialInClient(material) {
-        let materialInProps = this.props.materials
-            .find(existedMaterial => existedMaterial.name == material.name);
+        let materialInProps = this.props.materials.find(existedMaterial => existedMaterial.name == material.name);
         materialInProps.youngModulus = material.youngModulus;
         materialInProps.poissonRatio = material.poissonRatio;
         this.updateMaterialInChildren(material);
     }
 
     set deleteMaterialFromClient(material) {
-        let materialIndexInProps = this.props.materials
-            .findIndex(existedMaterial => existedMaterial.name == material.name);
+        let materialIndexInProps = this.props.materials.findIndex(existedMaterial => existedMaterial.name == material.name);
         this.props.materials.splice(materialIndexInProps, 1);
         this.props.materials.sort((a, b) => a.name - b.name);
         this.deleteMaterialFromChildren(material);
@@ -210,28 +173,28 @@ class FeaPreprocessorMenu extends HTMLElement {
         this.deleteBeamSectionFromChildren(beamSection);
     }
 
-    set addPropertyToClient(property) {
-        this.props.properties.push(property);
+    set addPropertiesToClient(properties) {
+        this.props.properties.push(properties);
         this.props.properties.sort((a, b) => a.name - b.name);
-        this.addPropertyToChildren(property);
+        this.addPropertiesToChildren(properties);
     }
 
-    set updatePropertyInClient(property) {
-        let propertyInProps = this.props.properties
-            .find(existedProperty => existedProperty.name == property.name);
-        propertyInProps.materialName = property.materialName;
-        propertyInProps.sectionName = property.sectionName;
-        propertyInProps.setionType = property.sectionType;
-        propertyInProps.usedIn = property.usedIn;
-        this.updatepropertyInChildren(property);
+    set updatePropertiesInClient(properties) {
+        let propertiesInProps = this.props.properties
+            .find(existedProperties => existedProperties.name == properties.name);
+        propertiesInProps.materialName = properties.materialName;
+        propertiesInProps.sectionName = properties.sectionName;
+        propertiesInProps.setionType = properties.sectionType;
+        propertiesInProps.usedIn = properties.usedIn;
+        this.updatePropertiesInChildren(properties);
     }
 
-    set deletePropertyFromClient(property) {
-        let propertyIndexInProps = this.props.properties
-            .findIndex(existedProperty => existedProperty.name == existedProperty.name);
-        this.props.properties.splice(propertyIndexInProps, 1);
+    set deletePropertiesFromClient(properties) {
+        let propertiesIndexInProps = this.props.properties
+            .findIndex(existedProperties => existedProperties.name == existedProperties.name);
+        this.props.properties.splice(propertiesIndexInProps, 1);
         this.props.properties.sort((a, b) => a.name - b.name);
-        this.deletePropertyFromChildren(property);
+        this.deletePropertiesFromChildren(properties);
     }
 
     connectedCallback() {
@@ -246,153 +209,116 @@ class FeaPreprocessorMenu extends HTMLElement {
 
     disconnectedCallback() {
     }
-    
+
     static get observedAttributes() {
         return [];
     }
-    
+
     attributeChangedCallback(name, oldValue, newValue) {
     }
-    
+
     adoptedCallback() {
     }
 
     activateMenu(event) {
         switch (event.detail.menuName) {
-            case "geometry-menu":
-                const feaGeometryMenu = document.createElement("fea-geometry-menu");
-                this.append(feaGeometryMenu);
+            case "properties-add-properties-menu":
+                const feaPropertiesAddPropertiesMenu = document.createElement("fea-properties-add-properties-menu");
+                this.append(feaPropertiesAddPropertiesMenu);
                 event.stopPropagation();
-                this.updateCanvasSize();
-                this.querySelector("fea-geometry-menu").actionId = this.props.actionId;
-                for (let [pointNumber, coordinates] of this.props.points) {
-                    const point = { "number": pointNumber, "x": coordinates.x, "y": coordinates.y, "z": coordinates.z };
-                    this.querySelector("fea-geometry-menu").addPointToClient = point;
-                }
-                for (let [lineNumber, linePointsNumbers] of this.props.lines) {
-                    const line = { "number": lineNumber,
-                        "startPointNumber": linePointsNumbers.startPointNumber,
-                        "endPointNumber": linePointsNumbers.endPointNumber };
-                    this.querySelector("fea-geometry-menu").addLineToClient = line;
-                }
-                break;
-            case "material-menu":
-                const feaMaterialMenu = document.createElement("fea-material-menu");
-                this.append(feaMaterialMenu);
-                event.stopPropagation();
-                this.updateCanvasSize();
-                this.querySelector("fea-material-menu").actionId = this.props.actionId;
+                this.querySelector("fea-properties-add-properties-menu").actionId = this.props.actionId;
                 for (let i = 0; i < this.props.materials.length; i++) {
                     const material = this.props.materials[i];
-                    this.querySelector("fea-material-menu").addMaterialToClient = material;
-                }
-                break;
-            case "section-menu":
-                const feaSectionMenu = document.createElement("fea-section-menu");
-                this.append(feaSectionMenu);
-                event.stopPropagation();
-                this.updateCanvasSize();
-                this.querySelector("fea-section-menu").actionId = this.props.actionId;
-                for (let i = 0; i < this.props.trussSections.length; i++) {
-                    const trussSection = this.props.trussSections[i];
-                    this.querySelector("fea-section-menu").addTrussSectionToClient = trussSection;
-                }
-                for (let i = 0; i < this.props.beamSections.length; i++) {
-                    const beamSection = this.props.beamSections[i];
-                    this.querySelector("fea-section-menu").addBeamSectionToClient = beamSection;
-                }
-                break;
-            case "properties-menu":
-                const feaPropertiesMenu = document.createElement("fea-properties-menu");
-                this.append(feaPropertiesMenu);
-                event.stopPropagation();
-                this.updateCanvasSize();
-                this.querySelector("fea-properties-menu").actionId = this.props.actionId;
-                for (let [lineNumber, linePointsNumbers] of this.props.lines) {
-                    const line = { "number": lineNumber,
-                        "startPointNumber": linePointsNumbers.startPointNumber,
-                        "endPointNumber": linePointsNumbers.endPointNumber };
-                    this.querySelector("fea-properties-menu").addLineToClient = line;
-                }
-                for (let i = 0; i < this.props.materials.length; i++) {
-                    const material = this.props.materials[i];
-                    this.querySelector("fea-properties-menu").addMaterialToClient = material;
+                    this.querySelector("fea-properties-add-properties-menu").addMaterialToClient = material;
                 }
                 for (let i = 0; i < this.props.trussSections.length; i++) {
                     const trussSection = this.props.trussSections[i];
-                    this.querySelector("fea-properties-menu").addTrussSectionToClient = trussSection;
+                    this.querySelector("fea-properties-add-properties-menu").addTrussSectionToClient = trussSection;
                 }
                 for (let i = 0; i < this.props.beamSections.length; i++) {
                     const beamSection = this.props.beamSections[i];
-                    this.querySelector("fea-properties-menu").addBeamSectionToClient = beamSection;
+                    this.querySelector("fea-properties-add-properties-menu").addBeamSectionToClient = beamSection;
                 }
                 for (let i = 0; i < this.props.properties.length; i++) {
-                    const property = this.props.properties[i];
-                    this.querySelector("fea-properties-menu").addPropertyToClient = property;
+                    const properties = this.props.properties[i];
+                    this.querySelector("fea-properties-add-properties-menu").addPropertiesToClient = properties;
                 }
+                break;
+            case "properties-update-properties-menu":
+                const feaPropertiesUpdatePropertiesMenu = document.createElement("fea-properties-update-properties-menu");
+                this.append(feaPropertiesUpdatePropertiesMenu);
+                event.stopPropagation();
+                this.querySelector("fea-properties-update-properties-menu").actionId = this.props.actionId;
+                for (let i = 0; i < this.props.materials.length; i++) {
+                    const material = this.props.materials[i];
+                    this.querySelector("fea-material-update-material-menu").addMaterialToClient = material;
+                }
+                for (let i = 0; i < this.props.trussSections.length; i++) {
+                    const trussSection = this.props.trussSections[i];
+                    this.querySelector("fea-properties-update-properties-menu").addTrussSectionToClient = trussSection;
+                }
+                for (let i = 0; i < this.props.beamSections.length; i++) {
+                    const beamSection = this.props.beamSections[i];
+                    this.querySelector("fea-properties-update-properties-menu").addBeamSectionToClient = beamSection;
+                }
+                for (let i = 0; i < this.props.properties.length; i++) {
+                    const properties = this.props.properties[i];
+                    this.querySelector("fea-properties-update-properties-menu").addPropertiesToClient = properties;
+                }
+                break;
+            case "properties-delete-properties-menu":
+                const feaPropertiesDeletePropertiesMenu = document.createElement("fea-properties-delete-properties-menu");
+                this.append(feaPropertiesDeletePropertiesMenu);
+                event.stopPropagation();
+                this.querySelector("fea-properties-delete-properties-menu").actionId = this.props.actionId;
+                for (let i = 0; i < this.props.properties.length; i++) {
+                    const properties = this.props.properties[i];
+                    this.querySelector("fea-properties-delete-properties-menu").addPropertiesToClient = properties;
+                }
+            case "properties-assign-properties-menu":
+                const feaPropertiesAssignPropertiesMenu = document.createElement("fea-properties-assign-properties-menu");
+                this.append(feaPropertiesAssignPropertiesMenu);
+                event.stopPropagation();
+                this.querySelector("fea-properties-assign-properties-menu").actionId = this.props.actionId;
+                for (let [lineNumber, linePointsNumbers] of this.props.lines) {
+                    const line = { "number": lineNumber,
+                        "startPointNumber": linePointsNumbers.startPointNumber,
+                        "endPointNumber": linePointsNumbers.endPointNumber };
+                    this.querySelector("fea-properties-assign-properties-menu").addLineToClient = line;
+                }
+                for (let i = 0; i < this.props.properties.length; i++) {
+                    const properties = this.props.properties[i];
+                    this.querySelector("fea-properties-assign-properties-menu").addPropertiesToClient = properties;
+                }
+                break;
         }
     }
 
     deactivateMenu(event) {
         switch (event.detail.menuName) {
-            case "geometry-menu":
-                this.querySelector("fea-geometry-menu").remove();
+            case "properties-add-properties-menu":
+                this.querySelector("fea-properties-add-properties-menu").remove();
                 event.stopPropagation();
-                this.updateCanvasSize();
                 break;
-            case "material-menu":
-                this.querySelector("fea-material-menu").remove();
+            case "properties-update-properties-menu":
+                this.querySelector("fea-properties-update-properties-menu").remove();
                 event.stopPropagation();
-                this.updateCanvasSize();
                 break;
-            case "section-menu":
-                this.querySelector("fea-section-menu").remove();
+            case "properties-delete-properties-menu":
+                this.querySelector("fea-properties-delete-properties-menu").remove();
                 event.stopPropagation();
-                this.updateCanvasSize();
                 break;
-            case "properties-menu":
-                this.querySelector("fea-properties-menu").remove();
+            case "properties-assign-properties-menu":
+                this.querySelector("fea-properties-assign-properties-menu").remove();
                 event.stopPropagation();
-                this.updateCanvasSize();
                 break;
         }
-    }
-
-    updateCanvasSize() {
-        this.dispatchEvent(new CustomEvent("resize", {
-            bubbles: true,
-            composed: true,
-        }));
     }
 
     updateChildrenActionId() {
         for (let i = 0; i < this.state.childrenNamesForActionIdUpdate.length; i++) {
             if (this.querySelector(this.state.childrenNamesForActionIdUpdate[i]) !== null) {
                 this.querySelector(this.state.childrenNamesForActionIdUpdate[i]).actionId = this.props.actionId;
-            }
-        } 
-    }
-
-    addPointToChildren(point) {
-        for (let i = 0; i < this.state.childrenNamesForPointCrud.length; i++) {
-            if (this.querySelector(this.state.childrenNamesForPointCrud[i]) !== null) {
-                this.querySelector(this.state.childrenNamesForPointCrud[i]).addPointToClient = point;
-            }
-        } 
-    }
-
-    updatePointInChildren(point) {
-        for (let i = 0; i < this.state.childrenNamesForPointCrud.length; i++) {
-            if (this.querySelector(this.state.childrenNamesForPointCrud[i]) !== null) {
-                this.querySelector(this.state.childrenNamesForPointCrud[i]).updatePointInClient = point;
-            }
-        } 
-    }
-
-    deletePointFromChildren(point) {
-        for (let i = 0; i < this.state.childrenNamesForPointCrud.length; i++) {
-            if (this.querySelector(this.state.childrenNamesForPointCrud[i]) !== null) {
-                this.querySelector(this.state.childrenNamesForPointCrud[i]).deletePointFromClient = point;
             }
         } 
     }
@@ -493,29 +419,29 @@ class FeaPreprocessorMenu extends HTMLElement {
         } 
     }
 
-    addPropertyToChildren(property) {
+    addPropertiesToChildren(properties) {
         for (let i = 0; i < this.state.childrenNamesForPropertiesCrud.length; i++) {
             if (this.querySelector(this.state.childrenNamesForPropertiesCrud[i]) !== null) {
-                this.querySelector(this.state.childrenNamesForPropertiesCrud[i]).addPointToChildren = property;
+                this.querySelector(this.state.childrenNamesForPropertiesCrud[i]).addPointToChildren = properties;
             }
         } 
     }
 
-    updatePropertyInChildren(property) {
+    updatePropertiesInChildren(properties) {
         for (let i = 0; i < this.state.childrenNamesForPropertiesCrud.length; i++) {
             if (this.querySelector(this.state.childrenNamesForPropertiesCrud[i]) !== null) {
-                this.querySelector(this.state.childrenNamesForPropertiesCrud[i]).updatePropertyInChildren = property;
+                this.querySelector(this.state.childrenNamesForPropertiesCrud[i]).updatePropertiesInChildren = properties;
             }
         } 
     }
 
-    deletePropertyFromChildren(property) {
+    deletePropertiesFromChildren(properties) {
         for (let i = 0; i < this.state.childrenNamesForPropertiesCrud.length; i++) {
             if (this.querySelector(this.state.childrenNamesForPropertiesCrud[i]) !== null) {
-                this.querySelector(this.state.childrenNamesForPropertiesCrud[i]).deletePropertyFromChildren = property;
+                this.querySelector(this.state.childrenNamesForPropertiesCrud[i]).deletePropertiesFromChildren = properties;
             }
         } 
     }
 }
 
-export default FeaPreprocessorMenu;
+export default FeaPropertiesMenu;

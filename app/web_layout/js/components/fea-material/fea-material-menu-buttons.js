@@ -31,7 +31,6 @@ class FeaMaterialMenuButtons extends HTMLElement {
                 :host {
                     display: flex;
                 }
-
                 .wrapper {
                     display: flex;
                     flex-direction: column;
@@ -39,7 +38,6 @@ class FeaMaterialMenuButtons extends HTMLElement {
                     padding: 0rem;
                     margin-top: 1rem;
                 }
-
                 .material-menu-buttons-content {
                     display: flex;
                     flex-direction: row;
@@ -48,7 +46,6 @@ class FeaMaterialMenuButtons extends HTMLElement {
                     border-bottom: 0.1rem solid #4a5060;
                     align-items: center;
                 }
-
                 .material-menu-buttons-caption {
                     margin: 0rem;
                     padding: 0rem;
@@ -56,7 +53,6 @@ class FeaMaterialMenuButtons extends HTMLElement {
                     font-size: 85%;
                     width: 4rem;
                 }
-
                 .material-add-material-menu-button {
                     background: #3b4453;
                     border: #3b4453;
@@ -66,7 +62,6 @@ class FeaMaterialMenuButtons extends HTMLElement {
                     margin-left: 2.5rem;
                     margin-right: 0rem;
                 }
-
                 .material-add-material-menu-button-icon-content {
                     margin: 0rem;
                     padding: 0rem;
@@ -74,7 +69,6 @@ class FeaMaterialMenuButtons extends HTMLElement {
                     height: 1.5rem;
                     border-bottom: 0.15rem solid #3b4453;
                 }
-
                 .material-add-material-menu-button-icon {
                     margin: 0rem;
                     padding: 0rem;
@@ -82,27 +76,21 @@ class FeaMaterialMenuButtons extends HTMLElement {
                     height: 1.5rem;
                     color: #D9D9D9;
                 }
-
                 .material-add-material-menu-button:hover .material-add-material-menu-button-icon {
                     color: #d1d2d7;
                 }
-
                 .active:hover .material-add-material-menu-button-icon {
                     color: #8bbee4;
                 }
-
                 .active .material-add-material-menu-button-icon {
                     color: #72C5FF;
                 }
-
                 .active:hover .material-add-material-menu-button-icon-content {
                     border-bottom: 0.15rem solid #8bbee4;
                 }
-
                 .active .material-add-material-menu-button-icon-content {
                     border-bottom: 0.15rem solid #72C5FF;
                 }
-
                 .material-update-material-menu-button {
                     background: #3b4453;
                     border: #3b4453;
@@ -112,7 +100,6 @@ class FeaMaterialMenuButtons extends HTMLElement {
                     margin-left: 0.5rem;
                     margin-right: 0rem;
                 }
-
                 .material-update-material-menu-button-icon-content {
                     margin: 0rem;
                     padding: 0rem;
@@ -120,7 +107,6 @@ class FeaMaterialMenuButtons extends HTMLElement {
                     height: 1.5rem;
                     border-bottom: 0.15rem solid #3b4453;
                 }
-
                 .material-update-material-menu-button-icon {
                     margin: 0rem;
                     padding: 0rem;
@@ -128,27 +114,21 @@ class FeaMaterialMenuButtons extends HTMLElement {
                     height: 1.5rem;
                     color: #D9D9D9;
                 }
-
                 .material-update-material-menu-button:hover .material-update-material-menu-button-icon {
                     color: #d1d2d7;
                 }
-
                 .active:hover .material-update-material-menu-button-icon {
                     color: #8bbee4;
                 }
-
                 .active .material-update-material-menu-button-icon {
                     color: #72C5FF;
                 }
-
                 .active:hover .material-update-material-menu-button-icon-content {
                     border-bottom: 0.15rem solid #8bbee4;
                 }
-
                 .active .material-update-material-menu-button-icon-content {
                     border-bottom: 0.15rem solid #72C5FF;
                 }
-
                 .material-delete-material-menu-button {
                     background: #3b4453;
                     border: #3b4453;
@@ -158,7 +138,6 @@ class FeaMaterialMenuButtons extends HTMLElement {
                     margin-left: 0.5rem;
                     margin-right: 0rem;
                 }
-
                 .material-delete-material-menu-button-icon-content {
                     margin: 0rem;
                     padding: 0rem;
@@ -166,7 +145,6 @@ class FeaMaterialMenuButtons extends HTMLElement {
                     height: 1.5rem;
                     border-bottom: 0.15rem solid #3b4453;
                 }
-
                 .material-delete-material-menu-button-icon {
                     margin: 0rem;
                     padding: 0rem;
@@ -174,33 +152,25 @@ class FeaMaterialMenuButtons extends HTMLElement {
                     height: 1.5rem;
                     color: #D9D9D9;
                 }
-
                 .material-delete-material-menu-button:hover .material-delete-material-menu-button-icon {
                     color: #d1d2d7;
                 }
-
                 .active:hover .material-delete-material-menu-button-icon {
                     color: #8bbee4;
                 }
-
                 .active .material-delete-material-menu-button-icon {
                     color: #72C5FF;
                 }
-
                 .active:hover .material-delete-material-menu-button-icon-content {
                     border-bottom: 0.15rem solid #8bbee4;
                 }
-
                 .active .material-delete-material-menu-button-icon-content {
                     border-bottom: 0.15rem solid #72C5FF;
                 }
             </style>
-
             <div class=wrapper>
                 <div class="material-menu-buttons-content">
-
                     <p class="material-menu-buttons-caption">Add</p>
-
                     <button class="material-add-material-menu-button">
                         <div class="material-add-material-menu-button-icon-content">
                             <svg class="material-add-material-menu-button-icon" width="35" height="35" viewBox="0 0 35 35" fill="none" 
@@ -214,7 +184,6 @@ class FeaMaterialMenuButtons extends HTMLElement {
                             </svg>
                         </div>
                     </button>
-
                     <button class="material-update-material-menu-button">
                         <div class="material-update-material-menu-button-icon-content">
                             <svg class="material-update-material-menu-button-icon" width="36" height="35" viewBox="0 0 36 35" fill="none" 
@@ -246,7 +215,6 @@ class FeaMaterialMenuButtons extends HTMLElement {
                             </svg>
                         </div>
                     </button>
-
                     <button class="material-delete-material-menu-button">
                         <div class="material-delete-material-menu-button-icon-content">
                             <svg class="material-delete-material-menu-button-icon" width="35" height="35" viewBox="0 0 35 35" fill="none" 
@@ -268,7 +236,6 @@ class FeaMaterialMenuButtons extends HTMLElement {
                             </svg>
                         </div>
                     </button>
-
                 </div>
             </div>
         `;

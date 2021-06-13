@@ -28,14 +28,12 @@ class FeaMaterialMenu extends HTMLElement {
                 :host {
                     display: flex;
                 }
-
                 .wrapper {
                     display: flex;
                     flex-direction: column;
                     background-color: #3b4453;
                     padding: 1rem;
                 }
-
                 .material-menu-caption {
                     margin: 0rem;
                     padding-top: 0rem;
@@ -47,7 +45,6 @@ class FeaMaterialMenu extends HTMLElement {
                     font-size: 85%;
                 }
             </style>
-
             <div class=wrapper>
                 <p class="material-menu-caption">Material</p>
                 <fea-material-menu-buttons></fea-material-menu-buttons>

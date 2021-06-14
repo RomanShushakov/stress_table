@@ -251,7 +251,7 @@ class FeaPropertiesMenu extends HTMLElement {
                 this.querySelector("fea-properties-update-properties-menu").actionId = this.props.actionId;
                 for (let i = 0; i < this.props.materials.length; i++) {
                     const material = this.props.materials[i];
-                    this.querySelector("fea-material-update-material-menu").addMaterialToClient = material;
+                    this.querySelector("fea-properties-update-properties-menu").addMaterialToClient = material;
                 }
                 for (let i = 0; i < this.props.trussSections.length; i++) {
                     const trussSection = this.props.trussSections[i];

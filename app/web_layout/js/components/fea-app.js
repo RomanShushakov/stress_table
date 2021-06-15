@@ -10,6 +10,7 @@ class FeaApp extends HTMLElement {
         this.state = {
             actionId: 1,                // u32;
             actionsRouter: null,        // wasm module "actions_router";
+            assignPropertiesMenuEnabled: false,
         };
 
         this.attachShadow({ mode: "open" });
@@ -71,6 +72,10 @@ class FeaApp extends HTMLElement {
         this.addEventListener("delete_beam_section_server_message", (event) => this.handleDeleteBeamSectionServerMessage(event));
 
         this.addEventListener("decreaseActionId", (_event) => this.handleDecreaseActionIdMessage());
+
+        this.addEventListener("enableAssignPropertiesMenu", (event) => this.handleEnableAssignPropertiesMenuMessage(event));
+
+        this.addEventListener("disableAssignPropertiesMenu", (event) => this.handleDisableAssignPropertiesMenuMessage(event));
     }
 
     async connectedCallback() {
@@ -163,35 +168,60 @@ class FeaApp extends HTMLElement {
     }
 
     showObjectInfo(objectInfo) {
-        if ("point_data" in objectInfo) {
-            const pointNumber = objectInfo.point_data.number;
-            const composedObjectInfo = `Point: 
-                number: ${pointNumber},
-                x: ${objectInfo.point_data.x},
-                y: ${objectInfo.point_data.y},
-                z: ${objectInfo.point_data.z}`;
-            this.shadowRoot.querySelector("fea-renderer").objectInfo = composedObjectInfo;          
-            if (this.querySelector("fea-preprocessor-menu") !== null) {
-                this.querySelector("fea-preprocessor-menu").selectPointInClient = pointNumber;
+        if (this.state.assignPropertiesMenuEnabled === false) {
+            if ("point_data" in objectInfo) {
+                const pointNumber = objectInfo.point_data.number;
+                const composedObjectInfo = `Point: 
+                    number: ${pointNumber},
+                    x: ${objectInfo.point_data.x},
+                    y: ${objectInfo.point_data.y},
+                    z: ${objectInfo.point_data.z}`;
+                this.shadowRoot.querySelector("fea-renderer").objectInfo = composedObjectInfo;          
+                if (this.querySelector("fea-preprocessor-menu") !== null) {
+                    this.querySelector("fea-preprocessor-menu").selectPointInClient = pointNumber;
+                }
+            } else if ("line_data" in objectInfo) {
+                const lineNumber = objectInfo.line_data.number;
+                const composedObjectInfo = `Line: 
+                    number: ${lineNumber},
+                    start point number: ${objectInfo.line_data.start_point_number},
+                    end point number: ${objectInfo.line_data.end_point_number}`;
+                this.shadowRoot.querySelector("fea-renderer").objectInfo = composedObjectInfo;    
+                if (this.querySelector("fea-preprocessor-menu") !== null) {
+                    this.querySelector("fea-preprocessor-menu").selectLineInClient = lineNumber;
+                }   
+    
+            } else {
+                throw "Fea-app: Unknown object!";
             }
-        } else if ("line_data" in objectInfo) {
-            const lineNumber = objectInfo.line_data.number;
-            const composedObjectInfo = `Line: 
-                number: ${lineNumber},
-                start point number: ${objectInfo.line_data.start_point_number},
-                end point number: ${objectInfo.line_data.end_point_number}`;
-            this.shadowRoot.querySelector("fea-renderer").objectInfo = composedObjectInfo;    
-            if (this.querySelector("fea-preprocessor-menu") !== null) {
-                this.querySelector("fea-preprocessor-menu").selectLineInClient = lineNumber;
-            }   
-
         } else {
-            throw "Fea-app: Unknown object!";
+            if ("line_data" in objectInfo) {
+                const lineNumber = objectInfo.line_data.number;
+                if (this.querySelector("fea-preprocessor-menu") !== null) {
+                    this.querySelector("fea-preprocessor-menu").selectLineInClientForPropertiesAssign = lineNumber;
+                }
+            } else {
+                if (this.querySelector("fea-preprocessor-menu") !== null) {
+                    for (let i = 0; i < objectInfo.length; i++) {
+                        this.querySelector("fea-preprocessor-menu").selectLineInClientForPropertiesAssign = objectInfo[i];
+                    }
+                }   
+            }
         }
     }
 
     changeView(selectedView) {
         this.shadowRoot.querySelector("fea-renderer").selectedView = selectedView;
+    }
+
+    handleEnableAssignPropertiesMenuMessage(event) {
+        this.state.assignPropertiesMenuEnabled = true;
+        event.stopPropagation();
+    }
+
+    handleDisableAssignPropertiesMenuMessage(event) {
+        this.state.assignPropertiesMenuEnabled = false;
+        event.stopPropagation();
     }
 
     handleAddPointServerMessage(event) {
@@ -203,7 +233,9 @@ class FeaApp extends HTMLElement {
         const point = { 
             number: event.detail.point_data.number, x: event.detail.point_data.x,
             y: event.detail.point_data.y, z: event.detail.point_data.z };
-        this.querySelector("fea-preprocessor-menu").addPointToClient = point;
+        if (this.querySelector("fea-preprocessor-menu") !== null) {
+            this.querySelector("fea-preprocessor-menu").addPointToClient = point;
+        }
         this.shadowRoot.querySelector("fea-renderer").addPointToRenderer = point;
         event.stopPropagation();
     }
@@ -216,7 +248,9 @@ class FeaApp extends HTMLElement {
         }
         const point = { number: event.detail.point_data.number, x: event.detail.point_data.x,
             y: event.detail.point_data.y, z: event.detail.point_data.z };
-        this.querySelector("fea-preprocessor-menu").updatePointInClient = point;
+        if (this.querySelector("fea-preprocessor-menu") !== null) {
+            this.querySelector("fea-preprocessor-menu").updatePointInClient = point;
+        }
         this.shadowRoot.querySelector("fea-renderer").updatePointInRenderer = point;
         event.stopPropagation();
     }
@@ -228,7 +262,9 @@ class FeaApp extends HTMLElement {
             this.updateToolBarActionId();
         }
         const point = { number: event.detail.point_data.number };
-        this.querySelector("fea-preprocessor-menu").deletePointFromClient = point;
+        if (this.querySelector("fea-preprocessor-menu") !== null) {
+            this.querySelector("fea-preprocessor-menu").deletePointFromClient = point;
+        }
         this.shadowRoot.querySelector("fea-renderer").deletePointFromRenderer = point;
         event.stopPropagation();
     }
@@ -243,7 +279,9 @@ class FeaApp extends HTMLElement {
             number: event.detail.line_data.number,
             startPointNumber: event.detail.line_data.start_point_number,
             endPointNumber: event.detail.line_data.end_point_number };
-        this.querySelector("fea-preprocessor-menu").addLineToClient = line;
+        if (this.querySelector("fea-preprocessor-menu") !== null) {
+            this.querySelector("fea-preprocessor-menu").addLineToClient = line;
+        }
         this.shadowRoot.querySelector("fea-renderer").addLineToRenderer = line;
         event.stopPropagation();
     }
@@ -258,7 +296,9 @@ class FeaApp extends HTMLElement {
             number: event.detail.line_data.number,
             startPointNumber: event.detail.line_data.start_point_number,
             endPointNumber: event.detail.line_data.end_point_number };
-        this.querySelector("fea-preprocessor-menu").updateLineInClient = line;
+        if (this.querySelector("fea-preprocessor-menu") !== null) {
+            this.querySelector("fea-preprocessor-menu").updateLineInClient = line;
+        }
         this.shadowRoot.querySelector("fea-renderer").updateLineInRenderer = line;
         event.stopPropagation();
     }
@@ -270,7 +310,9 @@ class FeaApp extends HTMLElement {
             this.updateToolBarActionId();
         }
         const line = { number: event.detail.line_data.number };
-        this.querySelector("fea-preprocessor-menu").deleteLineFromClient = line;
+        if (this.querySelector("fea-preprocessor-menu") !== null) {
+            this.querySelector("fea-preprocessor-menu").deleteLineFromClient = line;
+        }
         this.shadowRoot.querySelector("fea-renderer").deleteLineFromRenderer = line;
         event.stopPropagation();
     }
@@ -285,7 +327,9 @@ class FeaApp extends HTMLElement {
             name: event.detail.material_data.name,
             youngModulus: event.detail.material_data.young_modulus,
             poissonRatio: event.detail.material_data.poisson_ratio };
-        this.querySelector("fea-preprocessor-menu").addMaterialToClient = material;
+        if (this.querySelector("fea-preprocessor-menu") !== null) {
+            this.querySelector("fea-preprocessor-menu").addMaterialToClient = material;
+        }
         event.stopPropagation();
     }
 
@@ -300,7 +344,9 @@ class FeaApp extends HTMLElement {
             name: event.detail.material_data.name,
             youngModulus: event.detail.material_data.young_modulus,
             poissonRatio: event.detail.material_data.poisson_ratio };
-        this.querySelector("fea-preprocessor-menu").updateMaterialInClient = material;
+        if (this.querySelector("fea-preprocessor-menu") !== null) {
+            this.querySelector("fea-preprocessor-menu").updateMaterialInClient = material;
+        }
         event.stopPropagation();
     }
 
@@ -311,7 +357,9 @@ class FeaApp extends HTMLElement {
             this.updateToolBarActionId();
         }
         const material = { number: event.detail.material_data.name };
-        this.querySelector("fea-preprocessor-menu").deleteMaterialFromClient = material;
+        if (this.querySelector("fea-preprocessor-menu") !== null) {
+            this.querySelector("fea-preprocessor-menu").deleteMaterialFromClient = material;
+        }
         event.stopPropagation();
     }
 
@@ -325,7 +373,9 @@ class FeaApp extends HTMLElement {
             name: event.detail.truss_section_data.name,
             area: event.detail.truss_section_data.area,
             area2: event.detail.truss_section_data.area2 };
-        this.querySelector("fea-preprocessor-menu").addTrussSectionToClient = trussSection;
+        if (this.querySelector("fea-preprocessor-menu") !== null) {
+            this.querySelector("fea-preprocessor-menu").addTrussSectionToClient = trussSection;
+        }
         event.stopPropagation();
     }
 
@@ -339,7 +389,9 @@ class FeaApp extends HTMLElement {
             name: event.detail.truss_section_data.name,
             area: event.detail.truss_section_data.area,
             area2: event.detail.truss_section_data.area2 };
-        this.querySelector("fea-preprocessor-menu").updateTrussSectionInClient = trussSection;
+        if (this.querySelector("fea-preprocessor-menu") !== null) {
+            this.querySelector("fea-preprocessor-menu").updateTrussSectionInClient = trussSection;
+        }
         event.stopPropagation();
     }
 
@@ -350,7 +402,9 @@ class FeaApp extends HTMLElement {
             this.updateToolBarActionId();
         }
         const trussSection = { number: event.detail.truss_section_data.name };
-        this.querySelector("fea-preprocessor-menu").deleteTrussSectionFromClient = trussSection;
+        if (this.querySelector("fea-preprocessor-menu") !== null) {
+            this.querySelector("fea-preprocessor-menu").deleteTrussSectionFromClient = trussSection;
+        }
         event.stopPropagation();
     }
 
@@ -367,7 +421,9 @@ class FeaApp extends HTMLElement {
             I22: event.detail.beam_section_data.i22,
             I12: event.detail.beam_section_data.i12,
             It: event.detail.beam_section_data.it };
-        this.querySelector("fea-preprocessor-menu").addBeamSectionToClient = beamSection;
+        if (this.querySelector("fea-preprocessor-menu") !== null) {
+            this.querySelector("fea-preprocessor-menu").addBeamSectionToClient = beamSection;
+        }
         event.stopPropagation();
     }
 
@@ -384,7 +440,9 @@ class FeaApp extends HTMLElement {
             I22: event.detail.beam_section_data.i22,
             I12: event.detail.beam_section_data.i12,
             It: event.detail.beam_section_data.it };
-        this.querySelector("fea-preprocessor-menu").updateBeamSectionInClient = beamSection;
+        if (this.querySelector("fea-preprocessor-menu") !== null) {
+            this.querySelector("fea-preprocessor-menu").updateBeamSectionInClient = beamSection;
+        }
         event.stopPropagation();
     }
 
@@ -395,7 +453,9 @@ class FeaApp extends HTMLElement {
             this.updateToolBarActionId();
         }
         const beamSection = { number: event.detail.beam_section_data.name };
-        this.querySelector("fea-preprocessor-menu").deleteBeamSectionFromClient = beamSection;
+        if (this.querySelector("fea-preprocessor-menu") !== null) {
+            this.querySelector("fea-preprocessor-menu").deleteBeamSectionFromClient = beamSection;
+        }
         event.stopPropagation();
     }
 

@@ -197,6 +197,12 @@ class FeaPropertiesMenu extends HTMLElement {
         this.deletePropertiesFromChildren(properties);
     }
 
+    set selectLineInClientForPropertiesAssign(lineNumber) {
+        if (this.querySelector("fea-properties-assign-properties-menu") !== null) {
+            this.querySelector("fea-properties-assign-properties-menu").selectLineInClientForPropertiesAssign = lineNumber;
+        }
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {
@@ -275,6 +281,7 @@ class FeaPropertiesMenu extends HTMLElement {
                     const properties = this.props.properties[i];
                     this.querySelector("fea-properties-delete-properties-menu").addPropertiesToClient = properties;
                 }
+                break;
             case "properties-assign-properties-menu":
                 const feaPropertiesAssignPropertiesMenu = document.createElement("fea-properties-assign-properties-menu");
                 this.append(feaPropertiesAssignPropertiesMenu);

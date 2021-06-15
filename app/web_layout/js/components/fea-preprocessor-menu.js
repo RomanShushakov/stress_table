@@ -141,6 +141,12 @@ class FeaPreprocessorMenu extends HTMLElement {
         }
     }
 
+    set selectLineInClientForPropertiesAssign(lineNumber) {
+        if (this.querySelector("fea-properties-menu") !== null) {
+            this.querySelector("fea-properties-menu").selectLineInClientForPropertiesAssign = lineNumber;
+        }
+    }
+
     set addMaterialToClient(material) {
         this.props.materials.push(material);
         this.props.materials.sort((a, b) => a.name - b.name);

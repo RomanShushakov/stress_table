@@ -63,6 +63,7 @@ const REDO_MESSAGE_HEADER: &str = "redo";
 
 const SELECTED_POINT_NUMBER_MESSAGE_HEADER: &str = "selected_point_number";
 const SELECTED_LINE_NUMBER_MESSAGE_HEADER: &str = "selected_line_number";
+const SELECTED_LINES_NUMBERS_MESSAGE_HEADER: &str = "selected_lines_numbers";
 
 const CHANGE_VIEW_MESSAGE_HEADER: &str = "change_view";
 
@@ -219,6 +220,7 @@ impl ActionsRouter
                     },
                     ActionType::ShowPointInfo(_, _) => (),
                     ActionType::ShowLineInfo(_, _) => (),
+                    ActionType::ShowLinesInfo(_, _) => (),
                     ActionType::ChangeView(_, _) => (),
                 ActionType::PropertiesActionType(properties_action_type) =>
                     {
@@ -432,6 +434,27 @@ impl ActionsRouter
     }
 
 
+    fn handle_selected_lines_numbers_message(&mut self, selected_lines_numbers: &Value,
+        show_object_info_handle: &js_sys::Function) -> Result<(), JsValue>
+    {
+        // let lines_numbers  = selected_lines_numbers.as_array()
+        //     .ok_or(JsValue::from("Actions router: Show lines info action: \
+        //         Lines numbers could not be extracted!"))?
+        //     .iter()
+        //     .filter_map(|line_number| line_number.to_string().parse::<u32>().ok())
+        //     .collect::<Vec<u32>>();
+        let lines_numbers = JsValue::from_serde(selected_lines_numbers)
+            .or(Err(JsValue::from("Actions router: Show lines info action: \
+                Lines numbers could not be extracted!")))?;
+        let action_id = 0;
+        let action_type = ActionType::ShowLinesInfo(lines_numbers, show_object_info_handle.clone());
+        let action = Action::create(action_id, action_type);
+        let add_to_active_actions = false;
+        self.current_action = Some((action, add_to_active_actions));
+        Ok(())
+    }
+
+
     fn handle_change_view_message(&mut self, view: &Value, change_view_handle: &js_sys::Function)
     {
         let selected_view = view["selectedView"].to_string();
@@ -585,6 +608,13 @@ impl ActionsRouter
                             show_line_info_from_geometry(*line_number)?;
                         let this = JsValue::null();
                         let _ = show_object_info_handle.call1(&this, &line_info_from_geometry)?;
+                    },
+                ActionType::ShowLinesInfo(
+                    lines_numbers,
+                    show_object_info_handle) =>
+                    {
+                        let this = JsValue::null();
+                        let _ = show_object_info_handle.call1(&this, &lines_numbers)?;
                     },
                 ActionType::ChangeView(
                     selected_view_name,
@@ -894,6 +924,13 @@ impl ActionsRouter
                 show_object_info_handle)?;
             is_auxiliary = true;
         }
+        else if let Some(selected_lines_numbers) =
+            serialized_message.get(SELECTED_LINES_NUMBERS_MESSAGE_HEADER)
+        {
+            self.handle_selected_lines_numbers_message(&selected_lines_numbers,
+                show_object_info_handle)?;
+            is_auxiliary = true;
+        }
         else if let Some(view) = serialized_message.get(CHANGE_VIEW_MESSAGE_HEADER)
         {
             self.handle_change_view_message(&view, change_view_handle);
@@ -906,13 +943,13 @@ impl ActionsRouter
         }
         self.handle_current_action()?;
 
-        if to_cache && !is_auxiliary
-        {
-            spawn_local(async
-            {
-                add_to_cache(message).await.unwrap_throw();
-            });
-        }
+        // if to_cache && !is_auxiliary
+        // {
+        //     spawn_local(async
+        //     {
+        //         add_to_cache(message).await.unwrap_throw();
+        //     });
+        // }
 
         for action in &self.active_actions
         {

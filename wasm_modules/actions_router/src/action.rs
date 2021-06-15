@@ -1,3 +1,5 @@
+use wasm_bindgen::JsValue;
+
 #[derive(Clone, Debug)]
 pub struct Coordinates
 {
@@ -118,6 +120,9 @@ pub enum ActionType
 
     // ( number, show_object_info_handle )
     ShowLineInfo(u32, js_sys::Function),
+
+    // ( numbers, show_object_info_handle )
+    ShowLinesInfo(JsValue, js_sys::Function),
 
     // ( name, change_view_handle )
     ChangeView(String, js_sys::Function),

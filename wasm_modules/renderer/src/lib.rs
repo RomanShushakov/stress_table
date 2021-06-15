@@ -65,6 +65,14 @@ pub type ElementsNumbers = u32;
 pub type ElementsValues = f32;
 
 const EVENT_TARGET: &str = "fea-app";
+const SELECTED_POINT_NUMBER_MESSAGE_HEADER: &str = "selected_point_number";
+const SELECTED_NODE_NUMBER_MESSAGE_HEADER: &str = "selected_node_number";
+const SELECTED_LINE_NUMBER_MESSAGE_HEADER: &str = "selected_line_number";
+const SELECTED_LINE_ELEMENT_NUMBER_MESSAGE_HEADER: &str = "selected_line_element_number";
+const SELECTED_POINTS_NUMBERS_MESSAGE_HEADER: &str = "selected_points_numbers";
+const SELECTED_NODES_NUMBERS_MESSAGE_HEADER: &str = "selected_nodes_numbers";
+const SELECTED_LINES_NUMBERS_MESSAGE_HEADER: &str = "selected_lines_numbers";
+const SELECTED_LINE_ELEMENTS_NUMBERS_MESSAGE_HEADER: &str = "selected_line_elements_numbers";
 const CLIENT_MESSAGE_EVENT_NAME: &str = "clientMessage";
 
 
@@ -304,45 +312,129 @@ impl Renderer
             .chunks(4)
             .map(|chunk| <[u8; 4]>::try_from(chunk).unwrap())
             .collect::<HashSet<[u8; 4]>>();
-        if self.state.selected_colors.len() == 1
+        let mut selected_points_numbers = Vec::new();
+        let mut selected_nodes_numbers = Vec::new();
+        let mut selected_lines_numbers = Vec::new();
+        let mut selected_line_elements_numbers = Vec::new();
+        for selected_color in self.state.selected_colors.iter()
         {
-            let selected_color = self.state.selected_colors.iter()
-                .collect::<Vec<&[u8; 4]>>()[0];
             for (point_object_key, point_object) in
                 self.props.point_objects.iter()
             {
                 if point_object.uid_same(u32::from_be_bytes(*selected_color))
                 {
                     let selected_point_object_number = point_object_key.get_number();
-                    let selected_point_object_type = point_object_key.get_object_type()
-                        .as_str().to_lowercase();
-                    let detail_header = &format!("selected_{}_number", selected_point_object_type);
-                    let detail =
-                        json!({ "message": { detail_header: selected_point_object_number } });
-                    dispatch_custom_event(detail, CLIENT_MESSAGE_EVENT_NAME,
-                        EVENT_TARGET)?;
-                    return Ok(());
+                    let selected_point_object_type =
+                        point_object_key.get_object_type();
+                    match selected_point_object_type
+                    {
+                        PointObjectType::Point =>
+                            selected_points_numbers.push(selected_point_object_number),
+                        PointObjectType::Node =>
+                            selected_nodes_numbers.push(selected_point_object_number),
+                    }
                 }
             }
-            for (line_object_key, line_object) in self.state.line_objects.iter()
+            for (line_object_key, line_object) in
+                self.state.line_objects.iter()
             {
                 if line_object.uid_same(u32::from_be_bytes(*selected_color))
                 {
                     let selected_line_object_number = line_object_key.get_number();
-                    let selected_line_object_type = line_object_key.get_object_type()
-                        .as_str().to_lowercase();
-                    let detail_header = &format!("selected_{}_number", selected_line_object_type);
-                    let detail =
-                        json!({ "message": { detail_header: selected_line_object_number } });
-                    dispatch_custom_event(detail, CLIENT_MESSAGE_EVENT_NAME,
-                        EVENT_TARGET)?;
-                    return Ok(());
+                    let selected_line_object_type = line_object_key.get_object_type();
+                    match selected_line_object_type
+                    {
+                        LineObjectType::Line =>
+                            selected_lines_numbers.push(selected_line_object_number),
+                        LineObjectType::Element =>
+                            selected_line_elements_numbers.push(selected_line_object_number),
+                    }
                 }
             }
+        }
+        if selected_points_numbers.len() + selected_nodes_numbers.len() +
+            selected_lines_numbers.len() + selected_line_elements_numbers.len() == 1
+        {
+            return if !selected_points_numbers.is_empty()
+            {
+                let detail_header = SELECTED_POINT_NUMBER_MESSAGE_HEADER;
+                let detail =
+                    json!({ "message": { detail_header: selected_points_numbers[0] } });
+                dispatch_custom_event(detail, CLIENT_MESSAGE_EVENT_NAME,
+                    EVENT_TARGET)?;
+                Ok(())
+            }
+            else if !selected_nodes_numbers.is_empty()
+            {
+                let detail_header = SELECTED_NODE_NUMBER_MESSAGE_HEADER;
+                let detail =
+                    json!({ "message": { detail_header: selected_nodes_numbers[0] } });
+                dispatch_custom_event(detail, CLIENT_MESSAGE_EVENT_NAME,
+                    EVENT_TARGET)?;
+                Ok(())
+            }
+            else if !selected_lines_numbers.is_empty()
+            {
+                let detail_header = SELECTED_LINE_NUMBER_MESSAGE_HEADER;
+                let detail =
+                    json!({ "message": { detail_header: selected_lines_numbers[0] } });
+                dispatch_custom_event(detail, CLIENT_MESSAGE_EVENT_NAME,
+                    EVENT_TARGET)?;
+                Ok(())
+            }
+            else
+            {
+                let detail_header = SELECTED_LINE_ELEMENT_NUMBER_MESSAGE_HEADER;
+                let detail =
+                    json!({ "message": { detail_header: selected_lines_numbers[0] } });
+                dispatch_custom_event(detail, CLIENT_MESSAGE_EVENT_NAME,
+                    EVENT_TARGET)?;
+                Ok(())
+            }
+        }
+        else if selected_points_numbers.len() + selected_nodes_numbers.len() +
+            selected_lines_numbers.len() + selected_line_elements_numbers.len() > 1
+        {
+            if !selected_points_numbers.is_empty()
+            {
+                let detail_header = SELECTED_POINTS_NUMBERS_MESSAGE_HEADER;
+                let detail =
+                    json!({ "message": { detail_header: selected_points_numbers } });
+                dispatch_custom_event(detail, CLIENT_MESSAGE_EVENT_NAME,
+                    EVENT_TARGET)?;
+            }
+            if !selected_nodes_numbers.is_empty()
+            {
+                let detail_header = SELECTED_NODES_NUMBERS_MESSAGE_HEADER;
+                let detail =
+                    json!({ "message": { detail_header: selected_nodes_numbers } });
+                dispatch_custom_event(detail, CLIENT_MESSAGE_EVENT_NAME,
+                    EVENT_TARGET)?;
+            }
+            if !selected_lines_numbers.is_empty()
+            {
+                let detail_header = SELECTED_LINES_NUMBERS_MESSAGE_HEADER;
+                let detail =
+                    json!({ "message": { detail_header: selected_lines_numbers } });
+                dispatch_custom_event(detail, CLIENT_MESSAGE_EVENT_NAME,
+                    EVENT_TARGET)?;
+            }
+            if !selected_line_elements_numbers.is_empty()
+            {
+                let detail_header = SELECTED_LINE_ELEMENTS_NUMBERS_MESSAGE_HEADER;
+                let detail =
+                    json!({ "message": { detail_header: selected_line_elements_numbers } });
+                dispatch_custom_event(detail, CLIENT_MESSAGE_EVENT_NAME,
+                    EVENT_TARGET)?;
+            }
+            return Ok(());
+        }
+        else
+        {
             let this = JsValue::null();
             let _ = drop_selection.call0(&this);
+            Ok(())
         }
-        Ok(())
     }
 
 

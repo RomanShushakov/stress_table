@@ -1,6 +1,7 @@
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use serde_json::json;
+use serde_json::Value;
 use std::collections::HashMap;
 
 mod material;
@@ -23,6 +24,7 @@ const ADD_BEAM_SECTION_EVENT_NAME: &str = "add_beam_section_server_message";
 const UPDATE_BEAM_SECTION_EVENT_NAME: &str = "update_beam_section_server_message";
 const DELETE_BEAM_SECTION_EVENT_NAME: &str = "delete_beam_section_server_message";
 
+const DELETED_LINE_NUMBERS_MESSAGE_HEADER: &str = "deleted_line_numbers";
 
 #[wasm_bindgen]
 extern "C"
@@ -169,20 +171,10 @@ impl DeletedCrossSection
 }
 
 
-enum PropertyStatus
-{
-    Free,
-
-    // Assigned((line_numbers, Option<beam_section_orientation>))
-    Assigned((Vec<u32>, Option<[f64; 3]>)),
-}
-
-
 struct Property
 {
     material_name: String,
     cross_section_key: CrossSectionKey,
-    status: PropertyStatus,
 }
 
 
@@ -190,8 +182,7 @@ impl Property
 {
     fn create(material_name: String, cross_section_key: CrossSectionKey) -> Self
     {
-        let status = PropertyStatus::Free;
-        Property { material_name, cross_section_key, status }
+        Property { material_name, cross_section_key }
     }
 }
 
@@ -200,6 +191,39 @@ struct DeletedProperty
 {
     name: String,
     property: Property,
+}
+
+
+struct AssignedProperties
+{
+    line_numbers: Vec<u32>,
+}
+
+
+struct ChangedAssignedProperties
+{
+    property_name: String,
+    line_numbers: Vec<u32>,
+}
+
+
+struct BeamSectionOrientationKey
+{
+    property_name: String,
+    local_axis_1_direction: [f32; 3]
+}
+
+
+struct BeamSectionOrientation
+{
+    line_numbers: Vec<u32>,
+}
+
+
+struct ChangedBeamSectionOrientation
+{
+    beam_section_orientation_key: BeamSectionOrientationKey,
+    beam_section_orientation: BeamSectionOrientation,
 }
 
 
@@ -212,6 +236,10 @@ pub struct Properties
     deleted_cross_sections: HashMap<u32, DeletedCrossSection>,  // { action_id: DeletedCrossSection }
     properties: HashMap<String, Property>,  // { property_name: Property }
     deleted_properties: HashMap<u32, DeletedProperty>,  // { action_id: DeletedProperty }
+    assigned_properties: HashMap<String, AssignedProperties>, // { property_name: AssignedProperties }
+    changed_assigned_properties: HashMap<u32, ChangedAssignedProperties>,   // { action_id: ChangedAssignedProperties }
+    beam_sections_orientations: HashMap<BeamSectionOrientationKey, BeamSectionOrientation>,
+    changed_beam_sections_orientations: HashMap<u32, ChangedBeamSectionOrientation>,    // { action_id: ChangedBeamSectionOrientation }
 }
 
 
@@ -226,8 +254,15 @@ impl Properties
         let deleted_cross_sections = HashMap::new();
         let properties = HashMap::new();
         let deleted_properties = HashMap::new();
+        let assigned_properties = HashMap::new();
+        let changed_assigned_properties = HashMap::new();
+        let beam_sections_orientations = HashMap::new();
+        let changed_beam_sections_orientations = HashMap::new();
         Properties { materials, deleted_materials, cross_sections,
-            deleted_cross_sections, properties, deleted_properties }
+            deleted_cross_sections, properties, deleted_properties,
+            assigned_properties, changed_assigned_properties,
+            beam_sections_orientations, changed_beam_sections_orientations,
+        }
     }
 
 
@@ -586,5 +621,61 @@ impl Properties
                 Beam section with name {} does not exist!", name);
             return Err(JsValue::from(error_message));
         }
+    }
+
+
+    pub fn delete_line_numbers(&mut self, action_id: u32, line_numbers: JsValue)
+        -> Result<(), JsValue>
+    {
+        self.clear_deleted_materials_by_action_id(action_id);
+        self.clear_deleted_cross_sections_by_action_id(action_id);
+        let serialized_deleted_line_numbers: Value = line_numbers
+            .into_serde()
+            .or(Err(JsValue::from(
+            "Properties: Deleted line numbers could not be serialized!")))?;
+        if let Some(deleted_line_numbers) = serialized_deleted_line_numbers
+            .get(DELETED_LINE_NUMBERS_MESSAGE_HEADER)
+        {
+            if let Some(line_numbers) = deleted_line_numbers.as_array()
+            {
+                if !line_numbers.is_empty()
+                {
+                    for line_number in line_numbers
+                    {
+                        let parsed_line_number = line_number.to_string()
+                            .parse::<u32>()
+                            .or(Err(JsValue::from("Properties: Deleted line number: \
+                                could not be converted to u32!")))?;
+                        log(&format!("deleted line number in properties: {:?}", parsed_line_number));
+                    }
+                }
+            }
+        }
+        Ok(())
+        // let cross_section_type = CrossSectionType::Beam;
+        // let cross_section_key = CrossSectionKey::create(
+        //     name, cross_section_type);
+        // if let Some((cross_section_key, cross_section)) =
+        //     self.cross_sections.remove_entry(&cross_section_key)
+        // {
+        //     let deleted_cross_section = DeletedCrossSection::create(
+        //         cross_section_key, cross_section);
+        //     let detail = json!({ "beam_section_data": { "name": name },
+        //         "is_action_id_should_be_increased": is_action_id_should_be_increased });
+        //     self.deleted_cross_sections.insert(action_id, deleted_cross_section);
+        //     dispatch_custom_event(detail, DELETE_BEAM_SECTION_EVENT_NAME,
+        //         EVENT_TARGET)?;
+        //     log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
+        //         cross sections: {:?}, deleted cross sections: {:?}",
+        //         self.materials, self.deleted_materials,
+        //         self.cross_sections, self.deleted_cross_sections));
+        //     Ok(())
+        // }
+        // else
+        // {
+        //     let error_message = &format!("Properties: Delete beam section action: \
+        //         Beam section with name {} does not exist!", name);
+        //     return Err(JsValue::from(error_message));
+        // }
     }
 }

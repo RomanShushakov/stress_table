@@ -123,6 +123,15 @@ class CommunicatorWithProperties {
         }
     }
 
+    set deleteLineNumbersFromProperties(lineNumbersData) {
+        try {
+            this.state.properties.delete_line_numbers(lineNumbersData.actionId,
+                lineNumbersData.lineNumbers);
+        } catch (error) {
+            throw error;
+        }
+    }
+
     set clearPropertiesModuleByActionId(actionId) {
         this.state.properties.clear_properties_module_by_action_id(actionId);
     }

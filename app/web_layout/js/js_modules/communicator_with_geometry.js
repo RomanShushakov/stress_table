@@ -5,6 +5,7 @@ class CommunicatorWithGeometry {
         this.state = {
             geometry: null,         // wasm module "actions_router";
             objectInfo: null,       // String;
+            deletedLineNumbers: [], // array of: [u32...];
         };
 
         this.initGeometry();
@@ -35,7 +36,9 @@ class CommunicatorWithGeometry {
 
     set deletePointFromGeometry(pointData) {
         try {
-            this.state.geometry.delete_point(pointData.actionId, pointData.number, pointData.isActionIdShouldBeIncreased);
+            const deletedLineNumbers = this.state.geometry.delete_point(pointData.actionId,
+                pointData.number, pointData.isActionIdShouldBeIncreased);
+            this.deletedLineNumbers = deletedLineNumbers;
         } catch (error) {
             throw error;
         }

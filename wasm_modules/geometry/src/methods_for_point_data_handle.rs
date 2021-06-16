@@ -6,7 +6,7 @@ use crate::{log, dispatch_custom_event};
 use crate::
 {
     EVENT_TARGET, ADD_POINT_EVENT_NAME, UPDATE_POINT_EVENT_NAME, DELETE_POINT_EVENT_NAME,
-    ADD_LINE_EVENT_NAME, DELETE_LINE_EVENT_NAME
+    ADD_LINE_EVENT_NAME, DELETE_LINE_EVENT_NAME, DELETED_LINE_NUMBERS_MESSAGE_HEADER
 };
 
 
@@ -76,21 +76,32 @@ impl Geometry
 
 
     pub fn delete_point(&mut self, action_id: u32, number: u32,
-        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+        is_action_id_should_be_increased: bool) -> Result<JsValue, JsValue>
     {
+        let mut deleted_line_numbers = Vec::new();
         self.clear_deleted_lines_by_action_id(action_id);
         self.clear_deleted_points_by_action_id(action_id);
-        if let Some(lines_numbers) = self.points_in_lines.remove(&number)
+        if let Some(line_numbers) = self.points_in_lines.remove(&number)
         {
             let mut current_deleted_lines = Vec::new();
-            for line_number in lines_numbers.iter()
+            for line_number in line_numbers.iter()
             {
+                for remained_line_numbers in self.points_in_lines.values_mut()
+                {
+                    if let Some(position) = remained_line_numbers
+                        .iter()
+                        .position(|remained_line_number| remained_line_number == line_number)
+                    {
+                        remained_line_numbers.remove(position);
+                    }
+                }
                 let line = self.lines.remove(&line_number).unwrap();
                 let deleted_line = DeletedLine::create(*line_number, line);
                 current_deleted_lines.push(deleted_line);
                 let detail = json!({ "line_data": { "number": line_number },
                     "is_action_id_should_be_increased": false });
                 dispatch_custom_event(detail, DELETE_LINE_EVENT_NAME, EVENT_TARGET)?;
+                deleted_line_numbers.push(*line_number);
             }
             if !current_deleted_lines.is_empty()
             {
@@ -104,10 +115,15 @@ impl Geometry
             let detail = json!({ "point_data": { "number": number },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, DELETE_POINT_EVENT_NAME, EVENT_TARGET)?;
+            let composed_deleted_line_numbers =
+                json!({ DELETED_LINE_NUMBERS_MESSAGE_HEADER: deleted_line_numbers });
+            let line_numbers = JsValue::from_serde(&composed_deleted_line_numbers)
+                .or(Err(JsValue::from("Geometry: Delete point info: Deleted line numbers \
+                    composed!")))?;
             log(&format!("Geometry: Points: {:?}, Lines: {:?}, Points in \
                 lines: {:?}, Deleted points: {:?}, Deleted lines {:?}", self.points,
                 self.lines, self.points_in_lines, self.deleted_points, self.deleted_lines));
-            Ok(())
+            Ok(line_numbers)
         }
         else
         {

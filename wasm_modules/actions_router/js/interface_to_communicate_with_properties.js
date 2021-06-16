@@ -126,6 +126,16 @@ export function restoreBeamSectionInProperties(actionId, name, isActionIdShouldB
     }
 }
 
+export function deleteLineNumbersFromProperties(actionId, lineNumbers) 
+{
+    const lineNumbersData = { "actionId": actionId, "lineNumbers": lineNumbers };
+    try {
+        communicatorWithProperties.deleteLineNumbersFromProperties = lineNumbersData;
+    } catch (error) {
+        throw error;
+    }
+}
+
 export function clearPropertiesModuleByActionId(actionId) {
     communicatorWithProperties.clearPropertiesModuleByActionId = actionId;
 }

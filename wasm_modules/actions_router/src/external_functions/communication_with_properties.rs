@@ -54,6 +54,10 @@ extern "C"
     pub fn restore_beam_section_in_properties(action_id: u32, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
+    #[wasm_bindgen(js_name = deleteLineNumbersFromProperties, catch)]
+    pub fn delete_line_numbers_from_properties(action_id: u32, line_numbers: JsValue)
+        -> Result<(), JsValue>;
+
     #[wasm_bindgen(js_name = clearPropertiesModuleByActionId)]
     pub fn clear_properties_module_by_action_id(action_id: u32);
 }

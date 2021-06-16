@@ -14,7 +14,7 @@ extern "C"
 
     #[wasm_bindgen(js_name = deletePointFromGeometry, catch)]
     pub fn delete_point_from_geometry(action_id: u32, number: u32,
-        is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
+        is_action_id_should_be_increased: bool) -> Result<JsValue, JsValue>;
 
     #[wasm_bindgen(js_name = restorePointInGeometry, catch)]
     pub fn restore_point_in_geometry(action_id: u32, number: u32,

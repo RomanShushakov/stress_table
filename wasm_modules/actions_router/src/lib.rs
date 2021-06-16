@@ -27,7 +27,7 @@ use external_functions::communication_with_properties::
     delete_truss_section_from_properties, restore_truss_section_in_properties,
     add_beam_section_to_properties, update_beam_section_in_properties,
     delete_beam_section_from_properties, restore_beam_section_in_properties,
-    clear_properties_module_by_action_id,
+    clear_properties_module_by_action_id, delete_line_numbers_from_properties,
 };
 
 mod action;
@@ -437,12 +437,6 @@ impl ActionsRouter
     fn handle_selected_lines_numbers_message(&mut self, selected_lines_numbers: &Value,
         show_object_info_handle: &js_sys::Function) -> Result<(), JsValue>
     {
-        // let lines_numbers  = selected_lines_numbers.as_array()
-        //     .ok_or(JsValue::from("Actions router: Show lines info action: \
-        //         Lines numbers could not be extracted!"))?
-        //     .iter()
-        //     .filter_map(|line_number| line_number.to_string().parse::<u32>().ok())
-        //     .collect::<Vec<u32>>();
         let lines_numbers = JsValue::from_serde(selected_lines_numbers)
             .or(Err(JsValue::from("Actions router: Show lines info action: \
                 Lines numbers could not be extracted!")))?;
@@ -517,8 +511,11 @@ impl ActionsRouter
                                 is_action_id_should_be_increased) =>
                                 {
                                     clear_properties_module_by_action_id(action_id);
-                                    delete_point_from_geometry(action_id, *point_number,
-                                        *is_action_id_should_be_increased)?;
+                                    let deleted_line_numbers_from_geometry =
+                                        delete_point_from_geometry(action_id, *point_number,
+                                            *is_action_id_should_be_increased)?;
+                                    delete_line_numbers_from_properties(action_id,
+                                        deleted_line_numbers_from_geometry)?;
                                     if *add_to_active_actions
                                     {
                                         self.active_actions.push(action.clone());

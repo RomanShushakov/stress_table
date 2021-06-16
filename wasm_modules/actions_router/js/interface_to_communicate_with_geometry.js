@@ -27,6 +27,8 @@ export function deletePointFromGeometry(actionId, number, isActionIdShouldBeIncr
     const pointData = { "actionId": actionId, "number": number, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
     try {
         communicatorWithGeometry.deletePointFromGeometry = pointData;
+        const deletedLineNumbers = communicatorWithGeometry.deletedLineNumbers;
+        return deletedLineNumbers;
     } catch (error) {
         throw error;
     }

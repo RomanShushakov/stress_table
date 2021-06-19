@@ -405,7 +405,7 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
                             <button class="clear-button">Clear</button>
                         </div>
                     </div>
-                    <input class="selected-lines" type="text"/>
+                    <input class="selected-lines" type="text" placeholder="ex 1, 2, ..., etc."/>
                 </div>
 
                 <div class="selected-lines-field-buttons">
@@ -420,7 +420,7 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
                             <button class="preview-button">Preview</button>
                         </div>
                     </div>
-                    <textarea class="assign-to-lines" type="text"/></textarea>
+                    <textarea class="assign-to-lines" type="text" placeholder="ex 1, 2, ..., etc."/></textarea>
                 </div>
 
                 <div class="apply-cancel-buttons">

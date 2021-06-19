@@ -365,7 +365,7 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
 
             <div class=wrapper>
                 <div class="properties-name-field-content">
-                    <p class="properties-name-caption">Propertes name</p>
+                    <p class="properties-name-caption">Properties name</p>
                     <input class="properties-name" type="text"/>
                 </div>
 

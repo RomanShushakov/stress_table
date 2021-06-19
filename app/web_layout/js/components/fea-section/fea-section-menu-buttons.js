@@ -158,7 +158,7 @@ class FeaSectionMenuButtons extends HTMLElement {
                             <svg class="section-truss-menu-button-icon" width="50" height="37" viewBox="0 0 50 37" fill="none" 
                                 xmlns="http://www.w3.org/2000/svg"
                             >
-                                <title>Truss</title>
+                                <title>Truss section</title>
                                 <g stroke="currentColor">
                                     <path d="M16.0991 1L4.09842 25.9567H26.0306M16.0991 1L26.0306 25.9567M16.0991 
                                         1H37.2036M26.0306 25.9567L37.2036 1M26.0306 25.9567H46.7214L37.2036 1"
@@ -216,7 +216,7 @@ class FeaSectionMenuButtons extends HTMLElement {
                             <svg class="section-beam-menu-button-icon" width="53" height="36" viewBox="0 0 53 36" fill="none" 
                                 xmlns="http://www.w3.org/2000/svg"
                             >
-                                <title>Beam</title>
+                                <title>Beam section</title>
                                 <g stroke="currentColor">
                                     <path d="M2.09842 23.7126H46.7979M2.09842 7.10491H46.7979M2.09842 
                                         26.3349V4.52045H46.7979V26.3349H25.0991H2.09842Z"

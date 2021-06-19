@@ -206,7 +206,7 @@ class FeaSectionTrussMenuButtons extends HTMLElement {
                             <svg class="section-add-truss-menu-button-icon" width="35" height="35" viewBox="0 0 35 35" fill="none" 
                                 xmlns="http://www.w3.org/2000/svg"
                             >  
-                                <title>Add truss</title>
+                                <title>Add truss section</title>
                                 <g stroke="currentColor">
                                     <line x1="7" y1="17.5" x2="28" y2="17.5" stroke-width="2"/>
                                     <line x1="17.5" y1="7" x2="17.5" y2="28" stroke-width="2"/>
@@ -220,7 +220,7 @@ class FeaSectionTrussMenuButtons extends HTMLElement {
                             <svg class="section-update-truss-menu-button-icon" width="36" height="35" viewBox="0 0 36 35" fill="none" 
                                 xmlns="http://www.w3.org/2000/svg"
                             >
-                                <title>Update truss</title>
+                                <title>Update truss section</title>
                                 <g stroke="currentColor">
                                     <path d="M17.2055 8L16.9178 11.4247L14.9041 12.1096L12.3151 9.91781L10.3014 
                                         11.8356L12.4589 14.4384L11.7397 16.2192L8 16.4932V19.2329L11.5959 
@@ -252,7 +252,7 @@ class FeaSectionTrussMenuButtons extends HTMLElement {
                             <svg class="section-delete-truss-menu-button-icon" width="35" height="35" viewBox="0 0 35 35" fill="none" 
                                 xmlns="http://www.w3.org/2000/svg"
                             >
-                                <title>Delete truss</title>
+                                <title>Delete truss section</title>
                                 <g stroke="currentColor">
                                     <path d="M7.00184 9.01157C7.00087 9.0055 7.00557 9 7.01172 
                                         9H27.9885C27.9946 9 27.9993 9.00535 27.9985 9.01135L25.0012 

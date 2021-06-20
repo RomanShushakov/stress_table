@@ -210,7 +210,7 @@ struct ChangedAssignedProperties
 struct BeamSectionOrientationKey
 {
     property_name: String,
-    local_axis_1_direction: [f32; 3]
+    local_axis_1_direction: [f64; 3]
 }
 
 

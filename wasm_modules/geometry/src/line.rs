@@ -1,4 +1,7 @@
-#[derive(Debug, Copy, Clone)]
+use serde::Serialize;
+
+
+#[derive(Debug, Copy, Clone, Serialize)]
 pub struct Line
 {
     start_point_number: u32,

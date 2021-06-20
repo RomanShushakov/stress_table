@@ -1,13 +1,12 @@
-class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
+class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
     constructor() {
         super();
 
         this.props = {
             actionId: null,                 // u32;
-            lines: new Map(),               // map: { number: u32, startPointNumber: u32, endPointNumber: u32 }, ...};
-            properties: [],                 // array of: [{ name: String, materialName: String, sectionName: String,
-                                            //              sectionType: String }];
             assignedProperties: [],         // array of: [{ name: String, lineNumbers: [u32...] }];
+            beamSectionsOrientations: [],   // array of: [{ propertiesName: String, localAxis1Direction: [f64; 3],
+                                            //              lineNumbers: [u32...] }];
         };
 
         this.state = {
@@ -748,4 +747,4 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
     }
 }
 
-export default FeaPropertiesAssignPropertiesMenu;
+export default FeaPropertiesBeamSectionOrientationMenu;

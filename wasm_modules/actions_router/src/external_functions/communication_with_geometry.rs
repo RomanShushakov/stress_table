@@ -47,4 +47,10 @@ extern "C"
 
     #[wasm_bindgen(js_name = showLineInfoFromGeometry, catch)]
     pub fn show_line_info_from_geometry(number: u32) -> Result<JsValue, JsValue>;
+
+    #[wasm_bindgen(js_name = extractPoints)]
+    pub fn extract_points(handler: js_sys::Function);
+
+    #[wasm_bindgen(js_name = extractLines)]
+    pub fn extract_lines(handler: js_sys::Function);
 }

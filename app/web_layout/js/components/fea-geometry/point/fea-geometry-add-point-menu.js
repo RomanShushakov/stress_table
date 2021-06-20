@@ -343,6 +343,10 @@ class FeaGeometryAddPointMenu extends HTMLElement {
         this.props.actionId = value;
     }
 
+    set points(value) {
+        this.props.points = value;
+    }
+
     set addPointToClient(point) {
         this.props.points.set(point.number, {"x": point.x, "y": point.y, "z": point.z});
         this.defineNewPointNumber();
@@ -365,6 +369,7 @@ class FeaGeometryAddPointMenu extends HTMLElement {
                 this[propName] = value;
             }
         });
+        this.getPoints();
         this.defineNewPointNumber();
     }
 
@@ -379,6 +384,20 @@ class FeaGeometryAddPointMenu extends HTMLElement {
     }
 
     adoptedCallback() {
+    }
+
+    getActionId() {
+        this.dispatchEvent(new CustomEvent("getActionId", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getPoints() {
+        this.dispatchEvent(new CustomEvent("getPoints", {
+            bubbles: true,
+            composed: true,
+        }));
     }
 
     defineNewPointNumber() {
@@ -467,6 +486,8 @@ class FeaGeometryAddPointMenu extends HTMLElement {
                 return;
             }
         }
+
+        this.getActionId();
 
         const message = {"add_point": {
             "actionId": this.props.actionId,

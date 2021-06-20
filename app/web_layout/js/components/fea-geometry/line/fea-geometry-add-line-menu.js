@@ -5,7 +5,7 @@ class FeaGeometryAddLineMenu extends HTMLElement {
         this.props = {
             actionId: null,     // u32;
             points: new Map(),  // map: { number: u32, { x: f64, y: f64, z: f64}, ... };
-            lines: new Map(),   // map: { number: u32, startPointNumber: u32, endPointNumber: u32 }, ...};
+            lines: new Map(),   // map: { number: u32, start_point_number: u32, end_point_number: u32 }, ...};
         };
 
         this.state = {};
@@ -407,6 +407,14 @@ class FeaGeometryAddLineMenu extends HTMLElement {
         this.props.actionId = value;
     }
 
+    set points(value) {
+        this.props.points = value;
+    }
+
+    set lines(value) {
+        this.props.lines = value;
+    }
+
     set addPointToClient(point) {
         this.props.points.set(point.number, {"x": point.x, "y": point.y, "z": point.z});
         this.defineStartPointNumberOptions();
@@ -420,14 +428,14 @@ class FeaGeometryAddLineMenu extends HTMLElement {
     }
 
     set addLineToClient(line) {
-        this.props.lines.set(line.number, { "startPointNumber": line.startPointNumber, "endPointNumber": line.endPointNumber });
+        this.props.lines.set(line.number, { "start_point_number": line.start_point_number, "end_point_number": line.end_point_number });
         this.defineNewLineNumber();
         this.defineStartPointNumberOptions();
         this.defineEndPointNumberOptions();
     }
 
     set updateLineInClient(line) {
-        this.props.lines.set(line.number, { "startPointNumber": line.startPointNumber, "endPointNumber": line.endPointNumber });
+        this.props.lines.set(line.number, { "start_point_number": line.start_point_number, "end_point_number": line.end_point_number });
     }
 
     set deleteLineFromClient(line) {
@@ -445,6 +453,10 @@ class FeaGeometryAddLineMenu extends HTMLElement {
                 this[propName] = value;
             }
         });
+        this.getPoints();
+        this.getLines();
+        this.defineStartPointNumberOptions();
+        this.defineEndPointNumberOptions();
         this.defineNewLineNumber();
     }
 
@@ -459,6 +471,27 @@ class FeaGeometryAddLineMenu extends HTMLElement {
     }
 
     adoptedCallback() {
+    }
+
+    getActionId() {
+        this.dispatchEvent(new CustomEvent("getActionId", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getPoints() {
+        this.dispatchEvent(new CustomEvent("getPoints", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getLines() {
+        this.dispatchEvent(new CustomEvent("getLines", {
+            bubbles: true,
+            composed: true,
+        }));
     }
 
     defineNewLineNumber() {
@@ -555,8 +588,8 @@ class FeaGeometryAddLineMenu extends HTMLElement {
             }
         }
         const linePointNumbersInProps = Array.from(this.props.lines.values()).find(lineNumbers => 
-            (lineNumbers.startPointNumber == startPointField.value && lineNumbers.endPointNumber == endPointField.value) ||
-            (lineNumbers.startPointNumber == endPointField.value && lineNumbers.endPointNumber == startPointField.value));
+            (lineNumbers.start_point_number == startPointField.value && lineNumbers.end_point_number == endPointField.value) ||
+            (lineNumbers.start_point_number == endPointField.value && lineNumbers.end_point_number == startPointField.value));
         if (linePointNumbersInProps != null) {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
@@ -566,6 +599,7 @@ class FeaGeometryAddLineMenu extends HTMLElement {
                 return;
             }
         }
+
         if (startPointField.value === endPointField.value) {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
@@ -585,11 +619,15 @@ class FeaGeometryAddLineMenu extends HTMLElement {
                 return;
             }
         }
+
+        this.getActionId();
+
         const message = {"add_line": {
             "actionId": this.props.actionId,
             "number": newLineNumberField.value, 
             "start_point_number": startPointField.value, "end_point_number": endPointField.value
         }};
+
         this.dispatchEvent(new CustomEvent("clientMessage", {
             bubbles: true,
             composed: true,
@@ -597,6 +635,7 @@ class FeaGeometryAddLineMenu extends HTMLElement {
                 message: message,
             },
         }));
+
         this.shadowRoot.querySelector(".start-point-number-filter").value = null;
         this.shadowRoot.querySelector(".end-point-number-filter").value = null;
     }

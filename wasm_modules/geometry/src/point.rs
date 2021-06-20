@@ -1,4 +1,7 @@
-#[derive(Debug, Copy, Clone)]
+use serde::Serialize;
+
+
+#[derive(Debug, Copy, Clone, Serialize)]
 pub struct Point
 {
     x: f64,

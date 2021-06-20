@@ -3,14 +3,17 @@ class FeaPreprocessorMenu extends HTMLElement {
         super();
 
         this.props = {
-            actionId: null,     // u32;
-            points: new Map(),  // map: { number: u32, { x: f64, y: f64, z: f64}, ... };
-            lines: new Map(),   // map: { number: u32, startPointNumber: u32, endPointNumber: u32 }, ...};
-            materials: [],      // array of: [{ name: String, youngModulus: f64, poissonRatio: f64 }, ...];
-            trussSections: [],  // array of: [{ name: String, area: f64, area2: f64 or null }];
-            beamSections: [],   // array of: [{ name: String, area: f64, I11: f64, I22: f64, I12: f64, It: f64 }];
-            properties: [],     // array of: [{ name: String, materialName: String, sectionName: String,
-                                //              sectionType: String, usedIn: [u32, ...] }];
+            actionId: null,                 // u32;
+            points: new Map(),              // map: { number: u32, { x: f64, y: f64, z: f64}, ... };
+            lines: new Map(),               // map: { number: u32, startPointNumber: u32, endPointNumber: u32 }, ...};
+            materials: [],                  // array of: [{ name: String, youngModulus: f64, poissonRatio: f64 }, ...];
+            trussSections: [],              // array of: [{ name: String, area: f64, area2: f64 or null }];
+            beamSections: [],               // array of: [{ name: String, area: f64, I11: f64, I22: f64, I12: f64, It: f64 }];
+            properties: [],                 // array of: [{ name: String, materialName: String, sectionName: String,
+                                            //              sectionType: String }];
+            assignedProperties: [],         // array of: [{ name: String, lineNumbers: [u32...] }];
+            beamSectionsOrientations: [],   // array of: [{ propertiesName: String, localAxis1Direction: [f64; 3],
+                                            //              lineNumbers: [u32...] }];
         };
 
         this.state = {
@@ -47,6 +50,14 @@ class FeaPreprocessorMenu extends HTMLElement {
             ],
 
             childrenNamesForPropertiesCrud: [
+                "fea-properties-menu",
+            ],
+
+            childrenNamesForAssignedPropertiesCrud: [
+                "fea-properties-menu",
+            ],
+
+            childrenNamesForBeamSectionsOrientationsCrud: [
                 "fea-properties-menu",
             ],
         };
@@ -122,10 +133,13 @@ class FeaPreprocessorMenu extends HTMLElement {
             this.delay(0)
                 .then(() => { 
                     this.shadowRoot.querySelector("fea-preprocessor-menu-buttons").toggleButton = "geometry-menu-button";
-                 })
+                })
                 .then(async () => { this.querySelector("fea-geometry-menu").selectPointInClient = pointNumber });
         } else {
-            this.querySelector("fea-geometry-menu").selectPointInClient = pointNumber;
+            this.delay(0)
+                .then(() => { 
+                    this.querySelector("fea-geometry-menu").selectPointInClient = pointNumber;
+                });
         }
     }
 
@@ -134,16 +148,19 @@ class FeaPreprocessorMenu extends HTMLElement {
             this.delay(0)
                 .then(() => { 
                     this.shadowRoot.querySelector("fea-preprocessor-menu-buttons").toggleButton = "geometry-menu-button";
-                 })
+                })
                 .then(async () => { this.querySelector("fea-geometry-menu").selectLineInClient = lineNumber });
         } else {
-            this.querySelector("fea-geometry-menu").selectLineInClient = lineNumber;
+            this.delay(0)
+                .then(() => { 
+                    this.querySelector("fea-geometry-menu").selectLineInClient = lineNumber;
+                });
         }
     }
 
-    set selectLineInClientForPropertiesAssign(lineNumber) {
+    set selectLineInClientForDataAssign(lineNumber) {
         if (this.querySelector("fea-properties-menu") !== null) {
-            this.querySelector("fea-properties-menu").selectLineInClientForPropertiesAssign = lineNumber;
+            this.querySelector("fea-properties-menu").selectLineInClientForDataAssign = lineNumber;
         }
     }
 
@@ -216,28 +233,71 @@ class FeaPreprocessorMenu extends HTMLElement {
         this.deleteBeamSectionFromChildren(beamSection);
     }
 
-    set addPropertyToClient(property) {
-        this.props.properties.push(property);
+    set addPropertiesToClient(properties) {
+        this.props.properties.push(properties);
         this.props.properties.sort((a, b) => a.name - b.name);
-        this.addPropertyToChildren(property);
+        this.addPropertiesToChildren(properties);
     }
 
-    set updatePropertyInClient(property) {
-        let propertyInProps = this.props.properties
-            .find(existedProperty => existedProperty.name == property.name);
-        propertyInProps.materialName = property.materialName;
-        propertyInProps.sectionName = property.sectionName;
-        propertyInProps.setionType = property.sectionType;
-        propertyInProps.usedIn = property.usedIn;
-        this.updatepropertyInChildren(property);
+    set updatePropertiesInClient(properties) {
+        let propertiesInProps = this.props.properties
+            .find(existedProperties => existedProperties.name == properties.name);
+        propertiesInProps.materialName = properties.materialName;
+        propertiesInProps.sectionName = properties.sectionName;
+        propertiesInProps.setionType = properties.sectionType;
+        propertiesInProps.usedIn = properties.usedIn;
+        this.updatepropertiesInChildren(properties);
     }
 
-    set deletePropertyFromClient(property) {
-        let propertyIndexInProps = this.props.properties
-            .findIndex(existedProperty => existedProperty.name == existedProperty.name);
-        this.props.properties.splice(propertyIndexInProps, 1);
+    set deletePropertiesFromClient(properties) {
+        let propertiesIndexInProps = this.props.properties
+            .findIndex(existedProperties => existedProperties.name == properties.name);
+        this.props.properties.splice(propertiesIndexInProps, 1);
         this.props.properties.sort((a, b) => a.name - b.name);
-        this.deletePropertyFromChildren(property);
+        this.deletePropertiesFromChildren(properties);
+    }
+
+    set addAssignedPropertiesToClient(assignedProperties) {
+        this.props.assignedProperties.push(assignedProperties);
+        this.props.assignedProperties.sort((a, b) => a.name - b.name);
+        this.addAssignedPropertiesToChildren(assignedProperties);
+    }
+
+    set updateAssignedPropertiesInClient(assignedProperties) {
+        let assignedPropertiesInProps = this.props.assignedProperties
+            .find(existedAssignedProperties => existedAssignedProperties.name == assignedProperties.name);
+        assignedPropertiesInProps.lineNumbers = assignedProperties.lineNumbers;
+        this.updateAssignedPropertiesInChildren(assignedProperties);
+    }
+
+    set deleteAssignedPropertiesFromClient(assignedProperties) {
+        let assignedPropertiesIndexInProps = this.props.assignedProperties
+            .findIndex(existedAssignedProperties => existedAssignedProperties.name == assignedProperties.name);
+        this.props.assignedProperties.splice(assignedPropertiesIndexInProps, 1);
+        this.props.assignedProperties.sort((a, b) => a.name - b.name);
+        this.deleteAssignedPropertiesFromChildren(assignedProperties);
+    }
+
+    set addBeamSectionOrientationToClient(beamSectionOrientation) {
+        this.props.beamSectionsOrientations.push(beamSectionOrientation);
+        this.addBeamSectionOrientationToChildren(beamSectionOrientation);
+    }
+
+    set updateBeamSectionOrientationInClient(beamSectionOrientation) {
+        let beamSectionOrientationInProps = this.props.beamSectionsOrientations
+            .find(existedBeamSectionOrientation => 
+                existedBeamSectionOrientation.propertiesName == beamSectionOrientation.propertiesName &&
+                existedBeamSectionOrientation.localAxis1Direction == beamSectionOrientation.localAxis1Direction);
+            beamSectionOrientationInProps.lineNumbers = beamSectionOrientation.lineNumbers;
+        this.updateBeamSectionOrientationInChildren(beamSectionOrientation);
+    }
+
+    set deleteBeamSectionOrientationFromClient(beamSectionOrientation) {
+        let beamSectionOrientationIndexInProps = this.props.beamSectionsOrientations
+            .findIndex(existedBeamSectionOrientation => 
+                existedBeamSectionOrientation.propertiesName == beamSectionOrientation.propertiesName);
+        this.props.beamSectionsOrientations.splice(beamSectionOrientationIndexInProps, 1);
+        this.deleteBeamSectionOrientationFromChildren(beamSectionOrientation);
     }
 
     connectedCallback() {
@@ -334,7 +394,7 @@ class FeaPreprocessorMenu extends HTMLElement {
                 }
                 for (let i = 0; i < this.props.properties.length; i++) {
                     const property = this.props.properties[i];
-                    this.querySelector("fea-properties-menu").addPropertyToClient = property;
+                    this.querySelector("fea-properties-menu").addPropertiesToClient = property;
                 }
         }
     }
@@ -499,26 +559,50 @@ class FeaPreprocessorMenu extends HTMLElement {
         } 
     }
 
-    addPropertyToChildren(property) {
+    addPropertiesToChildren(properties) {
         for (let i = 0; i < this.state.childrenNamesForPropertiesCrud.length; i++) {
             if (this.querySelector(this.state.childrenNamesForPropertiesCrud[i]) !== null) {
-                this.querySelector(this.state.childrenNamesForPropertiesCrud[i]).addPointToChildren = property;
+                this.querySelector(this.state.childrenNamesForPropertiesCrud[i]).addPropertiesToClient = properties;
             }
         } 
     }
 
-    updatePropertyInChildren(property) {
+    updatePropertiesInChildren(properties) {
         for (let i = 0; i < this.state.childrenNamesForPropertiesCrud.length; i++) {
             if (this.querySelector(this.state.childrenNamesForPropertiesCrud[i]) !== null) {
-                this.querySelector(this.state.childrenNamesForPropertiesCrud[i]).updatePropertyInChildren = property;
+                this.querySelector(this.state.childrenNamesForPropertiesCrud[i]).updatePropertiesInClient = properties;
             }
         } 
     }
 
-    deletePropertyFromChildren(property) {
+    deletePropertiesFromChildren(properties) {
         for (let i = 0; i < this.state.childrenNamesForPropertiesCrud.length; i++) {
             if (this.querySelector(this.state.childrenNamesForPropertiesCrud[i]) !== null) {
-                this.querySelector(this.state.childrenNamesForPropertiesCrud[i]).deletePropertyFromChildren = property;
+                this.querySelector(this.state.childrenNamesForPropertiesCrud[i]).deletePropertiesFromClient = properties;
+            }
+        } 
+    }
+
+    addAssignedPropertiesToChildren(assignedProperties) {
+        for (let i = 0; i < this.state.childrenNamesForAssignedPropertiesCrud.length; i++) {
+            if (this.querySelector(this.state.childrenNamesForAssignedPropertiesCrud[i]) !== null) {
+                this.querySelector(this.state.childrenNamesForAssignedPropertiesCrud[i]).addAssignedPropertiesToClient = assignedProperties;
+            }
+        } 
+    }
+
+    updateAssignedPropertiesInChildren(assignedProperties) {
+        for (let i = 0; i < this.state.childrenNamesForAssignedPropertiesCrud.length; i++) {
+            if (this.querySelector(this.state.childrenNamesForAssignedPropertiesCrud[i]) !== null) {
+                this.querySelector(this.state.childrenNamesForAssignedPropertiesCrud[i]).updateAssignedPropertiesInClient = assignedProperties;
+            }
+        } 
+    }
+
+    deleteAssignedPropertiesFromChildren(assignedProperties) {
+        for (let i = 0; i < this.state.childrenNamesForAssignedPropertiesCrud.length; i++) {
+            if (this.querySelector(this.state.childrenNamesForAssignedPropertiesCrud[i]) !== null) {
+                this.querySelector(this.state.childrenNamesForAssignedPropertiesCrud[i]).deleteAssignedPropertiesFromClient = assignedProperties;
             }
         } 
     }

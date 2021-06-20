@@ -111,11 +111,19 @@ class CommunicatorWithGeometry {
     }
 
     set extractGeometry(isActionIdShouldBeIncreased) {
-        this.state.geometry.ectract_geometry(isActionIdShouldBeIncreased);
+        this.state.geometry.extract_geometry(isActionIdShouldBeIncreased);
     }
 
     set clearGeometryModuleByActionId(actionId) {
         this.state.geometry.clear_geometry_module_by_action_id(actionId);
+    }
+
+    set extractPoints(handler) {
+        this.state.geometry.extract_points(handler);
+    }
+
+    set extractLines(handler) {
+        this.state.geometry.extract_lines(handler);
     }
 }
 

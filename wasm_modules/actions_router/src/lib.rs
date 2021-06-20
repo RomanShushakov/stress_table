@@ -15,7 +15,8 @@ use external_functions::communication_with_geometry::
     add_line_to_geometry, update_line_in_geometry,
     delete_line_from_geometry, restore_line_in_geometry,
     show_point_info, show_line_info_from_geometry,
-    extract_geometry, clear_geometry_module_by_action_id
+    extract_geometry, clear_geometry_module_by_action_id,
+    extract_points, extract_lines,
 };
 
 
@@ -976,5 +977,15 @@ impl ActionsRouter
     {
         let is_action_id_should_be_increased = false;
         extract_geometry(is_action_id_should_be_increased);
+    }
+
+    pub fn extract_points(&self, handler: js_sys::Function)
+    {
+        extract_points(handler);
+    }
+
+    pub fn extract_lines(&self, handler: js_sys::Function)
+    {
+        extract_lines(handler);
     }
 }

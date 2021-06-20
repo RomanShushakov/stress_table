@@ -5,7 +5,7 @@ class FeaPropertiesDeletePropertiesMenu extends HTMLElement {
         this.props = {
             actionId: null,     // u32;
             properties: [],     // array of: [{ name: String, materialName: String, sectionName: String,
-                                //              sectionType: String, usedIn: [u32, ...] }];
+                                //              sectionType: String }];
         };
 
         this.state = {};

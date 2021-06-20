@@ -417,11 +417,6 @@ class FeaAppToolBar extends HTMLElement {
                                 </svg>
                             </button>
                         </li>
-
-
-
-
-
                     </ul>
                 </nav>
             </div>
@@ -463,8 +458,16 @@ class FeaAppToolBar extends HTMLElement {
     }
 
     undo() {
+        this.dispatchEvent(new CustomEvent("getActionIdForToolBar", {
+            bubbles: true,
+            composed: true,
+        }));
         if (this.props.actionId > 1) {
             this.dispatchEvent(new CustomEvent("decreaseActionId", {
+                bubbles: true,
+                composed: true,
+            }));
+            this.dispatchEvent(new CustomEvent("getActionIdForToolBar", {
                 bubbles: true,
                 composed: true,
             }));
@@ -480,6 +483,10 @@ class FeaAppToolBar extends HTMLElement {
     }
 
     redo() {
+        this.dispatchEvent(new CustomEvent("getActionIdForToolBar", {
+            bubbles: true,
+            composed: true,
+        }));
         const message = {"redo": { "actionId": this.props.actionId } };
         this.dispatchEvent(new CustomEvent("clientMessage", {
             bubbles: true,

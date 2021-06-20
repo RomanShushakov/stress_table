@@ -54,6 +54,7 @@ import FeaPropertiesAddPropertiesMenu from "./components/fea-properties/fea-prop
 import FeaPropertiesUpdatePropertiesMenu from "./components/fea-properties/fea-properties-update-properties-menu.js";
 import FeaPropertiesDeletePropertiesMenu from "./components/fea-properties/fea-properties-delete-properties-menu.js";
 import FeaPropertiesAssignPropertiesMenu from "./components/fea-properties/fea-properties-assign-properties-menu.js";
+import FeaPropertiesBeamSectionOrientationMenu from "./components/fea-properties/fea-properties-beam-section-orientation-menu.js";
 
 
 customElements.define("fea-app", FeaApp);
@@ -112,3 +113,4 @@ customElements.define("fea-properties-add-properties-menu", FeaPropertiesAddProp
 customElements.define("fea-properties-update-properties-menu", FeaPropertiesUpdatePropertiesMenu);
 customElements.define("fea-properties-delete-properties-menu", FeaPropertiesDeletePropertiesMenu);
 customElements.define("fea-properties-assign-properties-menu", FeaPropertiesAssignPropertiesMenu);
+customElements.define("fea-properties-beam-section-orientation-menu", FeaPropertiesBeamSectionOrientationMenu);

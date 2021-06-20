@@ -120,3 +120,13 @@ export function extractGeometry(isActionIdShouldBeIncreased)
 export function clearGeometryModuleByActionId(actionId) {
     communicatorWithGeometry.clearGeometryModuleByActionId = actionId;
 }
+
+export function extractPoints(handler) 
+{
+    communicatorWithGeometry.extractPoints = handler;
+}
+
+export function extractLines(handler) 
+{
+    communicatorWithGeometry.extractLines = handler;
+}

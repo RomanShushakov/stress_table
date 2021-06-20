@@ -401,6 +401,10 @@ class FeaGeometryUpdatePointMenu extends HTMLElement {
         this.props.actionId = value;
     }
 
+    set points(value) {
+        this.props.points = value;
+    }
+
     set addPointToClient(point) {
         this.props.points.set(point.number, {"x": point.x, "y": point.y, "z": point.z});
         this.definePointNumberOptions();
@@ -436,6 +440,8 @@ class FeaGeometryUpdatePointMenu extends HTMLElement {
                 this[propName] = value;
             }
         }); 
+        this.getPoints();
+        this.definePointNumberOptions();
     }
 
     disconnectedCallback() {
@@ -449,6 +455,20 @@ class FeaGeometryUpdatePointMenu extends HTMLElement {
     }
 
     adoptedCallback() {
+    }
+
+    getActionId() {
+        this.dispatchEvent(new CustomEvent("getActionId", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getPoints() {
+        this.dispatchEvent(new CustomEvent("getPoints", {
+            bubbles: true,
+            composed: true,
+        }));
     }
 
     definePointNumberOptions() {
@@ -561,13 +581,17 @@ class FeaGeometryUpdatePointMenu extends HTMLElement {
             }
         }
 
+        this.getActionId();
+
         const oldPointValues = this.props.points.get(parseInt(selectedPointNumberField.value));
+
         const message = {"update_point": {
             "actionId": this.props.actionId,
             "number": selectedPointNumberField.value, 
             "old_point_values": { "x":  oldPointValues.x, "y": oldPointValues.y, "z": oldPointValues.z },
             "new_point_values": { "x": inputtedXField.value, "y": inputtedYField.value, "z": inputtedZField.value }
         }};
+
         this.dispatchEvent(new CustomEvent("clientMessage", {
             bubbles: true,
             composed: true,

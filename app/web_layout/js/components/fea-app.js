@@ -10,7 +10,23 @@ class FeaApp extends HTMLElement {
         this.state = {
             actionId: 1,                // u32;
             actionsRouter: null,        // wasm module "actions_router";
-            assignPropertiesMenuEnabled: false,
+            linesMultipleSelectionModeEnabled: false,
+
+            pointsDataDependentMenus: [
+                "fea-geometry-add-point-menu",
+                "fea-geometry-update-point-menu",
+                "fea-geometry-delete-point-menu",
+                "fea-geometry-add-line-menu",
+                "fea-geometry-update-line-menu",
+            ],
+
+            linesDataDependentMenus: [
+                "fea-geometry-add-line-menu",
+                "fea-geometry-update-line-menu",
+                "fea-geometry-delete-line-menu",
+                "fea-properties-assign-properties-menu",
+                "fea-properties-beam-section-orientation-menu",
+            ]
         };
 
         this.attachShadow({ mode: "open" });
@@ -46,8 +62,15 @@ class FeaApp extends HTMLElement {
 
         window.addEventListener("resize", () => this.updateCanvasSize());
 
-        this.addEventListener("activate-preprocessor-menu", () => this.activatePreprocessorMenu());
+        this.addEventListener("activatePreprocessorMenu", () => this.activatePreprocessorMenu());
         this.addEventListener("activate-postprocessor", () => this.activatePostprocessor());
+
+        this.addEventListener("getActionId", (event) => this.getActionId(event));
+        this.addEventListener("getActionIdForToolBar", (event) => this.getActionIdForToolBar(event));
+
+        this.addEventListener("getPoints", (event) => this.getPoints(event));
+
+        this.addEventListener("getLines", (event) => this.getLines(event));
 
         this.addEventListener("clientMessage", (event) => this.handleClientMessage(event));
 
@@ -73,15 +96,18 @@ class FeaApp extends HTMLElement {
 
         this.addEventListener("decreaseActionId", (_event) => this.handleDecreaseActionIdMessage());
 
-        this.addEventListener("enableAssignPropertiesMenu", (event) => this.handleEnableAssignPropertiesMenuMessage(event));
+        this.addEventListener("enableLinesMultipleSelectionMode", 
+            (event) => this.handleEnableLinesMultipleSelectionModeMessage(event));
 
-        this.addEventListener("disableAssignPropertiesMenu", (event) => this.handleDisableAssignPropertiesMenuMessage(event));
+        this.addEventListener("disableLinesMultipleSelectionMode", 
+            (event) => this.handleDisableLinesMultipleSelectionModeMessage(event));
+
+        this.addEventListener("refreshPointsData", (event) => this.refreshPointsData(event));
     }
 
     async connectedCallback() {
         this.state.actionsRouter = await initializeActionsRouter();
         this.activatePreprocessorMenu();
-        this.updateToolBarActionId();
         // this.handleLoadCache();
     }
 
@@ -104,19 +130,46 @@ class FeaApp extends HTMLElement {
         }
         const feaPreprocessorMenu = document.createElement("fea-preprocessor-menu");
         this.append(feaPreprocessorMenu);
-        this.updatePreprocessorMenuActionId();
         if (this.state.actionId !== 1) {
             this.state.actionsRouter.extract_geometry();
         }
         this.updateCanvasSize();
     }
 
-    updatePreprocessorMenuActionId() {
-        this.querySelector("fea-preprocessor-menu").actionId = this.state.actionId;
+    getActionId(event) {
+        this.querySelector(event.target.tagName.toLowerCase()).actionId = this.state.actionId;
+        event.stopPropagation();
     }
 
-    updateToolBarActionId() {
+    getActionIdForToolBar(event) {
         this.shadowRoot.querySelector("fea-app-tool-bar").actionId = this.state.actionId;
+        event.stopPropagation();
+    }
+
+    getPoints(event) {
+        this.state.actionsRouter.extract_points(
+            (extractedPointsData) => { 
+                const points = new Map(Array.from(
+                    Object.entries(extractedPointsData.extracted_points), 
+                    ([key, value]) => [parseInt(key), value]
+                ));
+                this.querySelector(event.target.tagName.toLowerCase()).points = points; 
+            }
+        );
+        event.stopPropagation();
+    }
+
+    getLines(event) {
+        this.state.actionsRouter.extract_lines(
+            (extractedLinesData) => { 
+                const lines = new Map(Array.from(
+                    Object.entries(extractedLinesData.extracted_lines), 
+                    ([key, value]) => [parseInt(key), value]
+                ));
+                this.querySelector(event.target.tagName.toLowerCase()).lines = lines; 
+            }
+        );
+        event.stopPropagation();
     }
 
     activatePostprocessor() {
@@ -168,7 +221,7 @@ class FeaApp extends HTMLElement {
     }
 
     showObjectInfo(objectInfo) {
-        if (this.state.assignPropertiesMenuEnabled === false) {
+        if (this.state.linesMultipleSelectionModeEnabled === false) {
             if ("point_data" in objectInfo) {
                 const pointNumber = objectInfo.point_data.number;
                 const composedObjectInfo = `Point: 
@@ -198,12 +251,12 @@ class FeaApp extends HTMLElement {
             if ("line_data" in objectInfo) {
                 const lineNumber = objectInfo.line_data.number;
                 if (this.querySelector("fea-preprocessor-menu") !== null) {
-                    this.querySelector("fea-preprocessor-menu").selectLineInClientForPropertiesAssign = lineNumber;
+                    this.querySelector("fea-preprocessor-menu").selectLineInClientForDataAssign = lineNumber;
                 }
             } else {
                 if (this.querySelector("fea-preprocessor-menu") !== null) {
                     for (let i = 0; i < objectInfo.length; i++) {
-                        this.querySelector("fea-preprocessor-menu").selectLineInClientForPropertiesAssign = objectInfo[i];
+                        this.querySelector("fea-preprocessor-menu").selectLineInClientForDataAssign = objectInfo[i];
                     }
                 }   
             }
@@ -214,28 +267,28 @@ class FeaApp extends HTMLElement {
         this.shadowRoot.querySelector("fea-renderer").selectedView = selectedView;
     }
 
-    handleEnableAssignPropertiesMenuMessage(event) {
-        this.state.assignPropertiesMenuEnabled = true;
+    handleEnableLinesMultipleSelectionModeMessage(event) {
+        this.state.linesMultipleSelectionModeEnabled = true;
         event.stopPropagation();
     }
 
-    handleDisableAssignPropertiesMenuMessage(event) {
-        this.state.assignPropertiesMenuEnabled = false;
+    handleDisableLinesMultipleSelectionModeMessage(event) {
+        this.state.linesMultipleSelectionModeEnabled = false;
         event.stopPropagation();
     }
 
     handleAddPointServerMessage(event) {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
-            this.updatePreprocessorMenuActionId();
-            this.updateToolBarActionId();
         }
         const point = { 
             number: event.detail.point_data.number, x: event.detail.point_data.x,
             y: event.detail.point_data.y, z: event.detail.point_data.z };
-        if (this.querySelector("fea-preprocessor-menu") !== null) {
-            this.querySelector("fea-preprocessor-menu").addPointToClient = point;
-        }
+        for (let i = 0; i < this.state.pointsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.pointsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.pointsDataDependentMenus[i]).addPointToClient = point;
+            }
+        } 
         this.shadowRoot.querySelector("fea-renderer").addPointToRenderer = point;
         event.stopPropagation();
     }
@@ -243,14 +296,14 @@ class FeaApp extends HTMLElement {
     handleUpdatePointServerMessage(event) {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
-            this.updatePreprocessorMenuActionId();
-            this.updateToolBarActionId();
         }
         const point = { number: event.detail.point_data.number, x: event.detail.point_data.x,
             y: event.detail.point_data.y, z: event.detail.point_data.z };
-        if (this.querySelector("fea-preprocessor-menu") !== null) {
-            this.querySelector("fea-preprocessor-menu").updatePointInClient = point;
-        }
+        for (let i = 0; i < this.state.pointsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.pointsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.pointsDataDependentMenus[i]).updatePointInClient = point;
+            }
+        } 
         this.shadowRoot.querySelector("fea-renderer").updatePointInRenderer = point;
         event.stopPropagation();
     }
@@ -258,13 +311,13 @@ class FeaApp extends HTMLElement {
     handleDeletePointServerMessage(event) {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
-            this.updatePreprocessorMenuActionId();
-            this.updateToolBarActionId();
         }
         const point = { number: event.detail.point_data.number };
-        if (this.querySelector("fea-preprocessor-menu") !== null) {
-            this.querySelector("fea-preprocessor-menu").deletePointFromClient = point;
-        }
+        for (let i = 0; i < this.state.pointsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.pointsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.pointsDataDependentMenus[i]).deletePointFromClient = point;
+            }
+        } 
         this.shadowRoot.querySelector("fea-renderer").deletePointFromRenderer = point;
         event.stopPropagation();
     }
@@ -272,16 +325,16 @@ class FeaApp extends HTMLElement {
     handleAddLineServerMessage(event) {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
-            this.updatePreprocessorMenuActionId();
-            this.updateToolBarActionId();
         }
         const line = { 
             number: event.detail.line_data.number,
             startPointNumber: event.detail.line_data.start_point_number,
             endPointNumber: event.detail.line_data.end_point_number };
-        if (this.querySelector("fea-preprocessor-menu") !== null) {
-            this.querySelector("fea-preprocessor-menu").addLineToClient = line;
-        }
+        for (let i = 0; i < this.state.linesDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.linesDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.linesDataDependentMenus[i]).addLineToClient = line;
+            }
+        } 
         this.shadowRoot.querySelector("fea-renderer").addLineToRenderer = line;
         event.stopPropagation();
     }
@@ -289,16 +342,16 @@ class FeaApp extends HTMLElement {
     handleUpdateLineServerMessage(event) {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
-            this.updatePreprocessorMenuActionId();
-            this.updateToolBarActionId();
         }
         const line = { 
             number: event.detail.line_data.number,
             startPointNumber: event.detail.line_data.start_point_number,
             endPointNumber: event.detail.line_data.end_point_number };
-        if (this.querySelector("fea-preprocessor-menu") !== null) {
-            this.querySelector("fea-preprocessor-menu").updateLineInClient = line;
-        }
+        for (let i = 0; i < this.state.linesDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.linesDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.linesDataDependentMenus[i]).updateLineInClient = line;
+            }
+        } 
         this.shadowRoot.querySelector("fea-renderer").updateLineInRenderer = line;
         event.stopPropagation();
     }
@@ -306,13 +359,13 @@ class FeaApp extends HTMLElement {
     handleDeleteLineServerMessage(event) {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
-            this.updatePreprocessorMenuActionId();
-            this.updateToolBarActionId();
         }
         const line = { number: event.detail.line_data.number };
-        if (this.querySelector("fea-preprocessor-menu") !== null) {
-            this.querySelector("fea-preprocessor-menu").deleteLineFromClient = line;
-        }
+        for (let i = 0; i < this.state.linesDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.linesDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.linesDataDependentMenus[i]).deleteLineFromClient = line;
+            }
+        } 
         this.shadowRoot.querySelector("fea-renderer").deleteLineFromRenderer = line;
         event.stopPropagation();
     }
@@ -320,8 +373,6 @@ class FeaApp extends HTMLElement {
     handleAddMaterialServerMessage(event) {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
-            this.updatePreprocessorMenuActionId();
-            this.updateToolBarActionId();
         }
         const material = { 
             name: event.detail.material_data.name,
@@ -337,8 +388,6 @@ class FeaApp extends HTMLElement {
     handleUpdateMaterialServerMessage(event) {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
-            this.updatePreprocessorMenuActionId();
-            this.updateToolBarActionId();
         }
         const material = { 
             name: event.detail.material_data.name,
@@ -353,8 +402,6 @@ class FeaApp extends HTMLElement {
     handleDeleteMaterialServerMessage(event) {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
-            this.updatePreprocessorMenuActionId();
-            this.updateToolBarActionId();
         }
         const material = { number: event.detail.material_data.name };
         if (this.querySelector("fea-preprocessor-menu") !== null) {
@@ -365,9 +412,7 @@ class FeaApp extends HTMLElement {
 
     handleAddTrussSectionServerMessage(event) {
         if (event.detail.is_action_id_should_be_increased === true) {
-            this.state.actionId += 1;
-            this.updatePreprocessorMenuActionId();
-            this.updateToolBarActionId();
+            this.state.actionId += 1;   
         }
         const trussSection = { 
             name: event.detail.truss_section_data.name,
@@ -382,8 +427,6 @@ class FeaApp extends HTMLElement {
     handleUpdateTrussSectionServerMessage(event) {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
-            this.updatePreprocessorMenuActionId();
-            this.updateToolBarActionId();
         }
         const trussSection = { 
             name: event.detail.truss_section_data.name,
@@ -397,9 +440,7 @@ class FeaApp extends HTMLElement {
 
     handleDeleteTrussSectionServerMessage(event) {
         if (event.detail.is_action_id_should_be_increased === true) {
-            this.state.actionId += 1;
-            this.updatePreprocessorMenuActionId();
-            this.updateToolBarActionId();
+            this.state.actionId += 1;    
         }
         const trussSection = { number: event.detail.truss_section_data.name };
         if (this.querySelector("fea-preprocessor-menu") !== null) {
@@ -410,9 +451,7 @@ class FeaApp extends HTMLElement {
 
     handleAddBeamSectionServerMessage(event) {
         if (event.detail.is_action_id_should_be_increased === true) {
-            this.state.actionId += 1;
-            this.updatePreprocessorMenuActionId();
-            this.updateToolBarActionId();
+            this.state.actionId += 1;  
         }
         const beamSection = { 
             name: event.detail.beam_section_data.name,
@@ -429,9 +468,7 @@ class FeaApp extends HTMLElement {
 
     handleUpdateBeamSectionServerMessage(event) {
         if (event.detail.is_action_id_should_be_increased === true) {
-            this.state.actionId += 1;
-            this.updatePreprocessorMenuActionId();
-            this.updateToolBarActionId();
+            this.state.actionId += 1;           
         }
         const beamSection = { 
             name: event.detail.beam_section_data.name,
@@ -448,9 +485,7 @@ class FeaApp extends HTMLElement {
 
     handleDeleteBeamSectionServerMessage(event) {
         if (event.detail.is_action_id_should_be_increased === true) {
-            this.state.actionId += 1;
-            this.updatePreprocessorMenuActionId();
-            this.updateToolBarActionId();
+            this.state.actionId += 1;           
         }
         const beamSection = { number: event.detail.beam_section_data.name };
         if (this.querySelector("fea-preprocessor-menu") !== null) {
@@ -461,10 +496,6 @@ class FeaApp extends HTMLElement {
 
     handleDecreaseActionIdMessage() {
         this.state.actionId -= 1;
-        if (this.querySelector("fea-preprocessor-menu") !== null) {
-            this.updatePreprocessorMenuActionId();
-        }
-        this.updateToolBarActionId();
     }
 
     updateCanvasSize() {

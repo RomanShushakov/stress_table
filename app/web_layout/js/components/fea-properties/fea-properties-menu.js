@@ -3,13 +3,16 @@ class FeaPropertiesMenu extends HTMLElement {
         super();
 
         this.props = {
-            actionId: null,     // u32;
-            lines: new Map(),   // map: { number: u32, startPointNumber: u32, endPointNumber: u32 }, ...};
-            materials: [],      // array of: [{ name: String, youngModulus: f64, poissonRatio: f64 }, ...];
-            trussSections: [],  // array of: [{ name: String, area: f64, area2: f64 or null }];
-            beamSections: [],   // array of: [{ name: String, area: f64, I11: f64, I22: f64, I12: f64, It: f64 }];
-            properties: [],     // array of: [{ name: String, materialName: String, sectionName: String,
-                                //              sectionType: String, usedIn: [u32, ...] }];
+            actionId: null,                 // u32;
+            lines: new Map(),               // map: { number: u32, startPointNumber: u32, endPointNumber: u32 }, ...};
+            materials: [],                  // array of: [{ name: String, youngModulus: f64, poissonRatio: f64 }, ...];
+            trussSections: [],              // array of: [{ name: String, area: f64, area2: f64 or null }];
+            beamSections: [],               // array of: [{ name: String, area: f64, I11: f64, I22: f64, I12: f64, It: f64 }];
+            properties: [],                 // array of: [{ name: String, materialName: String, sectionName: String,
+                                            //              sectionType: String }];
+            assignedProperties: [],         // array of: [{ name: String, lineNumbers: [u32...] }];
+            beamSectionsOrientations: [],   // array of: [{ propertiesName: String, localAxis1Direction: [f64; 3],
+                                            //              lineNumbers: [u32...] }];
         };
 
         this.state = {
@@ -18,6 +21,7 @@ class FeaPropertiesMenu extends HTMLElement {
                 "fea-properties-update-properties-menu",
                 "fea-properties-delete-properties-menu",
                 "fea-properties-assign-properties-menu",
+                "fea-properties-beam-section-orientation-menu",
             ],
 
             childrenNamesForLineCrud: [
@@ -44,6 +48,7 @@ class FeaPropertiesMenu extends HTMLElement {
                 "fea-properties-update-properties-menu",
                 "fea-properties-delete-properties-menu",
                 "fea-properties-assign-properties-menu",
+                "fea-properties-beam-section-orientation-menu",
             ],
         };
 
@@ -197,9 +202,9 @@ class FeaPropertiesMenu extends HTMLElement {
         this.deletePropertiesFromChildren(properties);
     }
 
-    set selectLineInClientForPropertiesAssign(lineNumber) {
+    set selectLineInClientForDataAssign(lineNumber) {
         if (this.querySelector("fea-properties-assign-properties-menu") !== null) {
-            this.querySelector("fea-properties-assign-properties-menu").selectLineInClientForPropertiesAssign = lineNumber;
+            this.querySelector("fea-properties-assign-properties-menu").selectLineInClientForDataAssign = lineNumber;
         }
     }
 
@@ -298,6 +303,20 @@ class FeaPropertiesMenu extends HTMLElement {
                     this.querySelector("fea-properties-assign-properties-menu").addPropertiesToClient = properties;
                 }
                 break;
+            case "properties-beam-section-orientation-menu":
+                const feaPropertiesBeamSectionOrientationMenu = document.createElement("fea-properties-beam-section-orientation-menu");
+                this.append(feaPropertiesBeamSectionOrientationMenu);
+                event.stopPropagation();
+                this.querySelector("fea-properties-beam-section-orientation-menu").actionId = this.props.actionId;
+                for (let i = 0; i < this.props.assignedProperties.length; i++) {
+                    const assignedProperties = this.props.assignedProperties[i];
+                    this.querySelector("fea-properties-beam-section-orientation-menu").addAssignedPropertiesToClient = assignedProperties;
+                }
+                for (let i = 0; i < this.props.beamSectionsOrientations.length; i++) {
+                    const beamSectionOrientation = this.props.beamSectionsOrientations[i];
+                    this.querySelector("fea-properties-beam-section-orientation-menu").addBeamSectionOrientationToClient = beamSectionOrientation;
+                }
+                break;
         }
     }
 
@@ -317,6 +336,10 @@ class FeaPropertiesMenu extends HTMLElement {
                 break;
             case "properties-assign-properties-menu":
                 this.querySelector("fea-properties-assign-properties-menu").remove();
+                event.stopPropagation();
+                break;
+            case "properties-beam-section-orientation-menu":
+                this.querySelector("fea-properties-beam-section-orientation-menu").remove();
                 event.stopPropagation();
                 break;
         }
@@ -429,7 +452,7 @@ class FeaPropertiesMenu extends HTMLElement {
     addPropertiesToChildren(properties) {
         for (let i = 0; i < this.state.childrenNamesForPropertiesCrud.length; i++) {
             if (this.querySelector(this.state.childrenNamesForPropertiesCrud[i]) !== null) {
-                this.querySelector(this.state.childrenNamesForPropertiesCrud[i]).addPointToChildren = properties;
+                this.querySelector(this.state.childrenNamesForPropertiesCrud[i]).addPropertiesToClient = properties;
             }
         } 
     }
@@ -437,7 +460,7 @@ class FeaPropertiesMenu extends HTMLElement {
     updatePropertiesInChildren(properties) {
         for (let i = 0; i < this.state.childrenNamesForPropertiesCrud.length; i++) {
             if (this.querySelector(this.state.childrenNamesForPropertiesCrud[i]) !== null) {
-                this.querySelector(this.state.childrenNamesForPropertiesCrud[i]).updatePropertiesInChildren = properties;
+                this.querySelector(this.state.childrenNamesForPropertiesCrud[i]).updatePropertiesInClient = properties;
             }
         } 
     }
@@ -445,7 +468,7 @@ class FeaPropertiesMenu extends HTMLElement {
     deletePropertiesFromChildren(properties) {
         for (let i = 0; i < this.state.childrenNamesForPropertiesCrud.length; i++) {
             if (this.querySelector(this.state.childrenNamesForPropertiesCrud[i]) !== null) {
-                this.querySelector(this.state.childrenNamesForPropertiesCrud[i]).deletePropertiesFromChildren = properties;
+                this.querySelector(this.state.childrenNamesForPropertiesCrud[i]).deletePropertiesFromClient = properties;
             }
         } 
     }

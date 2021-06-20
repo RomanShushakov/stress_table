@@ -8,7 +8,7 @@ class FeaPropertiesUpdatePropertiesMenu extends HTMLElement {
             trussSections: [],  // array of: [{ name: String, area: f64, area2: f64 or null }];
             beamSections: [],   // array of: [{ name: String, area: f64, I11: f64, I22: f64, I12: f64, It: f64 }];
             properties: [],     // array of: [{ name: String, materialName: String, sectionName: String,
-                                //              sectionType: String, usedIn: [u32, ...] }];
+                                //              sectionType: String }];
         };
 
         this.state = {

@@ -4,7 +4,7 @@ class FeaGeometryDeleteLineMenu extends HTMLElement {
 
         this.props = {
             actionId: null,     // u32;
-            lines: new Map(),   // map: { number: u32, startPointNumber: u32, endPointNumber: u32 }, ...};
+            lines: new Map(),   // map: { number: u32, start_point_number: u32, end_point_number: u32 }, ...};
         };
 
         this.state = {};
@@ -224,8 +224,12 @@ class FeaGeometryDeleteLineMenu extends HTMLElement {
         this.props.actionId = value;
     }
 
+    set lines(value) {
+        this.props.lines = value;
+    }
+
     set addLineToClient(line) {
-        this.props.lines.set(line.number, { "startPointNumber": line.startPointNumber, "endPointNumber": line.endPointNumber });
+        this.props.lines.set(line.number, { "start_point_number": line.start_point_number, "end_point_number": line.end_point_number });
         this.defineLineNumberOptions();
     }
 
@@ -245,6 +249,7 @@ class FeaGeometryDeleteLineMenu extends HTMLElement {
                 this[propName] = value;
             }
         });
+        this.getLines();
         this.defineLineNumberOptions();
     }
 
@@ -259,6 +264,20 @@ class FeaGeometryDeleteLineMenu extends HTMLElement {
     }
 
     adoptedCallback() {
+    }
+
+    getActionId() {
+        this.dispatchEvent(new CustomEvent("getActionId", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getLines() {
+        this.dispatchEvent(new CustomEvent("getLines", {
+            bubbles: true,
+            composed: true,
+        }));
     }
 
     defineLineNumberOptions() {
@@ -291,6 +310,7 @@ class FeaGeometryDeleteLineMenu extends HTMLElement {
 
     deleteLine() {
         const selectedLineNumberField = this.shadowRoot.querySelector(".line-number");
+
         if (selectedLineNumberField.value == "") {
             if (selectedLineNumberField.classList.contains("highlighted") === false) {
                 selectedLineNumberField.classList.add("highlighted");
@@ -303,10 +323,14 @@ class FeaGeometryDeleteLineMenu extends HTMLElement {
                 return;
             }
         }
+
+        this.getActionId();
+
         const message = {"delete_line": {
             "actionId": this.props.actionId,
             "number": selectedLineNumberField.value, 
         }};
+
         this.dispatchEvent(new CustomEvent("clientMessage", {
             bubbles: true,
             composed: true,
@@ -314,6 +338,7 @@ class FeaGeometryDeleteLineMenu extends HTMLElement {
                 message: message,
             },
         }));
+
         this.shadowRoot.querySelector(".line-number-filter").value = null;
     }
 

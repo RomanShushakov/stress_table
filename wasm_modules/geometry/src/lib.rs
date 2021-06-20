@@ -178,4 +178,32 @@ impl Geometry
         }
         Ok(())
     }
+
+
+    pub fn extract_points(&self, handler: js_sys::Function)
+        -> Result<(), JsValue>
+    {
+        let extracted_points = json!({ "extracted_points": self.points });
+        let composed_extracted_points =
+            JsValue::from_serde(&extracted_points)
+                .or(Err(JsValue::from("Geometry: Extract points: Points could not be \
+                    composed for extraction!")))?;
+        let this = JsValue::null();
+        let _ = handler.call1(&this, &composed_extracted_points);
+        Ok(())
+    }
+
+
+    pub fn extract_lines(&self, handler: js_sys::Function)
+        -> Result<(), JsValue>
+    {
+        let extracted_lines = json!({ "extracted_lines": self.lines });
+        let composed_extracted_lines =
+            JsValue::from_serde(&extracted_lines)
+                .or(Err(JsValue::from("Geometry: Extract lines: Lines could not be \
+                    composed for extraction!")))?;
+        let this = JsValue::null();
+        let _ = handler.call1(&this, &composed_extracted_lines);
+        Ok(())
+    }
 }

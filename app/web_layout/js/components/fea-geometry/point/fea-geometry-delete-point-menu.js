@@ -222,6 +222,10 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
         this.props.actionId = value;
     }
 
+    set points(value) {
+        this.props.points = value;
+    }
+
     set addPointToClient(point) {
         this.props.points.set(point.number, {"x": point.x, "y": point.y, "z": point.z});
         this.definePointNumberOptions();
@@ -243,6 +247,8 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
                 this[propName] = value;
             }
         }); 
+        this.getPoints();
+        this.definePointNumberOptions();
     }
 
     disconnectedCallback() {
@@ -256,6 +262,20 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
     }
 
     adoptedCallback() {
+    }
+
+    getActionId() {
+        this.dispatchEvent(new CustomEvent("getActionId", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getPoints() {
+        this.dispatchEvent(new CustomEvent("getPoints", {
+            bubbles: true,
+            composed: true,
+        }));
     }
 
     definePointNumberOptions() {
@@ -299,6 +319,9 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
             }
         }
         if (this.props.points.has(parseInt(selectedPointNumberField.value))) {
+            
+            this.getActionId();
+
             const message = {"delete_point": { "actionId": this.props.actionId, "number": parseInt(selectedPointNumberField.value) }};
             this.dispatchEvent(new CustomEvent("clientMessage", {
                 bubbles: true,

@@ -11,6 +11,9 @@ import AddButton from "./components/common/crud-buttons/add-button.js";
 import UpdateButton from "./components/common/crud-buttons/update-button.js";
 import DeleteButton from "./components/common/crud-buttons/delete-button.js";
 
+import AssignButton from "./components/common/assign-button.js";
+import BeamSectionOrientationButton from "./components/common/beam-section-orientation-button.js";
+
 import FeaGeometryMenu from "./components/fea-geometry/fea-geometry-menu.js";
 import FeaGeometryMenuButtons from "./components/fea-geometry/fea-geometry-menu-buttons.js";
 import FeaGeometryPointMenu from "./components/fea-geometry/point/fea-geometry-point-menu.js";
@@ -65,6 +68,9 @@ customElements.define("fea-preprocessor-menu-buttons", FeaPreprocessorMenuButton
 customElements.define("add-button", AddButton);
 customElements.define("update-button", UpdateButton);
 customElements.define("delete-button", DeleteButton);
+
+customElements.define("assign-button", AssignButton);
+customElements.define("beam-section-orientation-button", BeamSectionOrientationButton);
 
 customElements.define("fea-geometry-menu", FeaGeometryMenu);
 customElements.define("fea-geometry-menu-buttons", FeaGeometryMenuButtons);

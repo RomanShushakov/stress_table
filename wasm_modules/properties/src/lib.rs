@@ -73,59 +73,20 @@ enum CrossSectionType
 }
 
 
-#[derive(Debug, Hash, PartialEq, Eq, Clone)]
-struct CrossSectionKey
-{
-    name: String,
-    cross_section_type: CrossSectionType
-}
-
-
-impl CrossSectionKey
-{
-    fn create(name: &str, cross_section_type: CrossSectionType) -> Self
-    {
-        CrossSectionKey { name: String::from(name), cross_section_type }
-    }
-
-
-    fn name_same(&self, name: &str) -> bool
-    {
-        self.name == name
-    }
-
-
-    fn extract_name(&self) -> &str
-    {
-        &self.name
-    }
-
-
-    fn is_truss(&self) -> bool
-    {
-        self.cross_section_type == CrossSectionType::Truss
-    }
-
-
-    fn is_beam(&self) -> bool
-    {
-        self.cross_section_type == CrossSectionType::Beam
-    }
-}
-
-
 struct Property
 {
     material_name: String,
-    cross_section_key: CrossSectionKey,
+    cross_section_name: String,
+    cross_section_type: CrossSectionType,
 }
 
 
 impl Property
 {
-    fn create(material_name: String, cross_section_key: CrossSectionKey) -> Self
+    fn create(material_name: String, cross_section_name: String,
+        cross_section_type: CrossSectionType) -> Self
     {
-        Property { material_name, cross_section_key }
+        Property { material_name, cross_section_name, cross_section_type }
     }
 }
 
@@ -137,15 +98,15 @@ struct DeletedProperty
 }
 
 
-struct AssignedProperties
+struct AssignedProperty
 {
     line_numbers: Vec<u32>,
 }
 
 
-struct ChangedAssignedProperties
+struct ChangedAssignedProperty
 {
-    property_name: String,
+    name: String,
     line_numbers: Vec<u32>,
 }
 
@@ -182,8 +143,8 @@ pub struct Properties
 
     properties: HashMap<String, Property>,  // { property_name: Property }
     deleted_properties: HashMap<u32, DeletedProperty>,  // { action_id: DeletedProperty }
-    assigned_properties: HashMap<String, AssignedProperties>, // { property_name: AssignedProperties }
-    changed_assigned_properties: HashMap<u32, ChangedAssignedProperties>,   // { action_id: ChangedAssignedProperties }
+    assigned_properties: HashMap<String, AssignedProperty>, // { property_name: AssignedProperties }
+    changed_assigned_properties: HashMap<u32, ChangedAssignedProperty>,   // { action_id: ChangedAssignedProperties }
     beam_sections_orientations: HashMap<BeamSectionOrientationKey, BeamSectionOrientation>,
     changed_beam_sections_orientations: HashMap<u32, ChangedBeamSectionOrientation>,    // { action_id: ChangedBeamSectionOrientation }
 }

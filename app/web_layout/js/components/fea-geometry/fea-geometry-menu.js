@@ -4,7 +4,12 @@ class FeaGeometryMenu extends HTMLElement {
 
         this.props = {};
 
-        this.state = {};
+        this.state = {
+            menuNames: {
+                "geometry-point-menu": "fea-geometry-point-menu",
+                "geometry-line-menu": "fea-geometry-line-menu",
+            },
+        };
 
         this.attachShadow({ mode: "open" });
 
@@ -72,31 +77,16 @@ class FeaGeometryMenu extends HTMLElement {
     }
 
     activateMenu(event) {
-        switch (event.detail.menuName) {
-            case "geometry-point-menu":
-                const feaGeometryPointMenu = document.createElement("fea-geometry-point-menu");
-                this.append(feaGeometryPointMenu);
-                event.stopPropagation();
-                break;
-            case "geometry-line-menu":
-                const feaGeometryLineMenu = document.createElement("fea-geometry-line-menu");
-                this.append(feaGeometryLineMenu);
-                event.stopPropagation();
-                break;
-        }
+        const menuName = event.detail.menuName;
+        const menu = document.createElement(this.state.menuNames[menuName]);
+        this.append(menu);
+        event.stopPropagation();
     }
 
     deactivateMenu(event) {
-        switch (event.detail.menuName) {
-            case "geometry-point-menu":
-                this.querySelector("fea-geometry-point-menu").remove();
-                event.stopPropagation();
-                break;
-            case "geometry-line-menu":
-                this.querySelector("fea-geometry-line-menu").remove();
-                event.stopPropagation();
-                break;
-        }
+        const menuName = event.detail.menuName;
+        this.querySelector(this.state.menuNames[menuName]).remove();
+        event.stopPropagation();
     }
 }
 

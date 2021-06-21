@@ -4,7 +4,13 @@ class FeaGeometryLineMenu extends HTMLElement {
 
         this.props = {};
 
-        this.state = {};
+        this.state = {
+            menuNames: {
+                "geometry-add-line-menu": "fea-geometry-add-line-menu",
+                "geometry-update-line-menu": "fea-geometry-update-line-menu",
+                "geometry-delete-line-menu": "fea-geometry-delete-line-menu",
+            },
+        };
 
         this.attachShadow({ mode: "open" });
 
@@ -55,40 +61,16 @@ class FeaGeometryLineMenu extends HTMLElement {
     }
 
     activateMenu(event) {
-        switch (event.detail.menuName) {
-            case "geometry-add-line-menu":
-                const feaGeometryAddLineMenu = document.createElement("fea-geometry-add-line-menu");
-                this.append(feaGeometryAddLineMenu);
-                event.stopPropagation();
-                break;
-            case "geometry-update-line-menu":
-                const feaGeometryUpdateLineMenu = document.createElement("fea-geometry-update-line-menu");
-                this.append(feaGeometryUpdateLineMenu);
-                event.stopPropagation();
-                break;
-            case "geometry-delete-line-menu":
-                const feaGeometryDeleteLineMenu = document.createElement("fea-geometry-delete-line-menu");
-                this.append(feaGeometryDeleteLineMenu);
-                event.stopPropagation();
-                break;
-        }
+        const menuName = event.detail.menuName;
+        const menu = document.createElement(this.state.menuNames[menuName]);
+        this.append(menu);
+        event.stopPropagation();
     }
 
     deactivateMenu(event) {
-        switch (event.detail.menuName) {
-            case "geometry-add-line-menu":
-                this.querySelector("fea-geometry-add-line-menu").remove();
-                event.stopPropagation();
-                break;
-            case "geometry-update-line-menu":
-                this.querySelector("fea-geometry-update-line-menu").remove();
-                event.stopPropagation();
-                break;
-            case "geometry-delete-line-menu":
-                this.querySelector("fea-geometry-delete-line-menu").remove();
-                event.stopPropagation();
-                break;
-        }
+        const menuName = event.detail.menuName;
+        this.querySelector(this.state.menuNames[menuName]).remove();
+        event.stopPropagation();
     }
 }
 

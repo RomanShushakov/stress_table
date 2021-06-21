@@ -4,7 +4,12 @@ class FeaSectionMenu extends HTMLElement {
 
         this.props = {};
 
-        this.state = {};
+        this.state = {
+            menuNames: {
+                "section-truss-menu": "fea-section-truss-menu",
+                "section-beam-menu": "fea-section-beam-menu",
+            },
+        };
 
         this.attachShadow({ mode: "open" });
 
@@ -62,31 +67,16 @@ class FeaSectionMenu extends HTMLElement {
     }
 
     activateMenu(event) {
-        switch (event.detail.menuName) {
-            case "section-truss-menu":
-                const feaSectionTrussMenu = document.createElement("fea-section-truss-menu");
-                this.append(feaSectionTrussMenu);
-                event.stopPropagation();
-                break;
-            case "section-beam-menu":
-                const feaSectionBeamMenu = document.createElement("fea-section-beam-menu");
-                this.append(feaSectionBeamMenu);
-                event.stopPropagation();
-                break;
-        }
+        const menuName = event.detail.menuName;
+        const menu = document.createElement(this.state.menuNames[menuName]);
+        this.append(menu);
+        event.stopPropagation();
     }
 
     deactivateMenu(event) {
-        switch (event.detail.menuName) {
-            case "section-truss-menu":
-                this.querySelector("fea-section-truss-menu").remove();
-                event.stopPropagation();
-                break;
-            case "section-beam-menu":
-                this.querySelector("fea-section-beam-menu").remove();
-                event.stopPropagation();
-                break;
-        }
+        const menuName = event.detail.menuName;
+        this.querySelector(this.state.menuNames[menuName]).remove();
+        event.stopPropagation();
     }
 }
 

@@ -4,7 +4,13 @@ class FeaSectionBeamMenu extends HTMLElement {
 
         this.props = {};
 
-        this.state = {};
+        this.state = {
+            menuNames: {
+                "section-add-beam-menu": "fea-section-add-beam-menu",
+                "section-update-beam-menu": "fea-section-update-beam-menu",
+                "section-delete-beam-menu": "fea-section-delete-beam-menu",
+            },
+        };
 
         this.attachShadow({ mode: "open" });
 
@@ -50,40 +56,16 @@ class FeaSectionBeamMenu extends HTMLElement {
     }
 
     activateMenu(event) {
-        switch (event.detail.menuName) {
-            case "section-add-beam-menu":
-                const feaSectionAddBeamMenu = document.createElement("fea-section-add-beam-menu");
-                this.append(feaSectionAddBeamMenu);
-                event.stopPropagation();
-                break;
-            case "section-update-beam-menu":
-                const feaSectionUpdateBeamMenu = document.createElement("fea-section-update-beam-menu");
-                this.append(feaSectionUpdateBeamMenu);
-                event.stopPropagation();
-                break;
-            case "section-delete-beam-menu":
-                const feaSectionDeleteBeamMenu = document.createElement("fea-section-delete-beam-menu");
-                this.append(feaSectionDeleteBeamMenu);
-                event.stopPropagation();
-                break;
-        }
+        const menuName = event.detail.menuName;
+        const menu = document.createElement(this.state.menuNames[menuName]);
+        this.append(menu);
+        event.stopPropagation();
     }
 
     deactivateMenu(event) {
-        switch (event.detail.menuName) {
-            case "section-add-beam-menu":
-                this.querySelector("fea-section-add-beam-menu").remove();
-                event.stopPropagation();
-                break;
-            case "section-update-beam-menu":
-                this.querySelector("fea-section-update-beam-menu").remove();
-                event.stopPropagation();
-                break;
-            case "section-delete-beam-menu":
-                this.querySelector("fea-section-delete-beam-menu").remove();
-                event.stopPropagation();
-                break;
-        }
+        const menuName = event.detail.menuName;
+        this.querySelector(this.state.menuNames[menuName]).remove();
+        event.stopPropagation();
     }
 }
 

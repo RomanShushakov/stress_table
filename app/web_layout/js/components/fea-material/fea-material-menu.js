@@ -4,7 +4,13 @@ class FeaMaterialMenu extends HTMLElement {
 
         this.props = {};
 
-        this.state = {};
+        this.state = {
+            menuNames: {
+                "material-add-material-menu": "fea-material-add-material-menu",
+                "material-update-material-menu": "fea-material-update-material-menu",
+                "material-delete-material-menu": "fea-material-delete-material-menu",
+            },
+        };
 
         this.attachShadow({ mode: "open" });
 
@@ -59,40 +65,16 @@ class FeaMaterialMenu extends HTMLElement {
     }
 
     activateMenu(event) {
-        switch (event.detail.menuName) {
-            case "material-add-material-menu":
-                const feaMaterialAddMaterialMenu = document.createElement("fea-material-add-material-menu");
-                this.append(feaMaterialAddMaterialMenu);
-                event.stopPropagation();
-                break;
-            case "material-update-material-menu":
-                const feaMaterialUpdateMaterialMenu = document.createElement("fea-material-update-material-menu");
-                this.append(feaMaterialUpdateMaterialMenu);
-                event.stopPropagation();
-                break;
-            case "material-delete-material-menu":
-                const feaMaterialDeleteMaterialMenu = document.createElement("fea-material-delete-material-menu");
-                this.append(feaMaterialDeleteMaterialMenu);
-                event.stopPropagation();
-                break;
-        }
+        const menuName = event.detail.menuName;
+        const menu = document.createElement(this.state.menuNames[menuName]);
+        this.append(menu);
+        event.stopPropagation();
     }
 
     deactivateMenu(event) {
-        switch (event.detail.menuName) {
-            case "material-add-material-menu":
-                this.querySelector("fea-material-add-material-menu").remove();
-                event.stopPropagation();
-                break;
-            case "material-update-material-menu":
-                this.querySelector("fea-material-update-material-menu").remove();
-                event.stopPropagation();
-                break;
-            case "material-delete-material-menu":
-                this.querySelector("fea-material-delete-material-menu").remove();
-                event.stopPropagation();
-                break;
-        }
+        const menuName = event.detail.menuName;
+        this.querySelector(this.state.menuNames[menuName]).remove();
+        event.stopPropagation();
     }
 }
 

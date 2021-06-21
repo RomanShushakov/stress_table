@@ -16,7 +16,9 @@ impl Properties
         poisson_ratio: f64, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_deleted_materials_by_action_id(action_id);
-        self.clear_deleted_cross_sections_by_action_id(action_id);
+        self.clear_deleted_truss_sections_by_action_id(action_id);
+        self.clear_deleted_beam_sections_by_action_id(action_id);
+
         if self.materials.contains_key(&name.to_owned())
         {
             let error_message = &format!("Properties: Add material action: Material with \
@@ -38,9 +40,11 @@ impl Properties
             "is_action_id_should_be_increased": is_action_id_should_be_increased });
         dispatch_custom_event(detail, ADD_MATERIAL_EVENT_NAME, EVENT_TARGET)?;
         log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
-            cross sections: {:?}, deleted cross sections: {:?}",
+            truss sections: {:?}, deleted truss sections: {:?}, \
+            beam sections: {:?}, deleted beam sections: {:?}",
             self.materials, self.deleted_materials,
-            self.cross_sections, self.deleted_cross_sections));
+            self.truss_sections, self.deleted_truss_sections,
+            self.beam_sections, self.deleted_beam_sections));
         Ok(())
     }
 
@@ -49,7 +53,9 @@ impl Properties
         poisson_ratio: f64, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_deleted_materials_by_action_id(action_id);
-        self.clear_deleted_cross_sections_by_action_id(action_id);
+        self.clear_deleted_truss_sections_by_action_id(action_id);
+        self.clear_deleted_beam_sections_by_action_id(action_id);
+
         if self.materials.values().position(|material|
             material.data_same(young_modulus, poisson_ratio)).is_some()
         {
@@ -66,9 +72,11 @@ impl Properties
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, UPDATE_MATERIAL_EVENT_NAME, EVENT_TARGET)?;
             log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
-                cross sections: {:?}, deleted cross sections: {:?}",
+                truss sections: {:?}, deleted truss sections: {:?}, \
+                beam sections: {:?}, deleted beam sections: {:?}",
                 self.materials, self.deleted_materials,
-                self.cross_sections, self.deleted_cross_sections));
+                self.truss_sections, self.deleted_truss_sections,
+                self.beam_sections, self.deleted_beam_sections));
             Ok(())
         }
         else
@@ -84,7 +92,9 @@ impl Properties
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_deleted_materials_by_action_id(action_id);
-        self.clear_deleted_cross_sections_by_action_id(action_id);
+        self.clear_deleted_truss_sections_by_action_id(action_id);
+        self.clear_deleted_beam_sections_by_action_id(action_id);
+
         if let Some((material_name, material)) = self.materials.remove_entry(&name.to_owned())
         {
             let deleted_material = DeletedMaterial::create(&material_name, material);
@@ -93,9 +103,11 @@ impl Properties
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, DELETE_MATERIAL_EVENT_NAME, EVENT_TARGET)?;
             log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
-                cross sections: {:?}, deleted cross sections: {:?}",
+                truss sections: {:?}, deleted truss sections: {:?}, \
+                beam sections: {:?}, deleted beam sections: {:?}",
                 self.materials, self.deleted_materials,
-                self.cross_sections, self.deleted_cross_sections));
+                self.truss_sections, self.deleted_truss_sections,
+                self.beam_sections, self.deleted_beam_sections));
             Ok(())
         }
         else
@@ -127,9 +139,11 @@ impl Properties
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, ADD_MATERIAL_EVENT_NAME, EVENT_TARGET)?;
             log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
-                cross sections: {:?}, deleted cross sections: {:?}",
+                truss sections: {:?}, deleted truss sections: {:?}, \
+                beam sections: {:?}, deleted beam sections: {:?}",
                 self.materials, self.deleted_materials,
-                self.cross_sections, self.deleted_cross_sections));
+                self.truss_sections, self.deleted_truss_sections,
+                self.beam_sections, self.deleted_beam_sections));
             Ok(())
         }
         else
@@ -140,6 +154,3 @@ impl Properties
         }
     }
 }
-
-
-

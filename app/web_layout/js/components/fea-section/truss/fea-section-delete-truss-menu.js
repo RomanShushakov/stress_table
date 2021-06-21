@@ -3,8 +3,9 @@ class FeaSectionDeleteTrussMenu extends HTMLElement {
         super();
 
         this.props = {
-            actionId: null,     // u32;
-            trussSections: [],  // array of: [{ name: String, area: f64, area2: f64 or null }];
+            actionId: null,             // u32;
+            isPropertiesLoaded: false,  // load status of wasm module "properties";
+            trussSections: [],          // array of: [{ name: String, area: f64, area2: f64 or null }];
         };
 
         this.state = {};
@@ -212,6 +213,14 @@ class FeaSectionDeleteTrussMenu extends HTMLElement {
         this.props.actionId = value;
     }
 
+    set isPropertiesLoaded(value) {
+        this.props.isPropertiesLoaded = value;
+    }
+
+    set trussSections(value) {
+        this.props.trussSections = value;
+    }
+
     set addTrussSectionToClient(trussSection) {
         this.props.trussSections.push(trussSection);
         this.props.trussSections.sort((a, b) => a.name - b.name);
@@ -237,6 +246,15 @@ class FeaSectionDeleteTrussMenu extends HTMLElement {
                 this[propName] = value;
             }
         }); 
+        const frame = () => {
+            this.getPropertiesLoadStatus();
+            if (this.props.isPropertiesLoaded === true) {
+                clearInterval(id);
+                this.getTrussSections();
+                this.defineTrussSectionNameOptions();
+            }
+        }
+        const id = setInterval(frame, 10);
     }
 
     disconnectedCallback() {
@@ -250,6 +268,27 @@ class FeaSectionDeleteTrussMenu extends HTMLElement {
     }
 
     adoptedCallback() {
+    }
+
+    getActionId() {
+        this.dispatchEvent(new CustomEvent("getActionId", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getPropertiesLoadStatus() {
+        this.dispatchEvent(new CustomEvent("getPropertiesLoadStatus", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getTrussSections() {
+        this.dispatchEvent(new CustomEvent("getTrussSections", {
+            bubbles: true,
+            composed: true,
+        }));
     }
 
     defineTrussSectionNameOptions() {
@@ -295,6 +334,9 @@ class FeaSectionDeleteTrussMenu extends HTMLElement {
 
         const deletedTrussSectionData = this.props.trussSections
             .find(trussSection => trussSection.name == `"${selectedTrussSectionNameField.value}"`);
+
+        this.getActionId();
+
         const message = {"delete_truss_section": { "actionId": this.props.actionId, "name": deletedTrussSectionData.name.replace(/['"]+/g, "") }};
         this.dispatchEvent(new CustomEvent("clientMessage", {
             bubbles: true,

@@ -60,4 +60,13 @@ extern "C"
 
     #[wasm_bindgen(js_name = clearPropertiesModuleByActionId)]
     pub fn clear_properties_module_by_action_id(action_id: u32);
+
+    #[wasm_bindgen(js_name = extractMaterials)]
+    pub fn extract_materials(handler: js_sys::Function);
+
+    #[wasm_bindgen(js_name = extractTrussSections)]
+    pub fn extract_truss_sections(handler: js_sys::Function);
+
+    #[wasm_bindgen(js_name = extractBeamSections)]
+    pub fn extract_beam_sections(handler: js_sys::Function);
 }

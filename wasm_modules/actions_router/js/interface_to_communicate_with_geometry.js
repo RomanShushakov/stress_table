@@ -112,11 +112,6 @@ export function showLineInfoFromGeometry(number)
     }
 }
 
-export function extractGeometry(isActionIdShouldBeIncreased) 
-{
-    communicatorWithGeometry.extractGeometry = isActionIdShouldBeIncreased;
-}
-
 export function clearGeometryModuleByActionId(actionId) {
     communicatorWithGeometry.clearGeometryModuleByActionId = actionId;
 }

@@ -3,8 +3,9 @@ class FeaMaterialDeleteMaterialMenu extends HTMLElement {
         super();
 
         this.props = {
-            actionId: null,     // u32;
-            materials: [],      // array of: [{ name: String, youngModulus: f64, poissonRatio: f64 }, ...];
+            actionId: null,             // u32;
+            isPropertiesLoaded: false,  // load status of wasm module "properties";
+            materials: [],              // array of: [{ name: String, young_modulus: f64, poisson_ratio: f64 }, ...];
         };
 
         this.state = {};
@@ -212,6 +213,14 @@ class FeaMaterialDeleteMaterialMenu extends HTMLElement {
         this.props.actionId = value;
     }
 
+    set isPropertiesLoaded(value) {
+        this.props.isPropertiesLoaded = value;
+    }
+
+    set materials(value) {
+        this.props.materials = value;
+    }
+
     set addMaterialToClient(material) {
         this.props.materials.push(material);
         this.props.materials.sort((a, b) => a.name - b.name);
@@ -236,6 +245,15 @@ class FeaMaterialDeleteMaterialMenu extends HTMLElement {
                 this[propName] = value;
             }
         }); 
+        const frame = () => {
+            this.getPropertiesLoadStatus();
+            if (this.props.isPropertiesLoaded === true) {
+                clearInterval(id);
+                this.getMaterials();
+                this.defineMaterialNameOptions();
+            }
+        }
+        const id = setInterval(frame, 10);
     }
 
     disconnectedCallback() {
@@ -249,6 +267,27 @@ class FeaMaterialDeleteMaterialMenu extends HTMLElement {
     }
 
     adoptedCallback() {
+    }
+
+    getActionId() {
+        this.dispatchEvent(new CustomEvent("getActionId", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getPropertiesLoadStatus() {
+        this.dispatchEvent(new CustomEvent("getPropertiesLoadStatus", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getMaterials() {
+        this.dispatchEvent(new CustomEvent("getMaterials", {
+            bubbles: true,
+            composed: true,
+        }));
     }
 
     defineMaterialNameOptions() {
@@ -293,7 +332,11 @@ class FeaMaterialDeleteMaterialMenu extends HTMLElement {
         }
 
         const deletedMaterialData = this.props.materials.find(material => material.name == `"${selectedMaterialNameField.value}"`);
+
+        this.getActionId();
+
         const message = {"delete_material": { "actionId": this.props.actionId, "name": deletedMaterialData.name.replace(/['"]+/g, "") }};
+        
         this.dispatchEvent(new CustomEvent("clientMessage", {
             bubbles: true,
             composed: true,

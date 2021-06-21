@@ -3,8 +3,9 @@ class FeaSectionDeleteBeamMenu extends HTMLElement {
         super();
 
         this.props = {
-            actionId: null,     // u32;
-            beamSections: [],   // array of: [{ name: String, area: f64, I11: f64, I22: f64, I12: f64, It: f64 }];
+            actionId: null,             // u32;
+            isPropertiesLoaded: false,  // load status of wasm module "properties";
+            beamSections: [],           // array of: [{ name: String, area: f64, i11: f64, i22: f64, i12: f64, it: f64 }];
         };
 
         this.state = {};
@@ -212,6 +213,14 @@ class FeaSectionDeleteBeamMenu extends HTMLElement {
         this.props.actionId = value;
     }
 
+    set isPropertiesLoaded(value) {
+        this.props.isPropertiesLoaded = value;
+    }
+
+    set beamSections(value) {
+        this.props.beamSections = value;
+    }
+
     set addBeamSectionToClient(beamSection) {
         this.props.beamSections.push(beamSection);
         this.props.beamSections.sort((a, b) => a.name - b.name);
@@ -237,6 +246,15 @@ class FeaSectionDeleteBeamMenu extends HTMLElement {
                 this[propName] = value;
             }
         }); 
+        const frame = () => {
+            this.getPropertiesLoadStatus();
+            if (this.props.isPropertiesLoaded === true) {
+                clearInterval(id);
+                this.getBeamSections();
+                this.defineBeamSectionNameOptions();
+            }
+        }
+        const id = setInterval(frame, 10);
     }
 
     disconnectedCallback() {
@@ -250,6 +268,27 @@ class FeaSectionDeleteBeamMenu extends HTMLElement {
     }
 
     adoptedCallback() {
+    }
+
+    getActionId() {
+        this.dispatchEvent(new CustomEvent("getActionId", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getPropertiesLoadStatus() {
+        this.dispatchEvent(new CustomEvent("getPropertiesLoadStatus", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getBeamSections() {
+        this.dispatchEvent(new CustomEvent("getBeamSections", {
+            bubbles: true,
+            composed: true,
+        }));
     }
 
     defineBeamSectionNameOptions() {
@@ -295,6 +334,9 @@ class FeaSectionDeleteBeamMenu extends HTMLElement {
 
         const deletedBeamSectionData = this.props.beamSections
             .find(beamSection => beamSection.name == `"${selectedBeamSectionNameField.value}"`);
+
+        this.getActionId();
+        
         const message = {"delete_beam_section": { "actionId": this.props.actionId, "name": deletedBeamSectionData.name.replace(/['"]+/g, "") }};
         this.dispatchEvent(new CustomEvent("clientMessage", {
             bubbles: true,

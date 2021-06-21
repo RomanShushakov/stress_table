@@ -3,8 +3,9 @@ class FeaSectionAddBeamMenu extends HTMLElement {
         super();
 
         this.props = {
-            actionId: null,     // u32;
-            beamSections: [],   // array of: [{ name: String, area: f64, I11: f64, I22: f64, I12: f64, It: f64 }];
+            actionId: null,             // u32;
+            isPropertiesLoaded: false,  // load status of wasm module "properties";
+            beamSections: [],           // array of: [{ name: String, area: f64, i11: f64, i22: f64, i12: f64, it: f64 }];
         };
 
         this.state = {};
@@ -451,6 +452,14 @@ class FeaSectionAddBeamMenu extends HTMLElement {
         this.props.actionId = value;
     }
 
+    set isPropertiesLoaded(value) {
+        this.props.isPropertiesLoaded = value;
+    }
+
+    set beamSections(value) {
+        this.props.beamSections = value;
+    }
+
     set addBeamSectionToClient(beamSection) {
         this.props.beamSections.push(beamSection);
         this.props.beamSections.sort((a, b) => a.name - b.name);
@@ -461,10 +470,10 @@ class FeaSectionAddBeamMenu extends HTMLElement {
         let beamSectionInProps = this.props.beamSections
             .find(existedBeamSection => existedBeamSection.name == beamSection.name);
         beamSectionInProps.area = beamSection.area;
-        beamSectionInProps.I11 = beamSection.I11;
-        beamSectionInProps.I22 = beamSection.I22;
-        beamSectionInProps.I12 = beamSection.I12;
-        beamSectionInProps.It = beamSection.It;
+        beamSectionInProps.i11 = beamSection.i11;
+        beamSectionInProps.i22 = beamSection.i22;
+        beamSectionInProps.i12 = beamSection.i12;
+        beamSectionInProps.it = beamSection.it;
     }
 
     set deleteBeamSectionFromClient(beamSection) {
@@ -483,7 +492,15 @@ class FeaSectionAddBeamMenu extends HTMLElement {
                 this[propName] = value;
             }
         });
-        this.defineNewBeamSectionName();
+        const frame = () => {
+            this.getPropertiesLoadStatus();
+            if (this.props.isPropertiesLoaded === true) {
+                clearInterval(id);
+                this.getBeamSections();
+                this.defineNewBeamSectionName();
+            }
+        }
+        const id = setInterval(frame, 10);
     }
 
     disconnectedCallback() {
@@ -497,6 +514,27 @@ class FeaSectionAddBeamMenu extends HTMLElement {
     }
 
     adoptedCallback() {
+    }
+
+    getActionId() {
+        this.dispatchEvent(new CustomEvent("getActionId", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getPropertiesLoadStatus() {
+        this.dispatchEvent(new CustomEvent("getPropertiesLoadStatus", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getBeamSections() {
+        this.dispatchEvent(new CustomEvent("getBeamSections", {
+            bubbles: true,
+            composed: true,
+        }));
     }
 
     defineNewBeamSectionName() {
@@ -577,8 +615,8 @@ class FeaSectionAddBeamMenu extends HTMLElement {
 
         const beamSectionDataInProps = this.props.beamSections
             .find(beamSection => beamSection.area == areaField.value && 
-                beamSection.I11 == I11Field.value && beamSection.I22 == I22Field.value && 
-                beamSection.I12 == I12Field.value && beamSection.It == ItField.value);
+                beamSection.i11 == I11Field.value && beamSection.i22 == I22Field.value && 
+                beamSection.i12 == I12Field.value && beamSection.it == ItField.value);
         if (beamSectionDataInProps != null) {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
@@ -601,11 +639,13 @@ class FeaSectionAddBeamMenu extends HTMLElement {
             }
         }
 
+        this.getActionId();
+
         const message = {"add_beam_section": {
             "actionId": this.props.actionId,
             "name": newBeamSectionNameField.value, 
-            "area": areaField.value, "I11": I11Field.value, "I22": I22Field.value, 
-            "I12": I12Field.value, "It": ItField.value,
+            "area": areaField.value, "i11": I11Field.value, "i22": I22Field.value, 
+            "i12": I12Field.value, "it": ItField.value,
         }};
 
         this.dispatchEvent(new CustomEvent("clientMessage", {

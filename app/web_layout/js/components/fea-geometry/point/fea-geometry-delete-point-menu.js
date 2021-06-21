@@ -3,9 +3,9 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
         super();
 
         this.props = {
-            actionId: null,     // u32;
-            isGeometryLoaded: false,
-            points: new Map(),  // map: { number: u32, { x: f64, y: f64, z: f64}, ... };
+            actionId: null,             // u32;
+            isGeometryLoaded: false,    // load status of wasm module "geometry";
+            points: new Map(),          // map: { number: u32, { x: f64, y: f64, z: f64}, ... };
         };
 
         this.state = {};

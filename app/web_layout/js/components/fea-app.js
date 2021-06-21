@@ -10,7 +10,8 @@ class FeaApp extends HTMLElement {
         this.state = {
             actionId: 1,                // u32;
             actionsRouter: null,        // wasm module "actions_router";
-            isGeometryLoaded: false,
+            isGeometryLoaded: false,    // load status of wasm module "geometry";
+            isPropertiesLoaded: false,  // load status of wasm module "properties";
             linesMultipleSelectionModeEnabled: false,
             pointsDataDependentMenus: [
                 "fea-geometry-add-point-menu",
@@ -25,6 +26,27 @@ class FeaApp extends HTMLElement {
                 "fea-geometry-delete-line-menu",
                 "fea-properties-assign-properties-menu",
                 "fea-properties-beam-section-orientation-menu",
+            ],
+            materialsDataDependentMenus: [
+                "fea-material-add-material-menu",
+                "fea-material-update-material-menu",
+                "fea-material-delete-material-menu",
+                "fea-properties-add-properties-menu",
+                "fea-properties-update-properties-menu",
+            ],
+            trussSectionsDataDependentMenus: [
+                "fea-section-add-truss-menu",
+                "fea-section-update-truss-menu",
+                "fea-section-delete-truss-menu",
+                "fea-properties-add-properties-menu",
+                "fea-properties-update-properties-menu",
+            ],
+            beamSectionsDataDependentMenus: [
+                "fea-section-add-beam-menu",
+                "fea-section-update-beam-menu",
+                "fea-section-delete-beam-menu",
+                "fea-properties-add-properties-menu",
+                "fea-properties-update-properties-menu",
             ]
         };
 
@@ -64,6 +86,11 @@ class FeaApp extends HTMLElement {
             event.stopPropagation();
         });
 
+        window.addEventListener("propertiesLoaded", (event) => {
+            this.state.isPropertiesLoaded = true;
+            event.stopPropagation();
+        });
+
         window.addEventListener("resize", () => this.updateCanvasSize());
 
         this.addEventListener("activatePreprocessorMenu", () => this.activatePreprocessorMenu());
@@ -76,6 +103,12 @@ class FeaApp extends HTMLElement {
 
         this.addEventListener("getPoints", (event) => this.getPoints(event));
         this.addEventListener("getLines", (event) => this.getLines(event));
+
+        this.addEventListener("getPropertiesLoadStatus", (event) => this.getPropertiesLoadStatus(event));
+
+        this.addEventListener("getMaterials", (event) => this.getMaterials(event));
+        this.addEventListener("getTrussSections", (event) => this.getTrussSections(event));
+        this.addEventListener("getBeamSections", (event) => this.getBeamSections(event));
 
         this.addEventListener("clientMessage", (event) => this.handleClientMessage(event));
 
@@ -135,9 +168,6 @@ class FeaApp extends HTMLElement {
         }
         const feaPreprocessorMenu = document.createElement("fea-preprocessor-menu");
         this.append(feaPreprocessorMenu);
-        if (this.state.actionId !== 1) {
-            this.state.actionsRouter.extract_geometry();
-        }
         this.updateCanvasSize();
     }
 
@@ -177,6 +207,53 @@ class FeaApp extends HTMLElement {
                     ([key, value]) => [parseInt(key), value]
                 ));
                 this.querySelector(event.target.tagName.toLowerCase()).lines = lines; 
+            }
+        );
+        event.stopPropagation();
+    }
+
+    getPropertiesLoadStatus(event) {
+        this.querySelector(event.target.tagName.toLowerCase()).isPropertiesLoaded = this.state.isPropertiesLoaded;
+        event.stopPropagation();
+    }
+
+    getMaterials(event) {
+        this.state.actionsRouter.extract_materials(
+            (extractedMaterialsData) => { 
+                const materials = Array.from(
+                    Object.entries(extractedMaterialsData.extracted_materials),
+                    ([key, value]) => ({ 
+                        "name": key, "young_modulus": value.young_modulus, "poisson_ratio": value.poisson_ratio, 
+                    }));
+                this.querySelector(event.target.tagName.toLowerCase()).materials = materials; 
+            }
+        );
+        event.stopPropagation();
+    }
+
+    getTrussSections(event) {
+        this.state.actionsRouter.extract_truss_sections(
+            (extractedTrussSectionsData) => { 
+                const trussSections = Array.from(
+                    Object.entries(extractedTrussSectionsData.extracted_truss_sections),
+                    ([key, value]) => ({
+                        "name": key, "area": value.area, "area2": value.area2,
+                    }));
+                this.querySelector(event.target.tagName.toLowerCase()).trussSections = trussSections; 
+            }
+        );
+        event.stopPropagation();
+    }
+
+    getBeamSections(event) {
+        this.state.actionsRouter.extract_beam_sections(
+            (extractedBeamSectionsData) => { 
+                const beamSections = Array.from(
+                    Object.entries(extractedBeamSectionsData.extracted_beam_sections),
+                    ([key, value]) => ({
+                        "name": key, "area": value.area, "i11": value.i11, "i22": value.i22, "i12": value.i12, "it": value.it
+                    }));
+                this.querySelector(event.target.tagName.toLowerCase()).beamSections = beamSections; 
             }
         );
         event.stopPropagation();
@@ -386,11 +463,13 @@ class FeaApp extends HTMLElement {
         }
         const material = { 
             name: event.detail.material_data.name,
-            youngModulus: event.detail.material_data.young_modulus,
-            poissonRatio: event.detail.material_data.poisson_ratio };
-        if (this.querySelector("fea-preprocessor-menu") !== null) {
-            this.querySelector("fea-preprocessor-menu").addMaterialToClient = material;
-        }
+            young_modulus: event.detail.material_data.young_modulus,
+            poisson_ratio: event.detail.material_data.poisson_ratio };
+        for (let i = 0; i < this.state.materialsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.materialsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.materialsDataDependentMenus[i]).addMaterialToClient = material;
+            }
+        } 
         event.stopPropagation();
     }
 
@@ -401,11 +480,13 @@ class FeaApp extends HTMLElement {
         }
         const material = { 
             name: event.detail.material_data.name,
-            youngModulus: event.detail.material_data.young_modulus,
-            poissonRatio: event.detail.material_data.poisson_ratio };
-        if (this.querySelector("fea-preprocessor-menu") !== null) {
-            this.querySelector("fea-preprocessor-menu").updateMaterialInClient = material;
-        }
+            young_modulus: event.detail.material_data.young_modulus,
+            poisson_ratio: event.detail.material_data.poisson_ratio };
+        for (let i = 0; i < this.state.materialsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.materialsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.materialsDataDependentMenus[i]).updateMaterialInClient = material;
+            }
+        } 
         event.stopPropagation();
     }
 
@@ -414,9 +495,11 @@ class FeaApp extends HTMLElement {
             this.state.actionId += 1;
         }
         const material = { number: event.detail.material_data.name };
-        if (this.querySelector("fea-preprocessor-menu") !== null) {
-            this.querySelector("fea-preprocessor-menu").deleteMaterialFromClient = material;
-        }
+        for (let i = 0; i < this.state.materialsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.materialsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.materialsDataDependentMenus[i]).deleteMaterialFromClient = material;
+            }
+        } 
         event.stopPropagation();
     }
 
@@ -428,9 +511,11 @@ class FeaApp extends HTMLElement {
             name: event.detail.truss_section_data.name,
             area: event.detail.truss_section_data.area,
             area2: event.detail.truss_section_data.area2 };
-        if (this.querySelector("fea-preprocessor-menu") !== null) {
-            this.querySelector("fea-preprocessor-menu").addTrussSectionToClient = trussSection;
-        }
+        for (let i = 0; i < this.state.trussSectionsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.trussSectionsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.trussSectionsDataDependentMenus[i]).addTrussSectionToClient = trussSection;
+            }
+        } 
         event.stopPropagation();
     }
 
@@ -442,9 +527,11 @@ class FeaApp extends HTMLElement {
             name: event.detail.truss_section_data.name,
             area: event.detail.truss_section_data.area,
             area2: event.detail.truss_section_data.area2 };
-        if (this.querySelector("fea-preprocessor-menu") !== null) {
-            this.querySelector("fea-preprocessor-menu").updateTrussSectionInClient = trussSection;
-        }
+        for (let i = 0; i < this.state.trussSectionsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.trussSectionsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.trussSectionsDataDependentMenus[i]).updateTrussSectionInClient = trussSection;
+            }
+        } 
         event.stopPropagation();
     }
 
@@ -452,10 +539,12 @@ class FeaApp extends HTMLElement {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;    
         }
-        const trussSection = { number: event.detail.truss_section_data.name };
-        if (this.querySelector("fea-preprocessor-menu") !== null) {
-            this.querySelector("fea-preprocessor-menu").deleteTrussSectionFromClient = trussSection;
-        }
+        const trussSection = { name: event.detail.truss_section_data.name };
+        for (let i = 0; i < this.state.trussSectionsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.trussSectionsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.trussSectionsDataDependentMenus[i]).deleteTrussSectionFromClient = trussSection;
+            }
+        } 
         event.stopPropagation();
     }
 
@@ -466,13 +555,15 @@ class FeaApp extends HTMLElement {
         const beamSection = { 
             name: event.detail.beam_section_data.name,
             area: event.detail.beam_section_data.area,
-            I11: event.detail.beam_section_data.i11,
-            I22: event.detail.beam_section_data.i22,
-            I12: event.detail.beam_section_data.i12,
-            It: event.detail.beam_section_data.it };
-        if (this.querySelector("fea-preprocessor-menu") !== null) {
-            this.querySelector("fea-preprocessor-menu").addBeamSectionToClient = beamSection;
-        }
+            i11: event.detail.beam_section_data.i11,
+            i22: event.detail.beam_section_data.i22,
+            i12: event.detail.beam_section_data.i12,
+            it: event.detail.beam_section_data.it };
+        for (let i = 0; i < this.state.beamSectionsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.beamSectionsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.beamSectionsDataDependentMenus[i]).addBeamSectionToClient = beamSection;
+            }
+        } 
         event.stopPropagation();
     }
 
@@ -483,13 +574,15 @@ class FeaApp extends HTMLElement {
         const beamSection = { 
             name: event.detail.beam_section_data.name,
             area: event.detail.beam_section_data.area,
-            I11: event.detail.beam_section_data.i11,
-            I22: event.detail.beam_section_data.i22,
-            I12: event.detail.beam_section_data.i12,
-            It: event.detail.beam_section_data.it };
-        if (this.querySelector("fea-preprocessor-menu") !== null) {
-            this.querySelector("fea-preprocessor-menu").updateBeamSectionInClient = beamSection;
-        }
+            i11: event.detail.beam_section_data.i11,
+            i22: event.detail.beam_section_data.i22,
+            i12: event.detail.beam_section_data.i12,
+            it: event.detail.beam_section_data.it };
+        for (let i = 0; i < this.state.beamSectionsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.beamSectionsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.beamSectionsDataDependentMenus[i]).updateBeamSectionInClient = beamSection;
+            }
+        } 
         event.stopPropagation();
     }
 
@@ -497,10 +590,12 @@ class FeaApp extends HTMLElement {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;           
         }
-        const beamSection = { number: event.detail.beam_section_data.name };
-        if (this.querySelector("fea-preprocessor-menu") !== null) {
-            this.querySelector("fea-preprocessor-menu").deleteBeamSectionFromClient = beamSection;
-        }
+        const beamSection = { name: event.detail.beam_section_data.name };
+        for (let i = 0; i < this.state.beamSectionsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.beamSectionsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.beamSectionsDataDependentMenus[i]).deleteBeamSectionFromClient = beamSection;
+            }
+        } 
         event.stopPropagation();
     }
 

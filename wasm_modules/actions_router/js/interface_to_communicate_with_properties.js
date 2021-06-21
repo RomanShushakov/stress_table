@@ -139,3 +139,18 @@ export function deleteLineNumbersFromProperties(actionId, lineNumbers)
 export function clearPropertiesModuleByActionId(actionId) {
     communicatorWithProperties.clearPropertiesModuleByActionId = actionId;
 }
+
+export function extractMaterials(handler) 
+{
+    communicatorWithProperties.extractMaterials = handler;
+}
+
+export function extractTrussSections(handler) 
+{
+    communicatorWithProperties.extractTrussSections = handler;
+}
+
+export function extractBeamSections(handler) 
+{
+    communicatorWithProperties.extractBeamSections = handler;
+}

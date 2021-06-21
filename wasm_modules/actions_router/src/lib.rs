@@ -15,11 +15,8 @@ use external_functions::communication_with_geometry::
     add_line_to_geometry, update_line_in_geometry,
     delete_line_from_geometry, restore_line_in_geometry,
     show_point_info, show_line_info_from_geometry,
-    extract_geometry, clear_geometry_module_by_action_id,
-    extract_points, extract_lines,
+    clear_geometry_module_by_action_id, extract_points, extract_lines,
 };
-
-
 use external_functions::communication_with_properties::
 {
     add_material_to_properties, update_material_in_properties,
@@ -29,6 +26,7 @@ use external_functions::communication_with_properties::
     add_beam_section_to_properties, update_beam_section_in_properties,
     delete_beam_section_from_properties, restore_beam_section_in_properties,
     clear_properties_module_by_action_id, delete_line_numbers_from_properties,
+    extract_materials, extract_truss_sections, extract_beam_sections,
 };
 
 mod action;
@@ -973,19 +971,32 @@ impl ActionsRouter
     }
 
 
-    pub fn extract_geometry(&self)
-    {
-        let is_action_id_should_be_increased = false;
-        extract_geometry(is_action_id_should_be_increased);
-    }
-
     pub fn extract_points(&self, handler: js_sys::Function)
     {
         extract_points(handler);
     }
 
+
     pub fn extract_lines(&self, handler: js_sys::Function)
     {
         extract_lines(handler);
+    }
+
+
+    pub fn extract_materials(&self, handler: js_sys::Function)
+    {
+        extract_materials(handler);
+    }
+
+
+    pub fn extract_truss_sections(&self, handler: js_sys::Function)
+    {
+        extract_truss_sections(handler);
+    }
+
+
+    pub fn extract_beam_sections(&self, handler: js_sys::Function)
+    {
+        extract_beam_sections(handler);
     }
 }

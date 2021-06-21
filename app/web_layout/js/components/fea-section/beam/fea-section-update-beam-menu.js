@@ -3,8 +3,9 @@ class FeaSectionUpdateBeamMenu extends HTMLElement {
         super();
 
         this.props = {
-            actionId: null,     // u32;
-            beamSections: [],   // array of: [{ name: String, area: f64, I11: f64, I22: f64, I12: f64, It: f64 }];
+            actionId: null,             // u32;
+            isPropertiesLoaded: false,  // load status of wasm module "properties";
+            beamSections: [],           // array of: [{ name: String, area: f64, i11: f64, i22: f64, i12: f64, it: f64 }];
         };
 
         this.state = {};
@@ -509,6 +510,14 @@ class FeaSectionUpdateBeamMenu extends HTMLElement {
         this.props.actionId = value;
     }
 
+    set isPropertiesLoaded(value) {
+        this.props.isPropertiesLoaded = value;
+    }
+
+    set beamSections(value) {
+        this.props.beamSections = value;
+    }
+
     set addBeamSectionToClient(beamSection) {
         this.props.beamSections.push(beamSection);
         this.props.beamSections.sort((a, b) => a.name - b.name);
@@ -519,10 +528,10 @@ class FeaSectionUpdateBeamMenu extends HTMLElement {
         let beamSectionInProps = this.props.beamSections
             .find(existedBeamSection => existedBeamSection.name == beamSection.name);
         beamSectionInProps.area = beamSection.area;
-        beamSectionInProps.I11 = beamSection.I11;
-        beamSectionInProps.I22 = beamSection.I22;
-        beamSectionInProps.I12 = beamSection.I12;
-        beamSectionInProps.It = beamSection.It;
+        beamSectionInProps.i11 = beamSection.i11;
+        beamSectionInProps.i22 = beamSection.i22;
+        beamSectionInProps.i12 = beamSection.i12;
+        beamSectionInProps.it = beamSection.it;
         this.defineBeamSectionNameOptions();
     }
 
@@ -542,7 +551,15 @@ class FeaSectionUpdateBeamMenu extends HTMLElement {
                 this[propName] = value;
             }
         }); 
-        this.defineBeamSectionNameOptions();
+        const frame = () => {
+            this.getPropertiesLoadStatus();
+            if (this.props.isPropertiesLoaded === true) {
+                clearInterval(id);
+                this.getBeamSections();
+                this.defineBeamSectionNameOptions();
+            }
+        }
+        const id = setInterval(frame, 10);
     }
 
     disconnectedCallback() {
@@ -558,6 +575,27 @@ class FeaSectionUpdateBeamMenu extends HTMLElement {
     adoptedCallback() {
     }
 
+    getActionId() {
+        this.dispatchEvent(new CustomEvent("getActionId", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getPropertiesLoadStatus() {
+        this.dispatchEvent(new CustomEvent("getPropertiesLoadStatus", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getBeamSections() {
+        this.dispatchEvent(new CustomEvent("getBeamSections", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
     defineBeamSectionNameOptions() {
         const updateBeamSectionNameSelect = this.shadowRoot.querySelector(".beam-section-name");
         for (let i = updateBeamSectionNameSelect.length - 1; i >= 0; i--) {
@@ -571,10 +609,10 @@ class FeaSectionUpdateBeamMenu extends HTMLElement {
                 updateBeamSectionNameSelect.appendChild(updateOption);
             }
             this.shadowRoot.querySelector(".area").value = this.props.beamSections[0].area;
-            this.shadowRoot.querySelector(".I11").value = this.props.beamSections[0].I11;
-            this.shadowRoot.querySelector(".I22").value = this.props.beamSections[0].I22;
-            this.shadowRoot.querySelector(".I12").value = this.props.beamSections[0].I12;
-            this.shadowRoot.querySelector(".It").value = this.props.beamSections[0].It;
+            this.shadowRoot.querySelector(".I11").value = this.props.beamSections[0].i11;
+            this.shadowRoot.querySelector(".I22").value = this.props.beamSections[0].i22;
+            this.shadowRoot.querySelector(".I12").value = this.props.beamSections[0].i12;
+            this.shadowRoot.querySelector(".It").value = this.props.beamSections[0].it;
         } else {
             this.shadowRoot.querySelector(".area").value = "";
             this.shadowRoot.querySelector(".I11").value = "";
@@ -590,13 +628,13 @@ class FeaSectionUpdateBeamMenu extends HTMLElement {
             .find(beamSection => beamSection.name == `"${selectedBeamSectionName}"`);
         this.shadowRoot.querySelector(".area").value = beamSectionInProps.area;
         this.dropHighlight(this.shadowRoot.querySelector(".area"));
-        this.shadowRoot.querySelector(".I11").value = beamSectionInProps.I11;
+        this.shadowRoot.querySelector(".I11").value = beamSectionInProps.i11;
         this.dropHighlight(this.shadowRoot.querySelector(".I11"));
-        this.shadowRoot.querySelector(".I22").value = beamSectionInProps.I22;
+        this.shadowRoot.querySelector(".I22").value = beamSectionInProps.i22;
         this.dropHighlight(this.shadowRoot.querySelector(".I22"));
-        this.shadowRoot.querySelector(".I12").value = beamSectionInProps.I12;
+        this.shadowRoot.querySelector(".I12").value = beamSectionInProps.i12;
         this.dropHighlight(this.shadowRoot.querySelector(".I12"));
-        this.shadowRoot.querySelector(".It").value = beamSectionInProps.It;
+        this.shadowRoot.querySelector(".It").value = beamSectionInProps.it;
         this.dropHighlight(this.shadowRoot.querySelector(".It"));
         this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
     }
@@ -670,8 +708,8 @@ class FeaSectionUpdateBeamMenu extends HTMLElement {
 
         const beamSectionDataInProps = this.props.beamSections
             .find(beamSection => beamSection.area == inputtedAreaField.value && 
-                beamSection.I11 == inputtedI11Field.value && beamSection.I22 == inputtedI22Field.value &&
-                beamSection.I12 == inputtedI12Field.value && beamSection.It == inputtedItField.value);
+                beamSection.i11 == inputtedI11Field.value && beamSection.i22 == inputtedI22Field.value &&
+                beamSection.i12 == inputtedI12Field.value && beamSection.it == inputtedItField.value);
         if (beamSectionDataInProps != null) {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
@@ -696,21 +734,24 @@ class FeaSectionUpdateBeamMenu extends HTMLElement {
 
         const oldBeamSectionValues = this.props.beamSections
             .find(beamSection => beamSection.name == `"${selectedBeamSectionNameField.value}"`);
+
+        this.getActionId();
+        
         const message = { "update_beam_section": {
             "actionId": this.props.actionId,
             "name": selectedBeamSectionNameField.value, 
             "old_beam_section_values": { 
                 "area":  oldBeamSectionValues.area,
-                "I11":  oldBeamSectionValues.I11,
-                "I22":  oldBeamSectionValues.I22,
-                "I12":  oldBeamSectionValues.I12,
-                "It":  oldBeamSectionValues.It },
+                "i11":  oldBeamSectionValues.i11,
+                "i22":  oldBeamSectionValues.i22,
+                "i12":  oldBeamSectionValues.i12,
+                "it":  oldBeamSectionValues.it },
             "new_beam_section_values": { 
                 "area": inputtedAreaField.value,
-                "I11": inputtedI11Field.value,
-                "I22": inputtedI22Field.value,
-                "I12": inputtedI12Field.value,
-                "It": inputtedItField.value }
+                "i11": inputtedI11Field.value,
+                "i22": inputtedI22Field.value,
+                "i12": inputtedI12Field.value,
+                "it": inputtedItField.value }
         }};
         this.dispatchEvent(new CustomEvent("clientMessage", {
             bubbles: true,

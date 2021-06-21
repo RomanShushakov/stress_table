@@ -13,7 +13,7 @@ class FeaRenderer extends HTMLElement {
         };
 
         this.state = {
-            isRendererLoaded: false,
+            isRendererLoaded: false,    // load status of wasm module "renderer";
             canvasText: null,
             canvasGL: null,
             renderer: null,

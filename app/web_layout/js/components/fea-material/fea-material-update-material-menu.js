@@ -3,8 +3,9 @@ class FeaMaterialUpdateMaterialMenu extends HTMLElement {
         super();
 
         this.props = {
-            actionId: null,     // u32;
-            materials: [],      // array of: [{ name: String, youngModulus: f64, poissonRatio: f64 }, ...];
+            actionId: null,             // u32;
+            isPropertiesLoaded: false,  // load status of wasm module "properties";
+            materials: [],              // array of: [{ name: String, young_modulus: f64, poisson_ratio: f64 }, ...];
         };
 
         this.state = {};
@@ -332,6 +333,14 @@ class FeaMaterialUpdateMaterialMenu extends HTMLElement {
         this.props.actionId = value;
     }
 
+    set isPropertiesLoaded(value) {
+        this.props.isPropertiesLoaded = value;
+    }
+
+    set materials(value) {
+        this.props.materials = value;
+    }
+
     set addMaterialToClient(material) {
         this.props.materials.push(material);
         this.props.materials.sort((a, b) => a.name - b.name);
@@ -340,8 +349,8 @@ class FeaMaterialUpdateMaterialMenu extends HTMLElement {
 
     set updateMaterialInClient(material) {
         let materialInProps = this.props.materials.find(existedMaterial => existedMaterial.name == material.name);
-        materialInProps.youngModulus = material.youngModulus;
-        materialInProps.poissonRatio = material.poissonRatio;
+        materialInProps.young_modulus = material.young_modulus;
+        materialInProps.poisson_ratio = material.poisson_ratio;
         this.defineMaterialNameOptions();
     }
 
@@ -360,7 +369,15 @@ class FeaMaterialUpdateMaterialMenu extends HTMLElement {
                 this[propName] = value;
             }
         }); 
-        this.defineMaterialNameOptions();
+        const frame = () => {
+            this.getPropertiesLoadStatus();
+            if (this.props.isPropertiesLoaded === true) {
+                clearInterval(id);
+                this.getMaterials();
+                this.defineMaterialNameOptions();
+            }
+        }
+        const id = setInterval(frame, 10);
     }
 
     disconnectedCallback() {
@@ -376,6 +393,27 @@ class FeaMaterialUpdateMaterialMenu extends HTMLElement {
     adoptedCallback() {
     }
 
+    getActionId() {
+        this.dispatchEvent(new CustomEvent("getActionId", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getPropertiesLoadStatus() {
+        this.dispatchEvent(new CustomEvent("getPropertiesLoadStatus", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getMaterials() {
+        this.dispatchEvent(new CustomEvent("getMaterials", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
     defineMaterialNameOptions() {
         const updateMaterialNameSelect = this.shadowRoot.querySelector(".material-name");
         for (let i = updateMaterialNameSelect.length - 1; i >= 0; i--) {
@@ -388,8 +426,8 @@ class FeaMaterialUpdateMaterialMenu extends HTMLElement {
                 updateOption.innerHTML = this.props.materials[i].name.replace(/['"]+/g, "");;
                 updateMaterialNameSelect.appendChild(updateOption);
             }
-            this.shadowRoot.querySelector(".young-modulus").value = this.props.materials[0].youngModulus;
-            this.shadowRoot.querySelector(".poisson-ratio").value = this.props.materials[0].poissonRatio;
+            this.shadowRoot.querySelector(".young-modulus").value = this.props.materials[0].young_modulus;
+            this.shadowRoot.querySelector(".poisson-ratio").value = this.props.materials[0].poisson_ratio;
         } else {
             this.shadowRoot.querySelector(".young-modulus").value = "";
             this.shadowRoot.querySelector(".poisson-ratio").value = "";
@@ -399,9 +437,9 @@ class FeaMaterialUpdateMaterialMenu extends HTMLElement {
     updateMaterialData() {
         const selectedMaterialName = this.shadowRoot.querySelector(".material-name").value;
         const materialInProps = this.props.materials.find(material => material.name == `"${selectedMaterialName}"`);
-        this.shadowRoot.querySelector(".young-modulus").value = materialInProps.youngModulus;
+        this.shadowRoot.querySelector(".young-modulus").value = materialInProps.young_modulus;
         this.dropHighlight(this.shadowRoot.querySelector(".young-modulus"));
-        this.shadowRoot.querySelector(".poisson-ratio").value = materialInProps.poissonRatio;
+        this.shadowRoot.querySelector(".poisson-ratio").value = materialInProps.poisson_ratio;
         this.dropHighlight(this.shadowRoot.querySelector(".poisson-ratio"));
         this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
     }
@@ -450,8 +488,8 @@ class FeaMaterialUpdateMaterialMenu extends HTMLElement {
             }
         }
 
-        const materialDataInProps = this.props.materials.find(material => material.youngModulus == inputtedYoungModulusField.value && 
-            material.poissonRatio == inputtedPoissonRatio.value);
+        const materialDataInProps = this.props.materials.find(material => material.young_modulus == inputtedYoungModulusField.value && 
+            material.poisson_ratio == inputtedPoissonRatio.value);
         if (materialDataInProps != null) {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
@@ -473,12 +511,15 @@ class FeaMaterialUpdateMaterialMenu extends HTMLElement {
         }
 
         const oldMaterialValues = this.props.materials.find(material => material.name == `"${selectedMaterialNameField.value}"`);
+
+        this.getActionId();
+
         const message = { "update_material": {
             "actionId": this.props.actionId,
             "name": selectedMaterialNameField.value, 
             "old_material_values": { 
-                "young_modulus":  oldMaterialValues.youngModulus,
-                "poisson_ratio": oldMaterialValues.poissonRatio },
+                "young_modulus":  oldMaterialValues.young_modulus,
+                "poisson_ratio": oldMaterialValues.poisson_ratio },
             "new_material_values": { 
                 "young_modulus": inputtedYoungModulusField.value,
                 "poisson_ratio": inputtedPoissonRatio.value }

@@ -11,6 +11,10 @@ class CommunicatorWithProperties {
 
     async initProperties() {
         this.state.properties = await initializeProperties();
+        window.dispatchEvent(new CustomEvent("propertiesLoaded", {
+            bubbles: true,
+            composed: true,
+        }));
     }
 
     set addMaterialToProperties(materialData) {
@@ -134,6 +138,18 @@ class CommunicatorWithProperties {
 
     set clearPropertiesModuleByActionId(actionId) {
         this.state.properties.clear_properties_module_by_action_id(actionId);
+    }
+
+    set extractMaterials(handler) {
+        this.state.properties.extract_materials(handler);
+    }
+
+    set extractTrussSections(handler) {
+        this.state.properties.extract_truss_sections(handler);
+    }
+
+    set extractBeamSections(handler) {
+        this.state.properties.extract_beam_sections(handler);
     }
 }
 

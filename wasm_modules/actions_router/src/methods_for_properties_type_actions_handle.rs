@@ -245,25 +245,25 @@ impl ActionsRouter
             .parse::<f64>()
             .or(Err(JsValue::from("Actions router: Add beam section action: \
                 Area value could not be converted to f64!")))?;
-        let i11 = beam_section_data["I11"].as_str()
+        let i11 = beam_section_data["i11"].as_str()
             .ok_or(JsValue::from("Actions router: Add beam section action: \
                 I11 value could not be extracted!"))?
             .parse::<f64>()
             .or(Err(JsValue::from("Actions router: Add beam section action: \
                 I11 value could not be converted to f64!")))?;
-        let i22 = beam_section_data["I22"].as_str()
+        let i22 = beam_section_data["i22"].as_str()
             .ok_or(JsValue::from("Actions router: Add beam section action: \
                 I22 value could not be extracted!"))?
             .parse::<f64>()
             .or(Err(JsValue::from("Actions router: Add beam section action: \
                 I22 value could not be converted to f64!")))?;
-        let i12 = beam_section_data["I12"].as_str()
+        let i12 = beam_section_data["i12"].as_str()
             .ok_or(JsValue::from("Actions router: Add beam section action: \
                 I12 value could not be extracted!"))?
             .parse::<f64>()
             .or(Err(JsValue::from("Actions router: Add beam section action: \
                 I12 value could not be converted to f64!")))?;
-        let it = beam_section_data["It"].as_str()
+        let it = beam_section_data["it"].as_str()
             .ok_or(JsValue::from("Actions router: Add beam section action: \
                 It value could not be extracted!"))?
             .parse::<f64>()
@@ -293,22 +293,22 @@ impl ActionsRouter
             .parse::<f64>()
             .or(Err(JsValue::from("Actions router: Update beam section action: \
                 Beam section old Area value could not be converted to f64!")))?;
-        let old_i11 = beam_section_data["old_beam_section_values"]["I11"]
+        let old_i11 = beam_section_data["old_beam_section_values"]["i11"]
             .to_string()
             .parse::<f64>()
             .or(Err(JsValue::from("Actions router: Update beam section action: \
                 Beam section old I11 value could not be converted to f64!")))?;
-        let old_i22 = beam_section_data["old_beam_section_values"]["I22"]
+        let old_i22 = beam_section_data["old_beam_section_values"]["i22"]
             .to_string()
             .parse::<f64>()
             .or(Err(JsValue::from("Actions router: Update beam section action: \
                 Beam section old I22 value could not be converted to f64!")))?;
-        let old_i12 = beam_section_data["old_beam_section_values"]["I12"]
+        let old_i12 = beam_section_data["old_beam_section_values"]["i12"]
             .to_string()
             .parse::<f64>()
             .or(Err(JsValue::from("Actions router: Update beam section action: \
                 Beam section old I12 value could not be converted to f64!")))?;
-        let old_it = beam_section_data["old_beam_section_values"]["It"]
+        let old_it = beam_section_data["old_beam_section_values"]["it"]
             .to_string()
             .parse::<f64>()
             .or(Err(JsValue::from("Actions router: Update beam section action: \
@@ -320,28 +320,28 @@ impl ActionsRouter
             .parse::<f64>()
             .or(Err(JsValue::from("Actions router: Update beam section action: \
                 Beam section new Area value could not be converted to f64!")))?;
-        let new_i11 = beam_section_data["new_beam_section_values"]["I11"]
+        let new_i11 = beam_section_data["new_beam_section_values"]["i11"]
             .as_str()
             .ok_or(JsValue::from("Actions router: Update beam section action: \
                 Beam section new I11 value could not be extracted!"))?
             .parse::<f64>()
             .or(Err(JsValue::from("Actions router: Update beam section action: \
                 Beam section new I11 value could not be converted to f64!")))?;
-        let new_i22 = beam_section_data["new_beam_section_values"]["I22"]
+        let new_i22 = beam_section_data["new_beam_section_values"]["i22"]
             .as_str()
             .ok_or(JsValue::from("Actions router: Update beam section action: \
                 Beam section new I22 value could not be extracted!"))?
             .parse::<f64>()
             .or(Err(JsValue::from("Actions router: Update beam section action: \
                 Beam section new I22 value could not be converted to f64!")))?;
-        let new_i12 = beam_section_data["new_beam_section_values"]["I12"]
+        let new_i12 = beam_section_data["new_beam_section_values"]["i12"]
             .as_str()
             .ok_or(JsValue::from("Actions router: Update beam section action: \
                 Beam section new I12 value could not be extracted!"))?
             .parse::<f64>()
             .or(Err(JsValue::from("Actions router: Update beam section action: \
                 Beam section new I12 value could not be converted to f64!")))?;
-        let new_it = beam_section_data["new_beam_section_values"]["It"]
+        let new_it = beam_section_data["new_beam_section_values"]["it"]
             .as_str()
             .ok_or(JsValue::from("Actions router: Update beam section action: \
                 Beam section new It value could not be extracted!"))?

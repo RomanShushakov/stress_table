@@ -114,10 +114,6 @@ class CommunicatorWithGeometry {
         return objectInfo;
     }
 
-    set extractGeometry(isActionIdShouldBeIncreased) {
-        this.state.geometry.extract_geometry(isActionIdShouldBeIncreased);
-    }
-
     set clearGeometryModuleByActionId(actionId) {
         this.state.geometry.clear_geometry_module_by_action_id(actionId);
     }

@@ -3,9 +3,9 @@ class FeaGeometryDeleteLineMenu extends HTMLElement {
         super();
 
         this.props = {
-            actionId: null,     // u32;
-            isGeometryLoaded: false,
-            lines: new Map(),   // map: { number: u32, start_point_number: u32, end_point_number: u32 }, ...};
+            actionId: null,             // u32;
+            isGeometryLoaded: false,    // load status of wasm module "geometry";
+            lines: new Map(),           // map: { number: u32, start_point_number: u32, end_point_number: u32 }, ...};
         };
 
         this.state = {};

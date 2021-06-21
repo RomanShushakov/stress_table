@@ -1,4 +1,7 @@
-#[derive(Debug, Clone)]
+use serde::Serialize;
+
+
+#[derive(Debug, Clone, Serialize)]
 pub struct Material
 {
     young_modulus: f64,

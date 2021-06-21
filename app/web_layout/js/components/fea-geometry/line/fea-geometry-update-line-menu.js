@@ -4,6 +4,7 @@ class FeaGeometryUpdateLineMenu extends HTMLElement {
 
         this.props = {
             actionId: null,     // u32;
+            isGeometryLoaded: false,
             points: new Map(),  // map: { number: u32, { x: f64, y: f64, z: f64}, ... };
             lines: new Map(),   // map: { number: u32, start_point_number: u32, end_point_number: u32 }, ...};
         };
@@ -465,6 +466,10 @@ class FeaGeometryUpdateLineMenu extends HTMLElement {
         this.props.actionId = value;
     }
 
+    set isGeometryLoaded(value) {
+        this.props.isGeometryLoaded = value;
+    }
+
     set points(value) {
         this.props.points = value;
     }
@@ -499,15 +504,21 @@ class FeaGeometryUpdateLineMenu extends HTMLElement {
     }
 
     set selectLineInClient(lineNumber) {
-        const lineNumberSelect =  this.shadowRoot.querySelector(".line-number");
-        const lineNumberOptions =  lineNumberSelect.options;
-        for (let option, i = 0; option = lineNumberOptions[i]; i++) {
-            if (option.value == lineNumber) {
-                lineNumberSelect.selectedIndex = i;
-                break;
+        const frame = () => {
+            if (this.props.isGeometryLoaded === true) {
+                clearInterval(id);
+                const lineNumberSelect =  this.shadowRoot.querySelector(".line-number");
+                const lineNumberOptions =  lineNumberSelect.options;
+                for (let option, i = 0; option = lineNumberOptions[i]; i++) {
+                    if (option.value == lineNumber) {
+                        lineNumberSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+                this.updateSelectedLineStartPointAndEndPointNumbers(lineNumber);
             }
         }
-        this.updateSelectedLineStartPointAndEndPointNumbers(lineNumber);
+        const id = setInterval(frame, 10);
     }
 
     connectedCallback() {
@@ -518,9 +529,16 @@ class FeaGeometryUpdateLineMenu extends HTMLElement {
                 this[propName] = value;
             }
         });
-        this.getPoints();
-        this.getLines();
-        this.defineLineNumberOptions();
+        const frame = () => {
+            this.getGeometryLoadStatus();
+            if (this.props.isGeometryLoaded === true) {
+                clearInterval(id);
+                this.getPoints();
+                this.getLines();
+                this.defineLineNumberOptions();
+            }
+        }
+        const id = setInterval(frame, 10);
     }
 
     disconnectedCallback() {
@@ -538,6 +556,13 @@ class FeaGeometryUpdateLineMenu extends HTMLElement {
 
     getActionId() {
         this.dispatchEvent(new CustomEvent("getActionId", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getGeometryLoadStatus() {
+        this.dispatchEvent(new CustomEvent("getGeometryLoadStatus", {
             bubbles: true,
             composed: true,
         }));

@@ -13,6 +13,10 @@ class CommunicatorWithGeometry {
 
     async initGeometry() {
         this.state.geometry = await initializeGeometry();
+        window.dispatchEvent(new CustomEvent("geometryLoaded", {
+            bubbles: true,
+            composed: true,
+        }));
     }
 
     set addPointToGeometry(pointData) {

@@ -4,6 +4,7 @@ class FeaGeometryUpdatePointMenu extends HTMLElement {
 
         this.props = {
             actionId: null,     // u32;
+            isGeometryLoaded: false,
             points: new Map(),  // map: { number: u32, { x: f64, y: f64, z: f64}, ... };
         };
 
@@ -401,6 +402,10 @@ class FeaGeometryUpdatePointMenu extends HTMLElement {
         this.props.actionId = value;
     }
 
+    set isGeometryLoaded(value) {
+        this.props.isGeometryLoaded = value;
+    }
+
     set points(value) {
         this.props.points = value;
     }
@@ -421,15 +426,21 @@ class FeaGeometryUpdatePointMenu extends HTMLElement {
     }
 
     set selectPointInClient(pointNumber) {
-        const pointNumberSelect = this.shadowRoot.querySelector(".point-number");
-        const pointNumberOptions = pointNumberSelect.options;
-        for (let option, i = 0; option = pointNumberOptions[i]; i++) {
-            if (option.value == pointNumber) {
-                pointNumberSelect.selectedIndex = i;
-                break;
+        const frame = () => {
+            if (this.props.isGeometryLoaded === true) {
+                clearInterval(id);
+                const pointNumberSelect = this.shadowRoot.querySelector(".point-number");
+                const pointNumberOptions = pointNumberSelect.options;
+                for (let option, i = 0; option = pointNumberOptions[i]; i++) {
+                    if (option.value == pointNumber) {
+                        pointNumberSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+                this.updatePointCoordinates();
             }
         }
-        this.updatePointCoordinates();
+        const id = setInterval(frame, 10);
     }
 
     connectedCallback() {
@@ -440,8 +451,15 @@ class FeaGeometryUpdatePointMenu extends HTMLElement {
                 this[propName] = value;
             }
         }); 
-        this.getPoints();
-        this.definePointNumberOptions();
+        const frame = () => {
+            this.getGeometryLoadStatus();
+            if (this.props.isGeometryLoaded === true) {
+                clearInterval(id);
+                this.getPoints();
+                this.definePointNumberOptions();
+            }
+        }
+        const id = setInterval(frame, 10);
     }
 
     disconnectedCallback() {
@@ -459,6 +477,13 @@ class FeaGeometryUpdatePointMenu extends HTMLElement {
 
     getActionId() {
         this.dispatchEvent(new CustomEvent("getActionId", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getGeometryLoadStatus() {
+        this.dispatchEvent(new CustomEvent("getGeometryLoadStatus", {
             bubbles: true,
             composed: true,
         }));

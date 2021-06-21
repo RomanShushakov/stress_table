@@ -4,6 +4,7 @@ class FeaGeometryAddPointMenu extends HTMLElement {
 
         this.props = {
             actionId: null,     // u32;
+            isGeometryLoaded: false, 
             points: new Map(),  // map: { number: u32, { x: f64, y: f64, z: f64}, ... };
         };
 
@@ -310,11 +311,11 @@ class FeaGeometryAddPointMenu extends HTMLElement {
             </div>
         `;
 
-         this.shadowRoot.querySelector(".apply-button").addEventListener("click", () => this.addPoint());
+        this.shadowRoot.querySelector(".apply-button").addEventListener("click", () => this.addPoint());
 
-         this.shadowRoot.querySelector(".cancel-button").addEventListener("click", () => this.cancelPointAddition());
+        this.shadowRoot.querySelector(".cancel-button").addEventListener("click", () => this.cancelPointAddition());
 
-         this.shadowRoot.querySelector(".point-number").addEventListener("click", () => {
+        this.shadowRoot.querySelector(".point-number").addEventListener("click", () => {
             const highlightedElement = this.shadowRoot.querySelector(".point-number");
             this.dropHighlight(highlightedElement);
             this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
@@ -343,6 +344,10 @@ class FeaGeometryAddPointMenu extends HTMLElement {
         this.props.actionId = value;
     }
 
+    set isGeometryLoaded(value) {
+        this.props.isGeometryLoaded = value;
+    }
+
     set points(value) {
         this.props.points = value;
     }
@@ -369,8 +374,15 @@ class FeaGeometryAddPointMenu extends HTMLElement {
                 this[propName] = value;
             }
         });
-        this.getPoints();
-        this.defineNewPointNumber();
+        const frame = () => {
+            this.getGeometryLoadStatus();
+            if (this.props.isGeometryLoaded === true) {
+                clearInterval(id);
+                this.getPoints();
+                this.defineNewPointNumber();
+            }
+        }
+        const id = setInterval(frame, 10);
     }
 
     disconnectedCallback() {
@@ -388,6 +400,13 @@ class FeaGeometryAddPointMenu extends HTMLElement {
 
     getActionId() {
         this.dispatchEvent(new CustomEvent("getActionId", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getGeometryLoadStatus() {
+        this.dispatchEvent(new CustomEvent("getGeometryLoadStatus", {
             bubbles: true,
             composed: true,
         }));

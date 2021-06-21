@@ -10,8 +10,8 @@ class FeaApp extends HTMLElement {
         this.state = {
             actionId: 1,                // u32;
             actionsRouter: null,        // wasm module "actions_router";
+            isGeometryLoaded: false,
             linesMultipleSelectionModeEnabled: false,
-
             pointsDataDependentMenus: [
                 "fea-geometry-add-point-menu",
                 "fea-geometry-update-point-menu",
@@ -19,7 +19,6 @@ class FeaApp extends HTMLElement {
                 "fea-geometry-add-line-menu",
                 "fea-geometry-update-line-menu",
             ],
-
             linesDataDependentMenus: [
                 "fea-geometry-add-line-menu",
                 "fea-geometry-update-line-menu",
@@ -60,6 +59,11 @@ class FeaApp extends HTMLElement {
             </div>
         `;
 
+        window.addEventListener("geometryLoaded", (event) => {
+            this.state.isGeometryLoaded = true;
+            event.stopPropagation();
+        });
+
         window.addEventListener("resize", () => this.updateCanvasSize());
 
         this.addEventListener("activatePreprocessorMenu", () => this.activatePreprocessorMenu());
@@ -68,8 +72,9 @@ class FeaApp extends HTMLElement {
         this.addEventListener("getActionId", (event) => this.getActionId(event));
         this.addEventListener("getActionIdForToolBar", (event) => this.getActionIdForToolBar(event));
 
-        this.addEventListener("getPoints", (event) => this.getPoints(event));
+        this.addEventListener("getGeometryLoadStatus", (event) => this.getGeometryLoadStatus(event));
 
+        this.addEventListener("getPoints", (event) => this.getPoints(event));
         this.addEventListener("getLines", (event) => this.getLines(event));
 
         this.addEventListener("clientMessage", (event) => this.handleClientMessage(event));
@@ -143,6 +148,11 @@ class FeaApp extends HTMLElement {
 
     getActionIdForToolBar(event) {
         this.shadowRoot.querySelector("fea-app-tool-bar").actionId = this.state.actionId;
+        event.stopPropagation();
+    }
+
+    getGeometryLoadStatus(event) {
+        this.querySelector(event.target.tagName.toLowerCase()).isGeometryLoaded = this.state.isGeometryLoaded;
         event.stopPropagation();
     }
 

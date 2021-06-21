@@ -13,6 +13,7 @@ class FeaRenderer extends HTMLElement {
         };
 
         this.state = {
+            isRendererLoaded: false,
             canvasText: null,
             canvasGL: null,
             renderer: null,
@@ -191,6 +192,7 @@ class FeaRenderer extends HTMLElement {
         this.state.canvasGL.width = this.props.canvasWidth;
         this.state.canvasGL.height = this.props.canvasHeight;
         this.state.renderer = await initializeRenderer(this.state.canvasText, this.state.canvasGL);
+        this.state.isRendererLoaded = true;
         this.state.renderLoop = () => {
             this.state.renderer.tick();
             this.state.animationId = requestAnimationFrame(this.state.renderLoop);
@@ -230,126 +232,150 @@ class FeaRenderer extends HTMLElement {
     }
 
     onMouseMove(event) {
-        if (this.state.isPaused === true) {
-            this.play();
-            this.state.isPaused = false;
-        }
-        const mouseX = event.clientX;
-        const mouseY = event.clientY;
-        const boundingRect = this.state.canvasGL.getBoundingClientRect();
-        const x = mouseX - boundingRect.left;
-        const y = boundingRect.bottom - mouseY;
-        this.state.renderer.change_cursor_coordinates(x, y);
-        if (this.state.isRotate === true) {
-            const dTheta = event.movementX * 2.0 * Math.PI / this.props.canvasWidth;
-            this.state.renderer.increment_angle_theta(dTheta);
-            const dPhi = event.movementY * 2.0 * Math.PI / this.props.canvasHeight;
-            this.state.renderer.increment_angle_phi(dPhi);
-        }
-        if (this.state.isPan === true) {
-            const dx = event.movementX / this.props.canvasWidth;
-            this.state.renderer.increment_dx(dx);
-            const dy =  -event.movementY / this.props.canvasHeight;
-            this.state.renderer.increment_dy(dy);
-        }
-        if (this.state.isZoom === true) {
-            const dScale = this.state.renderer.extract_d_scale() + 
-                event.movementX / this.props.canvasWidth + 
-                event.movementY / this.props.canvasHeight;
-            if (1.0 + dScale > 50.0) {
-                this.state.renderer.change_d_scale(48.95);
-            } else if (1.0 + dScale < 0.0) {
-                this.state.renderer.change_d_scale(-0.95);
-            } else {
-                this.state.renderer.change_d_scale(dScale);
+        const frame = () => {
+            if (this.state.isRendererLoaded === true) {
+                clearInterval(id);
+                if (this.state.isPaused === true) {
+                    this.play();
+                    this.state.isPaused = false;
+                }
+                const mouseX = event.clientX;
+                const mouseY = event.clientY;
+                const boundingRect = this.state.canvasGL.getBoundingClientRect();
+                const x = mouseX - boundingRect.left;
+                const y = boundingRect.bottom - mouseY;
+                this.state.renderer.change_cursor_coordinates(x, y);
+                if (this.state.isRotate === true) {
+                    const dTheta = event.movementX * 2.0 * Math.PI / this.props.canvasWidth;
+                    this.state.renderer.increment_angle_theta(dTheta);
+                    const dPhi = event.movementY * 2.0 * Math.PI / this.props.canvasHeight;
+                    this.state.renderer.increment_angle_phi(dPhi);
+                }
+                if (this.state.isPan === true) {
+                    const dx = event.movementX / this.props.canvasWidth;
+                    this.state.renderer.increment_dx(dx);
+                    const dy =  -event.movementY / this.props.canvasHeight;
+                    this.state.renderer.increment_dy(dy);
+                }
+                if (this.state.isZoom === true) {
+                    const dScale = this.state.renderer.extract_d_scale() + 
+                        event.movementX / this.props.canvasWidth + 
+                        event.movementY / this.props.canvasHeight;
+                    if (1.0 + dScale > 50.0) {
+                        this.state.renderer.change_d_scale(48.95);
+                    } else if (1.0 + dScale < 0.0) {
+                        this.state.renderer.change_d_scale(-0.95);
+                    } else {
+                        this.state.renderer.change_d_scale(dScale);
+                    }
+                }
             }
         }
+        const id = setInterval(frame, 10);
     }
-
 
     onMouseLeave() {
-        if (this.state.isPaused === false) {
-            this.pause();
-            this.state.isPaused = true;
+        const frame = () => {
+            if (this.state.isRendererLoaded === true) {
+                clearInterval(id);
+                if (this.state.isPaused === false) {
+                    this.pause();
+                    this.state.isPaused = true;
+                }
+                this.state.isRotate = false;
+                this.state.isPan = false;
+                this.state.isZoom = false;
+                this.state.renderer.selection_box_end();
+                this.state.renderer.tick();
+            }
         }
-        this.state.isRotate = false;
-        this.state.isPan = false;
-        this.state.isZoom = false;
-        this.state.renderer.selection_box_end();
-        this.state.renderer.tick();
+        const id = setInterval(frame, 10);
     }
-
 
     onMouseDown(event) {
-        if (typeof event === 'object') {
-            switch (event.button) {
-            case 0:
-                if (event.ctrlKey === true && event.altKey === true && this.state.isPan === false && this.state.isZoom === false) {
-                    this.state.isRotate = true;
+        const frame = () => {
+            if (this.state.isRendererLoaded === true) {
+                clearInterval(id);
+                if (typeof event === 'object') {
+                    switch (event.button) {
+                    case 0:
+                        if (event.ctrlKey === true && event.altKey === true && this.state.isPan === false && this.state.isZoom === false) {
+                            this.state.isRotate = true;
+                        }
+                        if (this.state.isRotate === false) {
+                            this.state.renderer.selection_box_start();
+                        }
+                        break;
+                    case 1:
+                        if (event.ctrlKey === true && event.altKey === true && this.state.isRotate === false && this.state.isPan === false) {
+                            this.state.isZoom = true;
+                        }
+                        break;
+                    case 2:
+                        if (event.ctrlKey === true && event.altKey === true && this.state.isRotate === false && this.state.isZoom === false) {
+                            this.state.isPan = true;
+                        }
+                        break;
+                    default:
+                        console.log(`Unknown button code: ${event.button}`);
+                    }
                 }
-                if (this.state.isRotate === false) {
-                    this.state.renderer.selection_box_start();
-                }
-                break;
-            case 1:
-                if (event.ctrlKey === true && event.altKey === true && this.state.isRotate === false && this.state.isPan === false) {
-                    this.state.isZoom = true;
-                }
-                break;
-            case 2:
-                if (event.ctrlKey === true && event.altKey === true && this.state.isRotate === false && this.state.isZoom === false) {
-                    this.state.isPan = true;
-                }
-                break;
-            default:
-                console.log(`Unknown button code: ${event.button}`);
             }
         }
+        const id = setInterval(frame, 10);
     }
-
 
     onMouseUp(event) {
-
-        if (typeof event === 'object') {
-            switch (event.button) {
-            case 0:
-                this.state.renderer.selection_box_end();
-                this.state.renderer.select_objects(() => this.dropSelection());
-                if (this.state.isRotate === true) {
-                    this.state.isRotate = false;
+        const frame = () => {
+            if (this.state.isRendererLoaded === true) {
+                clearInterval(id);
+                if (typeof event === 'object') {
+                    switch (event.button) {
+                    case 0:
+                        this.state.renderer.selection_box_end();
+                        this.state.renderer.select_objects(() => this.dropSelection());
+                        if (this.state.isRotate === true) {
+                            this.state.isRotate = false;
+                        }
+                        break;
+                    case 1:
+                        if (this.state.isZoom === true) {
+                            this.state.isZoom = false;
+                        }
+                        break;
+                    case 2:
+                        if (this.state.isPan === true) {
+                            this.state.isPan = false;
+                        }
+                        break;
+                    default:
+                        console.log(`Unknown button code: ${event.button}`);
+                    }
                 }
-                break;
-            case 1:
-                if (this.state.isZoom === true) {
-                    this.state.isZoom = false;
-                }
-                break;
-            case 2:
-                if (this.state.isPan === true) {
-                    this.state.isPan = false;
-                }
-                break;
-            default:
-                console.log(`Unknown button code: ${event.button}`);
             }
         }
+        const id = setInterval(frame, 10);
     }
-
 
     onMouseWheel(event) {
-        if (event.ctrlKey === true) {
-            event.preventDefault();
+        const frame = () => {
+            if (this.state.isRendererLoaded === true) {
+                clearInterval(id);
+                if (event.ctrlKey === true) {
+                    event.preventDefault();
+                }
+                const dScale = this.state.renderer.extract_d_scale() + event.deltaY / this.props.canvasHeight;
+                if (1.0 + dScale > 50.0) {
+                    this.state.renderer.change_d_scale(48.95);
+                } else if (1.0 + dScale < 0.0) {
+                    this.state.renderer.change_d_scale(-0.95);
+                } else {
+                    this.state.renderer.change_d_scale(dScale);
+                }
+            }
         }
-        const dScale = this.state.renderer.extract_d_scale() + event.deltaY / this.props.canvasHeight;
-        if (1.0 + dScale > 50.0) {
-            this.state.renderer.change_d_scale(48.95);
-        } else if (1.0 + dScale < 0.0) {
-            this.state.renderer.change_d_scale(-0.95);
-        } else {
-            this.state.renderer.change_d_scale(dScale);
-        }
+        const id = setInterval(frame, 10);
     }
-
 
     dropSelection() {
         this.shadowRoot.querySelector(".object-info-field").innerHTML = "Object:";

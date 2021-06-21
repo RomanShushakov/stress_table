@@ -4,6 +4,7 @@ class FeaGeometryDeleteLineMenu extends HTMLElement {
 
         this.props = {
             actionId: null,     // u32;
+            isGeometryLoaded: false,
             lines: new Map(),   // map: { number: u32, start_point_number: u32, end_point_number: u32 }, ...};
         };
 
@@ -224,6 +225,10 @@ class FeaGeometryDeleteLineMenu extends HTMLElement {
         this.props.actionId = value;
     }
 
+    set isGeometryLoaded(value) {
+        this.props.isGeometryLoaded = value;
+    }
+
     set lines(value) {
         this.props.lines = value;
     }
@@ -249,8 +254,15 @@ class FeaGeometryDeleteLineMenu extends HTMLElement {
                 this[propName] = value;
             }
         });
-        this.getLines();
-        this.defineLineNumberOptions();
+        const frame = () => {
+            this.getGeometryLoadStatus();
+            if (this.props.isGeometryLoaded === true) {
+                clearInterval(id);
+                this.getLines();
+                this.defineLineNumberOptions();
+            }
+        }
+        const id = setInterval(frame, 10);
     }
 
     disconnectedCallback() {
@@ -268,6 +280,13 @@ class FeaGeometryDeleteLineMenu extends HTMLElement {
 
     getActionId() {
         this.dispatchEvent(new CustomEvent("getActionId", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getGeometryLoadStatus() {
+        this.dispatchEvent(new CustomEvent("getGeometryLoadStatus", {
             bubbles: true,
             composed: true,
         }));

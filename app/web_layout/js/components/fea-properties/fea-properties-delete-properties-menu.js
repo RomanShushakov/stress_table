@@ -3,9 +3,10 @@ class FeaPropertiesDeletePropertiesMenu extends HTMLElement {
         super();
 
         this.props = {
-            actionId: null,     // u32;
-            properties: [],     // array of: [{ name: String, materialName: String, sectionName: String,
-                                //              sectionType: String }];
+            actionId: null,             // u32;
+            isPropertiesLoaded: false,  // load status of wasm module "properties";
+            properties: [],             // array of: [{ name: String, material_name: String, cross_section_name: String,
+                                        //              cross_section_type: String }];
         };
 
         this.state = {};
@@ -213,6 +214,31 @@ class FeaPropertiesDeletePropertiesMenu extends HTMLElement {
         this.props.actionId = value;
     }
 
+    set isPropertiesLoaded(value) {
+        this.props.isPropertiesLoaded = value;
+    }
+
+    set properties(value) {
+        this.props.properties = value;
+    }
+
+    set addPropertiesToClient(properties) {
+        this.props.properties.push(properties);
+        this.props.properties.sort((a, b) => a.name - b.name);
+        this.definePropertiesNameOptions();
+    }
+
+    set updatePropertiesInClient(_properties) {
+    }
+
+    set deletePropertiesFromClient(properties) {
+        let propertiesIndexInProps = this.props.properties
+            .findIndex(existedProperties => existedProperties.name == properties.name);
+        this.props.properties.splice(propertiesIndexInProps, 1);
+        this.props.properties.sort((a, b) => a.name - b.name);
+        this.definePropertiesNameOptions();
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {
@@ -221,6 +247,15 @@ class FeaPropertiesDeletePropertiesMenu extends HTMLElement {
                 this[propName] = value;
             }
         });
+        const frame = () => {
+            this.getPropertiesLoadStatus();
+            if (this.props.isPropertiesLoaded === true) {
+                clearInterval(id);
+                this.getProperties();
+                this.definePropertiesNameOptions();
+            }
+        }
+        const id = setInterval(frame, 10);
     }
 
     disconnectedCallback() {
@@ -234,6 +269,27 @@ class FeaPropertiesDeletePropertiesMenu extends HTMLElement {
     }
 
     adoptedCallback() {
+    }
+
+    getActionId() {
+        this.dispatchEvent(new CustomEvent("getActionId", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getPropertiesLoadStatus() {
+        this.dispatchEvent(new CustomEvent("getPropertiesLoadStatus", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getProperties() {
+        this.dispatchEvent(new CustomEvent("getProperties", {
+            bubbles: true,
+            composed: true,
+        }));
     }
 
     definePropertiesNameOptions() {
@@ -276,6 +332,8 @@ class FeaPropertiesDeletePropertiesMenu extends HTMLElement {
                 return;
             }
         }
+
+        this.getActionId();
 
         const deletedPropertiesData = this.props.properties.find(properties => properties.name == `"${selectedPropertiesNameField.value}"`);
         const message = { "delete_properties": { "actionId": this.props.actionId, "name": deletedPropertiesData.name.replace(/['"]+/g, "") } };

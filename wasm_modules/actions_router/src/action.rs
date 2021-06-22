@@ -106,6 +106,21 @@ pub enum PropertiesActionType
 
     // ( name, is_action_id_should_be_increased )
     RestoreBeamSection(String, bool),
+
+    // ( name, material_name, cross_section_name, cross_section_type,
+    // is_action_id_should_be_increased )
+    AddProperties(String, String, String, String, bool),
+
+    // ( name, old_material_name, old_cross_section_name, old_cross_section_type,
+    // new_material_name, new_cross_section_name, new_cross_section_type,
+    // is_action_id_should_be_increased )
+    UpdateProperties(String, String, String, String, String, String, String, bool),
+
+    // ( name, is_action_id_should_be_increased )
+    DeleteProperties(String, bool),
+
+    // ( name, is_action_id_should_be_increased )
+    RestoreProperties(String, bool),
 }
 
 

@@ -3,16 +3,17 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
         super();
 
         this.props = {
-            actionId: null,     // u32;
-            materials: [],      // array of: [{ name: String, youngModulus: f64, poissonRatio: f64 }, ...];
-            trussSections: [],  // array of: [{ name: String, area: f64, area2: f64 or null }];
-            beamSections: [],   // array of: [{ name: String, area: f64, I11: f64, I22: f64, I12: f64, It: f64 }];
-            properties: [],     // array of: [{ name: String, materialName: String, sectionName: String,
-                                //              sectionType: String }];
+            actionId: null,             // u32;
+            isPropertiesLoaded: false,  // load status of wasm module "properties";
+            materials: [],              // array of: [{ name: String, young_modulus: f64, poisson_ratio: f64 }, ...];
+            trussSections: [],          // array of: [{ name: String, area: f64, area2: f64 or null }];
+            beamSections: [],           // array of: [{ name: String, area: f64, i11: f64, i22: f64, i12: f64, it: f64 }];
+            properties: [],             // array of: [{ name: String, material_name: String, cross_section_name: String,
+                                        //              cross_section_type: String }];
         };
 
         this.state = {
-            sectionTypes: ["truss", "beam"],
+            crossSectionTypes: ["truss", "beam"],
         };
 
         this.attachShadow({ mode: "open" });
@@ -70,7 +71,7 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
-                .section-type-field-content {
+                .cross-section-type-field-content {
                     display: flex;
                     flex-direction: row;
                     background-color: #3b4453;
@@ -82,7 +83,7 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
                     align-items: center;
                 }
 
-                .section-type-caption {
+                .cross-section-type-caption {
                     margin: 0rem;
                     padding: 0rem;
                     color: #D9D9D9;
@@ -90,7 +91,7 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
                     width: 6rem;
                 }
 
-                .section-type-select-content {
+                .cross-section-type-select-content {
                     margin-top: 0rem;
                     margin-bottom: 0rem;
                     margin-left: 1rem;
@@ -100,7 +101,7 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
                     flex-direction: column;
                 }
 
-                .section-type {
+                .cross-section-type {
                     width: 5rem;
                     margin-top: 0.5rem;
                     background-color: #3b4453;
@@ -113,11 +114,11 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
                     background: url('data:image/svg+xml,<svg width="4" height="4" viewBox="0 0 4 4" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1L2 2L3 1" stroke="rgb(112, 112, 114)" stroke-width="0.5"/></svg>') right / contain no-repeat;
                 }
 
-                .section-type option {
+                .cross-section-type option {
                     background-color: #484f60;
                 }
 
-                .section-type:hover {
+                .cross-section-type:hover {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
@@ -212,7 +213,7 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
-                .section-name-field-content {
+                .cross-section-name-field-content {
                     display: flex;
                     flex-direction: row;
                     background-color: #3b4453;
@@ -224,7 +225,7 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
                     align-items: center;
                 }
 
-                .section-name-caption {
+                .cross-section-name-caption {
                     margin: 0rem;
                     padding: 0rem;
                     color: #D9D9D9;
@@ -232,7 +233,7 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
                     width: 6rem;
                 }
 
-                .section-name-select-filter-content {
+                .cross-section-name-select-filter-content {
                     margin-top: 0rem;
                     margin-bottom: 0rem;
                     margin-left: 1rem;
@@ -242,11 +243,11 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
                     flex-direction: column;
                 }
 
-                .section-name-filter-label {
+                .cross-section-name-filter-label {
                     position: relative;
                 }
                   
-                .section-name-filter-label:before {
+                .cross-section-name-filter-label:before {
                     content: "";
                     position: absolute;
                     left: 0rem;
@@ -256,7 +257,7 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
                     background: url('data:image/svg+xml,<svg width="19" height="17" viewBox="0 0 19 17" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.1182 13.15L7.48598 16L7.48598 6.25L2 0.999999L17 1L12.1182 6.25L12.1182 13.15Z" fill="rgb(112, 112, 114)" stroke="rgb(112, 112, 114)"/></svg>') center / contain no-repeat;
                 }
 
-                .section-name-filter {
+                .cross-section-name-filter {
                     margin-top: 0rem;
                     margin-bottom: 0rem;
                     margin-left: 0rem;
@@ -270,19 +271,19 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
                     color: #D9D9D9;
                 }
 
-                .section-name-filter::placeholder {
+                .cross-section-name-filter::placeholder {
                     font-size: 85%;
                 }
 
-                .section-name-filter:hover {
+                .cross-section-name-filter:hover {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
-                .section-name-filter:focus {
+                .cross-section-name-filter:focus {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
-                .section-name {
+                .cross-section-name {
                     width: 5rem;
                     margin-top: 0.5rem;
                     background-color: #3b4453;
@@ -295,11 +296,11 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
                     background: url('data:image/svg+xml,<svg width="4" height="4" viewBox="0 0 4 4" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1L2 2L3 1" stroke="rgb(112, 112, 114)" stroke-width="0.5"/></svg>') right / contain no-repeat;
                 }
 
-                .section-name option {
+                .cross-section-name option {
                     background-color: #484f60;
                 }
 
-                .section-name:hover {
+                .cross-section-name:hover {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
@@ -369,10 +370,10 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
                     <input class="properties-name" type="text"/>
                 </div>
 
-                <div class="section-type-field-content">
-                    <p class="section-type-caption">Section type</p>
-                    <div class="section-type-select-content">
-                        <select class="section-type"></select>
+                <div class="cross-section-type-field-content">
+                    <p class="cross-section-type-caption">Section type</p>
+                    <div class="cross-section-type-select-content">
+                        <select class="cross-section-type"></select>
                     </div>
                 </div>
 
@@ -386,13 +387,13 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
                     </div>
                 </div>
 
-                <div class="section-name-field-content">
-                    <p class="section-name-caption">Section name</p>
-                    <div class="section-name-select-filter-content">
-                        <label class="section-name-filter-label">
-                            <input class="section-name-filter" type="text" placeholder="Filter..."/>
+                <div class="cross-section-name-field-content">
+                    <p class="cross-section-name-caption">Section name</p>
+                    <div class="cross-section-name-select-filter-content">
+                        <label class="cross-section-name-filter-label">
+                            <input class="cross-section-name-filter" type="text" placeholder="Filter..."/>
                         </label>
-                        <select class="section-name"></select>
+                        <select class="cross-section-name"></select>
                     </div>
                 </div>
                 
@@ -417,7 +418,7 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
             this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
         });
 
-        this.shadowRoot.querySelector(".section-type").addEventListener("change", () => this.defineSectionNameOptions());
+        this.shadowRoot.querySelector(".cross-section-type").addEventListener("change", () => this.defineSectionNameOptions());
 
         this.shadowRoot.querySelector(".material-name-filter").addEventListener("keyup", () => {
             this.filter(
@@ -428,18 +429,38 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
         this.shadowRoot.querySelector(".material-name").addEventListener("change", 
             () => this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "");
 
-        this.shadowRoot.querySelector(".section-name-filter").addEventListener("keyup", () => {
+        this.shadowRoot.querySelector(".cross-section-name-filter").addEventListener("keyup", () => {
             this.filter(
-                this.shadowRoot.querySelector(".section-name-filter").value,
-                this.shadowRoot.querySelector(".section-name"));
+                this.shadowRoot.querySelector(".cross-section-name-filter").value,
+                this.shadowRoot.querySelector(".cross-section-name"));
         });
 
-        this.shadowRoot.querySelector(".section-name").addEventListener("change", 
+        this.shadowRoot.querySelector(".cross-section-name").addEventListener("change", 
             () => this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "");
     }
 
     set actionId(value) {
         this.props.actionId = value;
+    }
+
+    set isPropertiesLoaded(value) {
+        this.props.isPropertiesLoaded = value;
+    }
+
+    set materials(value) {
+        this.props.materials = value;
+    }
+
+    set trussSections(value) {
+        this.props.trussSections = value;
+    }
+
+    set beamSections(value) {
+        this.props.beamSections = value;
+    }
+
+    set properties(value) {
+        this.props.properties = value;
     }
 
     set addMaterialToClient(material) {
@@ -492,6 +513,28 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
         this.defineSectionNameOptions();
     }
 
+    set addPropertiesToClient(properties) {
+        this.props.properties.push(properties);
+        this.props.properties.sort((a, b) => a.name - b.name);
+        this.defineNewPropertiesName();
+    }
+
+    set updatePropertiesInClient(properties) {
+        let propertiesInProps = this.props.properties
+            .find(existedProperties => existedProperties.name == properties.name);
+        propertiesInProps.material_name = properties.material_name;
+        propertiesInProps.cross_section_name = properties.cross_section_name;
+        propertiesInProps.cross_setion_type = properties.cross_section_type;
+    }
+
+    set deletePropertiesFromClient(properties) {
+        let propertiesIndexInProps = this.props.properties
+            .findIndex(existedProperties => existedProperties.name == properties.name);
+        this.props.properties.splice(propertiesIndexInProps, 1);
+        this.props.properties.sort((a, b) => a.name - b.name);
+        this.defineNewPropertiesName();
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {
@@ -500,9 +543,21 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
                 this[propName] = value;
             }
         });
-        this.defineNewPropertiesName();
-        this.defineMaterialNameOptions();
-        this.defineSectionNameOptions();
+        const frame = () => {
+            this.getPropertiesLoadStatus();
+            if (this.props.isPropertiesLoaded === true) {
+                clearInterval(id);
+                this.getMaterials();
+                this.getTrussSections();
+                this.getBeamSections();
+                this.getProperties();
+                this.defineNewPropertiesName();
+                this.defineMaterialNameOptions();
+                this.defineSectionNameOptions();
+            }
+        }
+        const id = setInterval(frame, 10);
+        
     }
 
     disconnectedCallback() {
@@ -518,18 +573,60 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
     adoptedCallback() {
     }
 
+    getActionId() {
+        this.dispatchEvent(new CustomEvent("getActionId", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getPropertiesLoadStatus() {
+        this.dispatchEvent(new CustomEvent("getPropertiesLoadStatus", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getMaterials() {
+        this.dispatchEvent(new CustomEvent("getMaterials", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getTrussSections() {
+        this.dispatchEvent(new CustomEvent("getTrussSections", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getBeamSections() {
+        this.dispatchEvent(new CustomEvent("getBeamSections", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getProperties() {
+        this.dispatchEvent(new CustomEvent("getProperties", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
     defineNewPropertiesName() {
         const newPropertiesName = "prop1";
         this.shadowRoot.querySelector(".properties-name").value = newPropertiesName;
-        const sectionTypeSelect = this.shadowRoot.querySelector(".section-type");
-        for (let i = sectionTypeSelect.length - 1; i >= 0; i--) {
-            sectionTypeSelect.options[i] = null;
+        const crossSectionTypeSelect = this.shadowRoot.querySelector(".cross-section-type");
+        for (let i = crossSectionTypeSelect.length - 1; i >= 0; i--) {
+            crossSectionTypeSelect.options[i] = null;
         }
-        for (let i = 0; i < this.state.sectionTypes.length; i++) {
+        for (let i = 0; i < this.state.crossSectionTypes.length; i++) {
             let updateOption = document.createElement("option");
-            updateOption.value = this.state.sectionTypes[i];
-            updateOption.innerHTML = this.state.sectionTypes[i];
-            sectionTypeSelect.appendChild(updateOption);
+            updateOption.value = this.state.crossSectionTypes[i];
+            updateOption.innerHTML = this.state.crossSectionTypes[i];
+            crossSectionTypeSelect.appendChild(updateOption);
         }
     }
 
@@ -549,12 +646,12 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
     }
 
     defineSectionNameOptions() {
-        const sectionNameSelect = this.shadowRoot.querySelector(".section-name");
+        const sectionNameSelect = this.shadowRoot.querySelector(".cross-section-name");
         for (let i = sectionNameSelect.length - 1; i >= 0; i--) {
             sectionNameSelect.options[i] = null;
         }
-        const sectionType = this.shadowRoot.querySelector(".section-type");
-        switch (sectionType.value) {
+        const crossSectionType = this.shadowRoot.querySelector(".cross-section-type");
+        switch (crossSectionType.value) {
             case "truss":
                 if (this.props.trussSections.length > 0) {
                     for (let i = 0; i < this.props.trussSections.length; i++) {
@@ -606,14 +703,14 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
             }
         }
 
-        const sectionNameField = this.shadowRoot.querySelector(".section-name");
-        if (sectionNameField.value == "") {
-            if (sectionNameField.classList.contains("highlighted") === false) {
-                sectionNameField.classList.add("highlighted");
+        const crossSectionNameField = this.shadowRoot.querySelector(".cross-section-name");
+        if (crossSectionNameField.value == "") {
+            if (crossSectionNameField.classList.contains("highlighted") === false) {
+                crossSectionNameField.classList.add("highlighted");
             }
         }
 
-        if (newPropertiesNameField.value == "" || materialNameField.value == "" || sectionNameField.value == "") {
+        if (newPropertiesNameField.value == "" || materialNameField.value == "" || crossSectionNameField.value == "") {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
                     "Note: The highlighted fields should be filled!";
@@ -634,11 +731,12 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
             }
         }
 
-        const sectionTypeField = this.shadowRoot.querySelector(".section-type");
+        const crossSectionTypeField = this.shadowRoot.querySelector(".cross-section-type");
         const propertiesDataInProps = this.props.properties.find(properties => 
-            properties.materialName == `"${materialNameField.value}"` && 
-            properties.sectionType == `"${sectionTypeField.value}"` &&
-            properties.sectionName == `"${sectionNameField.value}"`);
+            properties.material_name == `"${materialNameField.value}"` && 
+            properties.cross_section_name == `"${crossSectionNameField.value}"` &&
+            properties.cross_section_type == crossSectionTypeField.value);
+            
         if (propertiesDataInProps != null) {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
@@ -649,10 +747,12 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
             }
         }
 
+        this.getActionId();
+
         const message = {"add_properties": {
             "actionId": this.props.actionId,
-            "name": newPropertiesNameField.value, 
-            "section_type": sectionTypeField.value, "section_name": sectionNameField.value
+            "name": newPropertiesNameField.value, "material_name": materialNameField.value,
+            "cross_section_name": crossSectionNameField.value, "cross_section_type": crossSectionTypeField.value, 
         }};
         this.dispatchEvent(new CustomEvent("clientMessage", {
             bubbles: true,
@@ -662,7 +762,7 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
             },
         }));
         this.shadowRoot.querySelector(".material-name-filter").value = null;
-        this.shadowRoot.querySelector(".section-name-filter").value = null;
+        this.shadowRoot.querySelector(".cross-section-name-filter").value = null;
     }
 
     cancelPropertiesAddition() {
@@ -670,12 +770,12 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
         this.defineMaterialNameOptions();
         this.defineSectionNameOptions();
         this.shadowRoot.querySelector(".material-name-filter").value = null;
-        this.shadowRoot.querySelector(".section-name-filter").value = null;
+        this.shadowRoot.querySelector(".cross-section-name-filter").value = null;
         const newPropertiesNameField = this.shadowRoot.querySelector(".properties-name");
         this.dropHighlight(newPropertiesNameField);
         const materialNameField = this.shadowRoot.querySelector(".material-name");
         this.dropHighlight(materialNameField);
-        const sectionName = this.shadowRoot.querySelector(".section-name");
+        const sectionName = this.shadowRoot.querySelector(".cross-section-name");
         this.dropHighlight(sectionName);
         this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
     }

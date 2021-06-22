@@ -1,9 +1,9 @@
 import { communicatorWithProperties } from "../../../../../js/js_modules/communicator_with_properties.js";
 
-export function addMaterialToProperties(actionId, name, youngModulus, poissonRatio, isActionIdShouldBeIncreased) 
+export function addMaterialToProperties(action_id, name, young_modulus, poisson_ratio, is_action_id_should_be_increased) 
 {
-    const materialData = { "actionId": actionId, "name": name, "youngModulus": youngModulus,
-        "poissonRatio": poissonRatio, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
+    const materialData = { "action_id": action_id, "name": name, "young_modulus": young_modulus,
+        "poisson_ratio": poisson_ratio, "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
         communicatorWithProperties.addMaterialToProperties = materialData;
     } catch (error) {
@@ -11,10 +11,10 @@ export function addMaterialToProperties(actionId, name, youngModulus, poissonRat
     }
 }
 
-export function updateMaterialInProperties(actionId, name, youngModulus, poissonRatio, isActionIdShouldBeIncreased) 
+export function updateMaterialInProperties(action_id, name, young_modulus, poisson_ratio, is_action_id_should_be_increased) 
 {
-    const materialData = { "actionId": actionId, "name": name, "youngModulus": youngModulus,
-        "poissonRatio": poissonRatio, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
+    const materialData = { "action_id": action_id, "name": name, "young_modulus": young_modulus,
+        "poisson_ratio": poisson_ratio, "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
         communicatorWithProperties.updateMaterialInProperties = materialData;
     } catch (error) {
@@ -22,9 +22,9 @@ export function updateMaterialInProperties(actionId, name, youngModulus, poisson
     }
 }
 
-export function deleteMaterialFromProperties(actionId, name, isActionIdShouldBeIncreased) 
+export function deleteMaterialFromProperties(action_id, name, is_action_id_should_be_increased) 
 {
-    const materialData = { "actionId": actionId, "name": name, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
+    const materialData = { "action_id": action_id, "name": name, "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
         communicatorWithProperties.deleteMaterialFromProperties = materialData;
     } catch (error) {
@@ -32,9 +32,9 @@ export function deleteMaterialFromProperties(actionId, name, isActionIdShouldBeI
     }
 }
 
-export function restoreMaterialInProperties(actionId, name, isActionIdShouldBeIncreased) 
+export function restoreMaterialInProperties(action_id, name, is_action_id_should_be_increased) 
 {
-    const materialData = { "actionId": actionId, "name": name, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
+    const materialData = { "action_id": action_id, "name": name, "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
         communicatorWithProperties.restoreMaterialInProperties = materialData;
     } catch (error) {
@@ -42,10 +42,10 @@ export function restoreMaterialInProperties(actionId, name, isActionIdShouldBeIn
     }
 }
 
-export function addTrussSectionToProperties(actionId, name, area, area2, isActionIdShouldBeIncreased) 
+export function addTrussSectionToProperties(action_id, name, area, area2, is_action_id_should_be_increased) 
 {
-    const trussSectionData = { "actionId": actionId, "name": name, "area": area,
-        "area2": area2, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
+    const trussSectionData = { "action_id": action_id, "name": name, "area": area,
+        "area2": area2, "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
         communicatorWithProperties.addTrussSectionToProperties = trussSectionData;
     } catch (error) {
@@ -53,10 +53,10 @@ export function addTrussSectionToProperties(actionId, name, area, area2, isActio
     }
 }
 
-export function updateTrussSectionInProperties(actionId, name, area, area2, isActionIdShouldBeIncreased) 
+export function updateTrussSectionInProperties(action_id, name, area, area2, is_action_id_should_be_increased) 
 {
-    const trussSectionData = { "actionId": actionId, "name": name, "area": area,
-        "area2": area2, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
+    const trussSectionData = { "action_id": action_id, "name": name, "area": area,
+        "area2": area2, "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
         communicatorWithProperties.updateTrussSectionInProperties = trussSectionData;
     } catch (error) {
@@ -64,9 +64,9 @@ export function updateTrussSectionInProperties(actionId, name, area, area2, isAc
     }
 }
 
-export function deleteTrussSectionFromProperties(actionId, name, isActionIdShouldBeIncreased) 
+export function deleteTrussSectionFromProperties(action_id, name, is_action_id_should_be_increased) 
 {
-    const trussSectionData = { "actionId": actionId, "name": name, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
+    const trussSectionData = { "action_id": action_id, "name": name, "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
         communicatorWithProperties.deleteTrussSectionFromProperties = trussSectionData;
     } catch (error) {
@@ -74,9 +74,9 @@ export function deleteTrussSectionFromProperties(actionId, name, isActionIdShoul
     }
 }
 
-export function restoreTrussSectionInProperties(actionId, name, isActionIdShouldBeIncreased) 
+export function restoreTrussSectionInProperties(action_id, name, is_action_id_should_be_increased) 
 {
-    const trussSectionData = { "actionId": actionId, "name": name, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
+    const trussSectionData = { "action_id": action_id, "name": name, "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
         communicatorWithProperties.restoreTrussSectionInProperties = trussSectionData;
     } catch (error) {
@@ -84,10 +84,10 @@ export function restoreTrussSectionInProperties(actionId, name, isActionIdShould
     }
 }
 
-export function addBeamSectionToProperties(actionId, name, area, I11, I22, I12, It, isActionIdShouldBeIncreased) 
+export function addBeamSectionToProperties(action_id, name, area, i11, i22, i12, it, is_action_id_should_be_increased) 
 {
-    const beamSectionData = { "actionId": actionId, "name": name, "area": area,
-        "I11": I11, "I22": I22, "I12": I12, "It": It, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
+    const beamSectionData = { "action_id": action_id, "name": name, "area": area,
+        "i11": i11, "i22": i22, "i12": i12, "it": it, "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
         communicatorWithProperties.addBeamSectionToProperties = beamSectionData;
     } catch (error) {
@@ -95,10 +95,10 @@ export function addBeamSectionToProperties(actionId, name, area, I11, I22, I12, 
     }
 }
 
-export function updateBeamSectionInProperties(actionId, name, area, I11, I22, I12, It, isActionIdShouldBeIncreased) 
+export function updateBeamSectionInProperties(action_id, name, area, i11, i22, i12, it, is_action_id_should_be_increased) 
 {
-    const beamSectionData = { "actionId": actionId, "name": name, "area": area,
-        "I11": I11, "I22": I22, "I12": I12, "It": It, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
+    const beamSectionData = { "action_id": action_id, "name": name, "area": area,
+        "i11": i11, "i22": i22, "i12": i12, "it": it, "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
         communicatorWithProperties.updateBeamSectionInProperties = beamSectionData;
     } catch (error) {
@@ -106,9 +106,10 @@ export function updateBeamSectionInProperties(actionId, name, area, I11, I22, I1
     }
 }
 
-export function deleteBeamSectionFromProperties(actionId, name, isActionIdShouldBeIncreased) 
+export function deleteBeamSectionFromProperties(action_id, name, is_action_id_should_be_increased) 
 {
-    const beamSectionData = { "actionId": actionId, "name": name, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
+    const beamSectionData = { "action_id": action_id, "name": name, 
+        "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
         communicatorWithProperties.deleteBeamSectionFromProperties = beamSectionData;
     } catch (error) {
@@ -116,9 +117,10 @@ export function deleteBeamSectionFromProperties(actionId, name, isActionIdShould
     }
 }
 
-export function restoreBeamSectionInProperties(actionId, name, isActionIdShouldBeIncreased) 
+export function restoreBeamSectionInProperties(action_id, name, is_action_id_should_be_increased) 
 {
-    const beamSectionData = { "actionId": actionId, "name": name, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
+    const beamSectionData = { "action_id": action_id, "name": name, 
+        "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
         communicatorWithProperties.restoreBeamSectionInProperties = beamSectionData;
     } catch (error) {
@@ -126,9 +128,57 @@ export function restoreBeamSectionInProperties(actionId, name, isActionIdShouldB
     }
 }
 
-export function deleteLineNumbersFromProperties(actionId, lineNumbers) 
+export function addPropertiesToProperties(action_id, name, material_name, cross_section_name, cross_section_type, 
+    is_action_id_should_be_increased) 
 {
-    const lineNumbersData = { "actionId": actionId, "lineNumbers": lineNumbers };
+    const propertiesData = { "action_id": action_id, "name": name, "material_name": material_name,
+        "cross_section_name": cross_section_name, "cross_section_type": cross_section_type,
+        "is_action_id_should_be_increased": is_action_id_should_be_increased };
+    try {
+        communicatorWithProperties.addPropertiesToProperties = propertiesData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function updatePropertiesInProperties(action_id, name, material_name, cross_section_name, cross_section_type,
+    is_action_id_should_be_increased) 
+{
+    const propertiesData = { "action_id": action_id, "name": name, "material_name": material_name,
+        "cross_section_name": cross_section_name, "cross_section_type": cross_section_type, 
+        "is_action_id_should_be_increased": is_action_id_should_be_increased };
+    try {
+        communicatorWithProperties.updatePropertiesInProperties = propertiesData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function deletePropertiesFromProperties(action_id, name, is_action_id_should_be_increased) 
+{
+    const propertiesData = { "action_id": action_id, "name": name, 
+        "is_action_id_should_be_increased": is_action_id_should_be_increased };
+    try {
+        communicatorWithProperties.deletePropertiesFromProperties = propertiesData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function restorePropertiesInProperties(action_id, name, is_action_id_should_be_increased) 
+{
+    const propertiesData = { "action_id": action_id, "name": name, 
+        "is_action_id_should_be_increased": is_action_id_should_be_increased };
+    try {
+        communicatorWithProperties.restorePropertiesInProperties = propertiesData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function deleteLineNumbersFromProperties(action_id, lineNumbers) 
+{
+    const lineNumbersData = { "action_id": action_id, "lineNumbers": lineNumbers };
     try {
         communicatorWithProperties.deleteLineNumbersFromProperties = lineNumbersData;
     } catch (error) {
@@ -136,8 +186,8 @@ export function deleteLineNumbersFromProperties(actionId, lineNumbers)
     }
 }
 
-export function clearPropertiesModuleByActionId(actionId) {
-    communicatorWithProperties.clearPropertiesModuleByActionId = actionId;
+export function clearPropertiesModuleByActionId(action_id) {
+    communicatorWithProperties.clearPropertiesModuleByActionId = action_id;
 }
 
 export function extractMaterials(handler) 
@@ -153,4 +203,9 @@ export function extractTrussSections(handler)
 export function extractBeamSections(handler) 
 {
     communicatorWithProperties.extractBeamSections = handler;
+}
+
+export function extractProperties(handler) 
+{
+    communicatorWithProperties.extractProperties = handler;
 }

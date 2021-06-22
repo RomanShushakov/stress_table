@@ -47,6 +47,11 @@ class FeaApp extends HTMLElement {
                 "fea-section-delete-beam-menu",
                 "fea-properties-add-properties-menu",
                 "fea-properties-update-properties-menu",
+            ],
+            propertiesDataDependentMenus: [
+                "fea-properties-add-properties-menu",
+                "fea-properties-update-properties-menu",
+                "fea-properties-delete-properties-menu",
             ]
         };
 
@@ -109,6 +114,8 @@ class FeaApp extends HTMLElement {
         this.addEventListener("getMaterials", (event) => this.getMaterials(event));
         this.addEventListener("getTrussSections", (event) => this.getTrussSections(event));
         this.addEventListener("getBeamSections", (event) => this.getBeamSections(event));
+        this.addEventListener("getProperties", (event) => this.getProperties(event));
+
 
         this.addEventListener("clientMessage", (event) => this.handleClientMessage(event));
 
@@ -131,6 +138,10 @@ class FeaApp extends HTMLElement {
         this.addEventListener("add_beam_section_server_message", (event) => this.handleAddBeamSectionServerMessage(event));
         this.addEventListener("update_beam_section_server_message", (event) => this.handleUpdateBeamSectionServerMessage(event));
         this.addEventListener("delete_beam_section_server_message", (event) => this.handleDeleteBeamSectionServerMessage(event));
+
+        this.addEventListener("add_properties_server_message", (event) => this.handleAddPropertiesServerMessage(event));
+        this.addEventListener("update_properties_server_message", (event) => this.handleUpdatePropertiesServerMessage(event));
+        this.addEventListener("delete_properties_server_message", (event) => this.handleDeletePropertiesServerMessage(event));
 
         this.addEventListener("decreaseActionId", (_event) => this.handleDecreaseActionIdMessage());
 
@@ -254,6 +265,23 @@ class FeaApp extends HTMLElement {
                         "name": key, "area": value.area, "i11": value.i11, "i22": value.i22, "i12": value.i12, "it": value.it
                     }));
                 this.querySelector(event.target.tagName.toLowerCase()).beamSections = beamSections; 
+            }
+        );
+        event.stopPropagation();
+    }
+
+    
+    getProperties(event) {
+        this.state.actionsRouter.extract_properties(
+            (extractedPropertiesData) => { 
+                const properties = Array.from(
+                    Object.entries(extractedPropertiesData.extracted_properties),
+                    ([key, value]) => ({
+                        "name": key, "material_name": value.material_name,
+                        "cross_section_name": value.cross_section_name,
+                        "cross_section_type": value.cross_section_type.toLowerCase(),
+                    }));
+                this.querySelector(event.target.tagName.toLowerCase()).properties = properties; 
             }
         );
         event.stopPropagation();
@@ -594,6 +622,55 @@ class FeaApp extends HTMLElement {
         for (let i = 0; i < this.state.beamSectionsDataDependentMenus.length; i++) {
             if (this.querySelector(this.state.beamSectionsDataDependentMenus[i]) !== null) {
                 this.querySelector(this.state.beamSectionsDataDependentMenus[i]).deleteBeamSectionFromClient = beamSection;
+            }
+        } 
+        event.stopPropagation();
+    }
+
+    handleAddPropertiesServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;   
+        }
+        const properties = { 
+            name: event.detail.properties_data.name,
+            material_name: event.detail.properties_data.material_name,
+            cross_section_name: event.detail.properties_data.cross_section_name,
+            cross_section_type: event.detail.properties_data.cross_section_type,
+        };
+        for (let i = 0; i < this.state.propertiesDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.propertiesDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.propertiesDataDependentMenus[i]).addPropertiesToClient = properties;
+            }
+        } 
+        event.stopPropagation();
+    }
+
+    handleUpdatePropertiesServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;   
+        }
+        const properties = { 
+            name: event.detail.properties_data.name,
+            material_name: event.detail.properties_data.material_name,
+            cross_section_name: event.detail.properties_data.cross_section_name,
+            cross_section_type: event.detail.properties_data.cross_section_type,
+        };
+        for (let i = 0; i < this.state.propertiesDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.propertiesDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.propertiesDataDependentMenus[i]).updatePropertiesInClient = properties;
+            }
+        } 
+        event.stopPropagation();
+    }
+
+    handleDeletePropertiesServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;           
+        }
+        const properties = { name: event.detail.properties_data.name };
+        for (let i = 0; i < this.state.propertiesDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.propertiesDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.propertiesDataDependentMenus[i]).deletePropertiesFromClient = properties;
             }
         } 
         event.stopPropagation();

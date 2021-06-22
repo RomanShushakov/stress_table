@@ -18,6 +18,7 @@ impl Properties
         self.clear_deleted_materials_by_action_id(action_id);
         self.clear_deleted_truss_sections_by_action_id(action_id);
         self.clear_deleted_beam_sections_by_action_id(action_id);
+        self.clear_deleted_properties_by_action_id(action_id);
 
         if self.materials.contains_key(&name.to_owned())
         {
@@ -40,11 +41,14 @@ impl Properties
             "is_action_id_should_be_increased": is_action_id_should_be_increased });
         dispatch_custom_event(detail, ADD_MATERIAL_EVENT_NAME, EVENT_TARGET)?;
         log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
-            truss sections: {:?}, deleted truss sections: {:?}, \
-            beam sections: {:?}, deleted beam sections: {:?}",
-            self.materials, self.deleted_materials,
-            self.truss_sections, self.deleted_truss_sections,
-            self.beam_sections, self.deleted_beam_sections));
+                truss sections: {:?}, deleted truss sections: {:?}, \
+                beam sections: {:?}, deleted beam sections: {:?}, \
+                properties: {:?}, deleted properties: {:?}",
+                self.materials, self.deleted_materials,
+                self.truss_sections, self.deleted_truss_sections,
+                self.beam_sections, self.deleted_beam_sections,
+                self.properties, self.deleted_properties)
+            );
         Ok(())
     }
 
@@ -55,6 +59,7 @@ impl Properties
         self.clear_deleted_materials_by_action_id(action_id);
         self.clear_deleted_truss_sections_by_action_id(action_id);
         self.clear_deleted_beam_sections_by_action_id(action_id);
+        self.clear_deleted_properties_by_action_id(action_id);
 
         if self.materials.values().position(|material|
             material.data_same(young_modulus, poisson_ratio)).is_some()
@@ -73,10 +78,13 @@ impl Properties
             dispatch_custom_event(detail, UPDATE_MATERIAL_EVENT_NAME, EVENT_TARGET)?;
             log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
                 truss sections: {:?}, deleted truss sections: {:?}, \
-                beam sections: {:?}, deleted beam sections: {:?}",
+                beam sections: {:?}, deleted beam sections: {:?}, \
+                properties: {:?}, deleted properties: {:?}",
                 self.materials, self.deleted_materials,
                 self.truss_sections, self.deleted_truss_sections,
-                self.beam_sections, self.deleted_beam_sections));
+                self.beam_sections, self.deleted_beam_sections,
+                self.properties, self.deleted_properties)
+            );
             Ok(())
         }
         else
@@ -94,6 +102,7 @@ impl Properties
         self.clear_deleted_materials_by_action_id(action_id);
         self.clear_deleted_truss_sections_by_action_id(action_id);
         self.clear_deleted_beam_sections_by_action_id(action_id);
+        self.clear_deleted_properties_by_action_id(action_id);
 
         if let Some((material_name, material)) = self.materials.remove_entry(&name.to_owned())
         {
@@ -104,10 +113,13 @@ impl Properties
             dispatch_custom_event(detail, DELETE_MATERIAL_EVENT_NAME, EVENT_TARGET)?;
             log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
                 truss sections: {:?}, deleted truss sections: {:?}, \
-                beam sections: {:?}, deleted beam sections: {:?}",
+                beam sections: {:?}, deleted beam sections: {:?}, \
+                properties: {:?}, deleted properties: {:?}",
                 self.materials, self.deleted_materials,
                 self.truss_sections, self.deleted_truss_sections,
-                self.beam_sections, self.deleted_beam_sections));
+                self.beam_sections, self.deleted_beam_sections,
+                self.properties, self.deleted_properties)
+            );
             Ok(())
         }
         else
@@ -140,10 +152,13 @@ impl Properties
             dispatch_custom_event(detail, ADD_MATERIAL_EVENT_NAME, EVENT_TARGET)?;
             log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
                 truss sections: {:?}, deleted truss sections: {:?}, \
-                beam sections: {:?}, deleted beam sections: {:?}",
+                beam sections: {:?}, deleted beam sections: {:?}, \
+                properties: {:?}, deleted properties: {:?}",
                 self.materials, self.deleted_materials,
                 self.truss_sections, self.deleted_truss_sections,
-                self.beam_sections, self.deleted_beam_sections));
+                self.beam_sections, self.deleted_beam_sections,
+                self.properties, self.deleted_properties)
+            );
             Ok(())
         }
         else

@@ -1,9 +1,9 @@
 import { communicatorWithGeometry } from "../../../../../js/js_modules/communicator_with_geometry.js";
 
-export function addPointToGeometry(actionId, number, x, y, z, isActionIdShouldBeIncreased) 
+export function addPointToGeometry(action_id, number, x, y, z, is_action_id_should_be_increased) 
 {
-    const pointData = { "actionId": actionId, "number": number, "x": x, "y": y, "z": z, 
-        "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
+    const pointData = { "action_id": action_id, "number": number, "x": x, "y": y, "z": z, 
+        "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
         communicatorWithGeometry.addPointToGeometry = pointData;
     } catch (error) {
@@ -11,10 +11,10 @@ export function addPointToGeometry(actionId, number, x, y, z, isActionIdShouldBe
     }
 }
 
-export function updatePointInGeometry(actionId, number, x, y, z, isActionIdShouldBeIncreased) 
+export function updatePointInGeometry(action_id, number, x, y, z, is_action_id_should_be_increased) 
 {
-    const pointData = { "actionId": actionId, "number": number, "x": x, "y": y, "z": z,
-        "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
+    const pointData = { "action_id": action_id, "number": number, "x": x, "y": y, "z": z,
+        "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
         communicatorWithGeometry.updatePointInGeometry = pointData;
     } catch (error) {
@@ -22,9 +22,9 @@ export function updatePointInGeometry(actionId, number, x, y, z, isActionIdShoul
     }
 }
 
-export function deletePointFromGeometry(actionId, number, isActionIdShouldBeIncreased) 
+export function deletePointFromGeometry(action_id, number, is_action_id_should_be_increased) 
 {
-    const pointData = { "actionId": actionId, "number": number, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
+    const pointData = { "action_id": action_id, "number": number, "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
         communicatorWithGeometry.deletePointFromGeometry = pointData;
         const deletedLineNumbers = communicatorWithGeometry.deletedLineNumbers;
@@ -34,9 +34,9 @@ export function deletePointFromGeometry(actionId, number, isActionIdShouldBeIncr
     }
 }
 
-export function restorePointInGeometry(actionId, number, isActionIdShouldBeIncreased) 
+export function restorePointInGeometry(action_id, number, is_action_id_should_be_increased) 
 {
-    const pointData = { "actionId": actionId, "number": number, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
+    const pointData = { "action_id": action_id, "number": number, "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
         communicatorWithGeometry.restorePointInGeometry = pointData;
     } catch (error) {
@@ -44,12 +44,12 @@ export function restorePointInGeometry(actionId, number, isActionIdShouldBeIncre
     }
 }
 
-export function addLineToGeometry(actionId, number, startPointNumber, endPointNumber, isActionIdShouldBeIncreased) 
+export function addLineToGeometry(action_id, number, start_point_number, end_point_number, is_action_id_should_be_increased) 
 {
     const lineData = { 
-        "actionId": actionId, "number": number,
-        "startPointNumber": startPointNumber, "endPointNumber": endPointNumber,
-        "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
+        "action_id": action_id, "number": number,
+        "start_point_number": start_point_number, "end_point_number": end_point_number,
+        "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
         communicatorWithGeometry.addLineToGeometry = lineData;
     } catch (error) {
@@ -57,12 +57,12 @@ export function addLineToGeometry(actionId, number, startPointNumber, endPointNu
     }
 }
 
-export function updateLineInGeometry(actionId, number, startPointNumber, endPointNumber, isActionIdShouldBeIncreased) 
+export function updateLineInGeometry(action_id, number, start_point_number, end_point_number, is_action_id_should_be_increased) 
 {
     const lineData = { 
-        "actionId": actionId, "number": number,
-        "startPointNumber": startPointNumber, "endPointNumber": endPointNumber,
-        "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
+        "action_id": action_id, "number": number,
+        "start_point_number": start_point_number, "end_point_number": end_point_number,
+        "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
         communicatorWithGeometry.updateLineInGeometry = lineData;
     } catch (error) {
@@ -70,9 +70,9 @@ export function updateLineInGeometry(actionId, number, startPointNumber, endPoin
     }
 }
 
-export function deleteLineFromGeometry(actionId, number, isActionIdShouldBeIncreased) 
+export function deleteLineFromGeometry(action_id, number, is_action_id_should_be_increased) 
 {
-    const lineData = { "actionId": actionId, "number": number, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
+    const lineData = { "action_id": action_id, "number": number, "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
         communicatorWithGeometry.deleteLineFromGeometry = lineData;
     } catch (error) {
@@ -80,9 +80,9 @@ export function deleteLineFromGeometry(actionId, number, isActionIdShouldBeIncre
     }
 }
 
-export function restoreLineInGeometry(actionId, number, isActionIdShouldBeIncreased) 
+export function restoreLineInGeometry(action_id, number, is_action_id_should_be_increased) 
 {
-    const lineData = { "actionId": actionId, "number": number, "isActionIdShouldBeIncreased": isActionIdShouldBeIncreased };
+    const lineData = { "action_id": action_id, "number": number, "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
         communicatorWithGeometry.restoreLineInGeometry = lineData;
     } catch (error) {
@@ -112,8 +112,8 @@ export function showLineInfoFromGeometry(number)
     }
 }
 
-export function clearGeometryModuleByActionId(actionId) {
-    communicatorWithGeometry.clearGeometryModuleByActionId = actionId;
+export function clearGeometryModuleByActionId(action_id) {
+    communicatorWithGeometry.clearGeometryModuleByActionId = action_id;
 }
 
 export function extractPoints(handler) 

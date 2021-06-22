@@ -21,8 +21,8 @@ class CommunicatorWithGeometry {
 
     set addPointToGeometry(pointData) {
         try {
-            this.state.geometry.add_point(pointData.actionId, pointData.number, pointData.x, pointData.y, pointData.z,
-                pointData.isActionIdShouldBeIncreased);
+            this.state.geometry.add_point(pointData.action_id, pointData.number, pointData.x, pointData.y, pointData.z,
+                pointData.is_action_id_should_be_increased);
         } catch (error) {
             throw error;
         }
@@ -30,8 +30,8 @@ class CommunicatorWithGeometry {
 
     set updatePointInGeometry(pointData) {
         try {
-            this.state.geometry.update_point(pointData.actionId, pointData.number, pointData.x, pointData.y, pointData.z,
-                pointData.isActionIdShouldBeIncreased);
+            this.state.geometry.update_point(pointData.action_id, pointData.number, pointData.x, pointData.y, pointData.z,
+                pointData.is_action_id_should_be_increased);
         } catch (error) {
             throw error;
         }
@@ -40,8 +40,8 @@ class CommunicatorWithGeometry {
 
     set deletePointFromGeometry(pointData) {
         try {
-            const deletedLineNumbers = this.state.geometry.delete_point(pointData.actionId,
-                pointData.number, pointData.isActionIdShouldBeIncreased);
+            const deletedLineNumbers = this.state.geometry.delete_point(pointData.action_id,
+                pointData.number, pointData.is_action_id_should_be_increased);
             this.deletedLineNumbers = deletedLineNumbers;
         } catch (error) {
             throw error;
@@ -50,7 +50,7 @@ class CommunicatorWithGeometry {
 
     set restorePointInGeometry(pointData) {
         try {
-            this.state.geometry.restore_point(pointData.actionId, pointData.number, pointData.isActionIdShouldBeIncreased);
+            this.state.geometry.restore_point(pointData.action_id, pointData.number, pointData.is_action_id_should_be_increased);
         } catch (error) {
             throw error;
         }
@@ -58,8 +58,8 @@ class CommunicatorWithGeometry {
 
     set addLineToGeometry(lineData) {
         try {
-            this.state.geometry.add_line(lineData.actionId, lineData.number, lineData.startPointNumber, lineData.endPointNumber,
-                lineData.isActionIdShouldBeIncreased);
+            this.state.geometry.add_line(lineData.action_id, lineData.number, lineData.start_point_number, lineData.end_point_number,
+                lineData.is_action_id_should_be_increased);
         } catch (error) {
             throw error;
         }
@@ -67,8 +67,8 @@ class CommunicatorWithGeometry {
 
     set updateLineInGeometry(lineData) {
         try {
-            this.state.geometry.update_line(lineData.actionId, lineData.number, lineData.startPointNumber, lineData.endPointNumber,
-                lineData.isActionIdShouldBeIncreased);
+            this.state.geometry.update_line(lineData.action_id, lineData.number, lineData.start_point_number, lineData.end_point_number,
+                lineData.is_action_id_should_be_increased);
         } catch (error) {
             throw error;
         }
@@ -76,7 +76,7 @@ class CommunicatorWithGeometry {
 
     set deleteLineFromGeometry(lineData) {
         try {
-            this.state.geometry.delete_line(lineData.actionId, lineData.number, lineData.isActionIdShouldBeIncreased);
+            this.state.geometry.delete_line(lineData.action_id, lineData.number, lineData.is_action_id_should_be_increased);
         } catch (error) {
             throw error;
         }
@@ -84,7 +84,7 @@ class CommunicatorWithGeometry {
 
     set restoreLineInGeometry(lineData) {
         try {
-            this.state.geometry.restore_line(lineData.actionId, lineData.number, lineData.isActionIdShouldBeIncreased);
+            this.state.geometry.restore_line(lineData.action_id, lineData.number, lineData.is_action_id_should_be_increased);
         } catch (error) {
             throw error;
         }
@@ -114,8 +114,8 @@ class CommunicatorWithGeometry {
         return objectInfo;
     }
 
-    set clearGeometryModuleByActionId(actionId) {
-        this.state.geometry.clear_geometry_module_by_action_id(actionId);
+    set clearGeometryModuleByActionId(action_id) {
+        this.state.geometry.clear_geometry_module_by_action_id(action_id);
     }
 
     set extractPoints(handler) {

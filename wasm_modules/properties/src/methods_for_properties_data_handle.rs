@@ -1,0 +1,196 @@
+use wasm_bindgen::prelude::*;
+use serde_json::json;
+
+use crate::{Properties, Property, DeletedProperty, CrossSectionType};
+use crate::{log, dispatch_custom_event};
+use crate::
+{
+    EVENT_TARGET, ADD_PROPERTIES_EVENT_NAME, UPDATE_PROPERTIES_EVENT_NAME,
+    DELETE_PROPERTIES_EVENT_NAME,
+};
+
+
+#[wasm_bindgen]
+impl Properties
+{
+    pub fn add_properties(&mut self, action_id: u32, name: &str, material_name: &str,
+        cross_section_name: &str, cross_section_type: &str, is_action_id_should_be_increased: bool)
+        -> Result<(), JsValue>
+    {
+        self.clear_deleted_materials_by_action_id(action_id);
+        self.clear_deleted_truss_sections_by_action_id(action_id);
+        self.clear_deleted_beam_sections_by_action_id(action_id);
+
+        if self.properties.contains_key(&name.to_owned())
+        {
+            let error_message = &format!("Properties: Add properties action: \
+                Properties with name {} does already exist!", name);
+            return Err(JsValue::from(error_message));
+        }
+
+        let converted_cross_section_type =
+            CrossSectionType::create(cross_section_type)?;
+
+        if self.properties.values().position(|property|
+            property.data_same(material_name, cross_section_name, &converted_cross_section_type))
+                .is_some()
+        {
+            let error_message = &format!("Properties: Add properties action: \
+                Properties with Material name {}, Cross section name {}, Cross section type {}, \
+                does already exist!", material_name, cross_section_name, cross_section_type);
+            return Err(JsValue::from(error_message));
+        }
+        let property = Property::create(material_name, cross_section_name,
+                                        converted_cross_section_type);
+        self.properties.insert(name.to_owned(), property);
+        let detail = json!({ "properties_data": { "name": name,
+            "material_name": material_name, "cross_section_name": cross_section_name,
+            "cross_section_type": cross_section_type },
+            "is_action_id_should_be_increased": is_action_id_should_be_increased });
+        dispatch_custom_event(detail, ADD_PROPERTIES_EVENT_NAME,
+            EVENT_TARGET)?;
+        log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
+            truss sections: {:?}, deleted truss sections: {:?}, \
+            beam sections: {:?}, deleted beam sections: {:?}, \
+            properties: {:?}, deleted properties: {:?}",
+            self.materials, self.deleted_materials,
+            self.truss_sections, self.deleted_truss_sections,
+            self.beam_sections, self.deleted_beam_sections,
+            self.properties, self.deleted_properties)
+        );
+        Ok(())
+    }
+
+
+    pub fn update_properties(&mut self, action_id: u32, name: &str, material_name: &str,
+        cross_section_name: &str, cross_section_type: &str, is_action_id_should_be_increased: bool)
+        -> Result<(), JsValue>
+    {
+        self.clear_deleted_materials_by_action_id(action_id);
+        self.clear_deleted_truss_sections_by_action_id(action_id);
+        self.clear_deleted_beam_sections_by_action_id(action_id);
+
+        let converted_cross_section_type =
+            CrossSectionType::create(cross_section_type)?;
+
+        if self.properties.values().position(|property|
+            property.data_same(material_name, cross_section_name, &converted_cross_section_type))
+                .is_some()
+        {
+            let error_message = &format!("Properties: Update properties action: \
+                BProperties with Material name {}, Cross section name {}, Cross section type {} \
+                does already exist!",
+                    material_name, cross_section_name, cross_section_type);
+            return Err(JsValue::from(error_message));
+        }
+        if let Some(property) = self.properties.get_mut(name)
+        {
+            property.update(material_name, cross_section_name, converted_cross_section_type);
+            let detail = json!({ "properties_data": { "name": name,
+                "material_name": material_name, "cross_section_name": cross_section_name,
+                "cross_section_type": cross_section_type },
+                "is_action_id_should_be_increased": is_action_id_should_be_increased });
+            dispatch_custom_event(detail, UPDATE_PROPERTIES_EVENT_NAME,
+                EVENT_TARGET)?;
+            log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
+                truss sections: {:?}, deleted truss sections: {:?}, \
+                beam sections: {:?}, deleted beam sections: {:?}, \
+                properties: {:?}, deleted properties: {:?}",
+                self.materials, self.deleted_materials,
+                self.truss_sections, self.deleted_truss_sections,
+                self.beam_sections, self.deleted_beam_sections,
+                self.properties, self.deleted_properties)
+            );
+            Ok(())
+        }
+        else
+        {
+             let error_message = format!("Properties: Update properties action: \
+                The properties with name {} could not be updated because it does not exist!",
+                name);
+            Err(JsValue::from(&error_message))
+        }
+    }
+
+
+    pub fn delete_properties(&mut self, action_id: u32, name: &str,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.clear_deleted_materials_by_action_id(action_id);
+        self.clear_deleted_truss_sections_by_action_id(action_id);
+        self.clear_deleted_beam_sections_by_action_id(action_id);
+
+        if let Some((property_name, property)) =
+            self.properties.remove_entry(&name.to_owned())
+        {
+            let deleted_property =
+                DeletedProperty::create(&property_name, property);
+            self.deleted_properties.insert(action_id, deleted_property);
+            let detail = json!({ "properties_data": { "name": name },
+                "is_action_id_should_be_increased": is_action_id_should_be_increased });
+            dispatch_custom_event(detail, DELETE_PROPERTIES_EVENT_NAME,
+                EVENT_TARGET)?;
+            log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
+                truss sections: {:?}, deleted truss sections: {:?}, \
+                beam sections: {:?}, deleted beam sections: {:?}, \
+                properties: {:?}, deleted properties: {:?}",
+                self.materials, self.deleted_materials,
+                self.truss_sections, self.deleted_truss_sections,
+                self.beam_sections, self.deleted_beam_sections,
+                self.properties, self.deleted_properties)
+            );
+            Ok(())
+        }
+        else
+        {
+            let error_message = &format!("Properties: Delete properties action: \
+                Properties with name {} do not exist!", name);
+            return Err(JsValue::from(error_message));
+        }
+    }
+
+
+    pub fn restore_properties(&mut self, action_id: u32, name: &str,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        if let Some(deleted_property) =
+            self.deleted_properties.remove(&action_id)
+        {
+            let (deleted_property_name, material_name, cross_section_name,
+                cross_section_type) = deleted_property.extract_name_and_data();
+            if deleted_property_name != name
+            {
+                let error_message = &format!("Properties: Restore properties \
+                    action: Properties with name {} do not exist!", name);
+                return Err(JsValue::from(error_message));
+            }
+            self.properties.insert(deleted_property_name.to_owned(),
+               Property::create(material_name, cross_section_name,
+                    cross_section_type.clone()));
+            let detail = json!({ "properties_data": {
+                    "name": deleted_property_name,
+                    "material_name": material_name,
+                    "cross_section_name": cross_section_name,
+                    "cross_section_type": cross_section_type.as_str() },
+                "is_action_id_should_be_increased": is_action_id_should_be_increased });
+            dispatch_custom_event(detail, ADD_PROPERTIES_EVENT_NAME,
+                EVENT_TARGET)?;
+            log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
+                truss sections: {:?}, deleted truss sections: {:?}, \
+                beam sections: {:?}, deleted beam sections: {:?}, \
+                properties: {:?}, deleted properties: {:?}",
+                self.materials, self.deleted_materials,
+                self.truss_sections, self.deleted_truss_sections,
+                self.beam_sections, self.deleted_beam_sections,
+                self.properties, self.deleted_properties)
+            );
+            Ok(())
+        }
+        else
+        {
+            let error_message = &format!("Properties: Restore properties action: \
+                Properties with name {} does not exist!", name);
+            return Err(JsValue::from(error_message));
+        }
+    }
+}

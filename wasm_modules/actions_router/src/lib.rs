@@ -25,8 +25,11 @@ use external_functions::communication_with_properties::
     delete_truss_section_from_properties, restore_truss_section_in_properties,
     add_beam_section_to_properties, update_beam_section_in_properties,
     delete_beam_section_from_properties, restore_beam_section_in_properties,
+    add_properties_to_properties, update_properties_in_properties,
+    delete_properties_from_properties, restore_properties_in_properties,
     clear_properties_module_by_action_id, delete_line_numbers_from_properties,
     extract_materials, extract_truss_sections, extract_beam_sections,
+    extract_properties,
 };
 
 mod action;
@@ -56,6 +59,10 @@ const DELETE_TRUSS_SECTION_MESSAGE_HEADER: &str = "delete_truss_section";
 const ADD_BEAM_SECTION_MESSAGE_HEADER: &str = "add_beam_section";
 const UPDATE_BEAM_SECTION_MESSAGE_HEADER: &str = "update_beam_section";
 const DELETE_BEAM_SECTION_MESSAGE_HEADER: &str = "delete_beam_section";
+
+const ADD_PROPERTIES_MESSAGE_HEADER: &str = "add_properties";
+const UPDATE_PROPERTIES_MESSAGE_HEADER: &str = "update_properties";
+const DELETE_PROPERTIES_MESSAGE_HEADER: &str = "delete_properties";
 
 const UNDO_MESSAGE_HEADER: &str = "undo";
 const REDO_MESSAGE_HEADER: &str = "redo";
@@ -375,6 +382,61 @@ impl ActionsRouter
                                     self.current_action = Some((action, add_to_active_actions));
                                 },
                             PropertiesActionType::RestoreBeamSection(_, _) => (),
+                            PropertiesActionType::AddProperties(
+                                properties_name,
+                                _material_name,
+                                _cross_section_name,
+                                _cross_section_type,
+                                _is_action_id_should_be_increased) =>
+                                {
+                                    let is_action_id_should_be_increased = false;
+                                    let action_type = ActionType::PropertiesActionType(
+                                        PropertiesActionType::DeleteProperties(
+                                            properties_name.clone(),
+                                            is_action_id_should_be_increased));
+                                    let action = Action::create(action_id, action_type);
+                                    let add_to_active_actions = false;
+                                    self.current_action = Some((action, add_to_active_actions));
+                                },
+                            PropertiesActionType::UpdateProperties(
+                                properties_name,
+                                old_material_name,
+                                old_cross_section_name,
+                                old_cross_section_type,
+                                new_material_name,
+                                new_cross_section_name,
+                                new_cross_section_type,
+                                _is_action_id_should_be_increased) =>
+                                {
+                                    let is_action_id_should_be_increased = false;
+                                    let action_type = ActionType::PropertiesActionType(
+                                        PropertiesActionType::UpdateProperties(
+                                            properties_name.clone(),
+                                            new_material_name.clone(),
+                                            new_cross_section_name.clone(),
+                                            new_cross_section_type.clone(),
+                                            old_material_name.clone(),
+                                            old_cross_section_name.clone(),
+                                            old_cross_section_type.clone(),
+                                            is_action_id_should_be_increased));
+                                    let action = Action::create(action_id, action_type);
+                                    let add_to_active_actions = false;
+                                    self.current_action = Some((action, add_to_active_actions));
+                                },
+                            PropertiesActionType::DeleteProperties(
+                                properties_name,
+                                _is_action_id_should_be_increased) =>
+                                {
+                                    let is_action_id_should_be_increased = false;
+                                    let action_type = ActionType::PropertiesActionType(
+                                        PropertiesActionType::RestoreProperties(
+                                            properties_name.clone(),
+                                            is_action_id_should_be_increased));
+                                    let action = Action::create(action_id, action_type);
+                                    let add_to_active_actions = false;
+                                    self.current_action = Some((action, add_to_active_actions));
+                                },
+                            PropertiesActionType::RestoreProperties(_, _) => (),
                         }
                     }
             }
@@ -676,8 +738,8 @@ impl ActionsRouter
                                 is_action_id_should_be_increased) =>
                                 {
                                     restore_material_in_properties(action_id,
-                                                                   material_name,
-                                                                   *is_action_id_should_be_increased)?;
+                                       material_name,
+                                       *is_action_id_should_be_increased)?;
                                     if *add_to_active_actions == true
                                     {
                                         self.active_actions.push(action.clone());
@@ -810,6 +872,67 @@ impl ActionsRouter
                                         self.active_actions.push(action.clone());
                                     }
                                 },
+                            PropertiesActionType::AddProperties(
+                                properties_name,
+                                material_name,
+                                cross_section_name,
+                                cross_section_type,
+                                is_action_id_should_be_increased) =>
+                                {
+                                    add_properties_to_properties(action_id,
+                                        properties_name, material_name,
+                                        cross_section_name, cross_section_type,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions == true
+                                    {
+                                        self.active_actions.push(action.clone());
+                                    }
+                                },
+                            PropertiesActionType::UpdateProperties(
+                                properties_name,
+                                _old_material_name,
+                                _old_cross_section_name,
+                                _old_cross_section_type,
+                                new_material_name,
+                                new_cross_section_name,
+                                new_cross_section_type,
+                                is_action_id_should_be_increased) =>
+                                {
+                                    clear_geometry_module_by_action_id(action_id);
+                                    update_properties_in_properties(action_id,
+                                        properties_name,
+                                        new_material_name, new_cross_section_name,
+                                        new_cross_section_type, *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions == true
+                                    {
+                                        self.active_actions.push(action.clone());
+                                    }
+                                },
+                            PropertiesActionType::DeleteProperties(
+                                properties_name,
+                                is_action_id_should_be_increased) =>
+                                {
+                                    clear_geometry_module_by_action_id(action_id);
+                                    delete_properties_from_properties(action_id,
+                                        properties_name,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions == true
+                                    {
+                                        self.active_actions.push(action.clone());
+                                    }
+                                },
+                            PropertiesActionType::RestoreProperties(
+                                properties_name,
+                                is_action_id_should_be_increased) =>
+                                {
+                                    restore_properties_in_properties(action_id,
+                                        properties_name,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions == true
+                                    {
+                                        self.active_actions.push(action.clone());
+                                    }
+                                },
                         }
                     }
             }
@@ -897,6 +1020,21 @@ impl ActionsRouter
             .get(DELETE_BEAM_SECTION_MESSAGE_HEADER)
         {
             self.handle_delete_beam_section_message(&beam_section_data)?;
+        }
+        else if let Some(properties_data) = serialized_message
+            .get(ADD_PROPERTIES_MESSAGE_HEADER)
+        {
+            self.handle_add_properties_message(&properties_data)?;
+        }
+        else if let Some(properties_data) = serialized_message
+            .get(UPDATE_PROPERTIES_MESSAGE_HEADER)
+        {
+            self.handle_update_properties_message(&properties_data)?;
+        }
+        else if let Some(properties_data) = serialized_message
+            .get(DELETE_PROPERTIES_MESSAGE_HEADER)
+        {
+            self.handle_delete_properties_message(&properties_data)?;
         }
         else if let Some(undo_data) = serialized_message.get(UNDO_MESSAGE_HEADER)
         {
@@ -998,5 +1136,11 @@ impl ActionsRouter
     pub fn extract_beam_sections(&self, handler: js_sys::Function)
     {
         extract_beam_sections(handler);
+    }
+
+
+    pub fn extract_properties(&self, handler: js_sys::Function)
+    {
+        extract_properties(handler);
     }
 }

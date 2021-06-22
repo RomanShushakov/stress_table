@@ -54,6 +54,24 @@ extern "C"
     pub fn restore_beam_section_in_properties(action_id: u32, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
+    #[wasm_bindgen(js_name = addPropertiesToProperties, catch)]
+    pub fn add_properties_to_properties(action_id: u32, name: &str,
+        material_name: &str, cross_section_name: &str, cross_section_type: &str,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
+
+    #[wasm_bindgen(js_name = updatePropertiesInProperties, catch)]
+    pub fn update_properties_in_properties(action_id: u32, name: &str,
+        material_name: &str, cross_section_name: &str, cross_section_type: &str,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
+
+    #[wasm_bindgen(js_name = deletePropertiesFromProperties, catch)]
+    pub fn delete_properties_from_properties(action_id: u32, name: &str,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
+
+    #[wasm_bindgen(js_name = restorePropertiesInProperties, catch)]
+    pub fn restore_properties_in_properties(action_id: u32, name: &str,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
+
     #[wasm_bindgen(js_name = deleteLineNumbersFromProperties, catch)]
     pub fn delete_line_numbers_from_properties(action_id: u32, line_numbers: JsValue)
         -> Result<(), JsValue>;
@@ -69,4 +87,7 @@ extern "C"
 
     #[wasm_bindgen(js_name = extractBeamSections)]
     pub fn extract_beam_sections(handler: js_sys::Function);
+
+    #[wasm_bindgen(js_name = extractProperties)]
+    pub fn extract_properties(handler: js_sys::Function);
 }

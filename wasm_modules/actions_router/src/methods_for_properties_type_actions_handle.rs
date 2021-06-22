@@ -377,4 +377,79 @@ impl ActionsRouter
         self.current_action = Some((action, add_to_active_actions));
         Ok(())
     }
+
+
+    pub(super) fn handle_add_properties_message(&mut self, properties_data: &Value)
+        -> Result<(), JsValue>
+    {
+        let action_id = properties_data["actionId"].to_string()
+            .parse::<u32>()
+            .or(Err(JsValue::from("Actions router: Add properties action: Action id could \
+                not be converted to u32!")))?;
+        let name = properties_data["name"].to_string();
+        let material_name = properties_data["material_name"].to_string();
+        let cross_section_name = properties_data["cross_section_name"].to_string();
+        let cross_section_type = properties_data["cross_section_type"].to_string();
+        self.undo_actions.clear();
+        let is_action_id_should_be_increased = true;
+        let action_type = ActionType::PropertiesActionType(PropertiesActionType::AddProperties(
+                name, material_name, cross_section_name, cross_section_type,
+                is_action_id_should_be_increased));
+        let action = Action::create(action_id, action_type);
+        let add_to_active_actions = true;
+        self.current_action = Some((action, add_to_active_actions));
+        Ok(())
+    }
+
+
+    pub(super) fn handle_update_properties_message(&mut self, properties_data: &Value)
+        -> Result<(), JsValue>
+    {
+        let action_id = properties_data["actionId"].to_string()
+            .parse::<u32>()
+            .or(Err(JsValue::from("Actions router: Update properties action: \
+                Action id could not be converted to u32!")))?;
+        let name = properties_data["name"].to_string();
+        let old_material_name = properties_data["old_properties_values"]
+            ["material_name"].to_string();
+        let old_cross_section_name = properties_data["old_properties_values"]
+            ["cross_section_name"].to_string();
+        let old_cross_section_type = properties_data["old_properties_values"]
+            ["cross_section_type"].to_string();
+        let new_material_name = properties_data["new_properties_values"]
+            ["material_name"].to_string();
+        let new_cross_section_name = properties_data["new_properties_values"]
+            ["cross_section_name"].to_string();
+        let new_cross_section_type = properties_data["new_properties_values"]
+            ["cross_section_type"].to_string();
+        self.undo_actions.clear();
+        let is_action_id_should_be_increased = true;
+        let action_type = ActionType::PropertiesActionType(PropertiesActionType::UpdateProperties(
+            name, old_material_name, old_cross_section_name, old_cross_section_type,
+            new_material_name, new_cross_section_name, new_cross_section_type,
+            is_action_id_should_be_increased));
+        let action = Action::create(action_id, action_type);
+        let add_to_active_actions = true;
+        self.current_action = Some((action, add_to_active_actions));
+        Ok(())
+    }
+
+
+    pub(super) fn handle_delete_properties_message(&mut self, properties_data: &Value)
+        -> Result<(), JsValue>
+    {
+        let action_id = properties_data["actionId"].to_string()
+            .parse::<u32>()
+            .or(Err(JsValue::from("Actions router: Delete properties action: \
+                Action id could not be converted to u32!")))?;
+        self.undo_actions.clear();
+        let name = properties_data["name"].to_string();
+        let is_action_id_should_be_increased = true;
+        let action_type = ActionType::PropertiesActionType(PropertiesActionType::DeleteProperties(
+            name, is_action_id_should_be_increased));
+        let action = Action::create(action_id, action_type);
+        let add_to_active_actions = true;
+        self.current_action = Some((action, add_to_active_actions));
+        Ok(())
+    }
 }

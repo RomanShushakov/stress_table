@@ -18,6 +18,7 @@ impl Geometry
     {
         self.clear_deleted_lines_by_action_id(action_id);
         self.clear_deleted_points_by_action_id(action_id);
+
         if self.points.contains_key(&number)
         {
             let error_message = &format!("Geometry: Add point action: Point with \
@@ -36,9 +37,8 @@ impl Geometry
         let detail = json!({ "point_data": { "number": number, "x": x, "y": y, "z": z },
             "is_action_id_should_be_increased": is_action_id_should_be_increased });
         dispatch_custom_event(detail, ADD_POINT_EVENT_NAME, EVENT_TARGET)?;
-        log(&format!("Geometry: Points: {:?}, Lines: {:?}, Points in \
-            lines: {:?}, Deleted points: {:?}, Deleted lines {:?}", self.points,
-            self.lines, self.points_in_lines, self.deleted_points, self.deleted_lines));
+        log(&format!("Geometry: Points: {:?}, Deleted points: {:?}, Lines: {:?}, \
+            Deleted lines {:?}", self.points, self.deleted_points, self.lines, self.deleted_lines));
         Ok(())
     }
 
@@ -48,6 +48,7 @@ impl Geometry
     {
         self.clear_deleted_lines_by_action_id(action_id);
         self.clear_deleted_points_by_action_id(action_id);
+
         if self.points.values().position(|point| point.coordinates_same(x, y, z)).is_some()
         {
             let error_message = &format!("Geometry: Update point action: Point with \
@@ -61,9 +62,9 @@ impl Geometry
             let detail = json!({ "point_data": { "number": number, "x": x, "y": y, "z": z },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, UPDATE_POINT_EVENT_NAME, EVENT_TARGET)?;
-            log(&format!("Geometry: Points: {:?}, Lines: {:?}, Points in \
-                lines: {:?}, Deleted points: {:?}, Deleted lines {:?}", self.points,
-                self.lines, self.points_in_lines, self.deleted_points, self.deleted_lines));
+            log(&format!("Geometry: Points: {:?}, Deleted points: {:?}, Lines: {:?}, \
+                Deleted lines {:?}", self.points, self.deleted_points, self.lines,
+                self.deleted_lines));
             Ok(())
         }
         else
@@ -75,39 +76,45 @@ impl Geometry
     }
 
 
+    fn find_line_numbers_for_deletion(&self, point_number: u32) -> Vec<u32>
+    {
+        let mut line_numbers_for_deletion = Vec::new();
+        for (line_number, line) in self.lines.iter()
+        {
+            let (start_point_number, end_point_number) = line.extract_points_numbers();
+            if start_point_number == point_number || end_point_number == point_number
+            {
+                line_numbers_for_deletion.push(*line_number);
+            }
+        }
+        line_numbers_for_deletion
+    }
+
+
     pub fn delete_point(&mut self, action_id: u32, number: u32,
         is_action_id_should_be_increased: bool) -> Result<JsValue, JsValue>
     {
-        let mut deleted_line_numbers = Vec::new();
         self.clear_deleted_lines_by_action_id(action_id);
         self.clear_deleted_points_by_action_id(action_id);
-        if let Some(line_numbers) = self.points_in_lines.remove(&number)
+
+        let deleted_line_numbers =
+            self.find_line_numbers_for_deletion(number);
+        let mut deleted_lines = Vec::new();
+
+        for line_number in deleted_line_numbers.iter()
         {
-            let mut current_deleted_lines = Vec::new();
-            for line_number in line_numbers.iter()
-            {
-                for remained_line_numbers in self.points_in_lines.values_mut()
-                {
-                    if let Some(position) = remained_line_numbers
-                        .iter()
-                        .position(|remained_line_number| remained_line_number == line_number)
-                    {
-                        remained_line_numbers.remove(position);
-                    }
-                }
-                let line = self.lines.remove(&line_number).unwrap();
-                let deleted_line = DeletedLine::create(*line_number, line);
-                current_deleted_lines.push(deleted_line);
-                let detail = json!({ "line_data": { "number": line_number },
-                    "is_action_id_should_be_increased": false });
-                dispatch_custom_event(detail, DELETE_LINE_EVENT_NAME, EVENT_TARGET)?;
-                deleted_line_numbers.push(*line_number);
-            }
-            if !current_deleted_lines.is_empty()
-            {
-                self.deleted_lines.insert(action_id, current_deleted_lines);
-            }
+            let line = self.lines.remove(line_number).unwrap();
+            let deleted_line = DeletedLine::create(*line_number, line);
+            deleted_lines.push(deleted_line);
+            let detail = json!({ "line_data": { "number": line_number },
+                "is_action_id_should_be_increased": false });
+            dispatch_custom_event(detail, DELETE_LINE_EVENT_NAME, EVENT_TARGET)?;
         }
+        if !deleted_lines.is_empty()
+        {
+            self.deleted_lines.insert(action_id, deleted_lines);
+        }
+
         if let Some((point_number, point)) = self.points.remove_entry(&number)
         {
             let deleted_point = DeletedPoint::create(point_number, point);
@@ -117,13 +124,13 @@ impl Geometry
             dispatch_custom_event(detail, DELETE_POINT_EVENT_NAME, EVENT_TARGET)?;
             let composed_deleted_line_numbers =
                 json!({ DELETED_LINE_NUMBERS_MESSAGE_HEADER: deleted_line_numbers });
-            let line_numbers = JsValue::from_serde(&composed_deleted_line_numbers)
+            let converted_line_numbers = JsValue::from_serde(&composed_deleted_line_numbers)
                 .or(Err(JsValue::from("Geometry: Delete point info: Deleted line numbers \
                     composed!")))?;
-            log(&format!("Geometry: Points: {:?}, Lines: {:?}, Points in \
-                lines: {:?}, Deleted points: {:?}, Deleted lines {:?}", self.points,
-                self.lines, self.points_in_lines, self.deleted_points, self.deleted_lines));
-            Ok(line_numbers)
+            log(&format!("Geometry: Points: {:?}, Deleted points: {:?}, Lines: {:?}, \
+                Deleted lines {:?}", self.points, self.deleted_points, self.lines,
+                self.deleted_lines));
+            Ok(converted_line_numbers)
         }
         else
         {
@@ -152,6 +159,7 @@ impl Geometry
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, ADD_POINT_EVENT_NAME, EVENT_TARGET)?;
             self.points.insert(deleted_point_number, Point::create(x, y, z));
+
             if let Some(deleted_lines) = self.deleted_lines.remove(&action_id)
             {
                 for deleted_line in &deleted_lines
@@ -165,37 +173,11 @@ impl Geometry
                     dispatch_custom_event(detail, ADD_LINE_EVENT_NAME, EVENT_TARGET)?;
                     self.lines.insert(deleted_line.extract_number(),
                         Line::create(start_point_number, end_point_number));
-                    if let Some(line_numbers) = self.points_in_lines
-                        .get_mut(&start_point_number)
-                    {
-                        if line_numbers.iter().position(|line_number| *line_number == number)
-                            .is_none()
-                        {
-                            line_numbers.push(number);
-                        }
-                    }
-                    else
-                    {
-                        self.points_in_lines.insert(start_point_number, vec![number]);
-                    }
-                    if let Some(line_numbers) = self.points_in_lines
-                        .get_mut(&end_point_number)
-                    {
-                        if line_numbers.iter().position(|line_number| *line_number == number)
-                            .is_none()
-                        {
-                            line_numbers.push(number);
-                        }
-                    }
-                    else
-                    {
-                        self.points_in_lines.insert(end_point_number, vec![number]);
-                    }
                 }
             }
-            log(&format!("Geometry: Points: {:?}, Lines: {:?}, Points in \
-                lines: {:?}, Deleted points: {:?}, Deleted lines {:?}", self.points,
-                self.lines, self.points_in_lines, self.deleted_points, self.deleted_lines));
+            log(&format!("Geometry: Points: {:?}, Deleted points: {:?}, Lines: {:?}, \
+                Deleted lines {:?}", self.points, self.deleted_points, self.lines,
+                self.deleted_lines));
             Ok(())
         }
         else

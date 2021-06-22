@@ -19,8 +19,8 @@ class CommunicatorWithProperties {
 
     set addMaterialToProperties(materialData) {
         try {
-            this.state.properties.add_material(materialData.actionId, materialData.name, 
-                materialData.youngModulus, materialData.poissonRatio, materialData.isActionIdShouldBeIncreased);
+            this.state.properties.add_material(materialData.action_id, materialData.name, 
+                materialData.young_modulus, materialData.poisson_ratio, materialData.is_action_id_should_be_increased);
         } catch (error) {
             throw error;
         }
@@ -28,8 +28,8 @@ class CommunicatorWithProperties {
 
     set updateMaterialInProperties(materialData) {
         try {
-            this.state.properties.update_material(materialData.actionId, materialData.name, 
-                materialData.youngModulus, materialData.poissonRatio, materialData.isActionIdShouldBeIncreased);
+            this.state.properties.update_material(materialData.action_id, materialData.name, 
+                materialData.young_modulus, materialData.poisson_ratio, materialData.is_action_id_should_be_increased);
         } catch (error) {
             throw error;
         }
@@ -37,8 +37,8 @@ class CommunicatorWithProperties {
 
     set deleteMaterialFromProperties(materialData) {
         try {
-            this.state.properties.delete_material(materialData.actionId, materialData.name, 
-                materialData.isActionIdShouldBeIncreased);
+            this.state.properties.delete_material(materialData.action_id, materialData.name, 
+                materialData.is_action_id_should_be_increased);
         } catch (error) {
             throw error;
         }
@@ -46,8 +46,8 @@ class CommunicatorWithProperties {
 
     set restoreMaterialInProperties(materialData) {
         try {
-            this.state.properties.restore_material(materialData.actionId, materialData.name, 
-                materialData.isActionIdShouldBeIncreased);
+            this.state.properties.restore_material(materialData.action_id, materialData.name, 
+                materialData.is_action_id_should_be_increased);
         } catch (error) {
             throw error;
         }
@@ -55,8 +55,8 @@ class CommunicatorWithProperties {
 
     set addTrussSectionToProperties(trussSectionData) {
         try {
-            this.state.properties.add_truss_section(trussSectionData.actionId, trussSectionData.name, 
-                trussSectionData.area, trussSectionData.area2, trussSectionData.isActionIdShouldBeIncreased);
+            this.state.properties.add_truss_section(trussSectionData.action_id, trussSectionData.name, 
+                trussSectionData.area, trussSectionData.area2, trussSectionData.is_action_id_should_be_increased);
         } catch (error) {
             throw error;
         }
@@ -64,8 +64,8 @@ class CommunicatorWithProperties {
 
     set updateTrussSectionInProperties(trussSectionData) {
         try {
-            this.state.properties.update_truss_section(trussSectionData.actionId, trussSectionData.name, 
-                trussSectionData.area, trussSectionData.area2, trussSectionData.isActionIdShouldBeIncreased);
+            this.state.properties.update_truss_section(trussSectionData.action_id, trussSectionData.name, 
+                trussSectionData.area, trussSectionData.area2, trussSectionData.is_action_id_should_be_increased);
         } catch (error) {
             throw error;
         }
@@ -73,8 +73,8 @@ class CommunicatorWithProperties {
 
     set deleteTrussSectionFromProperties(trussSectionData) {
         try {
-            this.state.properties.delete_truss_section(trussSectionData.actionId,
-                trussSectionData.name, trussSectionData.isActionIdShouldBeIncreased);
+            this.state.properties.delete_truss_section(trussSectionData.action_id,
+                trussSectionData.name, trussSectionData.is_action_id_should_be_increased);
         } catch (error) {
             throw error;
         }
@@ -82,8 +82,8 @@ class CommunicatorWithProperties {
 
     set restoreTrussSectionInProperties(trussSectionData) {
         try {
-            this.state.properties.restore_truss_section(trussSectionData.actionId, trussSectionData.name, 
-                trussSectionData.isActionIdShouldBeIncreased);
+            this.state.properties.restore_truss_section(trussSectionData.action_id, trussSectionData.name, 
+                trussSectionData.is_action_id_should_be_increased);
         } catch (error) {
             throw error;
         }
@@ -91,9 +91,9 @@ class CommunicatorWithProperties {
 
     set addBeamSectionToProperties(beamSectionData) {
         try {
-            this.state.properties.add_beam_section(beamSectionData.actionId, beamSectionData.name, 
-                beamSectionData.area, beamSectionData.I11, beamSectionData.I22, beamSectionData.I12,
-                beamSectionData.It, beamSectionData.isActionIdShouldBeIncreased);
+            this.state.properties.add_beam_section(beamSectionData.action_id, beamSectionData.name, 
+                beamSectionData.area, beamSectionData.i11, beamSectionData.i22, beamSectionData.i12,
+                beamSectionData.it, beamSectionData.is_action_id_should_be_increased);
         } catch (error) {
             throw error;
         }
@@ -101,9 +101,9 @@ class CommunicatorWithProperties {
 
     set updateBeamSectionInProperties(beamSectionData) {
         try {
-            this.state.properties.update_beam_section(beamSectionData.actionId, beamSectionData.name, 
-                beamSectionData.area, beamSectionData.I11, beamSectionData.I22, beamSectionData.I12,
-                beamSectionData.It, beamSectionData.isActionIdShouldBeIncreased);
+            this.state.properties.update_beam_section(beamSectionData.action_id, beamSectionData.name, 
+                beamSectionData.area, beamSectionData.i11, beamSectionData.i22, beamSectionData.i12,
+                beamSectionData.it, beamSectionData.is_action_id_should_be_increased);
         } catch (error) {
             throw error;
         }
@@ -111,8 +111,8 @@ class CommunicatorWithProperties {
 
     set deleteBeamSectionFromProperties(beamSectionData) {
         try {
-            this.state.properties.delete_beam_section(beamSectionData.actionId,
-                beamSectionData.name, beamSectionData.isActionIdShouldBeIncreased);
+            this.state.properties.delete_beam_section(beamSectionData.action_id,
+                beamSectionData.name, beamSectionData.is_action_id_should_be_increased);
         } catch (error) {
             throw error;
         }
@@ -120,8 +120,46 @@ class CommunicatorWithProperties {
 
     set restoreBeamSectionInProperties(beamSectionData) {
         try {
-            this.state.properties.restore_beam_section(beamSectionData.actionId, beamSectionData.name, 
-                beamSectionData.isActionIdShouldBeIncreased);
+            this.state.properties.restore_beam_section(beamSectionData.action_id, beamSectionData.name, 
+                beamSectionData.is_action_id_should_be_increased);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    set addPropertiesToProperties(propertiesData) {
+        try {
+            this.state.properties.add_properties(propertiesData.action_id, propertiesData.name, 
+                propertiesData.material_name, propertiesData.cross_section_name,
+                propertiesData.cross_section_type, propertiesData.is_action_id_should_be_increased);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    set updatePropertiesInProperties(propertiesData) {
+        try {
+            this.state.properties.update_properties(propertiesData.action_id, propertiesData.name, 
+                propertiesData.material_name, propertiesData.cross_section_name,
+                propertiesData.cross_section_type, propertiesData.is_action_id_should_be_increased);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    set deletePropertiesFromProperties(propertiesData) {
+        try {
+            this.state.properties.delete_properties(propertiesData.action_id,
+                propertiesData.name, propertiesData.is_action_id_should_be_increased);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    set restorePropertiesInProperties(propertiesData) {
+        try {
+            this.state.properties.restore_properties(propertiesData.action_id, propertiesData.name, 
+                propertiesData.is_action_id_should_be_increased);
         } catch (error) {
             throw error;
         }
@@ -129,15 +167,15 @@ class CommunicatorWithProperties {
 
     set deleteLineNumbersFromProperties(lineNumbersData) {
         try {
-            this.state.properties.delete_line_numbers(lineNumbersData.actionId,
+            this.state.properties.delete_line_numbers(lineNumbersData.action_id,
                 lineNumbersData.lineNumbers);
         } catch (error) {
             throw error;
         }
     }
 
-    set clearPropertiesModuleByActionId(actionId) {
-        this.state.properties.clear_properties_module_by_action_id(actionId);
+    set clearPropertiesModuleByActionId(action_id) {
+        this.state.properties.clear_properties_module_by_action_id(action_id);
     }
 
     set extractMaterials(handler) {
@@ -150,6 +188,10 @@ class CommunicatorWithProperties {
 
     set extractBeamSections(handler) {
         this.state.properties.extract_beam_sections(handler);
+    }
+
+    set extractProperties(handler) {
+        this.state.properties.extract_properties(handler);
     }
 }
 

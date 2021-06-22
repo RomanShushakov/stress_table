@@ -13,9 +13,13 @@ use truss_section::{TrussSection, DeletedTrussSection};
 mod beam_section;
 use beam_section::{BeamSection, DeletedBeamSection};
 
+mod property;
+use property::{Property, DeletedProperty, CrossSectionType};
+
 mod methods_for_material_data_handle;
 mod methods_for_truss_section_data_handle;
 mod methods_for_beam_section_data_handle;
+mod methods_for_properties_data_handle;
 
 
 const EVENT_TARGET: &str = "fea-app";
@@ -31,6 +35,10 @@ const DELETE_TRUSS_SECTION_EVENT_NAME: &str = "delete_truss_section_server_messa
 const ADD_BEAM_SECTION_EVENT_NAME: &str = "add_beam_section_server_message";
 const UPDATE_BEAM_SECTION_EVENT_NAME: &str = "update_beam_section_server_message";
 const DELETE_BEAM_SECTION_EVENT_NAME: &str = "delete_beam_section_server_message";
+
+const ADD_PROPERTIES_EVENT_NAME: &str = "add_properties_server_message";
+const UPDATE_PROPERTIES_EVENT_NAME: &str = "update_properties_server_message";
+const DELETE_PROPERTIES_EVENT_NAME: &str = "delete_properties_server_message";
 
 const DELETED_LINE_NUMBERS_MESSAGE_HEADER: &str = "deleted_line_numbers";
 
@@ -62,39 +70,6 @@ fn dispatch_custom_event(detail: serde_json::Value, event_type: &str, query_sele
         .unwrap()
         .dispatch_event(&custom_event)?;
     Ok(())
-}
-
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-enum CrossSectionType
-{
-    Truss,
-    Beam,
-}
-
-
-struct Property
-{
-    material_name: String,
-    cross_section_name: String,
-    cross_section_type: CrossSectionType,
-}
-
-
-impl Property
-{
-    fn create(material_name: String, cross_section_name: String,
-        cross_section_type: CrossSectionType) -> Self
-    {
-        Property { material_name, cross_section_name, cross_section_type }
-    }
-}
-
-
-struct DeletedProperty
-{
-    name: String,
-    property: Property,
 }
 
 
@@ -140,9 +115,9 @@ pub struct Properties
     deleted_truss_sections: HashMap<u32, DeletedTrussSection>,  // { action_id: DeletedTrussSection }
     beam_sections: HashMap<String, BeamSection>,    // { beam_section_name: BeamSection }
     deleted_beam_sections: HashMap<u32, DeletedBeamSection>,  // { action_id: DeletedBeamSection }
-
     properties: HashMap<String, Property>,  // { property_name: Property }
     deleted_properties: HashMap<u32, DeletedProperty>,  // { action_id: DeletedProperty }
+
     assigned_properties: HashMap<String, AssignedProperty>, // { property_name: AssignedProperties }
     changed_assigned_properties: HashMap<u32, ChangedAssignedProperty>,   // { action_id: ChangedAssignedProperties }
     beam_sections_orientations: HashMap<BeamSectionOrientationKey, BeamSectionOrientation>,
@@ -219,11 +194,25 @@ impl Properties
     }
 
 
+    fn clear_deleted_properties_by_action_id(&mut self, action_id: u32)
+    {
+        for action_id in self.deleted_properties.clone()
+            .keys()
+            .filter(|deletion_action_id| **deletion_action_id >= action_id)
+            .collect::<Vec<&u32>>()
+            .iter()
+        {
+            let _ = self.deleted_properties.remove(&action_id);
+        }
+    }
+
+
     pub fn clear_properties_module_by_action_id(&mut self, action_id: u32)
     {
         self.clear_deleted_materials_by_action_id(action_id);
         self.clear_deleted_truss_sections_by_action_id(action_id);
         self.clear_deleted_beam_sections_by_action_id(action_id);
+        self.clear_deleted_properties_by_action_id(action_id);
     }
 
 
@@ -325,6 +314,21 @@ impl Properties
                     could not be composed for extraction!")))?;
         let this = JsValue::null();
         let _ = handler.call1(&this, &composed_extracted_beam_sections);
+        Ok(())
+    }
+
+
+    pub fn extract_properties(&self, handler: js_sys::Function)
+        -> Result<(), JsValue>
+    {
+        let extracted_properties = json!(
+            { "extracted_properties": self.properties });
+        let composed_extracted_properties =
+            JsValue::from_serde(&extracted_properties)
+                .or(Err(JsValue::from("Properties: Extract properties: Properties \
+                    could not be composed for extraction!")))?;
+        let this = JsValue::null();
+        let _ = handler.call1(&this, &composed_extracted_properties);
         Ok(())
     }
 }

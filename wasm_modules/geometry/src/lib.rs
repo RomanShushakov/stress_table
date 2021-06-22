@@ -61,7 +61,6 @@ pub struct Geometry
 {
     points: HashMap<u32, Point>,    // { point_number: Point }
     lines: HashMap<u32, Line>,  // { line_number: Line }
-    points_in_lines: HashMap<u32, Vec<u32>>,    // { point_number: Vec<line_numbers> }
     deleted_points: HashMap<u32, DeletedPoint>, // { action_id: DeletedPoint }
     deleted_lines: HashMap<u32, Vec<DeletedLine>>,  // { action_id: DeletedLine }
 }
@@ -74,10 +73,9 @@ impl Geometry
     {
         let points = HashMap::new();
         let lines = HashMap::new();
-        let points_in_lines = HashMap::new();
         let deleted_points = HashMap::new();
         let deleted_lines = HashMap::new();
-        Geometry { points, lines, points_in_lines, deleted_points, deleted_lines }
+        Geometry { points, lines, deleted_points, deleted_lines }
     }
 
 

@@ -1,12 +1,13 @@
 use wasm_bindgen::prelude::*;
 use serde_json::json;
 
-use crate::{Properties, BeamSection, DeletedBeamSection};
+use crate::{Properties, BeamSection, DeletedBeamSection, DeletedProperty, Property};
+use crate::CrossSectionType;
 use crate::{log, dispatch_custom_event};
 use crate::
 {
-    EVENT_TARGET, ADD_BEAM_SECTION_EVENT_NAME,
-    UPDATE_BEAM_SECTION_EVENT_NAME, DELETE_BEAM_SECTION_EVENT_NAME
+    EVENT_TARGET, ADD_BEAM_SECTION_EVENT_NAME, UPDATE_BEAM_SECTION_EVENT_NAME,
+    DELETE_BEAM_SECTION_EVENT_NAME, DELETE_PROPERTIES_EVENT_NAME, ADD_PROPERTIES_EVENT_NAME
 };
 
 
@@ -102,6 +103,24 @@ impl Properties
     }
 
 
+    fn find_property_names_for_deletion_by_beam_section_name(&self, beam_section_name: &str)
+        -> Vec<String>
+    {
+        let mut property_names_for_deletion = Vec::new();
+        for (property_name, property) in self.properties.iter()
+        {
+            let (_extracted_material_name, extracted_cross_section_name,
+                extracted_cross_section_type) = property.extract_data();
+            if extracted_cross_section_name == beam_section_name &&
+                extracted_cross_section_type == CrossSectionType::Beam
+            {
+                property_names_for_deletion.push(property_name.clone());
+            }
+        }
+        property_names_for_deletion
+    }
+
+
     pub fn delete_beam_section(&mut self, action_id: u32, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
@@ -109,6 +128,25 @@ impl Properties
         self.clear_deleted_truss_sections_by_action_id(action_id);
         self.clear_deleted_beam_sections_by_action_id(action_id);
         self.clear_deleted_properties_by_action_id(action_id);
+
+        let deleted_property_names =
+            self.find_property_names_for_deletion_by_beam_section_name(name);
+        let mut deleted_properties = Vec::new();
+
+        for property_name in deleted_property_names.iter()
+        {
+            let property = self.properties.remove(property_name).unwrap();
+            let deleted_property = DeletedProperty::create(property_name, property);
+            deleted_properties.push(deleted_property);
+            let detail = json!({ "properties_data": { "name": name },
+                "is_action_id_should_be_increased": false });
+            dispatch_custom_event(detail, DELETE_PROPERTIES_EVENT_NAME,
+                EVENT_TARGET)?;
+        }
+        if !deleted_properties.is_empty()
+        {
+            self.deleted_properties.insert(action_id, deleted_properties);
+        }
 
         if let Some((beam_section_name, beam_section)) =
             self.beam_sections.remove_entry(&name.to_owned())
@@ -166,6 +204,26 @@ impl Properties
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, ADD_BEAM_SECTION_EVENT_NAME,
                 EVENT_TARGET)?;
+            if let Some(deleted_properties) =
+                self.deleted_properties.remove(&action_id)
+            {
+                for deleted_property in &deleted_properties
+                {
+                    let (name, material_name, cross_section_name,
+                        cross_section_type) = deleted_property.extract_name_and_data();
+                    self.properties.insert(name.to_owned(),
+                        Property::create(material_name, cross_section_name,
+                            cross_section_type.clone()));
+                    let transformed_cross_section_type = r#"""#.to_owned() +
+                        &cross_section_type.as_str().to_lowercase() + r#"""#;
+                    let detail = json!({ "properties_data": { "name": name,
+                        "material_name": material_name, "cross_section_name": cross_section_name,
+                        "cross_section_type": transformed_cross_section_type },
+                        "is_action_id_should_be_increased": is_action_id_should_be_increased });
+                    dispatch_custom_event(detail, ADD_PROPERTIES_EVENT_NAME,
+                        EVENT_TARGET)?;
+                }
+            }
             log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
                 truss sections: {:?}, deleted truss sections: {:?}, \
                 beam sections: {:?}, deleted beam sections: {:?}, \

@@ -517,6 +517,8 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
         this.props.properties.push(properties);
         this.props.properties.sort((a, b) => a.name - b.name);
         this.defineNewPropertiesName();
+        this.defineMaterialNameOptions();
+        this.defineSectionNameOptions();
     }
 
     set updatePropertiesInClient(properties) {
@@ -524,7 +526,7 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
             .find(existedProperties => existedProperties.name == properties.name);
         propertiesInProps.material_name = properties.material_name;
         propertiesInProps.cross_section_name = properties.cross_section_name;
-        propertiesInProps.cross_setion_type = properties.cross_section_type;
+        propertiesInProps.cross_section_type = properties.cross_section_type;
     }
 
     set deletePropertiesFromClient(properties) {
@@ -533,6 +535,8 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
         this.props.properties.splice(propertiesIndexInProps, 1);
         this.props.properties.sort((a, b) => a.name - b.name);
         this.defineNewPropertiesName();
+        this.defineMaterialNameOptions();
+        this.defineSectionNameOptions();
     }
 
     connectedCallback() {
@@ -735,7 +739,7 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
         const propertiesDataInProps = this.props.properties.find(properties => 
             properties.material_name == `"${materialNameField.value}"` && 
             properties.cross_section_name == `"${crossSectionNameField.value}"` &&
-            properties.cross_section_type == crossSectionTypeField.value);
+            properties.cross_section_type == `"${crossSectionTypeField.value}"`);
             
         if (propertiesDataInProps != null) {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {

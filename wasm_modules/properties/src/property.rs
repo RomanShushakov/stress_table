@@ -48,7 +48,7 @@ impl CrossSectionType
 }
 
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Property
 {
     material_name: String,
@@ -97,7 +97,7 @@ impl Property
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct DeletedProperty
 {
     name: String,

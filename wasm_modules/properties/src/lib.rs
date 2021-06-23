@@ -116,7 +116,7 @@ pub struct Properties
     beam_sections: HashMap<String, BeamSection>,    // { beam_section_name: BeamSection }
     deleted_beam_sections: HashMap<u32, DeletedBeamSection>,  // { action_id: DeletedBeamSection }
     properties: HashMap<String, Property>,  // { property_name: Property }
-    deleted_properties: HashMap<u32, DeletedProperty>,  // { action_id: DeletedProperty }
+    deleted_properties: HashMap<u32, Vec<DeletedProperty>>,  // { action_id: Vec<DeletedProperty> }
 
     assigned_properties: HashMap<String, AssignedProperty>, // { property_name: AssignedProperties }
     changed_assigned_properties: HashMap<u32, ChangedAssignedProperty>,   // { action_id: ChangedAssignedProperties }

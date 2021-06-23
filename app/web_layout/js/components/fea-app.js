@@ -279,7 +279,7 @@ class FeaApp extends HTMLElement {
                     ([key, value]) => ({
                         "name": key, "material_name": value.material_name,
                         "cross_section_name": value.cross_section_name,
-                        "cross_section_type": value.cross_section_type.toLowerCase(),
+                        "cross_section_type": `"${value.cross_section_type.toLowerCase()}"`,
                     }));
                 this.querySelector(event.target.tagName.toLowerCase()).properties = properties; 
             }

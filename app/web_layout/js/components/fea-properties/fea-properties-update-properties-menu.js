@@ -429,7 +429,7 @@ class FeaPropertiesUpdatePropertiesMenu extends HTMLElement {
                 <div class="cross-section-type-field-content">
                     <p class="cross-section-type-caption">Section type</p>
                     <div class="cross-section-type-select-content">
-                        <select class="cross-section-type" disabled></select>
+                        <select class="cross-section-type"></select>
                     </div>
                 </div>
 
@@ -476,6 +476,8 @@ class FeaPropertiesUpdatePropertiesMenu extends HTMLElement {
                 this.shadowRoot.querySelector(".properties-name-filter").value,
                 this.shadowRoot.querySelector(".properties-name"));
         });
+
+        this.shadowRoot.querySelector(".cross-section-type").addEventListener("change", () => this.defineSectionNameOptions());
 
         this.shadowRoot.querySelector(".material-name-filter").addEventListener("keyup", () => {
             this.filter(
@@ -581,7 +583,7 @@ class FeaPropertiesUpdatePropertiesMenu extends HTMLElement {
             .find(existedProperties => existedProperties.name == properties.name);
         propertiesInProps.material_name = properties.material_name;
         propertiesInProps.cross_section_name = properties.cross_section_name;
-        propertiesInProps.cross_setion_type = properties.cross_section_type;
+        propertiesInProps.cross_section_type = properties.cross_section_type;
         this.definePropertiesNameOptions();
     }
 
@@ -679,7 +681,7 @@ class FeaPropertiesUpdatePropertiesMenu extends HTMLElement {
         const crossSectionTypeSelect = this.shadowRoot.querySelector(".cross-section-type");
         const crossSectionTypeOptions = crossSectionTypeSelect.options;
         for (let option, i = 0; option = crossSectionTypeOptions[i]; i++) {
-            if (option.value == selectedPropertiesSectionType) {
+            if (option.value == selectedPropertiesSectionType.replace(/['"]+/g, "")) {
                 crossSectionTypeSelect.selectedIndex = i;
                 break;
             }
@@ -692,6 +694,7 @@ class FeaPropertiesUpdatePropertiesMenu extends HTMLElement {
                 break;
             }
         }
+        this.defineSectionNameOptions();
         const sectionNameSelect = this.shadowRoot.querySelector(".cross-section-name");
         const sectionNameOptions = sectionNameSelect.options;
         for (let option, i = 0; option = sectionNameOptions[i]; i++) {
@@ -710,7 +713,6 @@ class FeaPropertiesUpdatePropertiesMenu extends HTMLElement {
         }
         this.defineSectionTypeOptions();
         this.defineMaterialNameOptions();
-        this.defineSectionNameOptions();
         if (this.props.properties.length > 0) {
             for (let i = 0; i < this.props.properties.length; i++) {
                 let updateOption = document.createElement("option");
@@ -724,7 +726,7 @@ class FeaPropertiesUpdatePropertiesMenu extends HTMLElement {
             const crossSectionTypeSelect = this.shadowRoot.querySelector(".cross-section-type");
             const crossSectionTypeSelectOptions = crossSectionTypeSelect.options;
             for (let option, i = 0; option = crossSectionTypeSelectOptions[i]; i++) {
-                if (option.value == selectedSectionType) {
+                if (option.value == selectedSectionType.replace(/['"]+/g, "")) {
                     crossSectionTypeSelect.selectedIndex = i;
                     break;
                 }
@@ -737,6 +739,7 @@ class FeaPropertiesUpdatePropertiesMenu extends HTMLElement {
                     break;
                 }
             }
+            this.defineSectionNameOptions();
             const sectionNameSelect = this.shadowRoot.querySelector(".cross-section-name");
             const sectionNameSelectOptions = sectionNameSelect.options;
             for (let option, i = 0; option = sectionNameSelectOptions[i]; i++) {
@@ -745,6 +748,8 @@ class FeaPropertiesUpdatePropertiesMenu extends HTMLElement {
                     break;
                 }
             }
+        } else {
+            this.clearSectionNameOptions();
         }
     }
 
@@ -773,6 +778,13 @@ class FeaPropertiesUpdatePropertiesMenu extends HTMLElement {
                 updateOption.innerHTML = this.props.materials[i].name.replace(/['"]+/g, "");;
                 materialNameSelect.appendChild(updateOption);
             }
+        }
+    }
+
+    clearSectionNameOptions() {
+        const sectionNameSelect = this.shadowRoot.querySelector(".cross-section-name");
+        for (let i = sectionNameSelect.length - 1; i >= 0; i--) {
+            sectionNameSelect.options[i] = null;
         }
     }
 
@@ -854,7 +866,7 @@ class FeaPropertiesUpdatePropertiesMenu extends HTMLElement {
 
         const propertiesDataInProps = this.props.properties.find(properties =>
             properties.material_name == `"${materialNameField.value}"` &&
-            properties.cross_section_type == crossSectionTypeField.value &&
+            properties.cross_section_type == `"${crossSectionTypeField.value}"` &&
             properties.cross_section_name == `"${crossSectionNameField.value}"`);
         if (propertiesDataInProps != null) {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
@@ -874,9 +886,9 @@ class FeaPropertiesUpdatePropertiesMenu extends HTMLElement {
                 "actionId": this.props.actionId,
                 "name": selectedPropertiesNameField.value,
                 "old_properties_values": {
-                    "material_name": oldPropertiesValues.material_name,
-                    "cross_section_name": oldPropertiesValues.cross_section_name,
-                    "cross_section_type": oldPropertiesValues.cross_section_type,
+                    "material_name": oldPropertiesValues.material_name.replace(/['"]+/g, ""),
+                    "cross_section_name": oldPropertiesValues.cross_section_name.replace(/['"]+/g, ""),
+                    "cross_section_type": oldPropertiesValues.cross_section_type.replace(/['"]+/g, ""),
                 },
                 "new_properties_values": {
                     "material_name": materialNameField.value,

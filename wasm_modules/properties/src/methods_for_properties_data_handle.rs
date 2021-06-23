@@ -78,7 +78,7 @@ impl Properties
                 .is_some()
         {
             let error_message = &format!("Properties: Update properties action: \
-                BProperties with Material name {}, Cross section name {}, Cross section type {} \
+                Properties with Material name {}, Cross section name {}, Cross section type {} \
                 does already exist!",
                     material_name, cross_section_name, cross_section_type);
             return Err(JsValue::from(error_message));
@@ -125,7 +125,7 @@ impl Properties
         {
             let deleted_property =
                 DeletedProperty::create(&property_name, property);
-            self.deleted_properties.insert(action_id, deleted_property);
+            self.deleted_properties.insert(action_id, vec![deleted_property]);
             let detail = json!({ "properties_data": { "name": name },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, DELETE_PROPERTIES_EVENT_NAME,
@@ -153,11 +153,17 @@ impl Properties
     pub fn restore_properties(&mut self, action_id: u32, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        if let Some(deleted_property) =
+        if let Some(deleted_properties) =
             self.deleted_properties.remove(&action_id)
         {
+            if deleted_properties.is_empty() || deleted_properties.len() > 1
+            {
+                let error_message = &format!("Properties: Restore properties action: \
+                    Incorrect number of properties!");
+                return Err(JsValue::from(error_message));
+            }
             let (deleted_property_name, material_name, cross_section_name,
-                cross_section_type) = deleted_property.extract_name_and_data();
+                cross_section_type) = deleted_properties[0].extract_name_and_data();
             if deleted_property_name != name
             {
                 let error_message = &format!("Properties: Restore properties \

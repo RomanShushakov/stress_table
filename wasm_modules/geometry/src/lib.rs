@@ -62,7 +62,7 @@ pub struct Geometry
     points: HashMap<u32, Point>,    // { point_number: Point }
     lines: HashMap<u32, Line>,  // { line_number: Line }
     deleted_points: HashMap<u32, DeletedPoint>, // { action_id: DeletedPoint }
-    deleted_lines: HashMap<u32, Vec<DeletedLine>>,  // { action_id: DeletedLine }
+    deleted_lines: HashMap<u32, Vec<DeletedLine>>,  // { action_id: Vec<DeletedLine> }
 }
 
 

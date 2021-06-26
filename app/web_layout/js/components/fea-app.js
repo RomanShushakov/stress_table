@@ -12,7 +12,6 @@ class FeaApp extends HTMLElement {
             actionsRouter: null,        // wasm module "actions_router";
             isGeometryLoaded: false,    // load status of wasm module "geometry";
             isPropertiesLoaded: false,  // load status of wasm module "properties";
-            linesMultipleSelectionModeEnabled: false,
             pointsDataDependentMenus: [
                 "fea-geometry-add-point-menu",
                 "fea-geometry-update-point-menu",
@@ -52,6 +51,10 @@ class FeaApp extends HTMLElement {
                 "fea-properties-add-properties-menu",
                 "fea-properties-update-properties-menu",
                 "fea-properties-delete-properties-menu",
+            ],
+            linesSelectionDependentMenus: [
+                "fea-properties-assign-properties-menu",
+                "fea-properties-beam-section-orientation-menu",
             ]
         };
 
@@ -145,11 +148,11 @@ class FeaApp extends HTMLElement {
 
         this.addEventListener("decreaseActionId", (_event) => this.handleDecreaseActionIdMessage());
 
-        this.addEventListener("enableLinesMultipleSelectionMode", 
-            (event) => this.handleEnableLinesMultipleSelectionModeMessage(event));
+        this.addEventListener("enableLinesSelectionMode", 
+            (event) => this.handleEnableLinesSelectionModeMessage(event));
 
-        this.addEventListener("disableLinesMultipleSelectionMode", 
-            (event) => this.handleDisableLinesMultipleSelectionModeMessage(event));
+        this.addEventListener("disableLinesSelectionMode", 
+            (event) => this.handleDisableLinesSelectionModeMessage(event));
 
         this.addEventListener("refreshPointsData", (event) => this.refreshPointsData(event));
     }
@@ -331,64 +334,69 @@ class FeaApp extends HTMLElement {
             message,
             (objectInfo) => this.showObjectInfo(objectInfo),
             (selectedView) => this.changeView(selectedView),
-            toCache);
+            toCache,
+            (selectedLinesNumbers) => this.sendSelectedLinesNumbers(selectedLinesNumbers));
         event.stopPropagation();
     }
 
     showObjectInfo(objectInfo) {
-        if (this.state.linesMultipleSelectionModeEnabled === false) {
-            if ("point_data" in objectInfo) {
-                const pointNumber = objectInfo.point_data.number;
-                const composedObjectInfo = `Point: 
-                    number: ${pointNumber},
-                    x: ${objectInfo.point_data.x},
-                    y: ${objectInfo.point_data.y},
-                    z: ${objectInfo.point_data.z}`;
-                this.shadowRoot.querySelector("fea-renderer").objectInfo = composedObjectInfo;          
-                if (this.querySelector("fea-preprocessor-menu") !== null) {
-                    this.querySelector("fea-preprocessor-menu").selectPointInClient = pointNumber;
-                }
-            } else if ("line_data" in objectInfo) {
-                const lineNumber = objectInfo.line_data.number;
-                const composedObjectInfo = `Line: 
-                    number: ${lineNumber},
-                    start point number: ${objectInfo.line_data.start_point_number},
-                    end point number: ${objectInfo.line_data.end_point_number}`;
-                this.shadowRoot.querySelector("fea-renderer").objectInfo = composedObjectInfo;    
-                if (this.querySelector("fea-preprocessor-menu") !== null) {
-                    this.querySelector("fea-preprocessor-menu").selectLineInClient = lineNumber;
-                }   
-    
-            } else {
-                throw "Fea-app: Unknown object!";
+        if ("point_data" in objectInfo) {
+            const pointNumber = objectInfo.point_data.number;
+            const composedObjectInfo = `Point: 
+                number: ${pointNumber},
+                x: ${objectInfo.point_data.x},
+                y: ${objectInfo.point_data.y},
+                z: ${objectInfo.point_data.z}`;
+            this.shadowRoot.querySelector("fea-renderer").objectInfo = composedObjectInfo;          
+            if (this.querySelector("fea-preprocessor-menu") !== null) {
+                this.querySelector("fea-preprocessor-menu").selectPointInClient = pointNumber;
             }
+        } else if ("line_data" in objectInfo) {
+            const lineNumber = objectInfo.line_data.number;
+            const composedObjectInfo = `Line: 
+                number: ${lineNumber},
+                start point number: ${objectInfo.line_data.start_point_number},
+                end point number: ${objectInfo.line_data.end_point_number}`;
+            this.shadowRoot.querySelector("fea-renderer").objectInfo = composedObjectInfo;    
+            if (this.querySelector("fea-preprocessor-menu") !== null) {
+                this.querySelector("fea-preprocessor-menu").selectLineInClient = lineNumber;
+            }   
+
         } else {
-            if ("line_data" in objectInfo) {
-                const lineNumber = objectInfo.line_data.number;
-                if (this.querySelector("fea-preprocessor-menu") !== null) {
-                    this.querySelector("fea-preprocessor-menu").selectLineInClientForDataAssign = lineNumber;
-                }
-            } else {
-                if (this.querySelector("fea-preprocessor-menu") !== null) {
-                    for (let i = 0; i < objectInfo.length; i++) {
-                        this.querySelector("fea-preprocessor-menu").selectLineInClientForDataAssign = objectInfo[i];
-                    }
-                }   
-            }
+            throw "Fea-app: Unknown object!";
         }
+    }
+
+    sendSelectedLinesNumbers(selectedLinesNumbers) {
+        for (let i = 0; i < this.state.linesSelectionDependentMenus.length; i++) {
+            if (this.querySelector(this.state.linesSelectionDependentMenus[i]) !== null) {
+                if (Array.isArray(selectedLinesNumbers)) {
+                    for (let j = 0; j < selectedLinesNumbers.length; j++) {
+                        this.querySelector(this.state.linesSelectionDependentMenus[i])
+                            .selectLineInClientForDataAssign = selectedLinesNumbers[j];
+                    }
+                } else if (Number.isInteger(selectedLinesNumbers)) {
+                    this.querySelector(this.state.linesSelectionDependentMenus[i])
+                        .selectLineInClientForDataAssign = selectedLinesNumbers;
+                } else {
+                    throw "Fea-app: Unknown object!";
+                }
+  
+            }
+        }  
     }
 
     changeView(selectedView) {
         this.shadowRoot.querySelector("fea-renderer").selectedView = selectedView;
     }
 
-    handleEnableLinesMultipleSelectionModeMessage(event) {
-        this.state.linesMultipleSelectionModeEnabled = true;
+    handleEnableLinesSelectionModeMessage(event) {
+        this.state.actionsRouter.enable_lines_selection_mode();
         event.stopPropagation();
     }
 
-    handleDisableLinesMultipleSelectionModeMessage(event) {
-        this.state.linesMultipleSelectionModeEnabled = false;
+    handleDisableLinesSelectionModeMessage(event) {
+        this.state.actionsRouter.disable_lines_selection_mode();
         event.stopPropagation();
     }
 

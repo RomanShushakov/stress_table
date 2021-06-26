@@ -3,11 +3,13 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
         super();
 
         this.props = {
-            actionId: null,                 // u32;
-            lines: new Map(),               // map: { number: u32, startPointNumber: u32, endPointNumber: u32 }, ...};
-            properties: [],                 // array of: [{ name: String, materialName: String, sectionName: String,
-                                            //              sectionType: String }];
-            assignedProperties: [],         // array of: [{ name: String, lineNumbers: [u32...] }];
+            actionId: null,             // u32;
+            isGeometryLoaded: false,    // load status of wasm module "geometry";
+            isPropertiesLoaded: false,  // load status of wasm module "properties";
+            lines: new Map(),           // map: { number: u32, start_point_number: u32, end_point_number: u32 }, ...};
+            properties: [],             // array of: [{ name: String, material_name: String, cross_section_name: String,
+                                        //              cross_section_type: String }];
+            assignedProperties: [],     // array of: [{ name: String, line_numbers: [u32...] }];
         };
 
         this.state = {
@@ -435,9 +437,12 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
             </div>
         `;
 
-        this.shadowRoot.querySelector(".apply-button").addEventListener("click", () => this.deleteProperties());
+        this.shadowRoot.querySelector(".apply-button").addEventListener("click", () => this.assignProperties());
 
         this.shadowRoot.querySelector(".cancel-button").addEventListener("click", () => this.cancelPropertiesAssign());
+
+        this.shadowRoot.querySelector(".properties-name").addEventListener("change",
+            (event) => this.updateSelectedPropertiesData(event.target.value));
 
         this.shadowRoot.querySelector(".properties-name-filter").addEventListener("keyup", () => {
             this.filter(
@@ -447,6 +452,12 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
 
         this.shadowRoot.querySelector(".selected-lines").addEventListener("click", () => {
             const highlightedElement = this.shadowRoot.querySelector(".selected-lines");
+            this.dropHighlight(highlightedElement);
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+        });
+
+        this.shadowRoot.querySelector(".assign-to-lines").addEventListener("click", () => {
+            const highlightedElement = this.shadowRoot.querySelector(".assign-to-lines");
             this.dropHighlight(highlightedElement);
             this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
         });
@@ -461,12 +472,28 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
 
         this.shadowRoot.querySelector(".clear-button").addEventListener("click", () => {
             this.state.selectedLines.clear();
-            this.updateSelecedLinesField();
+            this.updateSelectedLinesField();
         });
     }
 
     set actionId(value) {
         this.props.actionId = value;
+    }
+
+    set isGeometryLoaded(value) {
+        this.props.isGeometryLoaded = value;
+    }
+
+    set isPropertiesLoaded(value) {
+        this.props.isPropertiesLoaded = value;
+    }
+
+    set lines(value) {
+        this.props.lines = value;
+    }
+
+    set properties(value) {
+        this.props.properties = value;
     }
 
     set addLineToClient(line) {
@@ -482,7 +509,7 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
 
     set selectLineInClientForDataAssign(lineNumber) {
         this.addToSelectedLines(lineNumber);
-        this.updateSelecedLinesField();
+        this.updateSelectedLinesField();
     }
 
     connectedCallback() {
@@ -493,11 +520,22 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
                 this[propName] = value;
             }
         });
-        document.querySelector("fea-app").dispatchEvent(new CustomEvent("enableLinesMultipleSelectionMode"));
+        document.querySelector("fea-app").dispatchEvent(new CustomEvent("enableLinesSelectionMode"));
+        const frame = () => {
+            this.getGeometryLoadStatus();
+            this.getPropertiesLoadStatus();
+            if (this.props.isGeometryLoaded === true && this.props.isPropertiesLoaded) {
+                clearInterval(id);
+                this.getLines();
+                this.getProperties();
+                this.definePropertiesNameOptions();
+            }
+        }
+        const id = setInterval(frame, 10);
     }
 
     disconnectedCallback() {
-        document.querySelector("fea-app").dispatchEvent(new CustomEvent("disableLinesMultipleSelectionMode"));
+        document.querySelector("fea-app").dispatchEvent(new CustomEvent("disableLinesSelectionMode"));
     }
 
     static get observedAttributes() {
@@ -508,6 +546,41 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
     }
 
     adoptedCallback() {
+    }
+
+    getActionId() {
+        this.dispatchEvent(new CustomEvent("getActionId", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getGeometryLoadStatus() {
+        this.dispatchEvent(new CustomEvent("getGeometryLoadStatus", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getPropertiesLoadStatus() {
+        this.dispatchEvent(new CustomEvent("getPropertiesLoadStatus", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getLines() {
+        this.dispatchEvent(new CustomEvent("getLines", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getProperties() {
+        this.dispatchEvent(new CustomEvent("getProperties", {
+            bubbles: true,
+            composed: true,
+        }));
     }
 
     addToSelectedLines(lineNumber) {
@@ -577,7 +650,7 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
         const union = new Set([...selectedLines, ...this.state.assignToLines]);
         this.state.assignToLines = union;
         this.state.selectedLines = new Set(selectedLines);
-        this.updateSelecedLinesField();
+        this.updateSelectedLinesField();
         this.updateAssignToLinesField();
     }
 
@@ -614,11 +687,11 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
         let difference = new Set([...this.state.assignToLines].filter((lineNumber) => !selectedLinesSet.has(lineNumber)));
         this.state.assignToLines = difference;
         this.state.selectedLines = selectedLinesSet;
-        this.updateSelecedLinesField();
+        this.updateSelectedLinesField();
         this.updateAssignToLinesField();
     }
 
-    updateSelecedLinesField() {
+    updateSelectedLinesField() {
         let selectedLinesFieldValue = "";
         for (let item of this.state.selectedLines) {
             selectedLinesFieldValue += `${item}, `
@@ -632,19 +705,6 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
             assignToLinesFieldValue += `${item}, `
         }
         this.shadowRoot.querySelector(".assign-to-lines").value = assignToLinesFieldValue;
-    }
-
-    definePropertiesNameOptions() {
-        const propertiesDeleteNameSelect = this.shadowRoot.querySelector(".properties-name");
-        for (let i = propertiesDeleteNameSelect.length - 1; i >= 0; i--) {
-            propertiesDeleteNameSelect.options[i] = null;
-        }
-        for (let i = 0; i < this.props.properties.length; i++) {
-            let deleteOption = document.createElement("option");
-            deleteOption.value = this.props.properties[i].name.replace(/['"]+/g, "");
-            deleteOption.innerHTML = this.props.properties[i].name.replace(/['"]+/g, "");
-            propertiesDeleteNameSelect.appendChild(deleteOption);
-        }
     }
 
     filter(keywordField, selectField) {
@@ -663,7 +723,38 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
         }
     }
 
-    deleteProperties() {
+    definePropertiesNameOptions() {
+        const propertiesAssignNameSelect = this.shadowRoot.querySelector(".properties-name");
+        for (let i = propertiesAssignNameSelect.length - 1; i >= 0; i--) {
+            propertiesAssignNameSelect.options[i] = null;
+        }
+        for (let i = 0; i < this.props.properties.length; i++) {
+            let assignOption = document.createElement("option");
+            assignOption.value = this.props.properties[i].name.replace(/['"]+/g, "");
+            assignOption.innerHTML = this.props.properties[i].name.replace(/['"]+/g, "");
+            propertiesAssignNameSelect.appendChild(assignOption);
+        }
+        this.updateSelectedPropertiesData(propertiesAssignNameSelect.value);
+    }
+
+    updateSelectedPropertiesData(selectedPropertiesName) {
+        const selectedAssignedPropertiesInProps = this.props.assignedProperties
+            .find(existedAssignedProperties => existedAssignedProperties.name == `"${selectedPropertiesName}"`);
+        let assignToLinesFieldValue = "";
+        if (selectedAssignedPropertiesInProps !== undefined) {
+            let assignedToLines = selectedAssignedPropertiesInProps.line_numbers;
+            this.state.assignToLines = new Set(assignedToLines);
+            for (let i = 0; i < assignedToLines.length; i++) {
+                assignToLinesFieldValue += `${assignedToLines[i]}, `
+            }
+        } else {
+            this.state.assignToLines = new Set();
+        }
+        this.shadowRoot.querySelector(".assign-to-lines").value = assignToLinesFieldValue;
+        this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+    }
+
+    assignProperties() {
         const selectedPropertiesNameField = this.shadowRoot.querySelector(".properties-name");
         if (selectedPropertiesNameField.value == "") {
             if (selectedPropertiesNameField.classList.contains("highlighted") === false) {
@@ -684,7 +775,7 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
             .split(",")
             .map((item) => item.replace(/\s/g,'', ""))
             .filter((item) => item !== "");
-        for (let i = 0; i < assignToLinesField.length; i++) {
+        for (let i = 0; i < assignToLines.length; i++) {
             if (this.isNumeric(assignToLines[i]) === false) {
                 if (assignToLinesField.classList.contains("highlighted") === false) {
                     assignToLinesField.classList.add("highlighted");
@@ -707,30 +798,92 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
             }
         }
         const assignPropertiesData = this.props.properties.find(properties => properties.name == `"${selectedPropertiesNameField.value}"`);
-        const message = { 
-            "assign_properties": { 
-                "actionId": this.props.actionId,
-                "name": assignPropertiesData.name.replace(/['"]+/g, ""),
-                "usedIn": assignToLines
-            } 
-        };
-        this.dispatchEvent(new CustomEvent("clientMessage", {
-            bubbles: true,
-            composed: true,
-            detail: {
-                message: message,
-            },
-        }));
-        this.shadowRoot.querySelector(".properties-name-filter").value = null;
-    }
+        const selectedAssignedPropertiesInProps = this.props.assignedProperties
+            .find(existedAssignedProperties => existedAssignedProperties.name == `"${selectedPropertiesNameField.value}"`);
+        if (selectedAssignedPropertiesInProps !== undefined) {
+            if (assignToLines.length === 0) {
+                const message = { 
+                    "delete_assigned_properties": { 
+                        "actionId": this.props.actionId,
+                        "name": assignPropertiesData.name.replace(/['"]+/g, ""),
+                    } 
+                };
+                this.dispatchEvent(new CustomEvent("clientMessage", {
+                    bubbles: true,
+                    composed: true,
+                    detail: {
+                        message: message,
+                    },
+                }));
+            } else {
+                const message = {
+                    "update_assigned_properties": {
+                        "actionId": this.props.actionId,
+                        "name": assignPropertiesData.name.replace(/['"]+/g, ""),
+                        "old_assigned_properties_values": {
+                            "line_numbers": selectedAssignedPropertiesInProps.line_numbers,
+                        },
+                        "new_assigned_properties_values": {
+                            "line_numbers": assignToLines,
+                        }
+                    }
+                };
+                this.dispatchEvent(new CustomEvent("clientMessage", {
+                    bubbles: true,
+                    composed: true,
+                    detail: {
+                        message: message,
+                    },
+                }));
+            }
+        } else {
+            if (assignToLines.length > 0) {
+                const message = { 
+                    "add_assigned_properties": { 
+                        "actionId": this.props.actionId,
+                        "name": assignPropertiesData.name.replace(/['"]+/g, ""),
+                        "line_numbers": assignToLines
+                    } 
+                };
+                this.dispatchEvent(new CustomEvent("clientMessage", {
+                    bubbles: true,
+                    composed: true,
+                    detail: {
+                        message: message,
+                    },
+                }));
+            } else {
 
-    cancelPropertiesAssign() {
+                if (assignToLinesField.classList.contains("highlighted") === false) {
+                    assignToLinesField.classList.add("highlighted");
+                }
+                if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+                    this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "Note: The highlighted fields should be filled!";
+                    return;
+                } else {
+                    return;
+                }
+            }
+        }
+        this.shadowRoot.querySelector(".properties-name-filter").value = null;
         if (this.props.properties.length > 0) {
             this.definePropertiesNameOptions();
         }
+        this.state.selectedLines = new Set();
+        this.updateSelectedLinesField();
+    }
+
+    cancelPropertiesAssign() {
         this.shadowRoot.querySelector(".properties-name-filter").value = null;
-        const selectedPropertiesNameForDeleteField = this.shadowRoot.querySelector(".properties-name");
-        this.dropHighlight(selectedPropertiesNameForDeleteField);
+        if (this.props.properties.length > 0) {
+            this.definePropertiesNameOptions();
+        }
+        const selectedPropertiesNameForAssignField = this.shadowRoot.querySelector(".properties-name");
+        this.dropHighlight(selectedPropertiesNameForAssignField);
+        const assignToLinesField = this.shadowRoot.querySelector(".assign-to-lines");
+        this.dropHighlight(assignToLinesField);
+        this.state.selectedLines = new Set();
+        this.updateSelectedLinesField();
         this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
     }
 

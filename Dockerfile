@@ -8,7 +8,7 @@ COPY ./secrets/app_secrets.py /app/
 
 ENTRYPOINT ["python", "./app_secrets.py"]
 
-FROM rust:1.52.1
+FROM rust:1.53
 
 ENV USER=root
 

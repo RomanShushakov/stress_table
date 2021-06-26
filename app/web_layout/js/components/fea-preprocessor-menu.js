@@ -74,12 +74,6 @@ class FeaPreprocessorMenu extends HTMLElement {
         }
     }
 
-    set selectLineInClientForDataAssign(lineNumber) {
-        if (this.querySelector("fea-properties-menu") !== null) {
-            this.querySelector("fea-properties-menu").selectLineInClientForDataAssign = lineNumber;
-        }
-    }
-
     // set addAssignedPropertiesToClient(assignedProperties) {
     //     this.props.assignedProperties.push(assignedProperties);
     //     this.props.assignedProperties.sort((a, b) => a.name - b.name);
@@ -139,17 +133,26 @@ class FeaPreprocessorMenu extends HTMLElement {
     adoptedCallback() {
     }
 
+    updateCanvasSize() {
+        this.dispatchEvent(new CustomEvent("resize", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
     activateMenu(event) {
         const menuName = event.detail.menuName;
         const menu = document.createElement(this.state.menuNames[menuName]);
         this.append(menu);
         event.stopPropagation();
+        this.updateCanvasSize();
     }
 
     deactivateMenu(event) {
         const menuName = event.detail.menuName;
         this.querySelector(this.state.menuNames[menuName]).remove();
         event.stopPropagation();
+        this.updateCanvasSize();
     }
 }
 

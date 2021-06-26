@@ -1,4 +1,5 @@
 use serde_json::Value;
+use serde_json::json;
 use wasm_bindgen::prelude::*;
 
 use serde::{Deserialize, Serialize};
@@ -97,6 +98,10 @@ async fn add_to_cache(message: JsValue) -> Result<(), JsValue>
 }
 
 
+#[derive(Serialize)]
+struct LineNumber(Vec<u32>);
+
+
 #[wasm_bindgen]
 pub struct ActionsRouter
 {
@@ -105,6 +110,7 @@ pub struct ActionsRouter
 
     active_actions: Vec<Action>,
     undo_actions: Vec<Action>,
+    is_lines_selection_mode_enabled: bool,
 }
 
 
@@ -116,7 +122,14 @@ impl ActionsRouter
         let current_action = None;
         let active_actions = Vec::new();
         let undo_actions = Vec::new();
-        ActionsRouter { current_action, active_actions, undo_actions }
+        let is_lines_selection_mode_enabled = false;
+        ActionsRouter
+        {
+            current_action,
+            active_actions,
+            undo_actions,
+            is_lines_selection_mode_enabled,
+        }
     }
 
 
@@ -226,7 +239,7 @@ impl ActionsRouter
                     },
                     ActionType::ShowPointInfo(_, _) => (),
                     ActionType::ShowLineInfo(_, _) => (),
-                    ActionType::ShowLinesInfo(_, _) => (),
+                    ActionType::ExtractLinesNumbers(_, _) => (),
                     ActionType::ChangeView(_, _) => (),
                 ActionType::PropertiesActionType(properties_action_type) =>
                     {
@@ -466,46 +479,68 @@ impl ActionsRouter
     fn handle_selected_point_number_message(&mut self, selected_point_number: &Value,
         show_object_info_handle: &js_sys::Function) -> Result<(), JsValue>
     {
-        let point_number = selected_point_number.to_string()
-            .parse::<u32>()
-            .or(Err(JsValue::from("Actions router: Show point info action: \
-                Point number could not be converted to u32!")))?;
-        let action_id = 0;
-        let action_type = ActionType::ShowPointInfo(point_number, show_object_info_handle.clone());
-        let action = Action::create(action_id, action_type);
-        let add_to_active_actions = false;
-        self.current_action = Some((action, add_to_active_actions));
+        if !self.is_lines_selection_mode_enabled
+        {
+            let point_number = selected_point_number.to_string()
+                .parse::<u32>()
+                .or(Err(JsValue::from("Actions router: Show point info action: \
+                    Point number could not be converted to u32!")))?;
+            let action_id = 0;
+            let action_type = ActionType::ShowPointInfo(point_number, show_object_info_handle.clone());
+            let action = Action::create(action_id, action_type);
+            let add_to_active_actions = false;
+            self.current_action = Some((action, add_to_active_actions));
+        }
         Ok(())
     }
 
 
     fn handle_selected_line_number_message(&mut self, selected_line_number: &Value,
-        show_object_info_handle: &js_sys::Function) -> Result<(), JsValue>
+        show_object_info_handle: &js_sys::Function,
+        send_selected_lines_numbers_handle: &js_sys::Function) -> Result<(), JsValue>
     {
         let line_number = selected_line_number.to_string()
             .parse::<u32>()
             .or(Err(JsValue::from("Actions router: Show line info action: \
                 Line number could not be converted to u32!")))?;
         let action_id = 0;
-        let action_type = ActionType::ShowLineInfo(line_number, show_object_info_handle.clone());
-        let action = Action::create(action_id, action_type);
-        let add_to_active_actions = false;
-        self.current_action = Some((action, add_to_active_actions));
+        if !self.is_lines_selection_mode_enabled
+        {
+            let action_type = ActionType::ShowLineInfo(line_number, show_object_info_handle.clone());
+            let action = Action::create(action_id, action_type);
+            let add_to_active_actions = false;
+            self.current_action = Some((action, add_to_active_actions));
+        }
+        else
+        {
+            let lines_numbers = JsValue::from_serde(selected_line_number)
+                .or(Err(JsValue::from("Actions router: Extract lines numbers action: \
+                    Lines numbers could not be extracted!")))?;
+            let action_type = ActionType::ExtractLinesNumbers(lines_numbers,
+                send_selected_lines_numbers_handle.clone());
+            let action = Action::create(action_id, action_type);
+            let add_to_active_actions = false;
+            self.current_action = Some((action, add_to_active_actions));
+        }
         Ok(())
     }
 
 
     fn handle_selected_lines_numbers_message(&mut self, selected_lines_numbers: &Value,
-        show_object_info_handle: &js_sys::Function) -> Result<(), JsValue>
+        send_selected_lines_numbers_handle: &js_sys::Function) -> Result<(), JsValue>
     {
-        let lines_numbers = JsValue::from_serde(selected_lines_numbers)
-            .or(Err(JsValue::from("Actions router: Show lines info action: \
-                Lines numbers could not be extracted!")))?;
-        let action_id = 0;
-        let action_type = ActionType::ShowLinesInfo(lines_numbers, show_object_info_handle.clone());
-        let action = Action::create(action_id, action_type);
-        let add_to_active_actions = false;
-        self.current_action = Some((action, add_to_active_actions));
+        if self.is_lines_selection_mode_enabled
+        {
+            let lines_numbers = JsValue::from_serde(selected_lines_numbers)
+                .or(Err(JsValue::from("Actions router: Extract lines numbers action: \
+                    Lines numbers could not be extracted!")))?;
+            let action_id = 0;
+            let action_type = ActionType::ExtractLinesNumbers(lines_numbers,
+                send_selected_lines_numbers_handle.clone());
+            let action = Action::create(action_id, action_type);
+            let add_to_active_actions = false;
+            self.current_action = Some((action, add_to_active_actions));
+        }
         Ok(())
     }
 
@@ -667,12 +702,12 @@ impl ActionsRouter
                         let this = JsValue::null();
                         let _ = show_object_info_handle.call1(&this, &line_info_from_geometry)?;
                     },
-                ActionType::ShowLinesInfo(
+                ActionType::ExtractLinesNumbers(
                     lines_numbers,
-                    show_object_info_handle) =>
+                    send_selected_lines_numbers_handle) =>
                     {
                         let this = JsValue::null();
-                        let _ = show_object_info_handle.call1(&this, &lines_numbers)?;
+                        let _ = send_selected_lines_numbers_handle.call1(&this, &lines_numbers)?;
                     },
                 ActionType::ChangeView(
                     selected_view_name,
@@ -943,7 +978,8 @@ impl ActionsRouter
 
 
     pub fn handle_message(&mut self, message: JsValue, show_object_info_handle: &js_sys::Function,
-        change_view_handle: &js_sys::Function, to_cache: bool) -> Result<(), JsValue>
+        change_view_handle: &js_sys::Function, to_cache: bool,
+        send_selected_lines_numbers_handle: &js_sys::Function) -> Result<(), JsValue>
     {
         let serialized_message: Value = message.into_serde().or(Err(JsValue::from(
             "Actions router: Message could not be serialized!")))?;
@@ -1055,14 +1091,14 @@ impl ActionsRouter
             serialized_message.get(SELECTED_LINE_NUMBER_MESSAGE_HEADER)
         {
             self.handle_selected_line_number_message(&selected_line_number,
-                show_object_info_handle)?;
+                show_object_info_handle, send_selected_lines_numbers_handle)?;
             is_auxiliary = true;
         }
         else if let Some(selected_lines_numbers) =
             serialized_message.get(SELECTED_LINES_NUMBERS_MESSAGE_HEADER)
         {
             self.handle_selected_lines_numbers_message(&selected_lines_numbers,
-                show_object_info_handle)?;
+                send_selected_lines_numbers_handle)?;
             is_auxiliary = true;
         }
         else if let Some(view) = serialized_message.get(CHANGE_VIEW_MESSAGE_HEADER)
@@ -1142,5 +1178,17 @@ impl ActionsRouter
     pub fn extract_properties(&self, handler: js_sys::Function)
     {
         extract_properties(handler);
+    }
+
+
+    pub fn enable_lines_selection_mode(&mut self)
+    {
+        self.is_lines_selection_mode_enabled = true;
+    }
+
+
+    pub fn disable_lines_selection_mode(&mut self)
+    {
+        self.is_lines_selection_mode_enabled = false;
     }
 }

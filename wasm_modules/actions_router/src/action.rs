@@ -136,8 +136,8 @@ pub enum ActionType
     // ( number, show_object_info_handle )
     ShowLineInfo(u32, js_sys::Function),
 
-    // ( numbers, show_object_info_handle )
-    ShowLinesInfo(JsValue, js_sys::Function),
+    // ( numbers, send_selected_lines_numbers_handle )
+    ExtractLinesNumbers(JsValue, js_sys::Function),
 
     // ( name, change_view_handle )
     ChangeView(String, js_sys::Function),

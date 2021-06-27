@@ -72,6 +72,16 @@ extern "C"
     pub fn restore_properties_in_properties(action_id: u32, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
+    #[wasm_bindgen(js_name = addAssignedPropertiesToProperties, catch)]
+    pub fn add_assigned_properties_to_properties(action_id: u32, name: &str,
+        line_numbers: &[u32], is_action_id_should_be_increased: bool)
+        -> Result<(), JsValue>;
+
+    #[wasm_bindgen(js_name = updateAssignedPropertiesInProperties, catch)]
+    pub fn update_assigned_properties_in_properties(action_id: u32, name: &str,
+        line_numbers: &[u32], is_action_id_should_be_increased: bool)
+        -> Result<(), JsValue>;
+
     #[wasm_bindgen(js_name = deleteLineNumbersFromProperties, catch)]
     pub fn delete_line_numbers_from_properties(action_id: u32, line_numbers: JsValue)
         -> Result<(), JsValue>;
@@ -90,4 +100,7 @@ extern "C"
 
     #[wasm_bindgen(js_name = extractProperties)]
     pub fn extract_properties(handler: js_sys::Function);
+
+    #[wasm_bindgen(js_name = extractAssignedProperties)]
+    pub fn extract_assigned_properties(handler: js_sys::Function);
 }

@@ -51,11 +51,17 @@ class FeaApp extends HTMLElement {
                 "fea-properties-add-properties-menu",
                 "fea-properties-update-properties-menu",
                 "fea-properties-delete-properties-menu",
+                "fea-properties-assign-properties-menu",
+                "fea-properties-beam-section-orientation-menu",
             ],
             linesSelectionDependentMenus: [
                 "fea-properties-assign-properties-menu",
                 "fea-properties-beam-section-orientation-menu",
-            ]
+            ],
+            assignedPropertiesDataDependentMenus: [
+                "fea-properties-assign-properties-menu",
+                "fea-properties-beam-section-orientation-menu",
+            ],
         };
 
         this.attachShadow({ mode: "open" });
@@ -118,7 +124,7 @@ class FeaApp extends HTMLElement {
         this.addEventListener("getTrussSections", (event) => this.getTrussSections(event));
         this.addEventListener("getBeamSections", (event) => this.getBeamSections(event));
         this.addEventListener("getProperties", (event) => this.getProperties(event));
-
+        this.addEventListener("getAssignedProperties", (event) => this.getAssignedProperties(event));
 
         this.addEventListener("clientMessage", (event) => this.handleClientMessage(event));
 
@@ -145,6 +151,11 @@ class FeaApp extends HTMLElement {
         this.addEventListener("add_properties_server_message", (event) => this.handleAddPropertiesServerMessage(event));
         this.addEventListener("update_properties_server_message", (event) => this.handleUpdatePropertiesServerMessage(event));
         this.addEventListener("delete_properties_server_message", (event) => this.handleDeletePropertiesServerMessage(event));
+
+        this.addEventListener("add_assigned_properties_server_message", (event) => 
+            this.handleAddAssignedPropertiesServerMessage(event));
+        this.addEventListener("update_assigned_properties_server_message", 
+            (event) => this.handleUpdateAssignedPropertiesServerMessage(event));
 
         this.addEventListener("decreaseActionId", (_event) => this.handleDecreaseActionIdMessage());
 
@@ -290,6 +301,20 @@ class FeaApp extends HTMLElement {
         event.stopPropagation();
     }
 
+    getAssignedProperties(event) {
+        this.state.actionsRouter.extract_assigned_properties(
+            (extractedAssignedPropertiesData) => { 
+                const assignedProperties = Array.from(
+                    Object.entries(extractedAssignedPropertiesData.extracted_assigned_properties),
+                    ([key, value]) => ({
+                        "name": key, "line_numbers": value.line_numbers,
+                    }));
+                this.querySelector(event.target.tagName.toLowerCase()).assignedProperties = assignedProperties; 
+            }
+        );
+        event.stopPropagation();
+    }
+
     activatePostprocessor() {
         this.querySelector("fea-preprocessor-menu").remove();
         const feaPostprocessor = document.createElement("fea-postprocessor");
@@ -318,8 +343,8 @@ class FeaApp extends HTMLElement {
                                 } 
                                 this.state.actionsRouter.handle_message(
                                     currentMessage,
-                                    (objectInfo) => this.showObjectInfo(objectInfo),
-                                    (selectedView) => this.changeView(selectedView),
+                                    (objectInfo) => this.showObjectInfoHandler(objectInfo),
+                                    (selectedView) => this.changeViewHandler(selectedView),
                                     toCache);
                             } 
                         })
@@ -332,14 +357,15 @@ class FeaApp extends HTMLElement {
         const message = event.detail.message;
         this.state.actionsRouter.handle_message(
             message,
-            (objectInfo) => this.showObjectInfo(objectInfo),
-            (selectedView) => this.changeView(selectedView),
+            (objectInfo) => this.showObjectInfoHandler(objectInfo),
+            (selectedView) => this.changeViewHandler(selectedView),
             toCache,
-            (selectedLinesNumbers) => this.sendSelectedLinesNumbers(selectedLinesNumbers));
+            (selectedLinesNumbers) => this.sendSelectedLinesNumbersHandler(selectedLinesNumbers),
+            (selectedLinesNumbers) => this.previewSelectedLinesNumbersHandler(selectedLinesNumbers));
         event.stopPropagation();
     }
 
-    showObjectInfo(objectInfo) {
+    showObjectInfoHandler(objectInfo) {
         if ("point_data" in objectInfo) {
             const pointNumber = objectInfo.point_data.number;
             const composedObjectInfo = `Point: 
@@ -367,7 +393,7 @@ class FeaApp extends HTMLElement {
         }
     }
 
-    sendSelectedLinesNumbers(selectedLinesNumbers) {
+    sendSelectedLinesNumbersHandler(selectedLinesNumbers) {
         for (let i = 0; i < this.state.linesSelectionDependentMenus.length; i++) {
             if (this.querySelector(this.state.linesSelectionDependentMenus[i]) !== null) {
                 if (Array.isArray(selectedLinesNumbers)) {
@@ -381,13 +407,16 @@ class FeaApp extends HTMLElement {
                 } else {
                     throw "Fea-app: Unknown object!";
                 }
-  
             }
         }  
     }
 
-    changeView(selectedView) {
+    changeViewHandler(selectedView) {
         this.shadowRoot.querySelector("fea-renderer").selectedView = selectedView;
+    }
+
+    previewSelectedLinesNumbersHandler(selectedLinesNumbers) {
+        this.shadowRoot.querySelector("fea-renderer").previewSelectedLinesNumbers = selectedLinesNumbers;
     }
 
     handleEnableLinesSelectionModeMessage(event) {
@@ -451,8 +480,8 @@ class FeaApp extends HTMLElement {
         }
         const line = { 
             number: event.detail.line_data.number,
-            startPointNumber: event.detail.line_data.start_point_number,
-            endPointNumber: event.detail.line_data.end_point_number };
+            start_point_number: event.detail.line_data.start_point_number,
+            end_point_number: event.detail.line_data.end_point_number };
         for (let i = 0; i < this.state.linesDataDependentMenus.length; i++) {
             if (this.querySelector(this.state.linesDataDependentMenus[i]) !== null) {
                 this.querySelector(this.state.linesDataDependentMenus[i]).addLineToClient = line;
@@ -468,8 +497,8 @@ class FeaApp extends HTMLElement {
         }
         const line = { 
             number: event.detail.line_data.number,
-            startPointNumber: event.detail.line_data.start_point_number,
-            endPointNumber: event.detail.line_data.end_point_number };
+            start_point_number: event.detail.line_data.start_point_number,
+            end_point_number: event.detail.line_data.end_point_number };
         for (let i = 0; i < this.state.linesDataDependentMenus.length; i++) {
             if (this.querySelector(this.state.linesDataDependentMenus[i]) !== null) {
                 this.querySelector(this.state.linesDataDependentMenus[i]).updateLineInClient = line;
@@ -679,6 +708,40 @@ class FeaApp extends HTMLElement {
         for (let i = 0; i < this.state.propertiesDataDependentMenus.length; i++) {
             if (this.querySelector(this.state.propertiesDataDependentMenus[i]) !== null) {
                 this.querySelector(this.state.propertiesDataDependentMenus[i]).deletePropertiesFromClient = properties;
+            }
+        } 
+        event.stopPropagation();
+    }
+
+    handleAddAssignedPropertiesServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;   
+        }
+        const assignedProperties = { 
+            name: event.detail.assigned_properties_data.name,
+            line_numbers: event.detail.assigned_properties_data.line_numbers,
+        };
+        for (let i = 0; i < this.state.assignedPropertiesDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.assignedPropertiesDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.assignedPropertiesDataDependentMenus[i])
+                    .addAssignedPropertiesToClient = assignedProperties;
+            }
+        } 
+        event.stopPropagation();
+    }
+
+    handleUpdateAssignedPropertiesServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;   
+        }
+        const assignedProperties = { 
+            name: event.detail.assigned_properties_data.name,
+            line_numbers: event.detail.assigned_properties_data.line_numbers,
+        };
+        for (let i = 0; i < this.state.assignedPropertiesDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.assignedPropertiesDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.assignedPropertiesDataDependentMenus[i])
+                    .updateAssignedPropertiesInClient = assignedProperties;
             }
         } 
         event.stopPropagation();

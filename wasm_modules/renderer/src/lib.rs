@@ -10,7 +10,7 @@ use std::collections::{HashMap, HashSet};
 use std::convert::TryFrom;
 
 mod line_object;
-use line_object::{LineObject, LineObjectKey};
+use line_object::{LineObject, LineObjectKey, LineObjectNumbers};
 use line_object::{LineObjectType};
 
 mod aux_functions;
@@ -435,6 +435,37 @@ impl Renderer
             let _ = drop_selection.call0(&this);
             Ok(())
         }
+    }
+
+
+    pub fn preview_selected_line_objects(&mut self, selected_line_object_numbers: JsValue,
+        line_object_type: LineObjectType) -> Result<(), JsValue>
+    {
+        self.state.selected_colors.clear();
+        for line_object_number in selected_line_object_numbers
+            .into_serde::<LineObjectNumbers>()
+            .or(Err(JsValue::from("Renderer: Preview selected line object numbers action: \
+                Line object numbers could not be serialized!")))?
+            .extract_line_numbers()
+        {
+            let current_line_object_key =
+                LineObjectKey::create(*line_object_number, line_object_type);
+            if let Some(line_object) =
+                self.state.line_objects.get(&current_line_object_key)
+            {
+                let current_uid = line_object.get_uid();
+                let current_color = transform_u32_to_array_of_u8(current_uid);
+                self.state.selected_colors.insert(current_color);
+            }
+            else
+            {
+                let error_message = format!("Renderer: Preview selected line objects \
+                    action: {} with number {} does not exist!",
+                    line_object_type.as_str(), line_object_number);
+                return Err(JsValue::from(error_message));
+            }
+        }
+        Ok(())
     }
 
 

@@ -474,6 +474,8 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
             this.state.selectedLines.clear();
             this.updateSelectedLinesField();
         });
+
+        this.shadowRoot.querySelector(".preview-button").addEventListener("click", () => this.previewSelectedLines());
     }
 
     set actionId(value) {
@@ -496,6 +498,10 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
         this.props.properties = value;
     }
 
+    set assignedProperties(value) {
+        this.props.assignedProperties = value;
+    }
+
     set addLineToClient(line) {
         this.props.lines.set(line.number, { "startPointNumber": line.startPointNumber, "endPointNumber": line.endPointNumber });
     }
@@ -510,6 +516,19 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
     set selectLineInClientForDataAssign(lineNumber) {
         this.addToSelectedLines(lineNumber);
         this.updateSelectedLinesField();
+    }
+
+    set addAssignedPropertiesToClient(assignedProperties) {
+        this.props.assignedProperties.push(assignedProperties);
+        this.props.assignedProperties.sort((a, b) => a.name - b.name);
+        this.definePropertiesNameOptions();
+    }
+
+    set updateAssignedPropertiesInClient(assignedProperties) {
+        let assignedPropertiesInProps = this.props.assignedProperties
+            .find(existedAssignedProperties => existedAssignedProperties.name == assignedProperties.name);
+        assignedPropertiesInProps.line_numbers = assignedProperties.line_numbers;
+        this.definePropertiesNameOptions();
     }
 
     connectedCallback() {
@@ -528,6 +547,7 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
                 clearInterval(id);
                 this.getLines();
                 this.getProperties();
+                this.getAssignedProperties();
                 this.definePropertiesNameOptions();
             }
         }
@@ -578,6 +598,13 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
 
     getProperties() {
         this.dispatchEvent(new CustomEvent("getProperties", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getAssignedProperties() {
+        this.dispatchEvent(new CustomEvent("getAssignedProperties", {
             bubbles: true,
             composed: true,
         }));
@@ -649,7 +676,7 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
         selectedLines = selectedLines.map((item) => parseInt(item));
         const union = new Set([...selectedLines, ...this.state.assignToLines]);
         this.state.assignToLines = union;
-        this.state.selectedLines = new Set(selectedLines);
+        this.state.selectedLines.clear();
         this.updateSelectedLinesField();
         this.updateAssignToLinesField();
     }
@@ -754,6 +781,59 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
         this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
     }
 
+    previewSelectedLines() {
+        const assignToLinesField = this.shadowRoot.querySelector(".assign-to-lines");
+        const assignToLines = assignToLinesField.value
+            .split(",")
+            .map((item) => item.replace(/\s/g,'', ""))
+            .filter((item) => item !== "");
+        for (let i = 0; i < assignToLines.length; i++) {
+            if (this.isNumeric(assignToLines[i]) === false) {
+                if (assignToLinesField.classList.contains("highlighted") === false) {
+                    assignToLinesField.classList.add("highlighted");
+                }
+                if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+                    this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
+                        "Note: Only numbers could be used as assign to lines values!";;
+                }
+                return;
+            }
+            if (this.props.lines.has(parseInt(assignToLines[i])) === false) {
+                if (assignToLinesField.classList.contains("highlighted") === false) {
+                    assignToLinesField.classList.add("highlighted");
+                }
+                if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+                    this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
+                        "Note: Only existed lines numbers could be used as assign to lines values!";;
+                }
+                return;
+            }
+            assignToLines[i] = Number.parseInt(assignToLines[i]);
+        }
+        if (assignToLines.length > 0) {
+            const message = { "preview_selected_lines_numbers": { "line_numbers": assignToLines } };
+            this.dispatchEvent(new CustomEvent("clientMessage", {
+                bubbles: true,
+                composed: true,
+                detail: {
+                    message: message,
+                },
+            }));
+        }
+    }
+
+    arraysEqual(a, b) {
+        if (a === b) return true;
+        if (a == null || b == null) return false;
+        if (a.length !== b.length) return false;
+        a.sort();
+        b.sort();     
+        for (var i = 0; i < a.length; ++i) {
+          if (a[i] !== b[i]) return false;
+        }
+        return true;
+      }
+
     assignProperties() {
         const selectedPropertiesNameField = this.shadowRoot.querySelector(".properties-name");
         if (selectedPropertiesNameField.value == "") {
@@ -796,12 +876,14 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
                 }
                 return;
             }
+            assignToLines[i] = Number.parseInt(assignToLines[i]);
         }
         const assignPropertiesData = this.props.properties.find(properties => properties.name == `"${selectedPropertiesNameField.value}"`);
         const selectedAssignedPropertiesInProps = this.props.assignedProperties
             .find(existedAssignedProperties => existedAssignedProperties.name == `"${selectedPropertiesNameField.value}"`);
         if (selectedAssignedPropertiesInProps !== undefined) {
             if (assignToLines.length === 0) {
+                this.getActionId();
                 const message = { 
                     "delete_assigned_properties": { 
                         "actionId": this.props.actionId,
@@ -816,6 +898,33 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
                     },
                 }));
             } else {
+                if (this.arraysEqual(selectedAssignedPropertiesInProps.line_numbers, assignToLines) === true) {
+                    if (assignToLinesField.classList.contains("highlighted") === false) {
+                        assignToLinesField.classList.add("highlighted");
+                    }
+                    if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+                        this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
+                            "Note: The assigned properties with the same data does already exist!";
+                    }
+                    return;
+                }
+                for (let i = 0; i < this.props.assignedProperties.length; i++) {
+                    for (let j = 0; j < assignToLines.length; j++) {
+                        const numberInArray = (number) => number === assignToLines[j];
+                        if (this.props.assignedProperties[i].line_numbers.some(numberInArray) === true) {
+                            if (assignToLinesField.classList.contains("highlighted") === false) {
+                                assignToLinesField.classList.add("highlighted");
+                            }
+                            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+                                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
+                                    `Note: At least one number from assign to lines field is already used in 
+                                    assigned properties ${this.props.assignedProperties[i].name}!`;
+                            }
+                            return;
+                        }
+                    }
+                }
+                this.getActionId();
                 const message = {
                     "update_assigned_properties": {
                         "actionId": this.props.actionId,
@@ -838,6 +947,23 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
             }
         } else {
             if (assignToLines.length > 0) {
+                for (let i = 0; i < this.props.assignedProperties.length; i++) {
+                    for (let j = 0; j < assignToLines.length; j++) {
+                        const numberInArray = (number) => number === assignToLines[j];
+                        if (this.props.assignedProperties[i].line_numbers.some(numberInArray) === true) {
+                            if (assignToLinesField.classList.contains("highlighted") === false) {
+                                assignToLinesField.classList.add("highlighted");
+                            }
+                            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+                                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
+                                    `Note: At least one number from assign to lines field is already used in 
+                                    assigned properties ${this.props.assignedProperties[i].name}!`;
+                            }
+                            return;
+                        }
+                    }
+                }
+                this.getActionId();
                 const message = { 
                     "add_assigned_properties": { 
                         "actionId": this.props.actionId,
@@ -869,7 +995,7 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
         if (this.props.properties.length > 0) {
             this.definePropertiesNameOptions();
         }
-        this.state.selectedLines = new Set();
+        this.state.selectedLines.clear();
         this.updateSelectedLinesField();
     }
 
@@ -882,7 +1008,7 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
         this.dropHighlight(selectedPropertiesNameForAssignField);
         const assignToLinesField = this.shadowRoot.querySelector(".assign-to-lines");
         this.dropHighlight(assignToLinesField);
-        this.state.selectedLines = new Set();
+        this.state.selectedLines.clear();
         this.updateSelectedLinesField();
         this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
     }

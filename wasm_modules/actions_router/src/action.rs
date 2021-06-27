@@ -121,6 +121,12 @@ pub enum PropertiesActionType
 
     // ( name, is_action_id_should_be_increased )
     RestoreProperties(String, bool),
+
+    // ( name, line_numbers, is_action_id_should_be_increased )
+    AddAssignedProperties(String, Vec<u32>, bool),
+
+    // ( name, old_line_numbers, new_line_numbers, is_action_id_should_be_increased )
+    UpdateAssignedProperties(String, Vec<u32>, Vec<u32>,  bool),
 }
 
 
@@ -130,16 +136,19 @@ pub enum ActionType
     GeometryActionType(GeometryActionType),
     PropertiesActionType(PropertiesActionType),
 
-    // ( number, show_object_info_handle )
+    // ( number, show_object_info_handler )
     ShowPointInfo(u32, js_sys::Function),
 
-    // ( number, show_object_info_handle )
+    // ( number, show_object_info_handler )
     ShowLineInfo(u32, js_sys::Function),
 
-    // ( numbers, send_selected_lines_numbers_handle )
+    // ( numbers, send_selected_lines_numbers_handler )
     ExtractLinesNumbers(JsValue, js_sys::Function),
 
-    // ( name, change_view_handle )
+    // ( numbers, preview_selected_lines_numbers_handler )
+    PreviewLinesNumbers(JsValue, js_sys::Function),
+
+    // ( name, change_view_handler )
     ChangeView(String, js_sys::Function),
 }
 

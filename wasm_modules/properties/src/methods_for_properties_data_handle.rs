@@ -20,6 +20,7 @@ impl Properties
         self.clear_deleted_materials_by_action_id(action_id);
         self.clear_deleted_truss_sections_by_action_id(action_id);
         self.clear_deleted_beam_sections_by_action_id(action_id);
+        self.clear_deleted_properties_by_action_id(action_id);
 
         if self.properties.contains_key(&name.to_owned())
         {
@@ -52,11 +53,13 @@ impl Properties
         log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
             truss sections: {:?}, deleted truss sections: {:?}, \
             beam sections: {:?}, deleted beam sections: {:?}, \
-            properties: {:?}, deleted properties: {:?}",
+            properties: {:?}, deleted properties: {:?}, \
+            assigned_properties: {:?}, changed_assigned_properties: {:?}",
             self.materials, self.deleted_materials,
             self.truss_sections, self.deleted_truss_sections,
             self.beam_sections, self.deleted_beam_sections,
-            self.properties, self.deleted_properties)
+            self.properties, self.deleted_properties,
+            self.assigned_properties, self.changed_assigned_properties)
         );
         Ok(())
     }
@@ -69,6 +72,7 @@ impl Properties
         self.clear_deleted_materials_by_action_id(action_id);
         self.clear_deleted_truss_sections_by_action_id(action_id);
         self.clear_deleted_beam_sections_by_action_id(action_id);
+        self.clear_deleted_properties_by_action_id(action_id);
 
         let converted_cross_section_type =
             CrossSectionType::create(cross_section_type)?;
@@ -95,11 +99,13 @@ impl Properties
             log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
                 truss sections: {:?}, deleted truss sections: {:?}, \
                 beam sections: {:?}, deleted beam sections: {:?}, \
-                properties: {:?}, deleted properties: {:?}",
+                properties: {:?}, deleted properties: {:?}, \
+                assigned_properties: {:?}, changed_assigned_properties: {:?}",
                 self.materials, self.deleted_materials,
                 self.truss_sections, self.deleted_truss_sections,
                 self.beam_sections, self.deleted_beam_sections,
-                self.properties, self.deleted_properties)
+                self.properties, self.deleted_properties,
+                self.assigned_properties, self.changed_assigned_properties)
             );
             Ok(())
         }
@@ -119,6 +125,7 @@ impl Properties
         self.clear_deleted_materials_by_action_id(action_id);
         self.clear_deleted_truss_sections_by_action_id(action_id);
         self.clear_deleted_beam_sections_by_action_id(action_id);
+        self.clear_deleted_properties_by_action_id(action_id);
 
         if let Some((property_name, property)) =
             self.properties.remove_entry(&name.to_owned())
@@ -133,11 +140,13 @@ impl Properties
             log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
                 truss sections: {:?}, deleted truss sections: {:?}, \
                 beam sections: {:?}, deleted beam sections: {:?}, \
-                properties: {:?}, deleted properties: {:?}",
+                properties: {:?}, deleted properties: {:?}, \
+                assigned_properties: {:?}, changed_assigned_properties: {:?}",
                 self.materials, self.deleted_materials,
                 self.truss_sections, self.deleted_truss_sections,
                 self.beam_sections, self.deleted_beam_sections,
-                self.properties, self.deleted_properties)
+                self.properties, self.deleted_properties,
+                self.assigned_properties, self.changed_assigned_properties)
             );
             Ok(())
         }
@@ -184,11 +193,13 @@ impl Properties
             log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
                 truss sections: {:?}, deleted truss sections: {:?}, \
                 beam sections: {:?}, deleted beam sections: {:?}, \
-                properties: {:?}, deleted properties: {:?}",
+                properties: {:?}, deleted properties: {:?}, \
+                assigned_properties: {:?}, changed_assigned_properties: {:?}",
                 self.materials, self.deleted_materials,
                 self.truss_sections, self.deleted_truss_sections,
                 self.beam_sections, self.deleted_beam_sections,
-                self.properties, self.deleted_properties)
+                self.properties, self.deleted_properties,
+                self.assigned_properties, self.changed_assigned_properties)
             );
             Ok(())
         }

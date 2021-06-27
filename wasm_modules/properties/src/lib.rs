@@ -16,10 +16,14 @@ use beam_section::{BeamSection, DeletedBeamSection};
 mod property;
 use property::{Property, DeletedProperty, CrossSectionType};
 
+mod assigned_property;
+use assigned_property::{AssignedProperty, ChangedAssignedProperty, DeletedAssignedProperty};
+
 mod methods_for_material_data_handle;
 mod methods_for_truss_section_data_handle;
 mod methods_for_beam_section_data_handle;
 mod methods_for_properties_data_handle;
+mod methods_for_assigned_properties_data_handle;
 
 
 const EVENT_TARGET: &str = "fea-app";
@@ -39,6 +43,9 @@ const DELETE_BEAM_SECTION_EVENT_NAME: &str = "delete_beam_section_server_message
 const ADD_PROPERTIES_EVENT_NAME: &str = "add_properties_server_message";
 const UPDATE_PROPERTIES_EVENT_NAME: &str = "update_properties_server_message";
 const DELETE_PROPERTIES_EVENT_NAME: &str = "delete_properties_server_message";
+
+const ADD_ASSIGNED_PROPERTIES_EVENT_NAME: &str = "add_assigned_properties_server_message";
+const UPDATE_ASSIGNED_PROPERTIES_EVENT_NAME: &str = "update_assigned_properties_server_message";
 
 const DELETED_LINE_NUMBERS_MESSAGE_HEADER: &str = "deleted_line_numbers";
 
@@ -70,19 +77,6 @@ fn dispatch_custom_event(detail: serde_json::Value, event_type: &str, query_sele
         .unwrap()
         .dispatch_event(&custom_event)?;
     Ok(())
-}
-
-
-struct AssignedProperty
-{
-    line_numbers: Vec<u32>,
-}
-
-
-struct ChangedAssignedProperty
-{
-    name: String,
-    line_numbers: Vec<u32>,
 }
 
 
@@ -120,6 +114,8 @@ pub struct Properties
 
     assigned_properties: HashMap<String, AssignedProperty>, // { property_name: AssignedProperties }
     changed_assigned_properties: HashMap<u32, ChangedAssignedProperty>,   // { action_id: ChangedAssignedProperties }
+    deleted_assigned_properties: HashMap<u32, ChangedAssignedProperty>,   // { action_id: ChangedAssignedProperties }
+
     beam_sections_orientations: HashMap<BeamSectionOrientationKey, BeamSectionOrientation>,
     changed_beam_sections_orientations: HashMap<u32, ChangedBeamSectionOrientation>,    // { action_id: ChangedBeamSectionOrientation }
 }
@@ -136,20 +132,20 @@ impl Properties
         let deleted_truss_sections = HashMap::new();
         let beam_sections = HashMap::new();
         let deleted_beam_sections = HashMap::new();
-
         let properties = HashMap::new();
         let deleted_properties = HashMap::new();
         let assigned_properties = HashMap::new();
         let changed_assigned_properties = HashMap::new();
+        let deleted_assigned_properties = HashMap::new();
+
         let beam_sections_orientations = HashMap::new();
         let changed_beam_sections_orientations = HashMap::new();
         Properties {
             materials, deleted_materials,
             truss_sections, deleted_truss_sections,
             beam_sections, deleted_beam_sections,
-
             properties, deleted_properties,
-            assigned_properties, changed_assigned_properties,
+            assigned_properties, changed_assigned_properties, deleted_assigned_properties,
             beam_sections_orientations, changed_beam_sections_orientations,
         }
     }
@@ -329,6 +325,21 @@ impl Properties
                     could not be composed for extraction!")))?;
         let this = JsValue::null();
         let _ = handler.call1(&this, &composed_extracted_properties);
+        Ok(())
+    }
+
+
+    pub fn extract_assigned_properties(&self, handler: js_sys::Function)
+        -> Result<(), JsValue>
+    {
+        let extracted_assigned_properties = json!(
+            { "extracted_assigned_properties": self.assigned_properties });
+        let composed_extracted_assigned_properties =
+            JsValue::from_serde(&extracted_assigned_properties)
+                .or(Err(JsValue::from("Properties: Extract assigned properties: \
+                    Assigned properties could not be composed for extraction!")))?;
+        let this = JsValue::null();
+        let _ = handler.call1(&this, &composed_extracted_assigned_properties);
         Ok(())
     }
 }

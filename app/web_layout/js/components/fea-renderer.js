@@ -109,7 +109,7 @@ class FeaRenderer extends HTMLElement {
     }
 
     set addLineToRenderer(line) {
-        this.state.renderer.add_line_object(line.number, line.startPointNumber, line.endPointNumber, LineObjectType.Line);
+        this.state.renderer.add_line_object(line.number, line.start_point_number, line.end_point_number, LineObjectType.Line);
         if (this.state.isPaused === true)
         {
             this.state.renderer.tick();
@@ -117,7 +117,7 @@ class FeaRenderer extends HTMLElement {
     }
 
     set updateLineInRenderer(line) {
-        this.state.renderer.update_line_object(line.number, line.startPointNumber, line.endPointNumber, LineObjectType.Line);
+        this.state.renderer.update_line_object(line.number, line.start_point_number, line.end_point_number, LineObjectType.Line);
         if (this.state.isPaused === true)
         {
             this.state.renderer.tick();
@@ -173,6 +173,11 @@ class FeaRenderer extends HTMLElement {
                 }
                 break;
         }
+    }
+
+    set previewSelectedLinesNumbers(selectedLinesNumbers) {
+        this.state.renderer.preview_selected_line_objects(selectedLinesNumbers, LineObjectType.Line);
+        this.state.renderer.tick();
     }
 
     async connectedCallback() {

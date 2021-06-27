@@ -1,4 +1,5 @@
 use wasm_bindgen::prelude::*;
+use serde::{Deserialize};
 use web_sys::{WebGlRenderingContext as GL};
 use std::f32::consts::PI;
 use std::collections::HashMap;
@@ -191,5 +192,21 @@ impl LineObject
             3, vec![q_11, q_12, q_13, q_21, q_22, q_23, q_31, q_32, q_33]);
         rotation_matrix.transpose();
         Ok(rotation_matrix)
+    }
+}
+
+
+#[derive(Deserialize)]
+pub struct LineObjectNumbers
+{
+    line_numbers: Vec<u32>,
+}
+
+
+impl LineObjectNumbers
+{
+    pub fn extract_line_numbers(&self) -> &[u32]
+    {
+        self.line_numbers.as_slice()
     }
 }

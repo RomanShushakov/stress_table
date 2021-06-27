@@ -176,6 +176,28 @@ export function restorePropertiesInProperties(action_id, name, is_action_id_shou
     }
 }
 
+export function addAssignedPropertiesToProperties(action_id, name, line_numbers, is_action_id_should_be_increased) 
+{
+    const assignedPropertiesData = { "action_id": action_id, "name": name, "line_numbers": line_numbers,
+        "is_action_id_should_be_increased": is_action_id_should_be_increased };
+    try {
+        communicatorWithProperties.addAssignedPropertiesToProperties = assignedPropertiesData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function updateAssignedPropertiesInProperties(action_id, name, line_numbers, is_action_id_should_be_increased) 
+{
+    const assignedPropertiesData = { "action_id": action_id, "name": name, "line_numbers": line_numbers, 
+        "is_action_id_should_be_increased": is_action_id_should_be_increased };
+    try {
+        communicatorWithProperties.updateAssignedPropertiesInProperties = assignedPropertiesData;
+    } catch (error) {
+        throw error;
+    }
+}
+
 export function deleteLineNumbersFromProperties(action_id, lineNumbers) 
 {
     const lineNumbersData = { "action_id": action_id, "lineNumbers": lineNumbers };
@@ -208,4 +230,9 @@ export function extractBeamSections(handler)
 export function extractProperties(handler) 
 {
     communicatorWithProperties.extractProperties = handler;
+}
+
+export function extractAssignedProperties(handler) 
+{
+    communicatorWithProperties.extractAssignedProperties = handler;
 }

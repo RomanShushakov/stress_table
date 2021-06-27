@@ -74,19 +74,6 @@ class FeaPreprocessorMenu extends HTMLElement {
         }
     }
 
-    // set addAssignedPropertiesToClient(assignedProperties) {
-    //     this.props.assignedProperties.push(assignedProperties);
-    //     this.props.assignedProperties.sort((a, b) => a.name - b.name);
-    //     this.addAssignedPropertiesToChildren(assignedProperties);
-    // }
-
-    // set updateAssignedPropertiesInClient(assignedProperties) {
-    //     let assignedPropertiesInProps = this.props.assignedProperties
-    //         .find(existedAssignedProperties => existedAssignedProperties.name == assignedProperties.name);
-    //     assignedPropertiesInProps.lineNumbers = assignedProperties.lineNumbers;
-    //     this.updateAssignedPropertiesInChildren(assignedProperties);
-    // }
-
     // set deleteAssignedPropertiesFromClient(assignedProperties) {
     //     let assignedPropertiesIndexInProps = this.props.assignedProperties
     //         .findIndex(existedAssignedProperties => existedAssignedProperties.name == assignedProperties.name);

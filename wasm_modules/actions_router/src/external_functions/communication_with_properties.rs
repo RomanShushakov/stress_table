@@ -82,6 +82,14 @@ extern "C"
         line_numbers: &[u32], is_action_id_should_be_increased: bool)
         -> Result<(), JsValue>;
 
+    #[wasm_bindgen(js_name = deleteAssignedPropertiesFromProperties, catch)]
+    pub fn delete_assigned_properties_from_properties(action_id: u32, name: &str,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
+
+    #[wasm_bindgen(js_name = restoreAssignedPropertiesInProperties, catch)]
+    pub fn restore_assigned_properties_in_properties(action_id: u32, name: &str,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
+
     #[wasm_bindgen(js_name = deleteLineNumbersFromProperties, catch)]
     pub fn delete_line_numbers_from_properties(action_id: u32, line_numbers: JsValue)
         -> Result<(), JsValue>;

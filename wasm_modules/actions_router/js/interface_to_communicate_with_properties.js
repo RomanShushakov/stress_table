@@ -198,6 +198,28 @@ export function updateAssignedPropertiesInProperties(action_id, name, line_numbe
     }
 }
 
+export function deleteAssignedPropertiesFromProperties(action_id, name, is_action_id_should_be_increased) 
+{
+    const assignedPropertiesData = { "action_id": action_id, "name": name, 
+        "is_action_id_should_be_increased": is_action_id_should_be_increased };
+    try {
+        communicatorWithProperties.deleteAssignedPropertiesFromProperties = assignedPropertiesData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function restoreAssignedPropertiesInProperties(action_id, name, is_action_id_should_be_increased) 
+{
+    const assignedPropertiesData = { "action_id": action_id, "name": name, 
+        "is_action_id_should_be_increased": is_action_id_should_be_increased };
+    try {
+        communicatorWithProperties.restoreAssignedPropertiesInProperties = assignedPropertiesData;
+    } catch (error) {
+        throw error;
+    }
+}
+
 export function deleteLineNumbersFromProperties(action_id, lineNumbers) 
 {
     const lineNumbersData = { "action_id": action_id, "lineNumbers": lineNumbers };

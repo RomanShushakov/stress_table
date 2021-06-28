@@ -183,6 +183,24 @@ class CommunicatorWithProperties {
         }
     }
 
+    set deleteAssignedPropertiesFromProperties(assignedPropertiesData) {
+        try {
+            this.state.properties.delete_assigned_properties(assignedPropertiesData.action_id,
+                assignedPropertiesData.name, assignedPropertiesData.is_action_id_should_be_increased);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    set restoreAssignedPropertiesInProperties(assignedPropertiesData) {
+        try {
+            this.state.properties.restore_assigned_properties(assignedPropertiesData.action_id, assignedPropertiesData.name, 
+                assignedPropertiesData.is_action_id_should_be_increased);
+        } catch (error) {
+            throw error;
+        }
+    }
+
     set deleteLineNumbersFromProperties(lineNumbersData) {
         try {
             this.state.properties.delete_line_numbers(lineNumbersData.action_id,

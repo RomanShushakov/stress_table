@@ -127,6 +127,12 @@ pub enum PropertiesActionType
 
     // ( name, old_line_numbers, new_line_numbers, is_action_id_should_be_increased )
     UpdateAssignedProperties(String, Vec<u32>, Vec<u32>,  bool),
+
+    // ( name, is_action_id_should_be_increased )
+    DeleteAssignedProperties(String, bool),
+
+    // ( name, is_action_id_should_be_increased )
+    RestoreAssignedProperties(String, bool),
 }
 
 

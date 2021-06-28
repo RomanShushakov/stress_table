@@ -46,6 +46,7 @@ const DELETE_PROPERTIES_EVENT_NAME: &str = "delete_properties_server_message";
 
 const ADD_ASSIGNED_PROPERTIES_EVENT_NAME: &str = "add_assigned_properties_server_message";
 const UPDATE_ASSIGNED_PROPERTIES_EVENT_NAME: &str = "update_assigned_properties_server_message";
+const DELETE_ASSIGNED_PROPERTIES_EVENT_NAME: &str = "delete_assigned_properties_server_message";
 
 const DELETED_LINE_NUMBERS_MESSAGE_HEADER: &str = "deleted_line_numbers";
 
@@ -113,8 +114,8 @@ pub struct Properties
     deleted_properties: HashMap<u32, Vec<DeletedProperty>>,  // { action_id: Vec<DeletedProperty> }
 
     assigned_properties: HashMap<String, AssignedProperty>, // { property_name: AssignedProperties }
-    changed_assigned_properties: HashMap<u32, ChangedAssignedProperty>,   // { action_id: ChangedAssignedProperties }
-    deleted_assigned_properties: HashMap<u32, ChangedAssignedProperty>,   // { action_id: ChangedAssignedProperties }
+    changed_assigned_properties: HashMap<u32, Vec<ChangedAssignedProperty>>,   // { action_id: Vec<ChangedAssignedProperty> }
+    deleted_assigned_properties: HashMap<u32, Vec<DeletedAssignedProperty>>,   // { action_id: Vec<DeletedAssignedProperty> }
 
     beam_sections_orientations: HashMap<BeamSectionOrientationKey, BeamSectionOrientation>,
     changed_beam_sections_orientations: HashMap<u32, ChangedBeamSectionOrientation>,    // { action_id: ChangedBeamSectionOrientation }
@@ -203,12 +204,58 @@ impl Properties
     }
 
 
+    fn clear_deleted_assigned_properties_by_action_id(&mut self, action_id: u32)
+    {
+        for action_id in self.deleted_assigned_properties.clone()
+            .keys()
+            .filter(|deletion_action_id| **deletion_action_id >= action_id)
+            .collect::<Vec<&u32>>()
+            .iter()
+        {
+            let _ = self.deleted_assigned_properties.remove(&action_id);
+        }
+    }
+
+
+    fn clear_changed_assigned_properties_by_action_id(&mut self, action_id: u32)
+    {
+        for action_id in self.changed_assigned_properties.clone()
+            .keys()
+            .filter(|deletion_action_id| **deletion_action_id >= action_id)
+            .collect::<Vec<&u32>>()
+            .iter()
+        {
+            let _ = self.changed_assigned_properties.remove(&action_id);
+        }
+    }
+
+
     pub fn clear_properties_module_by_action_id(&mut self, action_id: u32)
     {
         self.clear_deleted_materials_by_action_id(action_id);
         self.clear_deleted_truss_sections_by_action_id(action_id);
         self.clear_deleted_beam_sections_by_action_id(action_id);
         self.clear_deleted_properties_by_action_id(action_id);
+        self.clear_deleted_assigned_properties_by_action_id(action_id);
+        self.clear_changed_assigned_properties_by_action_id(action_id);
+    }
+
+
+    fn find_assigned_property_names_for_deletion_by_property_names(&self,
+        property_names_for_deletion: &Vec<String>) -> Vec<String>
+    {
+        let mut assigned_property_names_for_deletion = Vec::new();
+        for property_name in property_names_for_deletion
+        {
+            if self.assigned_properties
+                .keys()
+                .position(|assigned_property_name| assigned_property_name == property_name)
+                .is_some()
+            {
+                assigned_property_names_for_deletion.push(property_name.clone())
+            }
+        }
+        assigned_property_names_for_deletion
     }
 
 

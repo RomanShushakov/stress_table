@@ -518,6 +518,23 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
         this.updateSelectedLinesField();
     }
 
+    set addPropertiesToClient(properties) {
+        this.props.properties.push(properties);
+        this.props.properties.sort((a, b) => a.name - b.name);
+        this.definePropertiesNameOptions();
+    }
+
+    set updatePropertiesInClient(_properties) {
+    }
+
+    set deletePropertiesFromClient(properties) {
+        let propertiesIndexInProps = this.props.properties
+            .findIndex(existedProperties => existedProperties.name == properties.name);
+        this.props.properties.splice(propertiesIndexInProps, 1);
+        this.props.properties.sort((a, b) => a.name - b.name);
+        this.definePropertiesNameOptions();
+    }
+
     set addAssignedPropertiesToClient(assignedProperties) {
         this.props.assignedProperties.push(assignedProperties);
         this.props.assignedProperties.sort((a, b) => a.name - b.name);
@@ -528,6 +545,14 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
         let assignedPropertiesInProps = this.props.assignedProperties
             .find(existedAssignedProperties => existedAssignedProperties.name == assignedProperties.name);
         assignedPropertiesInProps.line_numbers = assignedProperties.line_numbers;
+        this.definePropertiesNameOptions();
+    }
+
+    set deleteAssignedPropertiesFromClient(assignedProperties) {
+        let assignedPropertiesIndexInProps = this.props.assignedProperties
+            .findIndex(existedAssignedProperties => existedAssignedProperties.name == assignedProperties.name);
+        this.props.assignedProperties.splice(assignedPropertiesIndexInProps, 1);
+        this.props.assignedProperties.sort((a, b) => a.name - b.name);
         this.definePropertiesNameOptions();
     }
 
@@ -713,7 +738,7 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
         const selectedLinesSet = new Set(selectedLines);
         let difference = new Set([...this.state.assignToLines].filter((lineNumber) => !selectedLinesSet.has(lineNumber)));
         this.state.assignToLines = difference;
-        this.state.selectedLines = selectedLinesSet;
+        this.state.selectedLines.clear();
         this.updateSelectedLinesField();
         this.updateAssignToLinesField();
     }
@@ -910,7 +935,8 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
                 }
                 for (let i = 0; i < this.props.assignedProperties.length; i++) {
                     for (let j = 0; j < assignToLines.length; j++) {
-                        const numberInArray = (number) => number === assignToLines[j];
+                        const numberInArray = (number) => number === assignToLines[j] && 
+                            this.props.assignedProperties[i].name !== `"${selectedPropertiesNameField.value}"`;
                         if (this.props.assignedProperties[i].line_numbers.some(numberInArray) === true) {
                             if (assignToLinesField.classList.contains("highlighted") === false) {
                                 assignToLinesField.classList.add("highlighted");
@@ -949,7 +975,8 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
             if (assignToLines.length > 0) {
                 for (let i = 0; i < this.props.assignedProperties.length; i++) {
                     for (let j = 0; j < assignToLines.length; j++) {
-                        const numberInArray = (number) => number === assignToLines[j];
+                        const numberInArray = (number) => number === assignToLines[j] && 
+                            this.props.assignedProperties[i].name !== `"${selectedPropertiesNameField.value}"`;
                         if (this.props.assignedProperties[i].line_numbers.some(numberInArray) === true) {
                             if (assignToLinesField.classList.contains("highlighted") === false) {
                                 assignToLinesField.classList.add("highlighted");

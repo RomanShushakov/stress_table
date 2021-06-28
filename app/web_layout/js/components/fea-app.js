@@ -152,10 +152,9 @@ class FeaApp extends HTMLElement {
         this.addEventListener("update_properties_server_message", (event) => this.handleUpdatePropertiesServerMessage(event));
         this.addEventListener("delete_properties_server_message", (event) => this.handleDeletePropertiesServerMessage(event));
 
-        this.addEventListener("add_assigned_properties_server_message", (event) => 
-            this.handleAddAssignedPropertiesServerMessage(event));
-        this.addEventListener("update_assigned_properties_server_message", 
-            (event) => this.handleUpdateAssignedPropertiesServerMessage(event));
+        this.addEventListener("add_assigned_properties_server_message", (event) => this.handleAddAssignedPropertiesServerMessage(event));
+        this.addEventListener("update_assigned_properties_server_message", (event) => this.handleUpdateAssignedPropertiesServerMessage(event));
+        this.addEventListener("delete_assigned_properties_server_message", (event) => this.handleDeleteAssignedPropertiesServerMessage(event));
 
         this.addEventListener("decreaseActionId", (_event) => this.handleDecreaseActionIdMessage());
 
@@ -742,6 +741,20 @@ class FeaApp extends HTMLElement {
             if (this.querySelector(this.state.assignedPropertiesDataDependentMenus[i]) !== null) {
                 this.querySelector(this.state.assignedPropertiesDataDependentMenus[i])
                     .updateAssignedPropertiesInClient = assignedProperties;
+            }
+        } 
+        event.stopPropagation();
+    }
+
+    handleDeleteAssignedPropertiesServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;           
+        }
+        const assignedProperties = { name: event.detail.assigned_properties_data.name };
+        for (let i = 0; i < this.state.assignedPropertiesDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.assignedPropertiesDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.assignedPropertiesDataDependentMenus[i])
+                    .deleteAssignedPropertiesFromClient = assignedProperties;
             }
         } 
         event.stopPropagation();

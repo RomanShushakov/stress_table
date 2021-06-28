@@ -1,7 +1,7 @@
 use serde::Serialize;
 
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct AssignedProperty
 {
     line_numbers: Vec<u32>,
@@ -36,10 +36,15 @@ impl AssignedProperty
         }
         false
     }
+
+    pub fn extract_data(&self) -> &[u32]
+    {
+        self.line_numbers.as_slice()
+    }
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ChangedAssignedProperty
 {
     name: String,
@@ -47,9 +52,25 @@ pub struct ChangedAssignedProperty
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct DeletedAssignedProperty
 {
     name: String,
-    line_numbers: Vec<u32>,
+    assigned_property: AssignedProperty,
+}
+
+
+impl DeletedAssignedProperty
+{
+    pub fn create(name: &str, assigned_property: AssignedProperty) -> Self
+    {
+        DeletedAssignedProperty { name: String::from(name), assigned_property }
+    }
+
+
+    pub fn extract_name_and_data(&self) -> (&str, &[u32])
+    {
+        let line_numbers = self.assigned_property.extract_data();
+        (&self.name, line_numbers)
+    }
 }

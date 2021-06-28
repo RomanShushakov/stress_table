@@ -4,6 +4,7 @@ use web_sys::{WebGlProgram, WebGlRenderingContext as GL, CanvasRenderingContext2
 use vec4;
 use std::collections::{HashMap, HashSet};
 use std::convert::TryInto;
+use rand;
 
 use crate::line_object::{LineObject, LineObjectKey};
 
@@ -182,13 +183,13 @@ pub fn normalize_point_objects_coordinates(point_objects: &mut HashMap<PointObje
         {
             let uid =
             {
-                let mut current_uid = 1;
+                let mut current_uid = rand::random::<u32>();
                 while point_objects_for_uid.values().position(|point_object|
                         point_object.uid_same(current_uid)).is_some() ||
                     line_objects.values().position(|line_object|
                         line_object.uid_same(current_uid)).is_some() || current_uid == 255
                 {
-                    current_uid += 1;
+                    current_uid = rand::random::<u32>();
                 }
                 current_uid
             };

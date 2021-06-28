@@ -505,4 +505,23 @@ impl ActionsRouter
         self.current_action = Some((action, add_to_active_actions));
         Ok(())
     }
+
+
+    pub(super) fn handle_delete_assigned_properties_message(&mut self,
+        assigned_properties_data: &Value) -> Result<(), JsValue>
+    {
+        let action_id = assigned_properties_data["actionId"].to_string()
+            .parse::<u32>()
+            .or(Err(JsValue::from("Actions router: Delete assigned properties action: \
+                Action id could not be converted to u32!")))?;
+        self.undo_actions.clear();
+        let name = assigned_properties_data["name"].to_string();
+        let is_action_id_should_be_increased = true;
+        let action_type = ActionType::PropertiesActionType(
+            PropertiesActionType::DeleteAssignedProperties(name, is_action_id_should_be_increased));
+        let action = Action::create(action_id, action_type);
+        let add_to_active_actions = true;
+        self.current_action = Some((action, add_to_active_actions));
+        Ok(())
+    }
 }

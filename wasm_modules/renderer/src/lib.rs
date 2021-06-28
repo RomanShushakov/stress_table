@@ -8,6 +8,7 @@ use mat4;
 use serde_json::json;
 use std::collections::{HashMap, HashSet};
 use std::convert::TryFrom;
+use rand;
 
 mod line_object;
 use line_object::{LineObject, LineObjectKey, LineObjectNumbers};
@@ -230,13 +231,13 @@ impl Renderer
         }
         let uid =
             {
-                let mut current_uid = u32::MAX / 4;
+                let mut current_uid = rand::random::<u32>();
                 while self.props.point_objects.values().position(|point_object|
                         point_object.uid_same(current_uid)).is_some() ||
                     self.state.line_objects.values().position(|line_object|
                         line_object.uid_same(current_uid)).is_some() || current_uid == 255
                 {
-                    current_uid += 1;
+                    current_uid = rand::random::<u32>();
                 }
                 current_uid
             };

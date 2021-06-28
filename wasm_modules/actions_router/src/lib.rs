@@ -29,6 +29,7 @@ use external_functions::communication_with_properties::
     add_properties_to_properties, update_properties_in_properties,
     delete_properties_from_properties, restore_properties_in_properties,
     add_assigned_properties_to_properties, update_assigned_properties_in_properties,
+    delete_assigned_properties_from_properties, restore_assigned_properties_in_properties,
     clear_properties_module_by_action_id, delete_line_numbers_from_properties,
     extract_materials, extract_truss_sections, extract_beam_sections,
     extract_properties, extract_assigned_properties,
@@ -454,8 +455,51 @@ impl ActionsRouter
                                     self.current_action = Some((action, add_to_active_actions));
                                 },
                             PropertiesActionType::RestoreProperties(_, _) => (),
-                            PropertiesActionType::AddAssignedProperties(_, _, _) => (),
-                            PropertiesActionType::UpdateAssignedProperties(_, _, _, _) => (),
+                            PropertiesActionType::AddAssignedProperties(
+                                assigned_properties_name,
+                                _line_numbers,
+                                _is_action_id_should_be_increased) =>
+                                {
+                                    let is_action_id_should_be_increased = false;
+                                    let action_type = ActionType::PropertiesActionType(
+                                        PropertiesActionType::DeleteAssignedProperties(
+                                            assigned_properties_name.clone(),
+                                            is_action_id_should_be_increased));
+                                    let action = Action::create(action_id, action_type);
+                                    let add_to_active_actions = false;
+                                    self.current_action = Some((action, add_to_active_actions));
+                                },
+                            PropertiesActionType::UpdateAssignedProperties(
+                                assigned_properties_name,
+                                old_line_numbers,
+                                new_line_numbers,
+                                _is_action_id_should_be_increased) =>
+                                {
+                                    let is_action_id_should_be_increased = false;
+                                    let action_type = ActionType::PropertiesActionType(
+                                        PropertiesActionType::UpdateAssignedProperties(
+                                            assigned_properties_name.clone(),
+                                            new_line_numbers.clone(),
+                                            old_line_numbers.clone(),
+                                            is_action_id_should_be_increased));
+                                    let action = Action::create(action_id, action_type);
+                                    let add_to_active_actions = false;
+                                    self.current_action = Some((action, add_to_active_actions));
+                                },
+                            PropertiesActionType::DeleteAssignedProperties(
+                                assigned_properties_name,
+                                _is_action_id_should_be_increased) =>
+                                {
+                                    let is_action_id_should_be_increased = false;
+                                    let action_type = ActionType::PropertiesActionType(
+                                        PropertiesActionType::RestoreAssignedProperties(
+                                            assigned_properties_name.clone(),
+                                            is_action_id_should_be_increased));
+                                    let action = Action::create(action_id, action_type);
+                                    let add_to_active_actions = false;
+                                    self.current_action = Some((action, add_to_active_actions));
+                                },
+                            PropertiesActionType::RestoreAssignedProperties(_, _) => (),
                         }
                     }
             }
@@ -1028,6 +1072,31 @@ impl ActionsRouter
                                         self.active_actions.push(action.clone());
                                     }
                                 },
+                            PropertiesActionType::DeleteAssignedProperties(
+                                properties_name,
+                                is_action_id_should_be_increased) =>
+                                {
+                                    clear_geometry_module_by_action_id(action_id);
+                                    delete_assigned_properties_from_properties(action_id,
+                                        properties_name,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions == true
+                                    {
+                                        self.active_actions.push(action.clone());
+                                    }
+                                },
+                            PropertiesActionType::RestoreAssignedProperties(
+                                assigned_properties_name,
+                                is_action_id_should_be_increased) =>
+                                {
+                                    restore_assigned_properties_in_properties(action_id,
+                                        assigned_properties_name,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions == true
+                                    {
+                                        self.active_actions.push(action.clone());
+                                    }
+                                },
                         }
                     }
             }
@@ -1142,6 +1211,11 @@ impl ActionsRouter
             .get(UPDATE_ASSIGNED_PROPERTIES_MESSAGE_HEADER)
         {
             self.handle_update_assigned_properties_message(&assigned_properties_data)?;
+        }
+        else if let Some(assigned_properties_data) = serialized_message
+            .get(DELETE_ASSIGNED_PROPERTIES_MESSAGE_HEADER)
+        {
+            self.handle_delete_assigned_properties_message(&assigned_properties_data)?;
         }
         else if let Some(undo_data) = serialized_message.get(UNDO_MESSAGE_HEADER)
         {

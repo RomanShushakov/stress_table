@@ -5,7 +5,7 @@ class CommunicatorWithGeometry {
         this.state = {
             geometry: null,         // wasm module "actions_router";
             objectInfo: null,       // String;
-            deletedLineNumbers: [], // array of: [u32...];
+            lineNumbers: [], // array of: [u32...];
         };
 
         this.initGeometry();
@@ -42,7 +42,7 @@ class CommunicatorWithGeometry {
         try {
             const deletedLineNumbers = this.state.geometry.delete_point(pointData.action_id,
                 pointData.number, pointData.is_action_id_should_be_increased);
-            this.deletedLineNumbers = deletedLineNumbers;
+            this.state.lineNumbers = deletedLineNumbers;
         } catch (error) {
             throw error;
         }
@@ -50,7 +50,9 @@ class CommunicatorWithGeometry {
 
     set restorePointInGeometry(pointData) {
         try {
-            this.state.geometry.restore_point(pointData.action_id, pointData.number, pointData.is_action_id_should_be_increased);
+            const restoredLineNumbers = this.state.geometry.restore_point(pointData.action_id,
+                pointData.number, pointData.is_action_id_should_be_increased);
+            this.state.lineNumbers = restoredLineNumbers;
         } catch (error) {
             throw error;
         }
@@ -76,7 +78,9 @@ class CommunicatorWithGeometry {
 
     set deleteLineFromGeometry(lineData) {
         try {
-            this.state.geometry.delete_line(lineData.action_id, lineData.number, lineData.is_action_id_should_be_increased);
+            const deletedLineNumbers = this.state.geometry.delete_line(lineData.action_id,
+                lineData.number, lineData.is_action_id_should_be_increased);
+            this.state.lineNumbers = deletedLineNumbers;
         } catch (error) {
             throw error;
         }
@@ -84,7 +88,9 @@ class CommunicatorWithGeometry {
 
     set restoreLineInGeometry(lineData) {
         try {
-            this.state.geometry.restore_line(lineData.action_id, lineData.number, lineData.is_action_id_should_be_increased);
+            const restoredLineNumbers = this.state.geometry.restore_line(lineData.action_id,
+                lineData.number, lineData.is_action_id_should_be_increased);
+            this.state.lineNumbers = restoredLineNumbers;
         } catch (error) {
             throw error;
         }
@@ -112,6 +118,12 @@ class CommunicatorWithGeometry {
         const objectInfo = this.state.objectInfo;
         this.state.objectInfo = null;
         return objectInfo;
+    }
+
+    get lineNumbers() {
+        const lineNumbers = this.state.lineNumbers;
+        this.state.lineNumbers = [];
+        return lineNumbers;
     }
 
     set clearGeometryModuleByActionId(action_id) {

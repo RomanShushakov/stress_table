@@ -230,6 +230,16 @@ export function deleteLineNumbersFromProperties(action_id, lineNumbers)
     }
 }
 
+export function restoreLineNumbersInProperties(action_id, lineNumbers) 
+{
+    const lineNumbersData = { "action_id": action_id, "lineNumbers": lineNumbers };
+    try {
+        communicatorWithProperties.restoreLineNumbersInProperties = lineNumbersData;
+    } catch (error) {
+        throw error;
+    }
+}
+
 export function clearPropertiesModuleByActionId(action_id) {
     communicatorWithProperties.clearPropertiesModuleByActionId = action_id;
 }

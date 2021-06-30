@@ -27,7 +27,7 @@ export function deletePointFromGeometry(action_id, number, is_action_id_should_b
     const pointData = { "action_id": action_id, "number": number, "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
         communicatorWithGeometry.deletePointFromGeometry = pointData;
-        const deletedLineNumbers = communicatorWithGeometry.deletedLineNumbers;
+        const deletedLineNumbers = communicatorWithGeometry.lineNumbers;
         return deletedLineNumbers;
     } catch (error) {
         throw error;
@@ -39,6 +39,8 @@ export function restorePointInGeometry(action_id, number, is_action_id_should_be
     const pointData = { "action_id": action_id, "number": number, "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
         communicatorWithGeometry.restorePointInGeometry = pointData;
+        const restoredLineNumbers = communicatorWithGeometry.lineNumbers;
+        return restoredLineNumbers;
     } catch (error) {
         throw error;
     }
@@ -75,6 +77,8 @@ export function deleteLineFromGeometry(action_id, number, is_action_id_should_be
     const lineData = { "action_id": action_id, "number": number, "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
         communicatorWithGeometry.deleteLineFromGeometry = lineData;
+        const deletedLineNumbers = communicatorWithGeometry.lineNumbers;
+        return deletedLineNumbers;
     } catch (error) {
         throw error;
     }
@@ -85,6 +89,8 @@ export function restoreLineInGeometry(action_id, number, is_action_id_should_be_
     const lineData = { "action_id": action_id, "number": number, "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
         communicatorWithGeometry.restoreLineInGeometry = lineData;
+        const restoredLineNumbers = communicatorWithGeometry.lineNumbers;
+        return restoredLineNumbers;
     } catch (error) {
         throw error;
     }

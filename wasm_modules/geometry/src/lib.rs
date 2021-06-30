@@ -24,6 +24,9 @@ const UPDATE_LINE_EVENT_NAME: &str = "update_line_server_message";
 const DELETE_LINE_EVENT_NAME: &str = "delete_line_server_message";
 
 pub const DELETED_LINE_NUMBERS_MESSAGE_HEADER: &str = "deleted_line_numbers";
+pub const RESTORED_LINE_NUMBERS_MESSAGE_HEADER: &str = "restored_line_numbers";
+
+
 
 #[wasm_bindgen]
 extern "C"

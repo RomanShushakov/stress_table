@@ -6,7 +6,8 @@ use crate::{log, dispatch_custom_event};
 use crate::
 {
     EVENT_TARGET, ADD_POINT_EVENT_NAME, UPDATE_POINT_EVENT_NAME, DELETE_POINT_EVENT_NAME,
-    ADD_LINE_EVENT_NAME, DELETE_LINE_EVENT_NAME, DELETED_LINE_NUMBERS_MESSAGE_HEADER
+    ADD_LINE_EVENT_NAME, DELETE_LINE_EVENT_NAME, DELETED_LINE_NUMBERS_MESSAGE_HEADER,
+    RESTORED_LINE_NUMBERS_MESSAGE_HEADER,
 };
 
 
@@ -126,7 +127,7 @@ impl Geometry
                 json!({ DELETED_LINE_NUMBERS_MESSAGE_HEADER: deleted_line_numbers });
             let converted_line_numbers = JsValue::from_serde(&composed_deleted_line_numbers)
                 .or(Err(JsValue::from("Geometry: Delete point info: Deleted line numbers \
-                    composed!")))?;
+                    could not be composed!")))?;
             log(&format!("Geometry: Points: {:?}, Deleted points: {:?}, Lines: {:?}, \
                 Deleted lines {:?}", self.points, self.deleted_points, self.lines,
                 self.deleted_lines));
@@ -142,7 +143,7 @@ impl Geometry
 
 
     pub fn restore_point(&mut self, action_id: u32, number: u32,
-        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+        is_action_id_should_be_increased: bool) -> Result<JsValue, JsValue>
     {
         if let Some(deleted_point) = self.deleted_points.remove(&action_id)
         {
@@ -160,6 +161,7 @@ impl Geometry
             dispatch_custom_event(detail, ADD_POINT_EVENT_NAME, EVENT_TARGET)?;
             self.points.insert(deleted_point_number, Point::create(x, y, z));
 
+            let mut restored_line_numbers = Vec::new();
             if let Some(deleted_lines) = self.deleted_lines.remove(&action_id)
             {
                 for deleted_line in &deleted_lines
@@ -173,12 +175,18 @@ impl Geometry
                     dispatch_custom_event(detail, ADD_LINE_EVENT_NAME, EVENT_TARGET)?;
                     self.lines.insert(deleted_line.extract_number(),
                         Line::create(start_point_number, end_point_number));
+                    restored_line_numbers.push(number);
                 }
             }
+            let composed_restored_line_numbers =
+                json!({ RESTORED_LINE_NUMBERS_MESSAGE_HEADER: restored_line_numbers });
+            let converted_line_numbers = JsValue::from_serde(&composed_restored_line_numbers)
+                .or(Err(JsValue::from("Geometry: Restore point info: Restored line numbers \
+                    could not be composed!")))?;
             log(&format!("Geometry: Points: {:?}, Deleted points: {:?}, Lines: {:?}, \
                 Deleted lines {:?}", self.points, self.deleted_points, self.lines,
                 self.deleted_lines));
-            Ok(())
+            Ok(converted_line_numbers)
         }
         else
         {

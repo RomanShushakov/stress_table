@@ -210,6 +210,15 @@ class CommunicatorWithProperties {
         }
     }
 
+    set restoreLineNumbersInProperties(lineNumbersData) {
+        try {
+            this.state.properties.restore_line_numbers(lineNumbersData.action_id,
+                lineNumbersData.lineNumbers);
+        } catch (error) {
+            throw error;
+        }
+    }
+
     set clearPropertiesModuleByActionId(action_id) {
         this.state.properties.clear_properties_module_by_action_id(action_id);
     }

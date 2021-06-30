@@ -49,6 +49,8 @@ const UPDATE_ASSIGNED_PROPERTIES_EVENT_NAME: &str = "update_assigned_properties_
 const DELETE_ASSIGNED_PROPERTIES_EVENT_NAME: &str = "delete_assigned_properties_server_message";
 
 const DELETED_LINE_NUMBERS_MESSAGE_HEADER: &str = "deleted_line_numbers";
+const RESTORED_LINE_NUMBERS_MESSAGE_HEADER: &str = "restored_line_numbers";
+
 
 #[wasm_bindgen]
 extern "C"
@@ -289,31 +291,39 @@ impl Properties
             }
         }
         Ok(())
-        // let cross_section_type = CrossSectionType::Beam;
-        // let cross_section_key = CrossSectionKey::create(
-        //     name, cross_section_type);
-        // if let Some((cross_section_key, cross_section)) =
-        //     self.cross_sections.remove_entry(&cross_section_key)
-        // {
-        //     let deleted_cross_section = DeletedCrossSection::create(
-        //         cross_section_key, cross_section);
-        //     let detail = json!({ "beam_section_data": { "name": name },
-        //         "is_action_id_should_be_increased": is_action_id_should_be_increased });
-        //     self.deleted_cross_sections.insert(action_id, deleted_cross_section);
-        //     dispatch_custom_event(detail, DELETE_BEAM_SECTION_EVENT_NAME,
-        //         EVENT_TARGET)?;
-        //     log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
-        //         cross sections: {:?}, deleted cross sections: {:?}",
-        //         self.materials, self.deleted_materials,
-        //         self.cross_sections, self.deleted_cross_sections));
-        //     Ok(())
-        // }
-        // else
-        // {
-        //     let error_message = &format!("Properties: Delete beam section action: \
-        //         Beam section with name {} does not exist!", name);
-        //     return Err(JsValue::from(error_message));
-        // }
+    }
+
+
+    pub fn restore_line_numbers(&mut self, action_id: u32, line_numbers: JsValue)
+        -> Result<(), JsValue>
+    {
+        self.clear_deleted_materials_by_action_id(action_id);
+        self.clear_deleted_truss_sections_by_action_id(action_id);
+        self.clear_deleted_beam_sections_by_action_id(action_id);
+
+        let serialized_restored_line_numbers: Value = line_numbers
+            .into_serde()
+            .or(Err(JsValue::from(
+            "Properties: Restored line numbers could not be serialized!")))?;
+        if let Some(restored_line_numbers) = serialized_restored_line_numbers
+            .get(RESTORED_LINE_NUMBERS_MESSAGE_HEADER)
+        {
+            if let Some(line_numbers) = restored_line_numbers.as_array()
+            {
+                if !line_numbers.is_empty()
+                {
+                    for line_number in line_numbers
+                    {
+                        let parsed_line_number = line_number.to_string()
+                            .parse::<u32>()
+                            .or(Err(JsValue::from("Properties: Restored line number: \
+                                could not be converted to u32!")))?;
+                        log(&format!("restored line number in properties: {:?}", parsed_line_number));
+                    }
+                }
+            }
+        }
+        Ok(())
     }
 
 

@@ -94,6 +94,10 @@ extern "C"
     pub fn delete_line_numbers_from_properties(action_id: u32, line_numbers: JsValue)
         -> Result<(), JsValue>;
 
+    #[wasm_bindgen(js_name = restoreLineNumbersInProperties, catch)]
+    pub fn restore_line_numbers_in_properties(action_id: u32, line_numbers: JsValue)
+        -> Result<(), JsValue>;
+
     #[wasm_bindgen(js_name = clearPropertiesModuleByActionId)]
     pub fn clear_properties_module_by_action_id(action_id: u32);
 

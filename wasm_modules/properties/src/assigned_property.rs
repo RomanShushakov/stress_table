@@ -7,6 +7,7 @@ pub struct AssignedProperty
     line_numbers: Vec<u32>,
 }
 
+
 impl AssignedProperty
 {
     pub fn create(line_numbers: &[u32]) -> Self

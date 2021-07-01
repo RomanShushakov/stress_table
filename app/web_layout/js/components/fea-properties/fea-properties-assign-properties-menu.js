@@ -503,7 +503,7 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
     }
 
     set addLineToClient(line) {
-        this.props.lines.set(line.number, { "startPointNumber": line.startPointNumber, "endPointNumber": line.endPointNumber });
+        this.props.lines.set(line.number, { "start_point_number": line.start_point_number, "end_point_number": line.end_point_number });
     }
 
     set updateLineInClient(_line) {

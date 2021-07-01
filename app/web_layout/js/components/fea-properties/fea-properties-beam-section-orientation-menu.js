@@ -4,9 +4,16 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
 
         this.props = {
             actionId: null,                 // u32;
-            assignedProperties: [],         // array of: [{ name: String, lineNumbers: [u32...] }];
-            beamSectionsOrientations: [],   // array of: [{ propertiesName: String, localAxis1Direction: [f64; 3],
-                                            //              lineNumbers: [u32...] }];
+            isGeometryLoaded: false,        // load status of wasm module "geometry";
+            isPropertiesLoaded: false,      // load status of wasm module "properties";
+            lines: new Map(),               // map: { number: u32, start_point_number: u32, end_point_number: u32 }, ...};
+            properties: [],                 // array of: [{ name: String, material_name: String, cross_section_name: String,
+                                            //              cross_section_type: String }];
+            assignedProperties: [],         // array of: [{ name: String, line_numbers: [u32...] }];
+            beamSectionsOrientations: [
+                { local_axis_1_direction: [1.5, 0.0, 0.0], line_numbers: [1, 2, 3] },
+                // { local_axis_1_direction: [2.5, 0.0, 0.0], line_numbers: [4, 5, 6] }
+            ],   // array of: [{ local_axis_1_direction: [f64; 3], line_numbers: [u32...] }];    
         };
 
         this.state = {
@@ -31,24 +38,119 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
                     align-items: center;
                 }
 
-                .properties-name-field-content {
+                .local-axis-1-direction-input-field-content {
+                    display: flex;
+                    flex-direction: column;
+                    background-color: #3b4453;
+                    padding: 0rem;
+                    margin-top: 0rem;
+                    margin-bottom: 0rem;
+                    margin-left: 0rem;
+                    margin-right: 0rem;
+                }
+
+                .local-axis-1-direction-input-caption-content {
                     display: flex;
                     flex-direction: row;
                     background-color: #3b4453;
                     padding: 0rem;
-                    margin: 0rem;
+                    margin-top: 0rem;
+                    margin-bottom: 0rem;
+                    margin-left: 0rem;
+                    margin-right: 0rem;
                     align-items: center;
                 }
 
-                .properties-name-caption {
+                .local-axis-1-direction-input-caption {
                     margin: 0rem;
                     padding: 0rem;
                     color: #D9D9D9;
                     font-size: 85%;
-                    width: 6rem;
+                    width: 12rem;
                 }
 
-                .properties-name-select-filter-content {
+                .local-axis-1-direction-input {
+                    margin-top: 0.5rem;
+                    margin-bottom: 0rem;
+                    margin-left: 0rem;
+                    margin-right: 0rem;
+                    padding-left: 0.3rem;
+                    width: 11rem;
+                    background-color: #3b4453;
+                    border: 0.1rem solid #4a5060;
+                    outline: none;
+                    color: #D9D9D9;
+                }
+
+                .local-axis-1-direction-input:hover {
+                    box-shadow: 0rem 0.15rem 0rem #4a5060;
+                }
+
+                .local-axis-1-direction-input:focus {
+                    box-shadow: 0rem 0.15rem 0rem #4a5060;
+                }
+
+                .local-axis-1-direction-input-buttons {
+                    margin-top: 0.3rem;
+                    margin-bottom: 0rem;
+                    margin-left: 0rem;
+                    margin-right: 0rem;
+                    padding: 0rem;
+                }
+
+                .add-inputted-button {
+                    background: #0996d7;
+                    border: 0.2rem solid #3b4453;
+                    border-radius: 0.3rem;
+                    color: #D9D9D9;
+                    padding: 0rem;
+                    margin: 0rem;
+                    width: 5rem;
+                    height: 1.5rem;
+                    font-size: 70%;
+                }
+
+                .add-inputted-button:hover {
+                    border: 0.2rem solid #4a5060;
+                }
+
+                .remove-inputted-button {
+                    background: #0996d7;
+                    border: 0.2rem solid #3b4453;
+                    border-radius: 0.3rem;
+                    color: #D9D9D9;
+                    padding: 0rem;
+                    margin: 0rem;
+                    width: 6.5rem;
+                    height: 1.5rem;
+                    font-size: 70%;
+                }
+
+                .remove-inputted-button:hover {
+                    border: 0.2rem solid #4a5060;
+                }
+
+                .local-axis-1-direction-field-content {
+                    display: flex;
+                    flex-direction: row;
+                    background-color: #3b4453;
+                    padding: 0rem;
+                    margin-top: 1rem;
+                    margin-bottom: 0rem;
+                    margin-left: 0rem;
+                    margin-right: 0rem;
+                    align-items: center;
+                }
+
+                .local-axis-1-direction-caption {
+                    margin: 0rem;
+                    padding: 0rem;
+                    color: #D9D9D9;
+                    font-size: 85%;
+                    width: 4rem;
+                }
+
+                .local-axis-1-direction-select-filter-content {
                     margin-top: 0rem;
                     margin-bottom: 0rem;
                     margin-left: 1rem;
@@ -58,11 +160,11 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
                     flex-direction: column;
                 }
 
-                .properties-name-filter-label {
+                .local-axis-1-direction-filter-label {
                     position: relative;
                 }
                   
-                .properties-name-filter-label:before {
+                .local-axis-1-direction-filter-label:before {
                     content: "";
                     position: absolute;
                     left: 0rem;
@@ -72,13 +174,13 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
                     background: url('data:image/svg+xml,<svg width="19" height="17" viewBox="0 0 19 17" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.1182 13.15L7.48598 16L7.48598 6.25L2 0.999999L17 1L12.1182 6.25L12.1182 13.15Z" fill="rgb(112, 112, 114)" stroke="rgb(112, 112, 114)"/></svg>') center / contain no-repeat;
                 }
 
-                .properties-name-filter {
+                .local-axis-1-direction-filter {
                     margin-top: 0rem;
                     margin-bottom: 0rem;
                     margin-left: 0rem;
                     margin-right: 0rem;
                     padding-left: 1.3rem;
-                    width: 3.5rem;
+                    width: 5.5rem;
                     background-color: #3b4453;
                     border: #4a5060;
                     border-bottom: 0.1rem solid #4a5060;
@@ -86,20 +188,20 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
                     color: #D9D9D9;
                 }
 
-                .properties-name-filter::placeholder {
+                .local-axis-1-direction-filter::placeholder {
                     font-size: 85%;
                 }
 
-                .properties-name-filter:hover {
+                .local-axis-1-direction-filter:hover {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
-                .properties-name-filter:focus {
+                .local-axis-1-direction-filter:focus {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
-                .properties-name {
-                    width: 5rem;
+                .local-axis-1-direction {
+                    width: 7rem;
                     margin-top: 0.5rem;
                     background-color: #3b4453;
                     border: #4a5060;
@@ -111,11 +213,11 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
                     background: url('data:image/svg+xml,<svg width="4" height="4" viewBox="0 0 4 4" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1L2 2L3 1" stroke="rgb(112, 112, 114)" stroke-width="0.5"/></svg>') right / contain no-repeat;
                 }
 
-                .properties-name option {
+                .local-axis-1-direction option {
                     background-color: #484f60;
                 }
 
-                .properties-name:hover {
+                .local-axis-1-direction:hover {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
@@ -388,13 +490,25 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
 
             <div class=wrapper>
 
-                <div class="properties-name-field-content">
-                    <p class="properties-name-caption">Properties name</p>
-                    <div class="properties-name-select-filter-content">
-                        <label class="properties-name-filter-label">
-                            <input class="properties-name-filter" type="text" placeholder="Filter..."/>
+                <div class="local-axis-1-direction-input-field-content">
+                    <div class="local-axis-1-direction-input-caption-content">
+                        <p class="local-axis-1-direction-input-caption">Input local axis 1 direction:</p>
+                    </div>
+                    <input class="local-axis-1-direction-input" type="text" placeholder="ex 1.0, 0.0, 0.0"/>
+                </div>
+
+                <div class="local-axis-1-direction-input-buttons">
+                    <button class="add-inputted-button">Add inputted</button>
+                    <button class="remove-inputted-button">Remove inputted</button>
+                </div>
+
+                <div class="local-axis-1-direction-field-content">
+                    <p class="local-axis-1-direction-caption">Local axis 1 direction</p>
+                    <div class="local-axis-1-direction-select-filter-content">
+                        <label class="local-axis-1-direction-filter-label">
+                            <input class="local-axis-1-direction-filter" type="text" placeholder="Filter..."/>
                         </label>
-                        <select class="properties-name"></select>
+                        <select class="local-axis-1-direction"></select>
                     </div>
                 </div>
 
@@ -438,10 +552,13 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
 
         this.shadowRoot.querySelector(".cancel-button").addEventListener("click", () => this.cancelPropertiesAssign());
 
-        this.shadowRoot.querySelector(".properties-name-filter").addEventListener("keyup", () => {
+        this.shadowRoot.querySelector(".local-axis-1-direction").addEventListener("change",
+            (event) => this.updateSelectedBeamSectionOrientationData(event.target.value));
+
+        this.shadowRoot.querySelector(".local-axis-1-direction-filter").addEventListener("keyup", () => {
             this.filter(
-                this.shadowRoot.querySelector(".properties-name-filter").value,
-                this.shadowRoot.querySelector(".properties-name"));
+                this.shadowRoot.querySelector(".local-axis-1-direction-filter").value,
+                this.shadowRoot.querySelector(".local-axis-1-direction"));
         });
 
         this.shadowRoot.querySelector(".selected-lines").addEventListener("click", () => {
@@ -460,7 +577,7 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
 
         this.shadowRoot.querySelector(".clear-button").addEventListener("click", () => {
             this.state.selectedLines.clear();
-            this.updateSelecedLinesField();
+            this.updateSelectedLinesField();
         });
     }
 
@@ -468,8 +585,28 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
         this.props.actionId = value;
     }
 
+    set isGeometryLoaded(value) {
+        this.props.isGeometryLoaded = value;
+    }
+
+    set isPropertiesLoaded(value) {
+        this.props.isPropertiesLoaded = value;
+    }
+
+    set lines(value) {
+        this.props.lines = value;
+    }
+
+    set properties(value) {
+        this.props.properties = value;
+    }
+
+    set assignedProperties(value) {
+        this.props.assignedProperties = value;
+    }
+
     set addLineToClient(line) {
-        this.props.lines.set(line.number, { "startPointNumber": line.startPointNumber, "endPointNumber": line.endPointNumber });
+        this.props.lines.set(line.number, { "start_point_number": line.start_point_number, "end_point_number": line.end_point_number });
     }
 
     set updateLineInClient(_line) {
@@ -481,7 +618,7 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
 
     set selectLineInClientForDataAssign(lineNumber) {
         this.addToSelectedLines(lineNumber);
-        this.updateSelecedLinesField();
+        this.updateSelectedLinesField();
     }
 
     connectedCallback() {
@@ -492,11 +629,23 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
                 this[propName] = value;
             }
         });
-        document.querySelector("fea-app").dispatchEvent(new CustomEvent("enableLinesMultipleSelectionMode"));
+        document.querySelector("fea-app").dispatchEvent(new CustomEvent("enableLinesSelectionMode"));
+        const frame = () => {
+            this.getGeometryLoadStatus();
+            this.getPropertiesLoadStatus();
+            if (this.props.isGeometryLoaded === true && this.props.isPropertiesLoaded) {
+                clearInterval(id);
+                this.getLines();
+                this.getProperties();
+                this.getAssignedProperties();
+                this.defineLocalAxis1DirectionOptions();
+            }
+        }
+        const id = setInterval(frame, 10);
     }
 
     disconnectedCallback() {
-        document.querySelector("fea-app").dispatchEvent(new CustomEvent("disableLinesMultipleSelectionMode"));
+        document.querySelector("fea-app").dispatchEvent(new CustomEvent("disableLinesSelectionMode"));
     }
 
     static get observedAttributes() {
@@ -507,6 +656,48 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
     }
 
     adoptedCallback() {
+    }
+
+    getActionId() {
+        this.dispatchEvent(new CustomEvent("getActionId", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getGeometryLoadStatus() {
+        this.dispatchEvent(new CustomEvent("getGeometryLoadStatus", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getPropertiesLoadStatus() {
+        this.dispatchEvent(new CustomEvent("getPropertiesLoadStatus", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getLines() {
+        this.dispatchEvent(new CustomEvent("getLines", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getProperties() {
+        this.dispatchEvent(new CustomEvent("getProperties", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    getAssignedProperties() {
+        this.dispatchEvent(new CustomEvent("getAssignedProperties", {
+            bubbles: true,
+            composed: true,
+        }));
     }
 
     addToSelectedLines(lineNumber) {
@@ -575,8 +766,8 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
         selectedLines = selectedLines.map((item) => parseInt(item));
         const union = new Set([...selectedLines, ...this.state.assignToLines]);
         this.state.assignToLines = union;
-        this.state.selectedLines = new Set(selectedLines);
-        this.updateSelecedLinesField();
+        this.state.selectedLines.clear();
+        this.updateSelectedLinesField();
         this.updateAssignToLinesField();
     }
 
@@ -612,12 +803,12 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
         const selectedLinesSet = new Set(selectedLines);
         let difference = new Set([...this.state.assignToLines].filter((lineNumber) => !selectedLinesSet.has(lineNumber)));
         this.state.assignToLines = difference;
-        this.state.selectedLines = selectedLinesSet;
-        this.updateSelecedLinesField();
+        this.state.selectedLines.clear();
+        this.updateSelectedLinesField();
         this.updateAssignToLinesField();
     }
 
-    updateSelecedLinesField() {
+    updateSelectedLinesField() {
         let selectedLinesFieldValue = "";
         for (let item of this.state.selectedLines) {
             selectedLinesFieldValue += `${item}, `
@@ -633,17 +824,33 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
         this.shadowRoot.querySelector(".assign-to-lines").value = assignToLinesFieldValue;
     }
 
-    definePropertiesNameOptions() {
-        const propertiesDeleteNameSelect = this.shadowRoot.querySelector(".properties-name");
-        for (let i = propertiesDeleteNameSelect.length - 1; i >= 0; i--) {
-            propertiesDeleteNameSelect.options[i] = null;
+    defineLocalAxis1DirectionOptions() {
+        const localAxis1DirectionSelect = this.shadowRoot.querySelector(".local-axis-1-direction");
+        for (let i = localAxis1DirectionSelect.length - 1; i >= 0; i--) {
+            localAxis1DirectionSelect.options[i] = null;
         }
-        for (let i = 0; i < this.props.properties.length; i++) {
-            let deleteOption = document.createElement("option");
-            deleteOption.value = this.props.properties[i].name.replace(/['"]+/g, "");
-            deleteOption.innerHTML = this.props.properties[i].name.replace(/['"]+/g, "");
-            propertiesDeleteNameSelect.appendChild(deleteOption);
+        for (let i = 0; i < this.props.beamSectionsOrientations.length; i++) {
+            let localAxis1DirectionOption = document.createElement("option");
+            localAxis1DirectionOption.value = this.props.beamSectionsOrientations[i].local_axis_1_direction;
+            localAxis1DirectionOption.innerHTML = this.props.beamSectionsOrientations[i].local_axis_1_direction;
+            localAxis1DirectionSelect.appendChild(localAxis1DirectionOption);
         }
+        this.updateSelectedBeamSectionOrientationData(localAxis1DirectionSelect.value);
+    }
+
+    updateSelectedBeamSectionOrientationData(selectedLocalAxis1Direction) {
+        console.log(selectedLocalAxis1Direction);
+        const selectedBeamSectionOrientationInProps = this.props.beamSectionsOrientations
+            .find(existedBeamSectionOrientation => 
+                existedBeamSectionOrientation.local_axis_1_direction == selectedLocalAxis1Direction);
+        let assignToLinesFieldValue = "";
+        let assignedToLines = selectedBeamSectionOrientationInProps.line_numbers;
+        this.state.assignToLines = new Set(assignedToLines);
+        for (let i = 0; i < assignedToLines.length; i++) {
+            assignToLinesFieldValue += `${assignedToLines[i]}, `
+        }
+        this.shadowRoot.querySelector(".assign-to-lines").value = assignToLinesFieldValue;
+        this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
     }
 
     filter(keywordField, selectField) {
@@ -725,7 +932,7 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
 
     cancelPropertiesAssign() {
         if (this.props.properties.length > 0) {
-            this.definePropertiesNameOptions();
+            this.defineLocalAxis1DirectionOptions();
         }
         this.shadowRoot.querySelector(".properties-name-filter").value = null;
         const selectedPropertiesNameForDeleteField = this.shadowRoot.querySelector(".properties-name");

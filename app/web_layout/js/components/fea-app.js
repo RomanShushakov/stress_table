@@ -170,7 +170,7 @@ class FeaApp extends HTMLElement {
     async connectedCallback() {
         this.state.actionsRouter = await initializeActionsRouter();
         this.activatePreprocessorMenu();
-        this.handleLoadCache();
+        // this.handleLoadCache();
     }
 
     disconnectedCallback() {
@@ -392,6 +392,10 @@ class FeaApp extends HTMLElement {
         }
     }
 
+    changeViewHandler(selectedView) {
+        this.shadowRoot.querySelector("fea-renderer").selectedView = selectedView;
+    }
+
     sendSelectedLinesNumbersHandler(selectedLinesNumbers) {
         for (let i = 0; i < this.state.linesSelectionDependentMenus.length; i++) {
             if (this.querySelector(this.state.linesSelectionDependentMenus[i]) !== null) {
@@ -408,10 +412,6 @@ class FeaApp extends HTMLElement {
                 }
             }
         }  
-    }
-
-    changeViewHandler(selectedView) {
-        this.shadowRoot.querySelector("fea-renderer").selectedView = selectedView;
     }
 
     previewSelectedLinesNumbersHandler(selectedLinesNumbers) {

@@ -77,18 +77,18 @@ impl Geometry
     }
 
 
-    fn find_line_numbers_for_deletion(&self, point_number: u32) -> Vec<u32>
+    fn extract_line_numbers_for_delete(&self, point_number: u32) -> Vec<u32>
     {
-        let mut line_numbers_for_deletion = Vec::new();
+        let mut line_numbers_for_delete = Vec::new();
         for (line_number, line) in self.lines.iter()
         {
             let (start_point_number, end_point_number) = line.extract_points_numbers();
             if start_point_number == point_number || end_point_number == point_number
             {
-                line_numbers_for_deletion.push(*line_number);
+                line_numbers_for_delete.push(*line_number);
             }
         }
-        line_numbers_for_deletion
+        line_numbers_for_delete
     }
 
 
@@ -98,11 +98,11 @@ impl Geometry
         self.clear_deleted_lines_by_action_id(action_id);
         self.clear_deleted_points_by_action_id(action_id);
 
-        let deleted_line_numbers =
-            self.find_line_numbers_for_deletion(number);
+        let line_numbers_for_delete =
+            self.extract_line_numbers_for_delete(number);
         let mut deleted_lines = Vec::new();
 
-        for line_number in deleted_line_numbers.iter()
+        for line_number in &line_numbers_for_delete
         {
             let line = self.lines.remove(line_number).unwrap();
             let deleted_line = DeletedLine::create(*line_number, line);
@@ -124,7 +124,7 @@ impl Geometry
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, DELETE_POINT_EVENT_NAME, EVENT_TARGET)?;
             let composed_deleted_line_numbers =
-                json!({ DELETED_LINE_NUMBERS_MESSAGE_HEADER: deleted_line_numbers });
+                json!({ DELETED_LINE_NUMBERS_MESSAGE_HEADER: line_numbers_for_delete });
             let converted_line_numbers = JsValue::from_serde(&composed_deleted_line_numbers)
                 .or(Err(JsValue::from("Geometry: Delete point info: Deleted line numbers \
                     could not be composed!")))?;

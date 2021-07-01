@@ -119,10 +119,10 @@ impl Properties
     }
 
 
-    fn find_property_names_for_deletion_by_truss_section_name(&self, truss_section_name: &str)
+    fn extract_property_names_for_delete_by_truss_section_name(&self, truss_section_name: &str)
         -> Vec<String>
     {
-        let mut property_names_for_deletion = Vec::new();
+        let mut property_names_for_delete = Vec::new();
         for (property_name, property) in self.properties.iter()
         {
             let (_extracted_material_name, extracted_cross_section_name,
@@ -130,10 +130,10 @@ impl Properties
             if extracted_cross_section_name == truss_section_name &&
                 extracted_cross_section_type == CrossSectionType::Truss
             {
-                property_names_for_deletion.push(property_name.clone());
+                property_names_for_delete.push(property_name.clone());
             }
         }
-        property_names_for_deletion
+        property_names_for_delete
     }
 
 
@@ -148,9 +148,9 @@ impl Properties
         self.clear_changed_assigned_properties_by_action_id(action_id);
 
         let deleted_property_names =
-            self.find_property_names_for_deletion_by_truss_section_name(name);
+            self.extract_property_names_for_delete_by_truss_section_name(name);
         let deleted_assigned_property_names =
-            self.find_assigned_property_names_for_deletion_by_property_names(
+            self.extract_assigned_property_names_for_delete_by_property_names(
                 &deleted_property_names);
         let mut deleted_properties = Vec::new();
         let mut deleted_assigned_properties = Vec::new();

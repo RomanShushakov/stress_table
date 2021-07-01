@@ -86,7 +86,7 @@ impl Geometry
     {
         for action_id in self.deleted_lines.clone()
             .keys()
-            .filter(|deletion_action_id| **deletion_action_id >= action_id)
+            .filter(|deleted_action_id| **deleted_action_id >= action_id)
             .collect::<Vec<&u32>>()
             .iter()
         {
@@ -99,7 +99,7 @@ impl Geometry
     {
         for action_id in self.deleted_points.clone()
             .keys()
-            .filter(|deletion_action_id| **deletion_action_id >= action_id)
+            .filter(|deleted_action_id| **deleted_action_id >= action_id)
             .collect::<Vec<&u32>>()
             .iter()
         {

@@ -1,7 +1,7 @@
 use wasm_bindgen::prelude::*;
 use serde_json::json;
 
-use crate::{Properties, AssignedProperty, ChangedAssignedProperty, DeletedAssignedProperty};
+use crate::{Properties, AssignedProperty, DeletedAssignedProperty};
 use crate::{log, dispatch_custom_event};
 use crate::
 {

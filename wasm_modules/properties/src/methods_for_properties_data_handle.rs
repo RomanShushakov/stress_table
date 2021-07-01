@@ -143,7 +143,7 @@ impl Properties
         self.clear_changed_assigned_properties_by_action_id(action_id);
 
         let deleted_assigned_property_names =
-            self.find_assigned_property_names_for_deletion_by_property_names(
+            self.extract_assigned_property_names_for_delete_by_property_names(
                 &vec![name.to_string()]);
         let mut deleted_assigned_properties = Vec::new();
 

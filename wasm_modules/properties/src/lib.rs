@@ -24,6 +24,8 @@ mod methods_for_truss_section_data_handle;
 mod methods_for_beam_section_data_handle;
 mod methods_for_properties_data_handle;
 mod methods_for_assigned_properties_data_handle;
+mod methods_for_data_extraction_handle;
+mod methods_for_line_numbers_handle;
 
 
 const EVENT_TARGET: &str = "fea-app";
@@ -158,7 +160,7 @@ impl Properties
     {
         for action_id in self.deleted_materials.clone()
             .keys()
-            .filter(|deletion_action_id| **deletion_action_id >= action_id)
+            .filter(|deleted_action_id| **deleted_action_id >= action_id)
             .collect::<Vec<&u32>>()
             .iter()
         {
@@ -171,7 +173,7 @@ impl Properties
     {
         for action_id in self.deleted_truss_sections.clone()
             .keys()
-            .filter(|deletion_action_id| **deletion_action_id >= action_id)
+            .filter(|deleted_action_id| **deleted_action_id >= action_id)
             .collect::<Vec<&u32>>()
             .iter()
         {
@@ -184,7 +186,7 @@ impl Properties
     {
         for action_id in self.deleted_beam_sections.clone()
             .keys()
-            .filter(|deletion_action_id| **deletion_action_id >= action_id)
+            .filter(|deleted_action_id| **deleted_action_id >= action_id)
             .collect::<Vec<&u32>>()
             .iter()
         {
@@ -197,7 +199,7 @@ impl Properties
     {
         for action_id in self.deleted_properties.clone()
             .keys()
-            .filter(|deletion_action_id| **deletion_action_id >= action_id)
+            .filter(|deleted_action_id| **deleted_action_id >= action_id)
             .collect::<Vec<&u32>>()
             .iter()
         {
@@ -210,7 +212,7 @@ impl Properties
     {
         for action_id in self.deleted_assigned_properties.clone()
             .keys()
-            .filter(|deletion_action_id| **deletion_action_id >= action_id)
+            .filter(|deleted_action_id| **deleted_action_id >= action_id)
             .collect::<Vec<&u32>>()
             .iter()
         {
@@ -223,7 +225,7 @@ impl Properties
     {
         for action_id in self.changed_assigned_properties.clone()
             .keys()
-            .filter(|deletion_action_id| **deletion_action_id >= action_id)
+            .filter(|deleted_action_id| **deleted_action_id >= action_id)
             .collect::<Vec<&u32>>()
             .iter()
         {
@@ -243,160 +245,20 @@ impl Properties
     }
 
 
-    fn find_assigned_property_names_for_deletion_by_property_names(&self,
-        property_names_for_deletion: &Vec<String>) -> Vec<String>
+    fn extract_assigned_property_names_for_delete_by_property_names(&self,
+        property_names_for_delete: &Vec<String>) -> Vec<String>
     {
-        let mut assigned_property_names_for_deletion = Vec::new();
-        for property_name in property_names_for_deletion
+        let mut assigned_property_names_for_delete = Vec::new();
+        for property_name in property_names_for_delete
         {
             if self.assigned_properties
                 .keys()
                 .position(|assigned_property_name| assigned_property_name == property_name)
                 .is_some()
             {
-                assigned_property_names_for_deletion.push(property_name.clone())
+                assigned_property_names_for_delete.push(property_name.clone())
             }
         }
-        assigned_property_names_for_deletion
-    }
-
-
-    pub fn delete_line_numbers(&mut self, action_id: u32, line_numbers: JsValue)
-        -> Result<(), JsValue>
-    {
-        self.clear_deleted_materials_by_action_id(action_id);
-        self.clear_deleted_truss_sections_by_action_id(action_id);
-        self.clear_deleted_beam_sections_by_action_id(action_id);
-
-        let serialized_deleted_line_numbers: Value = line_numbers
-            .into_serde()
-            .or(Err(JsValue::from(
-            "Properties: Deleted line numbers could not be serialized!")))?;
-        if let Some(deleted_line_numbers) = serialized_deleted_line_numbers
-            .get(DELETED_LINE_NUMBERS_MESSAGE_HEADER)
-        {
-            if let Some(line_numbers) = deleted_line_numbers.as_array()
-            {
-                if !line_numbers.is_empty()
-                {
-                    for line_number in line_numbers
-                    {
-                        let parsed_line_number = line_number.to_string()
-                            .parse::<u32>()
-                            .or(Err(JsValue::from("Properties: Deleted line number: \
-                                could not be converted to u32!")))?;
-                        log(&format!("deleted line number in properties: {:?}", parsed_line_number));
-                    }
-                }
-            }
-        }
-        Ok(())
-    }
-
-
-    pub fn restore_line_numbers(&mut self, action_id: u32, line_numbers: JsValue)
-        -> Result<(), JsValue>
-    {
-        self.clear_deleted_materials_by_action_id(action_id);
-        self.clear_deleted_truss_sections_by_action_id(action_id);
-        self.clear_deleted_beam_sections_by_action_id(action_id);
-
-        let serialized_restored_line_numbers: Value = line_numbers
-            .into_serde()
-            .or(Err(JsValue::from(
-            "Properties: Restored line numbers could not be serialized!")))?;
-        if let Some(restored_line_numbers) = serialized_restored_line_numbers
-            .get(RESTORED_LINE_NUMBERS_MESSAGE_HEADER)
-        {
-            if let Some(line_numbers) = restored_line_numbers.as_array()
-            {
-                if !line_numbers.is_empty()
-                {
-                    for line_number in line_numbers
-                    {
-                        let parsed_line_number = line_number.to_string()
-                            .parse::<u32>()
-                            .or(Err(JsValue::from("Properties: Restored line number: \
-                                could not be converted to u32!")))?;
-                        log(&format!("restored line number in properties: {:?}", parsed_line_number));
-                    }
-                }
-            }
-        }
-        Ok(())
-    }
-
-
-    pub fn extract_materials(&self, handler: js_sys::Function)
-        -> Result<(), JsValue>
-    {
-        let extracted_materials = json!({ "extracted_materials": self.materials });
-        let composed_extracted_materials =
-            JsValue::from_serde(&extracted_materials)
-                .or(Err(JsValue::from("Properties: Extract materials: Materials could not \
-                    be composed for extraction!")))?;
-        let this = JsValue::null();
-        let _ = handler.call1(&this, &composed_extracted_materials);
-        Ok(())
-    }
-
-
-    pub fn extract_truss_sections(&self, handler: js_sys::Function)
-        -> Result<(), JsValue>
-    {
-        let extracted_truss_sections = json!(
-            { "extracted_truss_sections": self.truss_sections });
-        let composed_extracted_truss_sections =
-            JsValue::from_serde(&extracted_truss_sections)
-                .or(Err(JsValue::from("Properties: Extract truss sections: Truss sections \
-                    could not be composed for extraction!")))?;
-        let this = JsValue::null();
-        let _ = handler.call1(&this, &composed_extracted_truss_sections);
-        Ok(())
-    }
-
-
-    pub fn extract_beam_sections(&self, handler: js_sys::Function)
-        -> Result<(), JsValue>
-    {
-        let extracted_beam_sections = json!(
-            { "extracted_beam_sections": self.beam_sections });
-        let composed_extracted_beam_sections =
-            JsValue::from_serde(&extracted_beam_sections)
-                .or(Err(JsValue::from("Properties: Extract beam sections: Beam sections \
-                    could not be composed for extraction!")))?;
-        let this = JsValue::null();
-        let _ = handler.call1(&this, &composed_extracted_beam_sections);
-        Ok(())
-    }
-
-
-    pub fn extract_properties(&self, handler: js_sys::Function)
-        -> Result<(), JsValue>
-    {
-        let extracted_properties = json!(
-            { "extracted_properties": self.properties });
-        let composed_extracted_properties =
-            JsValue::from_serde(&extracted_properties)
-                .or(Err(JsValue::from("Properties: Extract properties: Properties \
-                    could not be composed for extraction!")))?;
-        let this = JsValue::null();
-        let _ = handler.call1(&this, &composed_extracted_properties);
-        Ok(())
-    }
-
-
-    pub fn extract_assigned_properties(&self, handler: js_sys::Function)
-        -> Result<(), JsValue>
-    {
-        let extracted_assigned_properties = json!(
-            { "extracted_assigned_properties": self.assigned_properties });
-        let composed_extracted_assigned_properties =
-            JsValue::from_serde(&extracted_assigned_properties)
-                .or(Err(JsValue::from("Properties: Extract assigned properties: \
-                    Assigned properties could not be composed for extraction!")))?;
-        let this = JsValue::null();
-        let _ = handler.call1(&this, &composed_extracted_assigned_properties);
-        Ok(())
+        assigned_property_names_for_delete
     }
 }

@@ -114,19 +114,19 @@ impl Properties
     }
 
 
-    fn find_property_names_for_deletion_by_material_name(&self, material_name: &str) -> Vec<String>
+    fn extract_property_names_for_delete_by_material_name(&self, material_name: &str) -> Vec<String>
     {
-        let mut property_names_for_deletion = Vec::new();
+        let mut property_names_for_delete = Vec::new();
         for (property_name, property) in self.properties.iter()
         {
             let (extracted_material_name, _extracted_cross_section_name,
                 _extracted_cross_section_type) = property.extract_data();
             if extracted_material_name == material_name
             {
-                property_names_for_deletion.push(property_name.clone());
+                property_names_for_delete.push(property_name.clone());
             }
         }
-        property_names_for_deletion
+        property_names_for_delete
     }
 
 
@@ -141,9 +141,9 @@ impl Properties
         self.clear_changed_assigned_properties_by_action_id(action_id);
 
         let deleted_property_names =
-            self.find_property_names_for_deletion_by_material_name(name);
+            self.extract_property_names_for_delete_by_material_name(name);
         let deleted_assigned_property_names =
-            self.find_assigned_property_names_for_deletion_by_property_names(
+            self.extract_assigned_property_names_for_delete_by_property_names(
                 &deleted_property_names);
         let mut deleted_properties = Vec::new();
         let mut deleted_assigned_properties = Vec::new();

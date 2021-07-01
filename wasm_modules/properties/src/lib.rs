@@ -19,6 +19,12 @@ use property::{Property, DeletedProperty, CrossSectionType};
 mod assigned_property;
 use assigned_property::{AssignedProperty, ChangedAssignedProperty, DeletedAssignedProperty};
 
+mod beam_section_orientation;
+use beam_section_orientation::
+{
+    BeamSectionOrientation, ChangedBeamSectionOrientation, DeletedBeamSectionOrientation
+};
+
 mod methods_for_material_data_handle;
 mod methods_for_truss_section_data_handle;
 mod methods_for_beam_section_data_handle;
@@ -85,26 +91,6 @@ fn dispatch_custom_event(detail: serde_json::Value, event_type: &str, query_sele
 }
 
 
-struct BeamSectionOrientationKey
-{
-    property_name: String,
-    local_axis_1_direction: [f64; 3]
-}
-
-
-struct BeamSectionOrientation
-{
-    line_numbers: Vec<u32>,
-}
-
-
-struct ChangedBeamSectionOrientation
-{
-    beam_section_orientation_key: BeamSectionOrientationKey,
-    beam_section_orientation: BeamSectionOrientation,
-}
-
-
 #[wasm_bindgen]
 pub struct Properties
 {
@@ -121,8 +107,9 @@ pub struct Properties
     changed_assigned_properties: HashMap<u32, Vec<ChangedAssignedProperty>>,   // { action_id: Vec<ChangedAssignedProperty> }
     deleted_assigned_properties: HashMap<u32, Vec<DeletedAssignedProperty>>,   // { action_id: Vec<DeletedAssignedProperty> }
 
-    beam_sections_orientations: HashMap<BeamSectionOrientationKey, BeamSectionOrientation>,
+    beam_sections_orientations: HashMap<[f64; 3], BeamSectionOrientation>,  // { local_axis_1_direction: BeamSectionOrientation }
     changed_beam_sections_orientations: HashMap<u32, ChangedBeamSectionOrientation>,    // { action_id: ChangedBeamSectionOrientation }
+    deleted_beam_sections_orientations: HashMap<u32, DeletedBeamSectionOrientation>,    // { action_id: DeletedBeamSectionOrientation }
 }
 
 
@@ -142,16 +129,17 @@ impl Properties
         let assigned_properties = HashMap::new();
         let changed_assigned_properties = HashMap::new();
         let deleted_assigned_properties = HashMap::new();
-
         let beam_sections_orientations = HashMap::new();
         let changed_beam_sections_orientations = HashMap::new();
+        let deleted_beam_sections_orientations = HashMap::new();
         Properties {
             materials, deleted_materials,
             truss_sections, deleted_truss_sections,
             beam_sections, deleted_beam_sections,
             properties, deleted_properties,
-            assigned_properties, changed_assigned_properties, deleted_assigned_properties,
-            beam_sections_orientations, changed_beam_sections_orientations,
+            assigned_properties, changed_assigned_properties,
+            deleted_assigned_properties, beam_sections_orientations,
+            changed_beam_sections_orientations, deleted_beam_sections_orientations,
         }
     }
 

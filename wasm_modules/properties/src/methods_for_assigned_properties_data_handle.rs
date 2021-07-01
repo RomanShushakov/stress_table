@@ -60,7 +60,7 @@ impl Properties
             truss sections: {:?}, deleted truss sections: {:?}, \
             beam sections: {:?}, deleted beam sections: {:?}, \
             properties: {:?}, deleted properties: {:?}, \
-            assigned_properties: {:?}, changed_assigned_properties: {:?},\
+            assigned_properties: {:?}, changed_assigned_properties: {:?}, \
             deleted_assigned_properties: {:?}",
             self.materials, self.deleted_materials,
             self.truss_sections, self.deleted_truss_sections,
@@ -115,7 +115,7 @@ impl Properties
                 truss sections: {:?}, deleted truss sections: {:?}, \
                 beam sections: {:?}, deleted beam sections: {:?}, \
                 properties: {:?}, deleted properties: {:?}, \
-                assigned_properties: {:?}, changed_assigned_properties: {:?},\
+                assigned_properties: {:?}, changed_assigned_properties: {:?}, \
                 deleted_assigned_properties: {:?}",
                 self.materials, self.deleted_materials,
                 self.truss_sections, self.deleted_truss_sections,
@@ -160,7 +160,7 @@ impl Properties
                 truss sections: {:?}, deleted truss sections: {:?}, \
                 beam sections: {:?}, deleted beam sections: {:?}, \
                 properties: {:?}, deleted properties: {:?}, \
-                assigned_properties: {:?}, changed_assigned_properties: {:?},\
+                assigned_properties: {:?}, changed_assigned_properties: {:?}, \
                 deleted_assigned_properties: {:?}",
                 self.materials, self.deleted_materials,
                 self.truss_sections, self.deleted_truss_sections,
@@ -211,7 +211,7 @@ impl Properties
                 truss sections: {:?}, deleted truss sections: {:?}, \
                 beam sections: {:?}, deleted beam sections: {:?}, \
                 properties: {:?}, deleted properties: {:?}, \
-                assigned_properties: {:?}, changed_assigned_properties: {:?},\
+                assigned_properties: {:?}, changed_assigned_properties: {:?}, \
                 deleted_assigned_properties: {:?}",
                 self.materials, self.deleted_materials,
                 self.truss_sections, self.deleted_truss_sections,

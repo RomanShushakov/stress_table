@@ -85,18 +85,13 @@ impl Geometry
     }
 
 
-    pub fn show_line_info(&mut self, number: FEUInt) -> Result<JsValue, JsValue>
+    pub fn extract_line_info_from_geometry(&mut self, number: FEUInt)
+        -> Result<(FEUInt, FEUInt), JsValue>
     {
         return if let Some(line) = self.lines.get(&number)
         {
             let (start_point_number, end_point_number) = line.extract_points_numbers();
-            let line_info_json = json!({ "line_data": { "number": number,
-                "start_point_number": start_point_number,
-                "end_point_number": end_point_number } });
-            let line_info = JsValue::from_serde(&line_info_json)
-                .or(Err(JsValue::from("Geometry: Show line info: Line info could not be \
-                    composed!")))?;
-            Ok(line_info)
+            Ok((start_point_number, end_point_number))
         }
         else
         {

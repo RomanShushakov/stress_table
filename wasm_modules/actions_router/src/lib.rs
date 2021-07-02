@@ -15,7 +15,7 @@ use external_functions::communication_with_geometry::
     delete_point_from_geometry, restore_point_in_geometry,
     add_line_to_geometry, update_line_in_geometry,
     delete_line_from_geometry, restore_line_in_geometry,
-    show_point_info, show_line_info_from_geometry,
+    show_point_info, show_line_info,
     clear_geometry_module_by_action_id, extract_points, extract_lines,
 };
 use external_functions::communication_with_properties::
@@ -40,48 +40,29 @@ mod action;
 use action::{Action, Coordinates};
 use action::{GeometryActionType, ActionType, PropertiesActionType};
 
+mod types;
+use types::{FEUInt};
+
+mod consts;
+use consts::
+{
+    ADD_POINT_MESSAGE_HEADER, UPDATE_POINT_MESSAGE_HEADER, DELETE_POINT_MESSAGE_HEADER,
+    ADD_LINE_MESSAGE_HEADER, UPDATE_LINE_MESSAGE_HEADER, DELETE_LINE_MESSAGE_HEADER,
+    ADD_MATERIAL_MESSAGE_HEADER, UPDATE_MATERIAL_MESSAGE_HEADER, DELETE_MATERIAL_MESSAGE_HEADER,
+    ADD_TRUSS_SECTION_MESSAGE_HEADER, UPDATE_TRUSS_SECTION_MESSAGE_HEADER,
+    DELETE_TRUSS_SECTION_MESSAGE_HEADER, ADD_BEAM_SECTION_MESSAGE_HEADER,
+    UPDATE_BEAM_SECTION_MESSAGE_HEADER, DELETE_BEAM_SECTION_MESSAGE_HEADER,
+    ADD_PROPERTIES_MESSAGE_HEADER, UPDATE_PROPERTIES_MESSAGE_HEADER,
+    DELETE_PROPERTIES_MESSAGE_HEADER, ADD_ASSIGNED_PROPERTIES_MESSAGE_HEADER,
+    UPDATE_ASSIGNED_PROPERTIES_MESSAGE_HEADER, DELETE_ASSIGNED_PROPERTIES_MESSAGE_HEADER,
+    UNDO_MESSAGE_HEADER, REDO_MESSAGE_HEADER, SELECTED_POINT_NUMBER_MESSAGE_HEADER,
+    SELECTED_LINE_NUMBER_MESSAGE_HEADER, SELECTED_LINES_NUMBERS_MESSAGE_HEADER,
+    PREVIEW_SELECTED_LINES_NUMBERS_MESSAGE_HEADER, CHANGE_VIEW_MESSAGE_HEADER,
+};
+
 mod methods_for_geometry_type_actions_handle;
 
 mod methods_for_properties_type_actions_handle;
-
-
-const ADD_POINT_MESSAGE_HEADER: &str = "add_point";
-const UPDATE_POINT_MESSAGE_HEADER: &str = "update_point";
-const DELETE_POINT_MESSAGE_HEADER: &str = "delete_point";
-const ADD_LINE_MESSAGE_HEADER: &str = "add_line";
-const UPDATE_LINE_MESSAGE_HEADER: &str = "update_line";
-const DELETE_LINE_MESSAGE_HEADER: &str = "delete_line";
-
-const ADD_MATERIAL_MESSAGE_HEADER: &str = "add_material";
-const UPDATE_MATERIAL_MESSAGE_HEADER: &str = "update_material";
-const DELETE_MATERIAL_MESSAGE_HEADER: &str = "delete_material";
-
-const ADD_TRUSS_SECTION_MESSAGE_HEADER: &str = "add_truss_section";
-const UPDATE_TRUSS_SECTION_MESSAGE_HEADER: &str = "update_truss_section";
-const DELETE_TRUSS_SECTION_MESSAGE_HEADER: &str = "delete_truss_section";
-
-const ADD_BEAM_SECTION_MESSAGE_HEADER: &str = "add_beam_section";
-const UPDATE_BEAM_SECTION_MESSAGE_HEADER: &str = "update_beam_section";
-const DELETE_BEAM_SECTION_MESSAGE_HEADER: &str = "delete_beam_section";
-
-const ADD_PROPERTIES_MESSAGE_HEADER: &str = "add_properties";
-const UPDATE_PROPERTIES_MESSAGE_HEADER: &str = "update_properties";
-const DELETE_PROPERTIES_MESSAGE_HEADER: &str = "delete_properties";
-
-const ADD_ASSIGNED_PROPERTIES_MESSAGE_HEADER: &str = "add_assigned_properties";
-const UPDATE_ASSIGNED_PROPERTIES_MESSAGE_HEADER: &str = "update_assigned_properties";
-const DELETE_ASSIGNED_PROPERTIES_MESSAGE_HEADER: &str = "delete_assigned_properties";
-
-const UNDO_MESSAGE_HEADER: &str = "undo";
-const REDO_MESSAGE_HEADER: &str = "redo";
-
-const SELECTED_POINT_NUMBER_MESSAGE_HEADER: &str = "selected_point_number";
-const SELECTED_LINE_NUMBER_MESSAGE_HEADER: &str = "selected_line_number";
-const SELECTED_LINES_NUMBERS_MESSAGE_HEADER: &str = "selected_lines_numbers";
-
-const PREVIEW_SELECTED_LINES_NUMBERS_MESSAGE_HEADER: &str = "preview_selected_lines_numbers";
-
-const CHANGE_VIEW_MESSAGE_HEADER: &str = "change_view";
 
 
 async fn add_to_cache(message: JsValue) -> Result<(), JsValue>
@@ -141,9 +122,9 @@ impl ActionsRouter
     fn handle_undo_message(&mut self, undo_data: &Value) -> Result<(), JsValue>
     {
         let action_id = undo_data["actionId"].to_string()
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Redo action: \
-                Action id could not be converted to u32!")))?;
+                Action id could not be converted to FEUInt!")))?;
         if let Some(position) = self.active_actions.iter().rposition(|action|
             action.action_id_same(action_id))
         {
@@ -513,9 +494,9 @@ impl ActionsRouter
     fn handle_redo_message(&mut self, redo_data: &Value) -> Result<(), JsValue>
     {
         let action_id = redo_data["actionId"].to_string()
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Redo action: \
-                Action id could not be converted to u32!")))?;
+                Action id could not be converted to FEUInt!")))?;
         if let Some(position) = self.undo_actions.iter().position(|action|
             action.action_id_same(action_id))
         {
@@ -533,9 +514,9 @@ impl ActionsRouter
         if !self.is_lines_selection_mode_enabled
         {
             let point_number = selected_point_number.to_string()
-                .parse::<u32>()
+                .parse::<FEUInt>()
                 .or(Err(JsValue::from("Actions router: Show point info action: \
-                    Point number could not be converted to u32!")))?;
+                    Point number could not be converted to FEUInt!")))?;
             let action_id = 0;
             let action_type = ActionType::ShowPointInfo(point_number, show_object_info_handler.clone());
             let action = Action::create(action_id, action_type);
@@ -551,9 +532,9 @@ impl ActionsRouter
         send_selected_lines_numbers_handler: &js_sys::Function) -> Result<(), JsValue>
     {
         let line_number = selected_line_number.to_string()
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Show line info action: \
-                Line number could not be converted to u32!")))?;
+                Line number could not be converted to FEUInt!")))?;
         let action_id = 0;
         if !self.is_lines_selection_mode_enabled
         {
@@ -776,10 +757,10 @@ impl ActionsRouter
                     line_number,
                     show_object_info_handler) =>
                     {
-                        let line_info_from_geometry =
-                            show_line_info_from_geometry(*line_number)?;
+                        let line_info =
+                            show_line_info(*line_number)?;
                         let this = JsValue::null();
-                        let _ = show_object_info_handler.call1(&this, &line_info_from_geometry)?;
+                        let _ = show_object_info_handler.call1(&this, &line_info)?;
                     },
                 ActionType::ExtractLinesNumbers(
                     lines_numbers,

@@ -5,39 +5,41 @@ use crate::ActionsRouter;
 use crate::{Coordinates, Action};
 use crate::{ActionType, GeometryActionType};
 
+use crate::types::{FEUInt, FEFloat};
+
 
 impl ActionsRouter
 {
     pub(super) fn handle_add_point_message(&mut self, point_data: &Value) -> Result<(), JsValue>
     {
         let action_id = point_data["actionId"].to_string()
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from(
-                "Actions router: Add point action: Action id could not be converted to u32!")))?;
+                "Actions router: Add point action: Action id could not be converted to FEUInt!")))?;
         let number = point_data["number"].as_str()
             .ok_or(JsValue::from("Actions router: Add point action: \
                 Point number could not be extracted!"))?
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Add point action: \
-                Point number could not be converted to u32!")))?;
+                Point number could not be converted to FEUInt!")))?;
         let x = point_data["x"].as_str()
             .ok_or(JsValue::from("Actions router: Add point action: \
                 Point x coordinate could not be extracted!"))?
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Add point action: \
-                Point x coordinate could not be converted to f64!")))?;
+                Point x coordinate could not be converted to FEFloat!")))?;
         let y = point_data["y"].as_str()
             .ok_or(JsValue::from(
                 "Actions router: Add point action: Point y coordinate could not be extracted!"))?
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Add point action: \
-                Point y coordinate could not be converted to f64!")))?;
+                Point y coordinate could not be converted to FEFloat!")))?;
         let z = point_data["z"].as_str()
             .ok_or(JsValue::from(
                 "Actions router: Add point action: Point z coordinate could not be extracted!"))?
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Add point action: \
-                Point z coordinate could not be converted to f64!")))?;
+                Point z coordinate could not be converted to FEFloat!")))?;
         self.undo_actions.clear();
         let coordinates = Coordinates::create(x, y, z);
         let is_action_id_should_be_increased = true;
@@ -53,46 +55,46 @@ impl ActionsRouter
     pub(super) fn handle_update_point_message(&mut self, point_data: &Value) -> Result<(), JsValue>
     {
         let action_id = point_data["actionId"].to_string()
-                .parse::<u32>()
+                .parse::<FEUInt>()
                 .or(Err(JsValue::from("Actions router: Update point action: \
-                    Action id could not be converted to u32!")))?;
+                    Action id could not be converted to FEUInt!")))?;
         let number = point_data["number"].as_str()
             .ok_or(JsValue::from(
                 "Actions router: Update point action: Point number could not be extracted!"))?
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Update point action: \
-                Point number could not be converted to u32!")))?;
+                Point number could not be converted to FEUInt!")))?;
         let old_x_value = point_data["old_point_values"]["x"].to_string()
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Update point action: \
-                Point old x coordinate could not be converted to f64!")))?;
+                Point old x coordinate could not be converted to FEFloat!")))?;
         let old_y_value = point_data["old_point_values"]["y"].to_string()
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Update point action: \
-                Point old y coordinate could not be converted to f64!")))?;
+                Point old y coordinate could not be converted to FEFloat!")))?;
         let old_z_value = point_data["old_point_values"]["z"].to_string()
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from(
                 "Actions router: Update point action: \
-                Point old z coordinate could not be converted to f64!")))?;
+                Point old z coordinate could not be converted to FEFloat!")))?;
         let new_x_value = point_data["new_point_values"]["x"].as_str()
             .ok_or(JsValue::from("Actions router: Update point action: \
                 Point new x coordinate could not be extracted!"))?
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Update point action: \
-                Point new x value could not be converted to f64!")))?;
+                Point new x value could not be converted to FEFloat!")))?;
         let new_y_value = point_data["new_point_values"]["y"].as_str()
             .ok_or(JsValue::from("Actions router: Update point action: \
                 Point new y coordinate could not be extracted!"))?
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Update point action: \
-                Point new y value could not be converted to f64!")))?;
+                Point new y value could not be converted to FEFloat!")))?;
         let new_z_value = point_data["new_point_values"]["z"].as_str()
             .ok_or(JsValue::from("Actions router: Update point action: \
                 Point new z coordinate could not be extracted!"))?
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Update point action: \
-                Point new z value could not be converted to f64!")))?;
+                Point new z value could not be converted to FEFloat!")))?;
         self.undo_actions.clear();
         let old_coordinates = Coordinates::create(old_x_value,
             old_y_value, old_z_value);
@@ -111,13 +113,13 @@ impl ActionsRouter
     pub(super) fn handle_delete_point_message(&mut self, point_data: &Value) -> Result<(), JsValue>
     {
         let action_id = point_data["actionId"].to_string()
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from( "Actions router: Delete point action: \
-                Action id could not be converted to u32!")))?;
+                Action id could not be converted to FEUInt!")))?;
         let number = point_data["number"].to_string()
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Delete point action: \
-                Point number could not be converted to u32!")))?;
+                Point number could not be converted to FEUInt!")))?;
         self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
         let action_type = ActionType::GeometryActionType(GeometryActionType::DeletePoint(
@@ -132,27 +134,27 @@ impl ActionsRouter
     pub(super) fn handle_add_line_message(&mut self, line_data: &Value) -> Result<(), JsValue>
     {
         let action_id = line_data["actionId"].to_string()
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from(
-                "Actions router: Add point action: Action id could not be converted to u32!")))?;
+                "Actions router: Add point action: Action id could not be converted to FEUInt!")))?;
         let number = line_data["number"].as_str()
             .ok_or(JsValue::from(
                 "Actions router: Add line action: Line number could not be extracted!"))?
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Add line action: \
-                Line number could not be converted to u32!")))?;
+                Line number could not be converted to FEUInt!")))?;
         let start_point_number = line_data["start_point_number"].as_str()
             .ok_or(JsValue::from("Actions router: Add line action: \
                 Line start point number could not be extracted!"))?
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Add line action: \
-                Line start point number could not be converted to u32!")))?;
+                Line start point number could not be converted to FEUInt!")))?;
         let end_point_number = line_data["end_point_number"].as_str()
             .ok_or(JsValue::from("Actions router: Add line action: \
                 Line end point number could not be extracted!"))?
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Add line action: \
-                Line end point number could not be converted to u32!")))?;
+                Line end point number could not be converted to FEUInt!")))?;
         self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
         let action_type = ActionType::GeometryActionType(GeometryActionType::AddLine(
@@ -167,35 +169,35 @@ impl ActionsRouter
     pub(super) fn handle_update_line_message(&mut self, line_data: &Value) -> Result<(), JsValue>
     {
         let action_id = line_data["actionId"].to_string()
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Update line action: \
-                Action id could not be converted to u32!")))?;
+                Action id could not be converted to FEUInt!")))?;
         let number = line_data["number"].as_str()
             .ok_or(JsValue::from(
                 "Actions router: Update line action: Line number could not be extracted!"))?
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Update line action: \
-                Line number could not be converted to u32!")))?;
+                Line number could not be converted to FEUInt!")))?;
         let old_start_point_number = line_data["old_line_values"]["start_point"].to_string()
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Update line action: \
-                Line old start point number could not be converted to u32!")))?;
+                Line old start point number could not be converted to FEUInt!")))?;
         let old_end_point_number = line_data["old_line_values"]["end_point"].to_string()
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Update line action: \
-                Line old end point number could not be converted to u32!")))?;
+                Line old end point number could not be converted to FEUInt!")))?;
         let new_start_point_number = line_data["new_line_values"]["start_point"].as_str()
             .ok_or(JsValue::from("Actions router: Update line action: \
                 Line new start point number could not be extracted!"))?
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Update line action: \
-                Line new start point number could not be converted to u32!")))?;
+                Line new start point number could not be converted to FEUInt!")))?;
         let new_end_point_number = line_data["new_line_values"]["end_point"].as_str()
             .ok_or(JsValue::from("Actions router: Update line action: \
                 Line new end point number could not be extracted!"))?
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Update line action: \
-                Line new end point number could not be converted to u32!")))?;
+                Line new end point number could not be converted to FEUInt!")))?;
         self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
         let action_type = ActionType::GeometryActionType(GeometryActionType::UpdateLine(
@@ -211,15 +213,15 @@ impl ActionsRouter
     pub(super) fn handle_delete_line_message(&mut self, line_data: &Value) -> Result<(), JsValue>
     {
         let action_id = line_data["actionId"].to_string()
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Delete line action: \
-                Action id could not be converted to u32!")))?;
+                Action id could not be converted to FEUInt!")))?;
         let number = line_data["number"].as_str()
             .ok_or(JsValue::from("Actions router: Delete line action: \
                 Line number could not be extracted!"))?
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Delete line action: \
-                Line number could not be converted to u32!")))?;
+                Line number could not be converted to FEUInt!")))?;
         self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
         let action_type = ActionType::GeometryActionType(GeometryActionType::DeleteLine(

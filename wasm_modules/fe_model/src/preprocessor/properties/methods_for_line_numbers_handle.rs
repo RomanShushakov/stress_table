@@ -14,7 +14,7 @@ use crate::preprocessor::properties::consts::
     RESTORED_LINE_NUMBERS_MESSAGE_HEADER
 };
 
-use crate::types::{FEUInt, FEFloat};
+use crate::types::{FEUInt};
 
 use crate::consts::EVENT_TARGET;
 

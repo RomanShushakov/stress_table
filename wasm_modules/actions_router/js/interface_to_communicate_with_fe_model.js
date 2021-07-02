@@ -107,7 +107,7 @@ export function showPointInfo(number)
     }
 }
 
-export function showLineInfoFromGeometry(number) 
+export function showLineInfo(number) 
 {
     try {
         communicatorWithFEModel.showLineInfo = number;

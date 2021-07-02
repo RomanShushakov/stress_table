@@ -6,6 +6,8 @@ use crate::{Action};
 use crate::{ActionType, PropertiesActionType};
 use crate::external_functions::common::log;
 
+use crate::types::{FEUInt, FEFloat};
+
 
 impl ActionsRouter
 {
@@ -13,22 +15,22 @@ impl ActionsRouter
         -> Result<(), JsValue>
     {
         let action_id = material_data["actionId"].to_string()
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Add material action: Action id could \
-                not be converted to u32!")))?;
+                not be converted to FEUInt!")))?;
         let name = material_data["name"].to_string();
         let young_modulus = material_data["young_modulus"].as_str()
             .ok_or(JsValue::from("Actions router: Add material action: \
                 Young's modulus value could not be extracted!"))?
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Add material action: \
-                Young's modulus value could not be converted to f64!")))?;
+                Young's modulus value could not be converted to FEFloat!")))?;
         let poisson_ratio = material_data["poisson_ratio"].as_str()
             .ok_or(JsValue::from("Actions router: Add material action: Poisson's ratio value \
                 could not be extracted!"))?
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Add material action: \
-                Poisson's ratio value could not be converted to f64!")))?;
+                Poisson's ratio value could not be converted to FEFloat!")))?;
         self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
         let action_type = ActionType::PropertiesActionType(PropertiesActionType::AddMaterial(
@@ -44,34 +46,34 @@ impl ActionsRouter
         -> Result<(), JsValue>
     {
         let action_id = material_data["actionId"].to_string()
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Update material action: Action id could \
-                not be converted to u32!")))?;
+                not be converted to FEUInt!")))?;
         let name = material_data["name"].to_string();
         let old_young_modulus = material_data["old_material_values"]["young_modulus"]
             .to_string()
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Update material action: \
-                Material old Young's modulus value could not be converted to f64!")))?;
+                Material old Young's modulus value could not be converted to FEFloat!")))?;
         let old_poisson_ratio = material_data["old_material_values"]["poisson_ratio"]
             .to_string()
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Update material action: \
-                Material old Poisson's ratio value could not be converted to f64!")))?;
+                Material old Poisson's ratio value could not be converted to FEFloat!")))?;
         let new_young_modulus = material_data["new_material_values"]["young_modulus"]
             .as_str()
             .ok_or(JsValue::from("Actions router: Update material action: \
                 Material new Young's modulus value could not be extracted!"))?
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Update material action: \
-                Material new Young's modulus value could not be converted to f64!")))?;
+                Material new Young's modulus value could not be converted to FEFloat!")))?;
         let new_poisson_ratio = material_data["new_material_values"]["poisson_ratio"]
             .as_str()
             .ok_or(JsValue::from("Actions router: Update material action: \
                 Material new Poisson's ratio value could not be extracted!"))?
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Update material action: \
-                Material new Poisson's ratio value could not be converted to f64!")))?;
+                Material new Poisson's ratio value could not be converted to FEFloat!")))?;
         self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
         let action_type = ActionType::PropertiesActionType(PropertiesActionType::UpdateMaterial(
@@ -88,9 +90,9 @@ impl ActionsRouter
         -> Result<(), JsValue>
     {
         let action_id = material_data["actionId"].to_string()
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Delete material action: \
-                Action id could not be converted to u32!")))?;
+                Action id could not be converted to FEUInt!")))?;
         self.undo_actions.clear();
         let name = material_data["name"].to_string();
         let is_action_id_should_be_increased = true;
@@ -107,16 +109,16 @@ impl ActionsRouter
         -> Result<(), JsValue>
     {
         let action_id = truss_section_data["actionId"].to_string()
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Add truss section action: Action id could \
-                not be converted to u32!")))?;
+                not be converted to FEUInt!")))?;
         let name = truss_section_data["name"].to_string();
         let area = truss_section_data["area"].as_str()
             .ok_or(JsValue::from("Actions router: Add truss section action: \
                 Area value could not be extracted!"))?
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Add truss section action: \
-                Area value could not be converted to f64!")))?;
+                Area value could not be converted to FEFloat!")))?;
         let area2_value = truss_section_data["area2"].as_str()
             .ok_or(JsValue::from("Actions router: Add truss section action: Area 2 value \
                 could not be extracted!"))?;
@@ -128,9 +130,9 @@ impl ActionsRouter
                 }
                 else
                 {
-                    let converted_area2 = area2_value.parse::<f64>()
+                    let converted_area2 = area2_value.parse::<FEFloat>()
                         .or(Err(JsValue::from("Actions router: Add truss section action: \
-                            Area 2 value could not be converted to f64!")))?;
+                            Area 2 value could not be converted to FEFloat!")))?;
                     Some(converted_area2)
                 }
             };
@@ -149,15 +151,15 @@ impl ActionsRouter
         -> Result<(), JsValue>
     {
         let action_id = truss_section_data["actionId"].to_string()
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Update truss section action: \
-                Action id could not be converted to u32!")))?;
+                Action id could not be converted to FEUInt!")))?;
         let name = truss_section_data["name"].to_string();
         let old_area = truss_section_data["old_truss_section_values"]["area"]
             .to_string()
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Update truss section action: \
-                Truss section old Area value could not be converted to f64!")))?;
+                Truss section old Area value could not be converted to FEFloat!")))?;
         let old_area2 =
             {
                 if truss_section_data["old_truss_section_values"]["area2"].is_null()
@@ -169,9 +171,9 @@ impl ActionsRouter
                     let converted_area2 =
                         truss_section_data["old_truss_section_values"]["area2"]
                             .to_string()
-                            .parse::<f64>()
+                            .parse::<FEFloat>()
                             .or(Err(JsValue::from("Actions router: Update material action: \
-                                Truss section old Area 2 value could not be converted to f64!")))?;
+                                Truss section old Area 2 value could not be converted to FEFloat!")))?;
                     Some(converted_area2)
                 }
             };
@@ -179,9 +181,9 @@ impl ActionsRouter
             .as_str()
             .ok_or(JsValue::from("Actions router: Update truss section action: \
                 Truss section new Area value could not be extracted!"))?
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Update truss section action: \
-                Truss section new Area value could not be converted to f64!")))?;
+                Truss section new Area value could not be converted to FEFloat!")))?;
         let new_area2 =
             {
                 let new_area2_value = truss_section_data["new_truss_section_values"]["area2"]
@@ -194,10 +196,10 @@ impl ActionsRouter
                 }
                 else
                 {
-                    let converted_area2 = new_area2_value.parse::<f64>()
+                    let converted_area2 = new_area2_value.parse::<FEFloat>()
                         .or(Err(JsValue::from("Actions router: Update truss section \
                             action: Truss section new Area 2 value could not be converted \
-                            to f64!")))?;
+                            to FEFloat!")))?;
                     Some(converted_area2)
                 }
             };
@@ -216,9 +218,9 @@ impl ActionsRouter
         -> Result<(), JsValue>
     {
         let action_id = truss_section_data["actionId"].to_string()
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Delete truss section action: \
-                Action id could not be converted to u32!")))?;
+                Action id could not be converted to FEUInt!")))?;
         self.undo_actions.clear();
         let name = truss_section_data["name"].to_string();
         let is_action_id_should_be_increased = true;
@@ -235,40 +237,40 @@ impl ActionsRouter
         -> Result<(), JsValue>
     {
         let action_id = beam_section_data["actionId"].to_string()
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Add beam section action: Action id could \
-                not be converted to u32!")))?;
+                not be converted to FEUInt!")))?;
         let name = beam_section_data["name"].to_string();
         let area = beam_section_data["area"].as_str()
             .ok_or(JsValue::from("Actions router: Add beam section action: \
                 Area value could not be extracted!"))?
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Add beam section action: \
-                Area value could not be converted to f64!")))?;
+                Area value could not be converted to FEFloat!")))?;
         let i11 = beam_section_data["i11"].as_str()
             .ok_or(JsValue::from("Actions router: Add beam section action: \
                 I11 value could not be extracted!"))?
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Add beam section action: \
-                I11 value could not be converted to f64!")))?;
+                I11 value could not be converted to FEFloat!")))?;
         let i22 = beam_section_data["i22"].as_str()
             .ok_or(JsValue::from("Actions router: Add beam section action: \
                 I22 value could not be extracted!"))?
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Add beam section action: \
-                I22 value could not be converted to f64!")))?;
+                I22 value could not be converted to FEFloat!")))?;
         let i12 = beam_section_data["i12"].as_str()
             .ok_or(JsValue::from("Actions router: Add beam section action: \
                 I12 value could not be extracted!"))?
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Add beam section action: \
-                I12 value could not be converted to f64!")))?;
+                I12 value could not be converted to FEFloat!")))?;
         let it = beam_section_data["it"].as_str()
             .ok_or(JsValue::from("Actions router: Add beam section action: \
                 It value could not be extracted!"))?
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Add beam section action: \
-                It value could not be converted to f64!")))?;
+                It value could not be converted to FEFloat!")))?;
         self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
         let action_type = ActionType::PropertiesActionType(PropertiesActionType::AddBeamSection(
@@ -284,70 +286,70 @@ impl ActionsRouter
         -> Result<(), JsValue>
     {
         let action_id = beam_section_data["actionId"].to_string()
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Update beam section action: \
-                Action id could not be converted to u32!")))?;
+                Action id could not be converted to FEUInt!")))?;
         let name = beam_section_data["name"].to_string();
         let old_area = beam_section_data["old_beam_section_values"]["area"]
             .to_string()
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Update beam section action: \
-                Beam section old Area value could not be converted to f64!")))?;
+                Beam section old Area value could not be converted to FEFloat!")))?;
         let old_i11 = beam_section_data["old_beam_section_values"]["i11"]
             .to_string()
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Update beam section action: \
-                Beam section old I11 value could not be converted to f64!")))?;
+                Beam section old I11 value could not be converted to FEFloat!")))?;
         let old_i22 = beam_section_data["old_beam_section_values"]["i22"]
             .to_string()
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Update beam section action: \
-                Beam section old I22 value could not be converted to f64!")))?;
+                Beam section old I22 value could not be converted to FEFloat!")))?;
         let old_i12 = beam_section_data["old_beam_section_values"]["i12"]
             .to_string()
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Update beam section action: \
-                Beam section old I12 value could not be converted to f64!")))?;
+                Beam section old I12 value could not be converted to FEFloat!")))?;
         let old_it = beam_section_data["old_beam_section_values"]["it"]
             .to_string()
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Update beam section action: \
-                Beam section old It value could not be converted to f64!")))?;
+                Beam section old It value could not be converted to FEFloat!")))?;
         let new_area = beam_section_data["new_beam_section_values"]["area"]
             .as_str()
             .ok_or(JsValue::from("Actions router: Update beam section action: \
                 Beam section new Area value could not be extracted!"))?
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Update beam section action: \
-                Beam section new Area value could not be converted to f64!")))?;
+                Beam section new Area value could not be converted to FEFloat!")))?;
         let new_i11 = beam_section_data["new_beam_section_values"]["i11"]
             .as_str()
             .ok_or(JsValue::from("Actions router: Update beam section action: \
                 Beam section new I11 value could not be extracted!"))?
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Update beam section action: \
-                Beam section new I11 value could not be converted to f64!")))?;
+                Beam section new I11 value could not be converted to FEFloat!")))?;
         let new_i22 = beam_section_data["new_beam_section_values"]["i22"]
             .as_str()
             .ok_or(JsValue::from("Actions router: Update beam section action: \
                 Beam section new I22 value could not be extracted!"))?
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Update beam section action: \
-                Beam section new I22 value could not be converted to f64!")))?;
+                Beam section new I22 value could not be converted to FEFloat!")))?;
         let new_i12 = beam_section_data["new_beam_section_values"]["i12"]
             .as_str()
             .ok_or(JsValue::from("Actions router: Update beam section action: \
                 Beam section new I12 value could not be extracted!"))?
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Update beam section action: \
-                Beam section new I12 value could not be converted to f64!")))?;
+                Beam section new I12 value could not be converted to FEFloat!")))?;
         let new_it = beam_section_data["new_beam_section_values"]["it"]
             .as_str()
             .ok_or(JsValue::from("Actions router: Update beam section action: \
                 Beam section new It value could not be extracted!"))?
-            .parse::<f64>()
+            .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Update beam section action: \
-                Beam section new It value could not be converted to f64!")))?;
+                Beam section new It value could not be converted to FEFloat!")))?;
         self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
         let action_type = ActionType::PropertiesActionType(PropertiesActionType::UpdateBeamSection(
@@ -364,9 +366,9 @@ impl ActionsRouter
         -> Result<(), JsValue>
     {
         let action_id = beam_section_data["actionId"].to_string()
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Delete beam section action: \
-                Action id could not be converted to u32!")))?;
+                Action id could not be converted to FEUInt!")))?;
         self.undo_actions.clear();
         let name = beam_section_data["name"].to_string();
         let is_action_id_should_be_increased = true;
@@ -383,9 +385,9 @@ impl ActionsRouter
         -> Result<(), JsValue>
     {
         let action_id = properties_data["actionId"].to_string()
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Add properties action: Action id could \
-                not be converted to u32!")))?;
+                not be converted to FEUInt!")))?;
         let name = properties_data["name"].to_string();
         let material_name = properties_data["material_name"].to_string();
         let cross_section_name = properties_data["cross_section_name"].to_string();
@@ -406,9 +408,9 @@ impl ActionsRouter
         -> Result<(), JsValue>
     {
         let action_id = properties_data["actionId"].to_string()
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Update properties action: \
-                Action id could not be converted to u32!")))?;
+                Action id could not be converted to FEUInt!")))?;
         let name = properties_data["name"].to_string();
         let old_material_name = properties_data["old_properties_values"]
             ["material_name"].to_string();
@@ -439,9 +441,9 @@ impl ActionsRouter
         -> Result<(), JsValue>
     {
         let action_id = properties_data["actionId"].to_string()
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Delete properties action: \
-                Action id could not be converted to u32!")))?;
+                Action id could not be converted to FEUInt!")))?;
         self.undo_actions.clear();
         let name = properties_data["name"].to_string();
         let is_action_id_should_be_increased = true;
@@ -458,14 +460,14 @@ impl ActionsRouter
         assigned_properties_data: &Value) -> Result<(), JsValue>
     {
         let action_id = assigned_properties_data["actionId"].to_string()
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Add assigned properties action: \
-                Action id could not be converted to u32!")))?;
+                Action id could not be converted to FEUInt!")))?;
         let name = assigned_properties_data["name"].to_string();
-        let line_numbers = serde_json::from_value::<Vec<u32>>(
+        let line_numbers = serde_json::from_value::<Vec<FEUInt>>(
             assigned_properties_data["line_numbers"].clone())
             .or(Err(JsValue::from("Actions router: Add assigned properties action: \
-                Line numbers could not be converted to u32!")))?;
+                Line numbers could not be converted to FEUInt!")))?;
         self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
         let action_type = ActionType::PropertiesActionType(
@@ -482,19 +484,19 @@ impl ActionsRouter
         assigned_properties_data: &Value) -> Result<(), JsValue>
     {
         let action_id = assigned_properties_data["actionId"].to_string()
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Update assigned properties action: \
-                Action id could not be converted to u32!")))?;
+                Action id could not be converted to FEUInt!")))?;
         let name = assigned_properties_data["name"].to_string();
 
-        let old_line_numbers = serde_json::from_value::<Vec<u32>>(
+        let old_line_numbers = serde_json::from_value::<Vec<FEUInt>>(
             assigned_properties_data["old_assigned_properties_values"]["line_numbers"].clone())
             .or(Err(JsValue::from("Actions router: Update assigned properties action: \
-                Old line numbers could not be converted to u32!")))?;
-        let new_line_numbers = serde_json::from_value::<Vec<u32>>(
+                Old line numbers could not be converted to FEUInt!")))?;
+        let new_line_numbers = serde_json::from_value::<Vec<FEUInt>>(
             assigned_properties_data["new_assigned_properties_values"]["line_numbers"].clone())
             .or(Err(JsValue::from("Actions router: Update assigned properties action: \
-                New line numbers could not be converted to u32!")))?;
+                New line numbers could not be converted to FEUInt!")))?;
         self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
         let action_type = ActionType::PropertiesActionType(
@@ -511,9 +513,9 @@ impl ActionsRouter
         assigned_properties_data: &Value) -> Result<(), JsValue>
     {
         let action_id = assigned_properties_data["actionId"].to_string()
-            .parse::<u32>()
+            .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Delete assigned properties action: \
-                Action id could not be converted to u32!")))?;
+                Action id could not be converted to FEUInt!")))?;
         self.undo_actions.clear();
         let name = assigned_properties_data["name"].to_string();
         let is_action_id_should_be_increased = true;

@@ -374,6 +374,19 @@ class FeaApp extends HTMLElement {
                 this.querySelector("fea-preprocessor-menu").selectLineInClient = lineNumber;
             }   
 
+        } else if ("line_data_with_props" in objectInfo) {
+            const lineNumber = objectInfo.line_data_with_props.number;
+            const composedObjectInfo = `Line: 
+                number: ${lineNumber},
+                start point number: ${objectInfo.line_data_with_props.start_point_number},
+                end point number: ${objectInfo.line_data_with_props.end_point_number},
+                material name: ${objectInfo.line_data_with_props.material_name.replace(/['"]+/g, "")},
+                cross section name: ${objectInfo.line_data_with_props.cross_section_name.replace(/['"]+/g, "")},
+                cross section type: ${objectInfo.line_data_with_props.cross_section_type},`;
+            this.shadowRoot.querySelector("fea-renderer").objectInfo = composedObjectInfo;    
+            if (this.querySelector("fea-preprocessor-menu") !== null) {
+                this.querySelector("fea-preprocessor-menu").selectLineInClient = lineNumber;
+            }   
         } else {
             throw "Fea-app: Unknown object!";
         }

@@ -175,6 +175,26 @@ impl Properties
     }
 
 
+    pub fn extract_line_info_from_properties(&mut self, number: FEUInt)
+        -> Option<(String, String, String)>
+    {
+        for (assigned_property_name, assigned_property) in
+            self.assigned_properties.iter()
+        {
+            if assigned_property.extract_data().iter()
+                .position(|line_number| *line_number == number).is_some()
+            {
+                let property = self.properties.get(assigned_property_name).unwrap();
+                let (material_name, cross_section_name, cross_section_type) =
+                    property.extract_data();
+                return Some((material_name.to_owned(), cross_section_name.to_owned(),
+                    cross_section_type.as_str().to_lowercase().to_owned()));
+            }
+        }
+        None
+    }
+
+
     pub fn extract_materials(&self, handler: js_sys::Function) -> Result<(), JsValue>
     {
         let extracted_materials = json!({ "extracted_materials": self.materials });

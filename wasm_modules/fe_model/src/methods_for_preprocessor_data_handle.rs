@@ -290,4 +290,16 @@ impl FEModel
     {
         self.preprocessor.extract_assigned_properties(handler)
     }
+
+
+    pub fn show_point_info(&mut self, number: FEUInt) -> Result<JsValue, JsValue>
+    {
+        self.preprocessor.show_point_info(number)
+    }
+
+
+    pub fn show_line_info(&mut self, number: FEUInt) -> Result<JsValue, JsValue>
+    {
+        self.preprocessor.show_line_info(number)
+    }
 }

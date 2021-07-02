@@ -1,35 +1,38 @@
 use wasm_bindgen::JsValue;
 
+use crate::types::{FEUInt, FEFloat};
+
+
 #[derive(Clone, Debug)]
 pub struct Coordinates
 {
-    x: f64,
-    y: f64,
-    z: f64,
+    x: FEFloat,
+    y: FEFloat,
+    z: FEFloat,
 }
 
 
 impl Coordinates
 {
-    pub fn create(x: f64, y: f64, z: f64) -> Coordinates
+    pub fn create(x: FEFloat, y: FEFloat, z: FEFloat) -> Coordinates
     {
         Coordinates { x, y, z }
     }
 
 
-    pub fn get_x(&self) -> f64
+    pub fn get_x(&self) -> FEFloat
     {
         self.x
     }
 
 
-    pub fn get_y(&self) -> f64
+    pub fn get_y(&self) -> FEFloat
     {
         self.y
     }
 
 
-    pub fn get_z(&self) -> f64
+    pub fn get_z(&self) -> FEFloat
     {
         self.z
     }
@@ -40,29 +43,29 @@ impl Coordinates
 pub enum GeometryActionType
 {
     // ( number, Coordinates, is_action_id_should_be_increased )
-    AddPoint(u32, Coordinates, bool),
+    AddPoint(FEUInt, Coordinates, bool),
 
     // ( number, Coordinates, Coordinates, is_action_id_should_be_increased )
-    UpdatePoint(u32, Coordinates, Coordinates, bool),
+    UpdatePoint(FEUInt, Coordinates, Coordinates, bool),
 
     // ( number, is_action_id_should_be_increased )
-    DeletePoint(u32, bool),
+    DeletePoint(FEUInt, bool),
 
     // ( number, is_action_id_should_be_increased )
-    RestorePoint(u32, bool),
+    RestorePoint(FEUInt, bool),
 
     // ( number, start_point_number, end_point_number, is_action_id_should_be_increased )
-    AddLine(u32, u32, u32, bool),
+    AddLine(FEUInt, FEUInt, FEUInt, bool),
 
     // ( number, old_start_point_number, old_end_point_number,
     // new_start_point_number, new_end_point_number, is_action_id_should_be_increased )
-    UpdateLine(u32, u32, u32, u32, u32, bool),
+    UpdateLine(FEUInt, FEUInt, FEUInt, FEUInt, FEUInt, bool),
 
     // ( number, is_action_id_should_be_increased )
-    DeleteLine(u32, bool),
+    DeleteLine(FEUInt, bool),
 
     // ( number, is_action_id_should_be_increased )
-    RestoreLine(u32, bool),
+    RestoreLine(FEUInt, bool),
 }
 
 
@@ -70,11 +73,11 @@ pub enum GeometryActionType
 pub enum PropertiesActionType
 {
     // ( name, young_modulus, poisson_ratio, is_action_id_should_be_increased )
-    AddMaterial(String, f64, f64, bool),
+    AddMaterial(String, FEFloat, FEFloat, bool),
 
     // ( name, old_young_modulus, old_poisson_ratio,
     // new_young_modulus, new_poisson_ratio, is_action_id_should_be_increased )
-    UpdateMaterial(String, f64, f64, f64, f64, bool),
+    UpdateMaterial(String, FEFloat, FEFloat, FEFloat, FEFloat, bool),
 
     // ( name, is_action_id_should_be_increased )
     DeleteMaterial(String, bool),
@@ -83,10 +86,10 @@ pub enum PropertiesActionType
     RestoreMaterial(String, bool),
 
     // ( name, area, area2, is_action_id_should_be_increased )
-    AddTrussSection(String, f64, Option<f64>, bool),
+    AddTrussSection(String, FEFloat, Option<FEFloat>, bool),
 
     // ( name, old_area, old_area2, new_area, new_area2, is_action_id_should_be_increased )
-    UpdateTrussSection(String, f64, Option<f64>, f64, Option<f64>, bool),
+    UpdateTrussSection(String, FEFloat, Option<FEFloat>, FEFloat, Option<FEFloat>, bool),
 
     // ( name, is_action_id_should_be_increased )
     DeleteTrussSection(String, bool),
@@ -95,11 +98,12 @@ pub enum PropertiesActionType
     RestoreTrussSection(String, bool),
 
     // ( name, area, I11, I22, I12, It, is_action_id_should_be_increased )
-    AddBeamSection(String, f64, f64, f64, f64, f64, bool),
+    AddBeamSection(String, FEFloat, FEFloat, FEFloat, FEFloat, FEFloat, bool),
 
     // ( name, old_area, old_I11, old_I22, old_I12, old_It, new_area,
     // new_I11, new_I22, new_I12, new_It, is_action_id_should_be_increased )
-    UpdateBeamSection(String, f64, f64, f64, f64, f64, f64, f64, f64, f64, f64, bool),
+    UpdateBeamSection(String, FEFloat, FEFloat, FEFloat, FEFloat, FEFloat,
+        FEFloat, FEFloat, FEFloat, FEFloat, FEFloat, bool),
 
     // ( name, is_action_id_should_be_increased )
     DeleteBeamSection(String, bool),
@@ -123,10 +127,10 @@ pub enum PropertiesActionType
     RestoreProperties(String, bool),
 
     // ( name, line_numbers, is_action_id_should_be_increased )
-    AddAssignedProperties(String, Vec<u32>, bool),
+    AddAssignedProperties(String, Vec<FEUInt>, bool),
 
     // ( name, old_line_numbers, new_line_numbers, is_action_id_should_be_increased )
-    UpdateAssignedProperties(String, Vec<u32>, Vec<u32>,  bool),
+    UpdateAssignedProperties(String, Vec<FEUInt>, Vec<FEUInt>,  bool),
 
     // ( name, is_action_id_should_be_increased )
     DeleteAssignedProperties(String, bool),
@@ -143,10 +147,10 @@ pub enum ActionType
     PropertiesActionType(PropertiesActionType),
 
     // ( number, show_object_info_handler )
-    ShowPointInfo(u32, js_sys::Function),
+    ShowPointInfo(FEUInt, js_sys::Function),
 
     // ( number, show_object_info_handler )
-    ShowLineInfo(u32, js_sys::Function),
+    ShowLineInfo(FEUInt, js_sys::Function),
 
     // ( numbers, send_selected_lines_numbers_handler )
     ExtractLinesNumbers(JsValue, js_sys::Function),
@@ -180,26 +184,26 @@ impl From<PropertiesActionType> for ActionType
 #[derive(Clone)]
 pub struct Action
 {
-    action_id: u32,
+    action_id: FEUInt,
     action_type: ActionType,
 }
 
 
 impl Action
 {
-    pub fn create(action_id: u32, action_type: ActionType) -> Action
+    pub fn create(action_id: FEUInt, action_type: ActionType) -> Action
     {
         Action { action_id, action_type }
     }
 
 
-    pub fn action_id_same(&self, action_id: u32) -> bool
+    pub fn action_id_same(&self, action_id: FEUInt) -> bool
     {
         self.action_id == action_id
     }
 
 
-    pub fn get_action_id(&self) -> u32
+    pub fn get_action_id(&self) -> FEUInt
     {
         self.action_id
     }

@@ -4,7 +4,7 @@ class FeaSectionUpdateTrussMenu extends HTMLElement {
 
         this.props = {
             actionId: null,             // u32;
-            isPropertiesLoaded: false,  // load status of wasm module "properties";
+            isFEModelLoaded: false,     // load status of wasm module "fe_model";
             trussSections: [],          // array of: [{ name: String, area: f64, area2: f64 or null }];
         };
 
@@ -331,8 +331,8 @@ class FeaSectionUpdateTrussMenu extends HTMLElement {
         this.props.actionId = value;
     }
 
-    set isPropertiesLoaded(value) {
-        this.props.isPropertiesLoaded = value;
+    set isFEModelLoaded(value) {
+        this.props.isFEModelLoaded = value;
     }
 
     set trussSections(value) {
@@ -370,8 +370,8 @@ class FeaSectionUpdateTrussMenu extends HTMLElement {
             }
         }); 
         const frame = () => {
-            this.getPropertiesLoadStatus();
-            if (this.props.isPropertiesLoaded === true) {
+            this.getFEModelLoadStatus();
+            if (this.props.isFEModelLoaded === true) {
                 clearInterval(id);
                 this.getTrussSections();
                 this.defineTrussSectionNameOptions();
@@ -400,8 +400,8 @@ class FeaSectionUpdateTrussMenu extends HTMLElement {
         }));
     }
 
-    getPropertiesLoadStatus() {
-        this.dispatchEvent(new CustomEvent("getPropertiesLoadStatus", {
+    getFEModelLoadStatus() {
+        this.dispatchEvent(new CustomEvent("getFEModelLoadStatus", {
             bubbles: true,
             composed: true,
         }));

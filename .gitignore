@@ -23,7 +23,3 @@
 /wasm_modules/fe_model/.idea
 /wasm_modules/fe_model/Cargo.lock
 /wasm_modules/fe_model/target
-
-/wasm_modules/properties/.idea
-/wasm_modules/properties/Cargo.lock
-/wasm_modules/properties/target

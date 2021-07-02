@@ -4,7 +4,7 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
 
         this.props = {
             actionId: null,             // u32;
-            isPropertiesLoaded: false,  // load status of wasm module "properties";
+            isFEModelLoaded: false,     // load status of wasm module "fe_model";
             materials: [],              // array of: [{ name: String, young_modulus: f64, poisson_ratio: f64 }, ...];
             trussSections: [],          // array of: [{ name: String, area: f64, area2: f64 or null }];
             beamSections: [],           // array of: [{ name: String, area: f64, i11: f64, i22: f64, i12: f64, it: f64 }];
@@ -443,8 +443,8 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
         this.props.actionId = value;
     }
 
-    set isPropertiesLoaded(value) {
-        this.props.isPropertiesLoaded = value;
+    set isFEModelLoaded(value) {
+        this.props.isFEModelLoaded = value;
     }
 
     set materials(value) {
@@ -548,8 +548,8 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
             }
         });
         const frame = () => {
-            this.getPropertiesLoadStatus();
-            if (this.props.isPropertiesLoaded === true) {
+            this.getFEModelLoadStatus();
+            if (this.props.isFEModelLoaded === true) {
                 clearInterval(id);
                 this.getMaterials();
                 this.getTrussSections();
@@ -584,8 +584,8 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
         }));
     }
 
-    getPropertiesLoadStatus() {
-        this.dispatchEvent(new CustomEvent("getPropertiesLoadStatus", {
+    getFEModelLoadStatus() {
+        this.dispatchEvent(new CustomEvent("getFEModelLoadStatus", {
             bubbles: true,
             composed: true,
         }));

@@ -4,7 +4,7 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
 
         this.props = {
             actionId: null,             // u32;
-            isPropertiesLoaded: false,  // load status of wasm module "properties";
+            isFEModelLoaded: false,     // load status of wasm module "fe_model";
             materials: [],              // array of: [{ name: String, young_modulus: f64, poisson_ratio: f64 }, ...];
         };
 
@@ -275,8 +275,8 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
         this.props.actionId = value;
     }
 
-    set isPropertiesLoaded(value) {
-        this.props.isPropertiesLoaded = value;
+    set isFEModelLoaded(value) {
+        this.props.isFEModelLoaded = value;
     }
 
     set materials(value) {
@@ -311,8 +311,8 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
             }
         });
         const frame = () => {
-            this.getPropertiesLoadStatus();
-            if (this.props.isPropertiesLoaded === true) {
+            this.getFEModelLoadStatus();
+            if (this.props.isFEModelLoaded === true) {
                 clearInterval(id);
                 this.getMaterials();
                 this.defineNewMaterialName();
@@ -341,8 +341,8 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
         }));
     }
 
-    getPropertiesLoadStatus() {
-        this.dispatchEvent(new CustomEvent("getPropertiesLoadStatus", {
+    getFEModelLoadStatus() {
+        this.dispatchEvent(new CustomEvent("getFEModelLoadStatus", {
             bubbles: true,
             composed: true,
         }));

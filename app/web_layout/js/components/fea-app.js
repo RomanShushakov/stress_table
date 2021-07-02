@@ -11,7 +11,6 @@ class FeaApp extends HTMLElement {
             actionId: 1,                // u32;
             actionsRouter: null,        // wasm module "actions_router";
             isFEModelLoaded: false,     // load status of wasm module "fe_model";
-            isPropertiesLoaded: false,  // load status of wasm module "properties";
             pointsDataDependentMenus: [
                 "fea-geometry-add-point-menu",
                 "fea-geometry-update-point-menu",
@@ -100,11 +99,6 @@ class FeaApp extends HTMLElement {
             event.stopPropagation();
         });
 
-        window.addEventListener("propertiesLoaded", (event) => {
-            this.state.isPropertiesLoaded = true;
-            event.stopPropagation();
-        });
-
         window.addEventListener("resize", () => this.updateCanvasSize());
 
         this.addEventListener("activatePreprocessorMenu", () => this.activatePreprocessorMenu());
@@ -117,8 +111,6 @@ class FeaApp extends HTMLElement {
 
         this.addEventListener("getPoints", (event) => this.getPoints(event));
         this.addEventListener("getLines", (event) => this.getLines(event));
-
-        this.addEventListener("getPropertiesLoadStatus", (event) => this.getPropertiesLoadStatus(event));
 
         this.addEventListener("getMaterials", (event) => this.getMaterials(event));
         this.addEventListener("getTrussSections", (event) => this.getTrussSections(event));
@@ -233,11 +225,6 @@ class FeaApp extends HTMLElement {
                 this.querySelector(event.target.tagName.toLowerCase()).lines = lines; 
             }
         );
-        event.stopPropagation();
-    }
-
-    getPropertiesLoadStatus(event) {
-        this.querySelector(event.target.tagName.toLowerCase()).isPropertiesLoaded = this.state.isPropertiesLoaded;
         event.stopPropagation();
     }
 

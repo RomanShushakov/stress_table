@@ -5,7 +5,6 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
         this.props = {
             actionId: null,                 // u32;
             isFEModelLoaded: false,         // load status of wasm module "fe_model";
-            isPropertiesLoaded: false,      // load status of wasm module "properties";
             lines: new Map(),               // map: { number: u32, start_point_number: u32, end_point_number: u32 }, ...};
             properties: [],                 // array of: [{ name: String, material_name: String, cross_section_name: String,
                                             //              cross_section_type: String }];
@@ -589,10 +588,6 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
         this.props.isFEModelLoaded = value;
     }
 
-    set isPropertiesLoaded(value) {
-        this.props.isPropertiesLoaded = value;
-    }
-
     set lines(value) {
         this.props.lines = value;
     }
@@ -632,8 +627,7 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
         document.querySelector("fea-app").dispatchEvent(new CustomEvent("enableLinesSelectionMode"));
         const frame = () => {
             this.getFEModelLoadStatus();
-            this.getPropertiesLoadStatus();
-            if (this.props.isFEModelLoaded === true && this.props.isPropertiesLoaded) {
+            if (this.props.isFEModelLoaded === true) {
                 clearInterval(id);
                 this.getLines();
                 this.getProperties();
@@ -667,13 +661,6 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
 
     getFEModelLoadStatus() {
         this.dispatchEvent(new CustomEvent("getFEModelLoadStatus", {
-            bubbles: true,
-            composed: true,
-        }));
-    }
-
-    getPropertiesLoadStatus() {
-        this.dispatchEvent(new CustomEvent("getPropertiesLoadStatus", {
             bubbles: true,
             composed: true,
         }));

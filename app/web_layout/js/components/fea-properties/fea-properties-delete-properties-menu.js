@@ -4,7 +4,7 @@ class FeaPropertiesDeletePropertiesMenu extends HTMLElement {
 
         this.props = {
             actionId: null,             // u32;
-            isPropertiesLoaded: false,  // load status of wasm module "properties";
+            isFEModelLoaded: false,     // load status of wasm module "fe_model";
             properties: [],             // array of: [{ name: String, material_name: String, cross_section_name: String,
                                         //              cross_section_type: String }];
         };
@@ -214,8 +214,8 @@ class FeaPropertiesDeletePropertiesMenu extends HTMLElement {
         this.props.actionId = value;
     }
 
-    set isPropertiesLoaded(value) {
-        this.props.isPropertiesLoaded = value;
+    set isFEModelLoaded(value) {
+        this.props.isFEModelLoaded = value;
     }
 
     set properties(value) {
@@ -248,8 +248,8 @@ class FeaPropertiesDeletePropertiesMenu extends HTMLElement {
             }
         });
         const frame = () => {
-            this.getPropertiesLoadStatus();
-            if (this.props.isPropertiesLoaded === true) {
+            this.getFEModelLoadStatus();
+            if (this.props.isFEModelLoaded === true) {
                 clearInterval(id);
                 this.getProperties();
                 this.definePropertiesNameOptions();
@@ -278,8 +278,8 @@ class FeaPropertiesDeletePropertiesMenu extends HTMLElement {
         }));
     }
 
-    getPropertiesLoadStatus() {
-        this.dispatchEvent(new CustomEvent("getPropertiesLoadStatus", {
+    getFEModelLoadStatus() {
+        this.dispatchEvent(new CustomEvent("getFEModelLoadStatus", {
             bubbles: true,
             composed: true,
         }));

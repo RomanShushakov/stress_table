@@ -4,7 +4,7 @@ class FeaSectionUpdateBeamMenu extends HTMLElement {
 
         this.props = {
             actionId: null,             // u32;
-            isPropertiesLoaded: false,  // load status of wasm module "properties";
+            isFEModelLoaded: false,     // load status of wasm module "fe_model";
             beamSections: [],           // array of: [{ name: String, area: f64, i11: f64, i22: f64, i12: f64, it: f64 }];
         };
 
@@ -510,8 +510,8 @@ class FeaSectionUpdateBeamMenu extends HTMLElement {
         this.props.actionId = value;
     }
 
-    set isPropertiesLoaded(value) {
-        this.props.isPropertiesLoaded = value;
+    set isFEModelLoaded(value) {
+        this.props.isFEModelLoaded = value;
     }
 
     set beamSections(value) {
@@ -552,8 +552,8 @@ class FeaSectionUpdateBeamMenu extends HTMLElement {
             }
         }); 
         const frame = () => {
-            this.getPropertiesLoadStatus();
-            if (this.props.isPropertiesLoaded === true) {
+            this.getFEModelLoadStatus();
+            if (this.props.isFEModelLoaded === true) {
                 clearInterval(id);
                 this.getBeamSections();
                 this.defineBeamSectionNameOptions();
@@ -582,8 +582,8 @@ class FeaSectionUpdateBeamMenu extends HTMLElement {
         }));
     }
 
-    getPropertiesLoadStatus() {
-        this.dispatchEvent(new CustomEvent("getPropertiesLoadStatus", {
+    getFEModelLoadStatus() {
+        this.dispatchEvent(new CustomEvent("getFEModelLoadStatus", {
             bubbles: true,
             composed: true,
         }));

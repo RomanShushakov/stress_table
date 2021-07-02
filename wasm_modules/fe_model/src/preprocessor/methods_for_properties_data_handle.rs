@@ -1,99 +1,22 @@
 use wasm_bindgen::prelude::*;
 
-use crate::FEModel;
+use crate::Preprocessor;
 
 use crate::types::{FEUInt, FEFloat};
 
 
-#[wasm_bindgen]
-impl FEModel
+impl Preprocessor
 {
-    pub fn clear_geometry_module_by_action_id(&mut self, action_id: FEUInt)
-    {
-        self.preprocessor.clear_geometry_module_by_action_id(action_id);
-    }
-
-
-    pub fn add_point(&mut self, action_id: FEUInt, number: FEUInt, x: FEFloat, y: FEFloat,
-        z: FEFloat, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
-    {
-        self.preprocessor.add_point(action_id, number, x, y, z, is_action_id_should_be_increased)
-    }
-
-
-    pub fn update_point(&mut self, action_id: FEUInt, number: FEUInt, x: FEFloat, y: FEFloat,
-        z: FEFloat, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
-    {
-        self.preprocessor.update_point(action_id, number, x, y, z, is_action_id_should_be_increased)
-    }
-
-
-    pub fn delete_point(&mut self, action_id: FEUInt, number: FEUInt,
-        is_action_id_should_be_increased: bool) -> Result<JsValue, JsValue>
-    {
-        self.preprocessor.delete_point(action_id, number, is_action_id_should_be_increased)
-    }
-
-
-    pub fn restore_point(&mut self, action_id: FEUInt, number: FEUInt,
-        is_action_id_should_be_increased: bool) -> Result<JsValue, JsValue>
-    {
-        self.preprocessor.restore_point(action_id, number, is_action_id_should_be_increased)
-    }
-
-
-    pub fn add_line(&mut self, action_id: FEUInt, number: FEUInt, start_point_number: FEUInt,
-        end_point_number: FEUInt, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
-    {
-        self.preprocessor.add_line(action_id, number, start_point_number, end_point_number,
-            is_action_id_should_be_increased)
-    }
-
-
-    pub fn update_line(&mut self, action_id: FEUInt, number: FEUInt, start_point_number: FEUInt,
-        end_point_number: FEUInt, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
-    {
-        self.preprocessor.update_line(action_id, number, start_point_number, end_point_number,
-            is_action_id_should_be_increased)
-    }
-
-
-    pub fn delete_line(&mut self, action_id: FEUInt, number: FEUInt,
-        is_action_id_should_be_increased: bool) -> Result<JsValue, JsValue>
-    {
-        self.preprocessor.delete_line(action_id, number, is_action_id_should_be_increased)
-    }
-
-
-    pub fn restore_line(&mut self, action_id: FEUInt, number: FEUInt,
-        is_action_id_should_be_increased: bool) -> Result<JsValue, JsValue>
-    {
-        self.preprocessor.restore_line(action_id, number, is_action_id_should_be_increased)
-    }
-
-
-    pub fn extract_points(&self, handler: js_sys::Function) -> Result<(), JsValue>
-    {
-        self.preprocessor.extract_points(handler)
-    }
-
-
-    pub fn extract_lines(&self, handler: js_sys::Function) -> Result<(), JsValue>
-    {
-        self.preprocessor.extract_lines(handler)
-    }
-
-
     pub fn clear_properties_module_by_action_id(&mut self, action_id: FEUInt)
     {
-        self.preprocessor.clear_properties_module_by_action_id(action_id)
+        self.properties.clear_properties_module_by_action_id(action_id)
     }
 
 
     pub fn add_material(&mut self, action_id: FEUInt, name: &str, young_modulus: FEFloat,
         poisson_ratio: FEFloat, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.preprocessor.add_material(action_id, name, young_modulus, poisson_ratio,
+        self.properties.add_material(action_id, name, young_modulus, poisson_ratio,
             is_action_id_should_be_increased)
     }
 
@@ -101,7 +24,7 @@ impl FEModel
     pub fn update_material(&mut self, action_id: FEUInt, name: &str, young_modulus: FEFloat,
         poisson_ratio: FEFloat, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.preprocessor.update_material(action_id, name, young_modulus, poisson_ratio,
+        self.properties.update_material(action_id, name, young_modulus, poisson_ratio,
             is_action_id_should_be_increased)
     }
 
@@ -109,21 +32,21 @@ impl FEModel
     pub fn delete_material(&mut self, action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.preprocessor.delete_material(action_id, name, is_action_id_should_be_increased)
+        self.properties.delete_material(action_id, name, is_action_id_should_be_increased)
     }
 
 
     pub fn restore_material(&mut self, action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.preprocessor.restore_material(action_id, name, is_action_id_should_be_increased)
+        self.properties.restore_material(action_id, name, is_action_id_should_be_increased)
     }
 
 
     pub fn add_truss_section(&mut self, action_id: FEUInt, name: &str, area: FEFloat,
         area2: Option<FEFloat>, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.preprocessor.add_truss_section(action_id, name, area, area2,
+        self.properties.add_truss_section(action_id, name, area, area2,
             is_action_id_should_be_increased)
     }
 
@@ -131,7 +54,7 @@ impl FEModel
     pub fn update_truss_section(&mut self, action_id: FEUInt, name: &str, area: FEFloat,
         area2: Option<FEFloat>, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.preprocessor.update_truss_section(action_id, name, area, area2,
+        self.properties.update_truss_section(action_id, name, area, area2,
             is_action_id_should_be_increased)
     }
 
@@ -139,7 +62,7 @@ impl FEModel
     pub fn delete_truss_section(&mut self, action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.preprocessor.delete_truss_section(action_id, name,
+        self.properties.delete_truss_section(action_id, name,
             is_action_id_should_be_increased)
     }
 
@@ -147,7 +70,7 @@ impl FEModel
     pub fn restore_truss_section(&mut self, action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.preprocessor.restore_truss_section(action_id, name,
+        self.properties.restore_truss_section(action_id, name,
             is_action_id_should_be_increased)
     }
 
@@ -156,7 +79,7 @@ impl FEModel
         i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat, is_action_id_should_be_increased: bool)
         -> Result<(), JsValue>
     {
-        self.preprocessor.add_beam_section(action_id, name, area, i11, i22, i12, it,
+        self.properties.add_beam_section(action_id, name, area, i11, i22, i12, it,
             is_action_id_should_be_increased)
     }
 
@@ -165,7 +88,7 @@ impl FEModel
         i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat, is_action_id_should_be_increased: bool)
         -> Result<(), JsValue>
     {
-        self.preprocessor.update_beam_section(action_id, name, area, i11, i22, i12, it,
+        self.properties.update_beam_section(action_id, name, area, i11, i22, i12, it,
             is_action_id_should_be_increased)
     }
 
@@ -173,14 +96,14 @@ impl FEModel
     pub fn delete_beam_section(&mut self, action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.preprocessor.delete_beam_section(action_id, name, is_action_id_should_be_increased)
+        self.properties.delete_beam_section(action_id, name, is_action_id_should_be_increased)
     }
 
 
     pub fn restore_beam_section(&mut self, action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.preprocessor.restore_beam_section(action_id, name, is_action_id_should_be_increased)
+        self.properties.restore_beam_section(action_id, name, is_action_id_should_be_increased)
     }
 
 
@@ -188,7 +111,7 @@ impl FEModel
         cross_section_name: &str, cross_section_type: &str, is_action_id_should_be_increased: bool)
         -> Result<(), JsValue>
     {
-        self.preprocessor.add_properties(action_id, name, material_name, cross_section_name,
+        self.properties.add_properties(action_id, name, material_name, cross_section_name,
             cross_section_type, is_action_id_should_be_increased)
     }
 
@@ -197,7 +120,7 @@ impl FEModel
         cross_section_name: &str, cross_section_type: &str, is_action_id_should_be_increased: bool)
         -> Result<(), JsValue>
     {
-        self.preprocessor.update_properties(action_id, name, material_name, cross_section_name,
+        self.properties.update_properties(action_id, name, material_name, cross_section_name,
             cross_section_type, is_action_id_should_be_increased)
     }
 
@@ -205,21 +128,21 @@ impl FEModel
     pub fn delete_properties(&mut self, action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.preprocessor.delete_properties(action_id, name, is_action_id_should_be_increased)
+        self.properties.delete_properties(action_id, name, is_action_id_should_be_increased)
     }
 
 
     pub fn restore_properties(&mut self, action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.preprocessor.restore_properties(action_id, name, is_action_id_should_be_increased)
+        self.properties.restore_properties(action_id, name, is_action_id_should_be_increased)
     }
 
 
     pub fn add_assigned_properties(&mut self, action_id: FEUInt, name: &str, line_numbers: &[FEUInt],
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.preprocessor.add_assigned_properties(action_id, name, line_numbers,
+        self.properties.add_assigned_properties(action_id, name, line_numbers,
             is_action_id_should_be_increased)
     }
 
@@ -227,7 +150,7 @@ impl FEModel
     pub fn update_assigned_properties(&mut self, action_id: FEUInt, name: &str, line_numbers: &[FEUInt],
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.preprocessor.update_assigned_properties(action_id, name, line_numbers,
+        self.properties.update_assigned_properties(action_id, name, line_numbers,
             is_action_id_should_be_increased)
     }
 
@@ -235,7 +158,7 @@ impl FEModel
     pub fn delete_assigned_properties(&mut self, action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.preprocessor.delete_assigned_properties(action_id, name,
+        self.properties.delete_assigned_properties(action_id, name,
             is_action_id_should_be_increased)
     }
 
@@ -243,7 +166,7 @@ impl FEModel
     pub fn restore_assigned_properties(&mut self, action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.preprocessor.restore_assigned_properties(action_id, name,
+        self.properties.restore_assigned_properties(action_id, name,
             is_action_id_should_be_increased)
     }
 
@@ -251,43 +174,43 @@ impl FEModel
     pub fn delete_line_numbers(&mut self, action_id: FEUInt, line_numbers: JsValue)
         -> Result<(), JsValue>
     {
-        self.preprocessor.delete_line_numbers(action_id, line_numbers)
+        self.properties.delete_line_numbers(action_id, line_numbers)
     }
 
 
     pub fn restore_line_numbers(&mut self, action_id: FEUInt, line_numbers: JsValue)
         -> Result<(), JsValue>
     {
-        self.preprocessor.restore_line_numbers(action_id, line_numbers)
+        self.properties.restore_line_numbers(action_id, line_numbers)
     }
 
 
     pub fn extract_materials(&self, handler: js_sys::Function) -> Result<(), JsValue>
     {
-        self.preprocessor.extract_materials(handler)
+        self.properties.extract_materials(handler)
     }
 
 
     pub fn extract_truss_sections(&self, handler: js_sys::Function) -> Result<(), JsValue>
     {
-        self.preprocessor.extract_truss_sections(handler)
+        self.properties.extract_truss_sections(handler)
     }
 
 
     pub fn extract_beam_sections(&self, handler: js_sys::Function) -> Result<(), JsValue>
     {
-        self.preprocessor.extract_beam_sections(handler)
+        self.properties.extract_beam_sections(handler)
     }
 
 
     pub fn extract_properties(&self, handler: js_sys::Function) -> Result<(), JsValue>
     {
-        self.preprocessor.extract_properties(handler)
+        self.properties.extract_properties(handler)
     }
 
 
     pub fn extract_assigned_properties(&self, handler: js_sys::Function) -> Result<(), JsValue>
     {
-        self.preprocessor.extract_assigned_properties(handler)
+        self.properties.extract_assigned_properties(handler)
     }
 }

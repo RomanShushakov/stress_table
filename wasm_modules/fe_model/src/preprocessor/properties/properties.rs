@@ -175,8 +175,7 @@ impl Properties
     }
 
 
-    pub fn extract_materials(&self, handler: js_sys::Function)
-        -> Result<(), JsValue>
+    pub fn extract_materials(&self, handler: js_sys::Function) -> Result<(), JsValue>
     {
         let extracted_materials = json!({ "extracted_materials": self.materials });
         let composed_extracted_materials =
@@ -189,8 +188,7 @@ impl Properties
     }
 
 
-    pub fn extract_truss_sections(&self, handler: js_sys::Function)
-        -> Result<(), JsValue>
+    pub fn extract_truss_sections(&self, handler: js_sys::Function) -> Result<(), JsValue>
     {
         let extracted_truss_sections = json!(
             { "extracted_truss_sections": self.truss_sections });
@@ -204,8 +202,7 @@ impl Properties
     }
 
 
-    pub fn extract_beam_sections(&self, handler: js_sys::Function)
-        -> Result<(), JsValue>
+    pub fn extract_beam_sections(&self, handler: js_sys::Function) -> Result<(), JsValue>
     {
         let extracted_beam_sections = json!(
             { "extracted_beam_sections": self.beam_sections });
@@ -219,8 +216,7 @@ impl Properties
     }
 
 
-    pub fn extract_properties(&self, handler: js_sys::Function)
-        -> Result<(), JsValue>
+    pub fn extract_properties(&self, handler: js_sys::Function) -> Result<(), JsValue>
     {
         let extracted_properties = json!(
             { "extracted_properties": self.properties });
@@ -234,8 +230,7 @@ impl Properties
     }
 
 
-    pub fn extract_assigned_properties(&self, handler: js_sys::Function)
-        -> Result<(), JsValue>
+    pub fn extract_assigned_properties(&self, handler: js_sys::Function) -> Result<(), JsValue>
     {
         let extracted_assigned_properties = json!(
             { "extracted_assigned_properties": self.assigned_properties });

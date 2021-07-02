@@ -26,8 +26,6 @@ RUN cd ./wasm_modules/actions_router &&  \
     wasm-pack build --target web --out-name actions_router --out-dir ../../app/web_layout/wasm/actions_router --no-typescript && \
     cd ../fe_model && \
     wasm-pack build --target web --out-name fe_model --out-dir ../../app/web_layout/wasm/fe_model --no-typescript && \
-    cd ../properties && \
-    wasm-pack build --target web --out-name properties --out-dir ../../app/web_layout/wasm/properties --no-typescript && \
     cd ../renderer && \
     wasm-pack build --target web --out-name renderer --out-dir ../../app/web_layout/wasm/renderer --no-typescript
 

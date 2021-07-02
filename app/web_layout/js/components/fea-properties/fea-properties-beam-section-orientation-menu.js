@@ -4,7 +4,7 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
 
         this.props = {
             actionId: null,                 // u32;
-            isGeometryLoaded: false,        // load status of wasm module "geometry";
+            isFEModelLoaded: false,         // load status of wasm module "fe_model";
             isPropertiesLoaded: false,      // load status of wasm module "properties";
             lines: new Map(),               // map: { number: u32, start_point_number: u32, end_point_number: u32 }, ...};
             properties: [],                 // array of: [{ name: String, material_name: String, cross_section_name: String,
@@ -585,8 +585,8 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
         this.props.actionId = value;
     }
 
-    set isGeometryLoaded(value) {
-        this.props.isGeometryLoaded = value;
+    set isFEModelLoaded(value) {
+        this.props.isFEModelLoaded = value;
     }
 
     set isPropertiesLoaded(value) {
@@ -631,9 +631,9 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
         });
         document.querySelector("fea-app").dispatchEvent(new CustomEvent("enableLinesSelectionMode"));
         const frame = () => {
-            this.getGeometryLoadStatus();
+            this.getFEModelLoadStatus();
             this.getPropertiesLoadStatus();
-            if (this.props.isGeometryLoaded === true && this.props.isPropertiesLoaded) {
+            if (this.props.isFEModelLoaded === true && this.props.isPropertiesLoaded) {
                 clearInterval(id);
                 this.getLines();
                 this.getProperties();
@@ -665,8 +665,8 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
         }));
     }
 
-    getGeometryLoadStatus() {
-        this.dispatchEvent(new CustomEvent("getGeometryLoadStatus", {
+    getFEModelLoadStatus() {
+        this.dispatchEvent(new CustomEvent("getFEModelLoadStatus", {
             bubbles: true,
             composed: true,
         }));

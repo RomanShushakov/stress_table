@@ -1,19 +1,19 @@
-import { initializeGeometry } from "../wasm_modules_initialization/geometry_initialization.js";
+import { initializeFEModel } from "../wasm_modules_initialization/fe_model_initialization.js";
 
-class CommunicatorWithGeometry {
+class CommunicatorWithFEModel {
     constructor() {
         this.state = {
-            geometry: null,         // wasm module "actions_router";
-            objectInfo: null,       // String;
-            lineNumbers: [], // array of: [u32...];
+            feModel: null,     // wasm module "fe_model";
+            objectInfo: null,   // String;
+            lineNumbers: [],    // array of: [u32...];
         };
 
-        this.initGeometry();
+        this.initFEModel();
     }
 
-    async initGeometry() {
-        this.state.geometry = await initializeGeometry();
-        window.dispatchEvent(new CustomEvent("geometryLoaded", {
+    async initFEModel() {
+        this.state.feModel = await initializeFEModel();
+        window.dispatchEvent(new CustomEvent("feModelLoaded", {
             bubbles: true,
             composed: true,
         }));
@@ -21,7 +21,7 @@ class CommunicatorWithGeometry {
 
     set addPointToGeometry(pointData) {
         try {
-            this.state.geometry.add_point(pointData.action_id, pointData.number, pointData.x, pointData.y, pointData.z,
+            this.state.feModel.add_point(pointData.action_id, pointData.number, pointData.x, pointData.y, pointData.z,
                 pointData.is_action_id_should_be_increased);
         } catch (error) {
             throw error;
@@ -30,7 +30,7 @@ class CommunicatorWithGeometry {
 
     set updatePointInGeometry(pointData) {
         try {
-            this.state.geometry.update_point(pointData.action_id, pointData.number, pointData.x, pointData.y, pointData.z,
+            this.state.feModel.update_point(pointData.action_id, pointData.number, pointData.x, pointData.y, pointData.z,
                 pointData.is_action_id_should_be_increased);
         } catch (error) {
             throw error;
@@ -40,7 +40,7 @@ class CommunicatorWithGeometry {
 
     set deletePointFromGeometry(pointData) {
         try {
-            const deletedLineNumbers = this.state.geometry.delete_point(pointData.action_id,
+            const deletedLineNumbers = this.state.feModel.delete_point(pointData.action_id,
                 pointData.number, pointData.is_action_id_should_be_increased);
             this.state.lineNumbers = deletedLineNumbers;
         } catch (error) {
@@ -50,7 +50,7 @@ class CommunicatorWithGeometry {
 
     set restorePointInGeometry(pointData) {
         try {
-            const restoredLineNumbers = this.state.geometry.restore_point(pointData.action_id,
+            const restoredLineNumbers = this.state.feModel.restore_point(pointData.action_id,
                 pointData.number, pointData.is_action_id_should_be_increased);
             this.state.lineNumbers = restoredLineNumbers;
         } catch (error) {
@@ -60,7 +60,7 @@ class CommunicatorWithGeometry {
 
     set addLineToGeometry(lineData) {
         try {
-            this.state.geometry.add_line(lineData.action_id, lineData.number, lineData.start_point_number, lineData.end_point_number,
+            this.state.feModel.add_line(lineData.action_id, lineData.number, lineData.start_point_number, lineData.end_point_number,
                 lineData.is_action_id_should_be_increased);
         } catch (error) {
             throw error;
@@ -69,7 +69,7 @@ class CommunicatorWithGeometry {
 
     set updateLineInGeometry(lineData) {
         try {
-            this.state.geometry.update_line(lineData.action_id, lineData.number, lineData.start_point_number, lineData.end_point_number,
+            this.state.feModel.update_line(lineData.action_id, lineData.number, lineData.start_point_number, lineData.end_point_number,
                 lineData.is_action_id_should_be_increased);
         } catch (error) {
             throw error;
@@ -78,7 +78,7 @@ class CommunicatorWithGeometry {
 
     set deleteLineFromGeometry(lineData) {
         try {
-            const deletedLineNumbers = this.state.geometry.delete_line(lineData.action_id,
+            const deletedLineNumbers = this.state.feModel.delete_line(lineData.action_id,
                 lineData.number, lineData.is_action_id_should_be_increased);
             this.state.lineNumbers = deletedLineNumbers;
         } catch (error) {
@@ -88,7 +88,7 @@ class CommunicatorWithGeometry {
 
     set restoreLineInGeometry(lineData) {
         try {
-            const restoredLineNumbers = this.state.geometry.restore_line(lineData.action_id,
+            const restoredLineNumbers = this.state.feModel.restore_line(lineData.action_id,
                 lineData.number, lineData.is_action_id_should_be_increased);
             this.state.lineNumbers = restoredLineNumbers;
         } catch (error) {
@@ -98,7 +98,7 @@ class CommunicatorWithGeometry {
 
     set showPointInfo(number) {
         try {
-            const pointInfo = this.state.geometry.show_point_info(number);
+            const pointInfo = this.state.feModel.show_point_info(number);
             this.state.objectInfo = pointInfo;
         } catch (error) {
             throw error;
@@ -107,7 +107,7 @@ class CommunicatorWithGeometry {
 
     set showLineInfo(number) {
         try {
-            const lineInfo = this.state.geometry.show_line_info(number);
+            const lineInfo = this.state.feModel.show_line_info(number);
             this.state.objectInfo = lineInfo;
         } catch (error) {
             throw error;
@@ -127,16 +127,16 @@ class CommunicatorWithGeometry {
     }
 
     set clearGeometryModuleByActionId(action_id) {
-        this.state.geometry.clear_geometry_module_by_action_id(action_id);
+        this.state.feModel.clear_geometry_module_by_action_id(action_id);
     }
 
     set extractPoints(handler) {
-        this.state.geometry.extract_points(handler);
+        this.state.feModel.extract_points(handler);
     }
 
     set extractLines(handler) {
-        this.state.geometry.extract_lines(handler);
+        this.state.feModel.extract_lines(handler);
     }
 }
 
-export const communicatorWithGeometry = new CommunicatorWithGeometry();
+export const communicatorWithFEModel = new CommunicatorWithFEModel();

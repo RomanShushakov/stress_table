@@ -15,9 +15,9 @@
 /wasm_modules/actions_router/Cargo.lock
 /wasm_modules/actions_router/target
 
-/wasm_modules/geometry/.idea
-/wasm_modules/geometry/Cargo.lock
-/wasm_modules/geometry/target
+/wasm_modules/fe_model/.idea
+/wasm_modules/fe_model/Cargo.lock
+/wasm_modules/fe_model/target
 
 /wasm_modules/properties/.idea
 /wasm_modules/properties/Cargo.lock

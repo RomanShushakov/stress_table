@@ -4,7 +4,7 @@ class FeaGeometryAddPointMenu extends HTMLElement {
 
         this.props = {
             actionId: null,             // u32;
-            isGeometryLoaded: false,    // load status of wasm module "geometry";
+            isFEModelLoaded: false,     // load status of wasm module "fe_model";
             points: new Map(),          // map: { number: u32, { x: f64, y: f64, z: f64}, ... };
         };
 
@@ -344,8 +344,8 @@ class FeaGeometryAddPointMenu extends HTMLElement {
         this.props.actionId = value;
     }
 
-    set isGeometryLoaded(value) {
-        this.props.isGeometryLoaded = value;
+    set isFEModelLoaded(value) {
+        this.props.isFEModelLoaded = value;
     }
 
     set points(value) {
@@ -375,8 +375,8 @@ class FeaGeometryAddPointMenu extends HTMLElement {
             }
         });
         const frame = () => {
-            this.getGeometryLoadStatus();
-            if (this.props.isGeometryLoaded === true) {
+            this.getFEModelLoadStatus();
+            if (this.props.isFEModelLoaded === true) {
                 clearInterval(id);
                 this.getPoints();
                 this.defineNewPointNumber();
@@ -405,8 +405,8 @@ class FeaGeometryAddPointMenu extends HTMLElement {
         }));
     }
 
-    getGeometryLoadStatus() {
-        this.dispatchEvent(new CustomEvent("getGeometryLoadStatus", {
+    getFEModelLoadStatus() {
+        this.dispatchEvent(new CustomEvent("getFEModelLoadStatus", {
             bubbles: true,
             composed: true,
         }));

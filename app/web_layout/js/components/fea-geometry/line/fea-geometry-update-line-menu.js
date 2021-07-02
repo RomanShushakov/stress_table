@@ -4,7 +4,7 @@ class FeaGeometryUpdateLineMenu extends HTMLElement {
 
         this.props = {
             actionId: null,             // u32;
-            isGeometryLoaded: false,    // load status of wasm module "geometry";
+            isFEModelLoaded: false,     // load status of wasm module "fe_model";
             points: new Map(),          // map: { number: u32, { x: f64, y: f64, z: f64}, ... };
             lines: new Map(),           // map: { number: u32, start_point_number: u32, end_point_number: u32 }, ...};
         };
@@ -466,8 +466,8 @@ class FeaGeometryUpdateLineMenu extends HTMLElement {
         this.props.actionId = value;
     }
 
-    set isGeometryLoaded(value) {
-        this.props.isGeometryLoaded = value;
+    set isFEModelLoaded(value) {
+        this.props.isFEModelLoaded = value;
     }
 
     set points(value) {
@@ -505,7 +505,7 @@ class FeaGeometryUpdateLineMenu extends HTMLElement {
 
     set selectLineInClient(lineNumber) {
         const frame = () => {
-            if (this.props.isGeometryLoaded === true) {
+            if (this.props.isFEModelLoaded === true) {
                 clearInterval(id);
                 const lineNumberSelect =  this.shadowRoot.querySelector(".line-number");
                 const lineNumberOptions =  lineNumberSelect.options;
@@ -530,8 +530,8 @@ class FeaGeometryUpdateLineMenu extends HTMLElement {
             }
         });
         const frame = () => {
-            this.getGeometryLoadStatus();
-            if (this.props.isGeometryLoaded === true) {
+            this.getFEModelLoadStatus();
+            if (this.props.isFEModelLoaded === true) {
                 clearInterval(id);
                 this.getPoints();
                 this.getLines();
@@ -561,8 +561,8 @@ class FeaGeometryUpdateLineMenu extends HTMLElement {
         }));
     }
 
-    getGeometryLoadStatus() {
-        this.dispatchEvent(new CustomEvent("getGeometryLoadStatus", {
+    getFEModelLoadStatus() {
+        this.dispatchEvent(new CustomEvent("getFEModelLoadStatus", {
             bubbles: true,
             composed: true,
         }));

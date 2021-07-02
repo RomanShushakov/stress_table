@@ -4,7 +4,7 @@ class FeaGeometryDeleteLineMenu extends HTMLElement {
 
         this.props = {
             actionId: null,             // u32;
-            isGeometryLoaded: false,    // load status of wasm module "geometry";
+            isFEModelLoaded: false,     // load status of wasm module "fe_model";
             lines: new Map(),           // map: { number: u32, start_point_number: u32, end_point_number: u32 }, ...};
         };
 
@@ -225,8 +225,8 @@ class FeaGeometryDeleteLineMenu extends HTMLElement {
         this.props.actionId = value;
     }
 
-    set isGeometryLoaded(value) {
-        this.props.isGeometryLoaded = value;
+    set isFEModelLoaded(value) {
+        this.props.isFEModelLoaded = value;
     }
 
     set lines(value) {
@@ -255,8 +255,8 @@ class FeaGeometryDeleteLineMenu extends HTMLElement {
             }
         });
         const frame = () => {
-            this.getGeometryLoadStatus();
-            if (this.props.isGeometryLoaded === true) {
+            this.getFEModelLoadStatus();
+            if (this.props.isFEModelLoaded === true) {
                 clearInterval(id);
                 this.getLines();
                 this.defineLineNumberOptions();
@@ -285,8 +285,8 @@ class FeaGeometryDeleteLineMenu extends HTMLElement {
         }));
     }
 
-    getGeometryLoadStatus() {
-        this.dispatchEvent(new CustomEvent("getGeometryLoadStatus", {
+    getFEModelLoadStatus() {
+        this.dispatchEvent(new CustomEvent("getFEModelLoadStatus", {
             bubbles: true,
             composed: true,
         }));

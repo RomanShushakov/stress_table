@@ -10,7 +10,7 @@ class FeaApp extends HTMLElement {
         this.state = {
             actionId: 1,                // u32;
             actionsRouter: null,        // wasm module "actions_router";
-            isGeometryLoaded: false,    // load status of wasm module "geometry";
+            isFEModelLoaded: false,     // load status of wasm module "fe_model";
             isPropertiesLoaded: false,  // load status of wasm module "properties";
             pointsDataDependentMenus: [
                 "fea-geometry-add-point-menu",
@@ -95,8 +95,8 @@ class FeaApp extends HTMLElement {
             </div>
         `;
 
-        window.addEventListener("geometryLoaded", (event) => {
-            this.state.isGeometryLoaded = true;
+        window.addEventListener("feModelLoaded", (event) => {
+            this.state.isFEModelLoaded = true;
             event.stopPropagation();
         });
 
@@ -113,7 +113,7 @@ class FeaApp extends HTMLElement {
         this.addEventListener("getActionId", (event) => this.getActionId(event));
         this.addEventListener("getActionIdForToolBar", (event) => this.getActionIdForToolBar(event));
 
-        this.addEventListener("getGeometryLoadStatus", (event) => this.getGeometryLoadStatus(event));
+        this.addEventListener("getFEModelLoadStatus", (event) => this.getFEModelLoadStatus(event));
 
         this.addEventListener("getPoints", (event) => this.getPoints(event));
         this.addEventListener("getLines", (event) => this.getLines(event));
@@ -205,8 +205,8 @@ class FeaApp extends HTMLElement {
         event.stopPropagation();
     }
 
-    getGeometryLoadStatus(event) {
-        this.querySelector(event.target.tagName.toLowerCase()).isGeometryLoaded = this.state.isGeometryLoaded;
+    getFEModelLoadStatus(event) {
+        this.querySelector(event.target.tagName.toLowerCase()).isFEModelLoaded = this.state.isFEModelLoaded;
         event.stopPropagation();
     }
 

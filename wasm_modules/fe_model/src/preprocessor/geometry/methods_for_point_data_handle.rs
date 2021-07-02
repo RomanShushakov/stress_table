@@ -1,21 +1,26 @@
-use serde_json::json;
 use wasm_bindgen::prelude::*;
+use serde_json::json;
 
-use crate::{Geometry, Point, DeletedPoint, Line, DeletedLine};
-use crate::{log, dispatch_custom_event};
-use crate::
+use crate::preprocessor::geometry::geometry::Geometry;
+use crate::preprocessor::geometry::point::{Point, DeletedPoint};
+use crate::preprocessor::geometry::line::{Line, DeletedLine};
+use crate::preprocessor::geometry::consts::
 {
-    EVENT_TARGET, ADD_POINT_EVENT_NAME, UPDATE_POINT_EVENT_NAME, DELETE_POINT_EVENT_NAME,
-    ADD_LINE_EVENT_NAME, DELETE_LINE_EVENT_NAME, DELETED_LINE_NUMBERS_MESSAGE_HEADER,
-    RESTORED_LINE_NUMBERS_MESSAGE_HEADER,
+    ADD_POINT_EVENT_NAME, UPDATE_POINT_EVENT_NAME, DELETE_POINT_EVENT_NAME,
+    ADD_LINE_EVENT_NAME, DELETE_LINE_EVENT_NAME,
+    DELETED_LINE_NUMBERS_MESSAGE_HEADER, RESTORED_LINE_NUMBERS_MESSAGE_HEADER,
 };
 
+use crate::types::{FEUInt, FEFloat};
 
-#[wasm_bindgen]
+use crate::functions::{log, dispatch_custom_event};
+use crate::consts::EVENT_TARGET;
+
+
 impl Geometry
 {
-    pub fn add_point(&mut self, action_id: u32, number: u32, x: f64, y: f64, z: f64,
-        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    pub fn add_point(&mut self, action_id: FEUInt, number: FEUInt, x: FEFloat, y: FEFloat,
+        z: FEFloat, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_deleted_lines_by_action_id(action_id);
         self.clear_deleted_points_by_action_id(action_id);
@@ -44,8 +49,8 @@ impl Geometry
     }
 
 
-    pub fn update_point(&mut self, action_id: u32, number: u32, x: f64, y: f64, z: f64,
-        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    pub fn update_point(&mut self, action_id: FEUInt, number: FEUInt, x: FEFloat, y: FEFloat,
+        z: FEFloat, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_deleted_lines_by_action_id(action_id);
         self.clear_deleted_points_by_action_id(action_id);
@@ -77,7 +82,7 @@ impl Geometry
     }
 
 
-    fn extract_line_numbers_for_delete(&self, point_number: u32) -> Vec<u32>
+    fn extract_line_numbers_for_delete(&self, point_number: FEUInt) -> Vec<FEUInt>
     {
         let mut line_numbers_for_delete = Vec::new();
         for (line_number, line) in self.lines.iter()
@@ -92,7 +97,7 @@ impl Geometry
     }
 
 
-    pub fn delete_point(&mut self, action_id: u32, number: u32,
+    pub fn delete_point(&mut self, action_id: FEUInt, number: FEUInt,
         is_action_id_should_be_increased: bool) -> Result<JsValue, JsValue>
     {
         self.clear_deleted_lines_by_action_id(action_id);
@@ -142,7 +147,7 @@ impl Geometry
     }
 
 
-    pub fn restore_point(&mut self, action_id: u32, number: u32,
+    pub fn restore_point(&mut self, action_id: FEUInt, number: FEUInt,
         is_action_id_should_be_increased: bool) -> Result<JsValue, JsValue>
     {
         if let Some(deleted_point) = self.deleted_points.remove(&action_id)

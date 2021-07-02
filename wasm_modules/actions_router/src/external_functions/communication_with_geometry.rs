@@ -1,7 +1,7 @@
 use wasm_bindgen::prelude::*;
 
 
-#[wasm_bindgen(module = "/js/interface_to_communicate_with_geometry.js")]
+#[wasm_bindgen(module = "/js/interface_to_communicate_with_fe_model.js")]
 extern "C"
 {
     #[wasm_bindgen(js_name = addPointToGeometry, catch)]

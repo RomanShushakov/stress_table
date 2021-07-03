@@ -10,7 +10,7 @@ use crate::preprocessor::properties::assigned_property::
 use crate::preprocessor::properties::consts::
 {
     ADD_ASSIGNED_PROPERTIES_EVENT_NAME, UPDATE_ASSIGNED_PROPERTIES_EVENT_NAME,
-    DELETE_ASSIGNED_PROPERTIES_EVENT_NAME, DELETED_LINE_NUMBERS_MESSAGE_HEADER,
+    DELETE_ASSIGNED_PROPERTIES_EVENT_NAME,
     RESTORED_LINE_NUMBERS_MESSAGE_HEADER
 };
 
@@ -39,8 +39,8 @@ impl Properties
     }
 
 
-    pub fn delete_line_numbers(&mut self, action_id: FEUInt, line_numbers: JsValue)
-        -> Result<(), JsValue>
+    pub fn delete_line_numbers_from_properties(&mut self, action_id: FEUInt,
+        line_numbers: &Vec<u32>) -> Result<(), JsValue>
     {
         self.clear_deleted_materials_by_action_id(action_id);
         self.clear_deleted_truss_sections_by_action_id(action_id);
@@ -49,97 +49,68 @@ impl Properties
         self.clear_deleted_assigned_properties_by_action_id(action_id);
         self.clear_changed_assigned_properties_by_action_id(action_id);
 
-        let serialized_deleted_line_numbers: Value = line_numbers
-            .into_serde()
-            .or(Err(JsValue::from("Properties: Delete line numbers: Line numbers could not \
-                be serialized!")))?;
-        if let Some(deleted_line_numbers) = serialized_deleted_line_numbers
-            .get(DELETED_LINE_NUMBERS_MESSAGE_HEADER)
+        let mut changed_assigned_properties = Vec::new();
+        let mut deleted_assigned_properties = Vec::new();
+        let assigned_property_names_for_change_or_delete =
+            self.extract_assigned_property_names_for_change_or_delete_by_line_numbers(
+                line_numbers
+            );
+        for assigned_property_name in &assigned_property_names_for_change_or_delete
         {
-            if let Some(line_numbers) = deleted_line_numbers.as_array()
+            let assigned_property = self.assigned_properties
+                .get_mut(assigned_property_name).unwrap();
+            let old_assigned_property = assigned_property.clone();
+            let mut new_assigned_property_line_numbers = assigned_property
+                .extract_data().to_vec();
+            while let Some(position) = new_assigned_property_line_numbers.iter()
+                .position(|number| line_numbers.contains(number))
             {
-                if !line_numbers.is_empty()
-                {
-                    let parsed_line_numbers = line_numbers
-                        .iter()
-                        .map(|num|
-                            {
-                                match num.to_string().parse::<FEUInt>()
-                                {
-                                    Ok(n) => Ok(n),
-                                    Err(_e) =>
-                                        {
-                                            Err(JsValue::from("Properties: Delete line \
-                                                numbers: Line numbers could not be converted \
-                                                to FEUInt!"))
-                                        }
-                                }
-                            })
-                        .collect::<Result<Vec<FEUInt>, JsValue>>()?;
-                    let mut changed_assigned_properties = Vec::new();
-                    let mut deleted_assigned_properties = Vec::new();
-                    let assigned_property_names_for_change_or_delete =
-                        self.extract_assigned_property_names_for_change_or_delete_by_line_numbers(
-                            &parsed_line_numbers
-                        );
-                    for assigned_property_name in &assigned_property_names_for_change_or_delete
+                new_assigned_property_line_numbers.remove(position);
+            }
+            if new_assigned_property_line_numbers.len() > 0
+            {
+                let changed_assigned_property =
+                    ChangedAssignedProperty::create(assigned_property_name,
+                        old_assigned_property);
+                changed_assigned_properties.push(changed_assigned_property);
+                assigned_property.update(new_assigned_property_line_numbers.as_slice());
+                let detail = json!({ "assigned_properties_data":
                     {
-                        let assigned_property = self.assigned_properties
-                            .get_mut(assigned_property_name).unwrap();
-                        let old_assigned_property = assigned_property.clone();
-                        let mut new_assigned_property_line_numbers = assigned_property
-                            .extract_data().to_vec();
-                        while let Some(position) = new_assigned_property_line_numbers.iter()
-                            .position(|number| parsed_line_numbers.contains(number))
-                        {
-                            new_assigned_property_line_numbers.remove(position);
-                        }
-                        if new_assigned_property_line_numbers.len() > 0
-                        {
-                            let changed_assigned_property =
-                                ChangedAssignedProperty::create(assigned_property_name,
-                                    old_assigned_property);
-                            changed_assigned_properties.push(changed_assigned_property);
-                            assigned_property.update(new_assigned_property_line_numbers.as_slice());
-                            let detail = json!({ "assigned_properties_data":
-                                {
-                                    "name": assigned_property_name,
-                                    "line_numbers": new_assigned_property_line_numbers.as_slice()
-                                },
-                                "is_action_id_should_be_increased": false });
-                            dispatch_custom_event(detail, UPDATE_ASSIGNED_PROPERTIES_EVENT_NAME,
-                                EVENT_TARGET)?;
-                        }
-                        else
-                        {
-                            let _ = self.assigned_properties.remove(assigned_property_name).unwrap();
-                            let deleted_assigned_property =
-                                DeletedAssignedProperty::create(assigned_property_name,
-                                    old_assigned_property);
-                            deleted_assigned_properties.push(deleted_assigned_property);
-                            let detail = json!({ "assigned_properties_data":
-                                {
-                                    "name": assigned_property_name
-                                },
-                                "is_action_id_should_be_increased": false });
-                            dispatch_custom_event(detail,
-                                DELETE_ASSIGNED_PROPERTIES_EVENT_NAME,
-                                EVENT_TARGET)?;
-                        }
-                    }
-                    if !changed_assigned_properties.is_empty()
+                        "name": assigned_property_name,
+                        "line_numbers": new_assigned_property_line_numbers.as_slice()
+                    },
+                    "is_action_id_should_be_increased": false });
+                dispatch_custom_event(detail, UPDATE_ASSIGNED_PROPERTIES_EVENT_NAME,
+                    EVENT_TARGET)?;
+            }
+            else
+            {
+                let _ = self.assigned_properties.remove(assigned_property_name).unwrap();
+                let deleted_assigned_property =
+                    DeletedAssignedProperty::create(assigned_property_name,
+                        old_assigned_property);
+                deleted_assigned_properties.push(deleted_assigned_property);
+                let detail = json!({ "assigned_properties_data":
                     {
-                        self.changed_assigned_properties.insert(action_id,
-                            changed_assigned_properties);
-                    }
-                    if !deleted_assigned_properties.is_empty()
-                    {
-                        self.deleted_assigned_properties.insert(action_id,
-                            deleted_assigned_properties);
-                    }
-                }
+                        "name": assigned_property_name
+                    },
+                    "is_action_id_should_be_increased": false });
+                dispatch_custom_event(detail,
+                    DELETE_ASSIGNED_PROPERTIES_EVENT_NAME,
+                    EVENT_TARGET)?;
             }
         }
+        if !changed_assigned_properties.is_empty()
+        {
+            self.changed_assigned_properties.insert(action_id,
+                changed_assigned_properties);
+        }
+        if !deleted_assigned_properties.is_empty()
+        {
+            self.deleted_assigned_properties.insert(action_id,
+                deleted_assigned_properties);
+        }
+
         log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
             truss sections: {:?}, deleted truss sections: {:?}, \
             beam sections: {:?}, deleted beam sections: {:?}, \

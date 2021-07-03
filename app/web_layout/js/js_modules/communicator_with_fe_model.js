@@ -313,15 +313,6 @@ class CommunicatorWithFEModel {
         }
     }
 
-    set deleteLineNumbersFromProperties(lineNumbersData) {
-        try {
-            this.state.feModel.delete_line_numbers(lineNumbersData.action_id,
-                lineNumbersData.lineNumbers);
-        } catch (error) {
-            throw error;
-        }
-    }
-
     set restoreLineNumbersInProperties(lineNumbersData) {
         try {
             this.state.feModel.restore_line_numbers(lineNumbersData.action_id,

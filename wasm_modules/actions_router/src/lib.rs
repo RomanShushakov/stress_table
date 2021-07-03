@@ -28,7 +28,7 @@ use external_functions::communication_with_properties::
     delete_properties_from_properties, restore_properties_in_properties,
     add_assigned_properties_to_properties, update_assigned_properties_in_properties,
     delete_assigned_properties_from_properties, restore_assigned_properties_in_properties,
-    clear_properties_module_by_action_id, delete_line_numbers_from_properties,
+    clear_properties_module_by_action_id,
     restore_line_numbers_in_properties,
     extract_materials, extract_truss_sections, extract_beam_sections,
     extract_properties, extract_assigned_properties,
@@ -547,11 +547,8 @@ impl ActionsRouter
                                 is_action_id_should_be_increased) =>
                                 {
                                     clear_properties_module_by_action_id(action_id);
-                                    let deleted_line_numbers_from_geometry =
-                                        delete_point_from_geometry(action_id, *point_number,
-                                            *is_action_id_should_be_increased)?;
-                                    delete_line_numbers_from_properties(action_id,
-                                        deleted_line_numbers_from_geometry)?;
+                                    delete_point_from_geometry(action_id, *point_number,
+                                        *is_action_id_should_be_increased)?;
                                     if *add_to_active_actions
                                     {
                                         self.active_actions.push(action.clone());
@@ -608,11 +605,8 @@ impl ActionsRouter
                                 is_action_id_should_be_increased) =>
                                 {
                                     clear_properties_module_by_action_id(action_id);
-                                    let deleted_line_numbers_from_geometry =
-                                        delete_line_from_geometry(action_id, *line_number,
-                                            *is_action_id_should_be_increased)?;
-                                    delete_line_numbers_from_properties(action_id,
-                                        deleted_line_numbers_from_geometry)?;
+                                    delete_line_from_geometry(action_id, *line_number,
+                                        *is_action_id_should_be_increased)?;
                                     if *add_to_active_actions == true
                                     {
                                         self.active_actions.push(action.clone());

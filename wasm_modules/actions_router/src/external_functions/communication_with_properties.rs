@@ -92,10 +92,6 @@ extern "C"
     pub fn restore_assigned_properties_in_properties(action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
-    #[wasm_bindgen(js_name = deleteLineNumbersFromProperties, catch)]
-    pub fn delete_line_numbers_from_properties(action_id: FEUInt, line_numbers: JsValue)
-        -> Result<(), JsValue>;
-
     #[wasm_bindgen(js_name = restoreLineNumbersInProperties, catch)]
     pub fn restore_line_numbers_in_properties(action_id: FEUInt, line_numbers: JsValue)
         -> Result<(), JsValue>;

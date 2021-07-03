@@ -1,5 +1,3 @@
-use wasm_bindgen::prelude::*;
-use serde_json::json;
 use std::collections::HashMap;
 
 use crate::preprocessor::geometry::point::{Point, DeletedPoint};

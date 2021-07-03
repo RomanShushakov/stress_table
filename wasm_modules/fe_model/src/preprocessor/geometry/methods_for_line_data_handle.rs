@@ -6,7 +6,7 @@ use crate::preprocessor::geometry::line::{Line, DeletedLine};
 use crate::preprocessor::geometry::consts::
 {
     ADD_LINE_EVENT_NAME, UPDATE_LINE_EVENT_NAME, DELETE_LINE_EVENT_NAME,
-    DELETED_LINE_NUMBERS_MESSAGE_HEADER, RESTORED_LINE_NUMBERS_MESSAGE_HEADER
+    RESTORED_LINE_NUMBERS_MESSAGE_HEADER
 };
 
 use crate::types::{FEUInt};
@@ -120,7 +120,7 @@ impl Geometry
 
 
     pub fn delete_line(&mut self, action_id: FEUInt, number: FEUInt,
-        is_action_id_should_be_increased: bool) -> Result<JsValue, JsValue>
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_deleted_lines_by_action_id(action_id);
 
@@ -131,16 +131,10 @@ impl Geometry
             let detail = json!({ "line_data": { "number": number },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, DELETE_LINE_EVENT_NAME, EVENT_TARGET)?;
-            let deleted_line_numbers = vec![number];
-            let composed_deleted_line_numbers =
-                json!({ DELETED_LINE_NUMBERS_MESSAGE_HEADER: deleted_line_numbers });
-            let converted_line_numbers = JsValue::from_serde(&composed_deleted_line_numbers)
-                .or(Err(JsValue::from("Geometry: Delete line info: Deleted line numbers \
-                    could not be composed!")))?;
             log(&format!("Geometry: Points: {:?}, Deleted points: {:?}, Lines: {:?}, \
                 Deleted lines {:?}", self.points, self.deleted_points, self.lines,
                 self.deleted_lines));
-            Ok(converted_line_numbers)
+            Ok(())
         }
         else
         {

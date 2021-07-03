@@ -29,13 +29,6 @@ impl Preprocessor
     }
 
 
-    pub fn delete_point(&mut self, action_id: FEUInt, number: FEUInt,
-        is_action_id_should_be_increased: bool) -> Result<JsValue, JsValue>
-    {
-        self.geometry.delete_point(action_id, number, is_action_id_should_be_increased)
-    }
-
-
     pub fn restore_point(&mut self, action_id: FEUInt, number: FEUInt,
         is_action_id_should_be_increased: bool) -> Result<JsValue, JsValue>
     {
@@ -56,13 +49,6 @@ impl Preprocessor
     {
         self.geometry.update_line(action_id, number, start_point_number,
             end_point_number, is_action_id_should_be_increased)
-    }
-
-
-    pub fn delete_line(&mut self, action_id: FEUInt, number: FEUInt,
-        is_action_id_should_be_increased: bool) -> Result<JsValue, JsValue>
-    {
-        self.geometry.delete_line(action_id, number, is_action_id_should_be_increased)
     }
 
 

@@ -8,7 +8,7 @@ use crate::preprocessor::geometry::consts::
 {
     ADD_POINT_EVENT_NAME, UPDATE_POINT_EVENT_NAME, DELETE_POINT_EVENT_NAME,
     ADD_LINE_EVENT_NAME, DELETE_LINE_EVENT_NAME,
-    DELETED_LINE_NUMBERS_MESSAGE_HEADER, RESTORED_LINE_NUMBERS_MESSAGE_HEADER,
+    RESTORED_LINE_NUMBERS_MESSAGE_HEADER,
 };
 
 use crate::types::{FEUInt, FEFloat};
@@ -82,7 +82,7 @@ impl Geometry
     }
 
 
-    fn extract_line_numbers_for_delete(&self, point_number: FEUInt) -> Vec<FEUInt>
+    pub fn extract_line_numbers_for_delete(&self, point_number: FEUInt) -> Vec<FEUInt>
     {
         let mut line_numbers_for_delete = Vec::new();
         for (line_number, line) in self.lines.iter()
@@ -98,16 +98,15 @@ impl Geometry
 
 
     pub fn delete_point(&mut self, action_id: FEUInt, number: FEUInt,
-        is_action_id_should_be_increased: bool) -> Result<JsValue, JsValue>
+        line_numbers_for_delete: &Vec<u32>, is_action_id_should_be_increased: bool)
+        -> Result<(), JsValue>
     {
         self.clear_deleted_lines_by_action_id(action_id);
         self.clear_deleted_points_by_action_id(action_id);
 
-        let line_numbers_for_delete =
-            self.extract_line_numbers_for_delete(number);
         let mut deleted_lines = Vec::new();
 
-        for line_number in &line_numbers_for_delete
+        for line_number in line_numbers_for_delete
         {
             let line = self.lines.remove(line_number).unwrap();
             let deleted_line = DeletedLine::create(*line_number, line);
@@ -128,15 +127,10 @@ impl Geometry
             let detail = json!({ "point_data": { "number": number },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, DELETE_POINT_EVENT_NAME, EVENT_TARGET)?;
-            let composed_deleted_line_numbers =
-                json!({ DELETED_LINE_NUMBERS_MESSAGE_HEADER: line_numbers_for_delete });
-            let converted_line_numbers = JsValue::from_serde(&composed_deleted_line_numbers)
-                .or(Err(JsValue::from("Geometry: Delete point info: Deleted line numbers \
-                    could not be composed!")))?;
             log(&format!("Geometry: Points: {:?}, Deleted points: {:?}, Lines: {:?}, \
                 Deleted lines {:?}", self.points, self.deleted_points, self.lines,
                 self.deleted_lines));
-            Ok(converted_line_numbers)
+            Ok(())
         }
         else
         {

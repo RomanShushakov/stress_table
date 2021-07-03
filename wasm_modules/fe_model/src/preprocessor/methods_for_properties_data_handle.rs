@@ -171,13 +171,6 @@ impl Preprocessor
     }
 
 
-    pub fn delete_line_numbers(&mut self, action_id: FEUInt, line_numbers: JsValue)
-        -> Result<(), JsValue>
-    {
-        self.properties.delete_line_numbers(action_id, line_numbers)
-    }
-
-
     pub fn restore_line_numbers(&mut self, action_id: FEUInt, line_numbers: JsValue)
         -> Result<(), JsValue>
     {

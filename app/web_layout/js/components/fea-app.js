@@ -124,9 +124,9 @@ class FeaApp extends HTMLElement {
         this.addEventListener("selected_lines", (event) => this.handleSelectedLinesMessage(event));
         this.addEventListener("selected_line_elements", (event) => this.handleSelectedLineElementsMessage(event));
 
-        this.addEventListener("changeView", (event) => this.changeView(event));
+        this.addEventListener("changeView", (event) => this.handleChangeViewMessage(event));
 
-        this.addEventListener("previewSelectedLineNumbers", (event) => this.previewSelectedLineNumbers(event));
+        this.addEventListener("previewSelectedLineNumbers", (event) => this.handlePreviewSelectedLineNumbersMessage(event));
 
         this.addEventListener("clientMessage", (event) => this.handleClientMessage(event));
 
@@ -435,6 +435,28 @@ class FeaApp extends HTMLElement {
         event.stopPropagation();
     }
 
+    handleChangeViewMessage(event) {
+        const selectedView = event.detail.selectedView;
+        this.shadowRoot.querySelector("fea-renderer").selectedView = selectedView;
+        event.stopPropagation();
+    }
+
+    handlePreviewSelectedLineNumbersMessage(event) {
+        const selectedLineNumbersObject = event.detail;
+        this.shadowRoot.querySelector("fea-renderer").previewSelectedLineNumbers = selectedLineNumbersObject;
+        event.stopPropagation();
+    }
+
+    handleEnableLinesSelectionModeMessage(event) {
+        this.state.isLinesSelectionModeEnabled = true;
+        event.stopPropagation();
+    }
+
+    handleDisableLinesSelectionModeMessage(event) {
+        this.state.isLinesSelectionModeEnabled = false;
+        event.stopPropagation();
+    }
+
     async getData(url = "") {
         const response = await fetch(url, {
             method: "get"
@@ -465,28 +487,6 @@ class FeaApp extends HTMLElement {
         const toCache = true;
         const message = event.detail.message;
         this.state.actionsRouter.handle_message(message, toCache);
-        event.stopPropagation();
-    }
-
-    changeView(event) {
-        const selectedView = event.detail.selectedView;
-        this.shadowRoot.querySelector("fea-renderer").selectedView = selectedView;
-        event.stopPropagation();
-    }
-
-    previewSelectedLineNumbers(event) {
-        const selectedLineNumbersObject = event.detail;
-        this.shadowRoot.querySelector("fea-renderer").previewSelectedLineNumbers = selectedLineNumbersObject;
-        event.stopPropagation();
-    }
-
-    handleEnableLinesSelectionModeMessage(event) {
-        this.state.isLinesSelectionModeEnabled = true;
-        event.stopPropagation();
-    }
-
-    handleDisableLinesSelectionModeMessage(event) {
-        this.state.isLinesSelectionModeEnabled = false;
         event.stopPropagation();
     }
 

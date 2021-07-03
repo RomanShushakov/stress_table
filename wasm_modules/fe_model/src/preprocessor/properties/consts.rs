@@ -18,5 +18,4 @@ pub const ADD_ASSIGNED_PROPERTIES_EVENT_NAME: &str = "add_assigned_properties_se
 pub const UPDATE_ASSIGNED_PROPERTIES_EVENT_NAME: &str = "update_assigned_properties_server_message";
 pub const DELETE_ASSIGNED_PROPERTIES_EVENT_NAME: &str = "delete_assigned_properties_server_message";
 
-pub const DELETED_LINE_NUMBERS_MESSAGE_HEADER: &str = "deleted_line_numbers";
 pub const RESTORED_LINE_NUMBERS_MESSAGE_HEADER: &str = "restored_line_numbers";

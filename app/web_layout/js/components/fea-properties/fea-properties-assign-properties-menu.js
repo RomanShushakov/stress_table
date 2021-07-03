@@ -823,13 +823,10 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
             assignToLines[i] = Number.parseInt(assignToLines[i]);
         }
         if (assignToLines.length > 0) {
-            const message = { "preview_selected_lines_numbers": { "line_numbers": assignToLines } };
-            this.dispatchEvent(new CustomEvent("clientMessage", {
+            this.dispatchEvent(new CustomEvent("previewSelectedLineNumbers", {
                 bubbles: true,
                 composed: true,
-                detail: {
-                    message: message,
-                },
+                detail: { "line_numbers": assignToLines },
             }));
         }
     }

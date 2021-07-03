@@ -200,4 +200,40 @@ impl Geometry
             return Err(JsValue::from(error_message));
         }
     }
+
+
+    pub fn show_point_info(&mut self, number: FEUInt, handler: js_sys::Function) -> Result<(), JsValue>
+    {
+        return if let Some(point) = self.points.get(&number)
+        {
+            let (x, y, z) = point.extract_coordinates();
+            let point_info_json = json!({ "point_data": { "number": number,
+                "x": x, "y": y, "z": z } });
+            let point_info = JsValue::from_serde(&point_info_json)
+                .or(Err(JsValue::from("Geometry: Show point info: Point info could not be \
+                    composed!")))?;
+            let this = JsValue::null();
+            let _ = handler.call1(&this, &point_info)?;
+            Ok(())
+        }
+        else
+        {
+            let error_message = &format!("Geometry: Show point info action: Point with \
+                number {} does not exist!", number);
+            Err(JsValue::from(error_message))
+        }
+    }
+
+
+    pub fn extract_points(&self, handler: js_sys::Function) -> Result<(), JsValue>
+    {
+        let extracted_points = json!({ "extracted_points": self.points });
+        let composed_extracted_points =
+            JsValue::from_serde(&extracted_points)
+                .or(Err(JsValue::from("Geometry: Extract points: Points could not be \
+                    composed for extraction!")))?;
+        let this = JsValue::null();
+        let _ = handler.call1(&this, &composed_extracted_points);
+        Ok(())
+    }
 }

@@ -498,13 +498,10 @@ class FeaAppToolBar extends HTMLElement {
     }
 
     changeView(viewName) {
-        const message = {"change_view": { "selectedView": viewName } };
-        this.dispatchEvent(new CustomEvent("clientMessage", {
+        this.dispatchEvent(new CustomEvent("changeView", {
             bubbles: true,
             composed: true,
-            detail: {
-                message: message,
-            },
+            detail: { "selectedView": viewName },
         }));   
     }
 }

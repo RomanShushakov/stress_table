@@ -144,28 +144,28 @@ class FeaRenderer extends HTMLElement {
 
     set selectedView(view) {
         switch (view) {
-            case `"planeXY"`:
+            case "planeXY":
                 this.state.renderer.change_angle_theta(0.0);
                 this.state.renderer.change_angle_phi(0.0);
                 if (this.state.isPaused === true) {
                     this.state.renderer.tick();
                 }
                 break;
-            case `"planeZY"`:
+            case "planeZY":
                 this.state.renderer.change_angle_theta(90.0 * Math.PI / 180.0);
                 this.state.renderer.change_angle_phi(0.0);
                 if (this.state.isPaused === true) {
                     this.state.renderer.tick();
                 }
                 break;
-            case `"planeXZ"`:
+            case "planeXZ":
                 this.state.renderer.change_angle_theta(0.0);
                 this.state.renderer.change_angle_phi(-90.0 * Math.PI / 180.0);
                 if (this.state.isPaused === true) {
                     this.state.renderer.tick();
                 }
                 break;
-            case `"isometric"`:
+            case "isometric":
                 this.state.renderer.change_angle_theta(-45.0 * Math.PI / 180.0);
                 this.state.renderer.change_angle_phi(35.264 * Math.PI / 180.0);
                 if (this.state.isPaused === true) {
@@ -175,8 +175,8 @@ class FeaRenderer extends HTMLElement {
         }
     }
 
-    set previewSelectedLinesNumbers(selectedLinesNumbers) {
-        this.state.renderer.preview_selected_line_objects(selectedLinesNumbers, LineObjectType.Line);
+    set previewSelectedLineNumbers(selectedLineNumbersObject) {
+        this.state.renderer.preview_selected_line_objects(selectedLineNumbersObject, LineObjectType.Line);
         this.state.renderer.tick();
     }
 

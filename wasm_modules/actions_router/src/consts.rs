@@ -27,11 +27,3 @@ pub const DELETE_ASSIGNED_PROPERTIES_MESSAGE_HEADER: &str = "delete_assigned_pro
 
 pub const UNDO_MESSAGE_HEADER: &str = "undo";
 pub const REDO_MESSAGE_HEADER: &str = "redo";
-
-pub const SELECTED_POINT_NUMBER_MESSAGE_HEADER: &str = "selected_point_number";
-pub const SELECTED_LINE_NUMBER_MESSAGE_HEADER: &str = "selected_line_number";
-pub const SELECTED_LINES_NUMBERS_MESSAGE_HEADER: &str = "selected_lines_numbers";
-
-pub const PREVIEW_SELECTED_LINES_NUMBERS_MESSAGE_HEADER: &str = "preview_selected_lines_numbers";
-
-pub const CHANGE_VIEW_MESSAGE_HEADER: &str = "change_view";

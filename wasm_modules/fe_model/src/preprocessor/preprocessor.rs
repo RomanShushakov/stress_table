@@ -24,13 +24,7 @@ impl Preprocessor
     }
 
 
-    pub fn show_point_info(&mut self, number: FEUInt) -> Result<JsValue, JsValue>
-    {
-        self.geometry.show_point_info(number)
-    }
-
-
-    pub fn show_line_info(&mut self, number: FEUInt) -> Result<JsValue, JsValue>
+    pub fn show_line_info(&mut self, number: FEUInt, handler: js_sys::Function) -> Result<(), JsValue>
     {
         let (start_point_number, end_point_number) =
             self.geometry.extract_line_info_from_geometry(number)?;
@@ -44,7 +38,9 @@ impl Preprocessor
             let line_info = JsValue::from_serde(&line_info_json)
                 .or(Err(JsValue::from("Geometry: Show line info: Line info could not be \
                     composed!")))?;
-            Ok(line_info)
+            let this = JsValue::null();
+            let _ = handler.call1(&this, &line_info)?;
+            Ok(())
         }
         else
         {
@@ -53,7 +49,9 @@ impl Preprocessor
             let line_info = JsValue::from_serde(&line_info_json)
                 .or(Err(JsValue::from("Geometry: Show line info: Line info could not be \
                     composed!")))?;
-            Ok(line_info)
+            let this = JsValue::null();
+            let _ = handler.call1(&this, &line_info)?;
+            Ok(())
         }
     }
 }

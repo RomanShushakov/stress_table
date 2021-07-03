@@ -96,23 +96,21 @@ export function restoreLineInGeometry(action_id, number, is_action_id_should_be_
     }
 }
 
-export function showPointInfo(number) 
+export function showPointInfo(number, handler) 
 {
+    const pointInfoData = {"number": number, "handler": handler};
     try {
-        communicatorWithFEModel.showPointInfo = number;
-        const pointInfo = communicatorWithFEModel.objectInfo;
-        return pointInfo;
+        communicatorWithFEModel.showPointInfo = pointInfoData;
     } catch (error) {
         throw error;
     }
 }
 
-export function showLineInfo(number) 
+export function showLineInfo(number, handler) 
 {
+    const lineInfoData = { "number": number, "handler": handler };
     try {
-        communicatorWithFEModel.showLineInfo = number;
-        const lineInfo = communicatorWithFEModel.objectInfo;
-        return lineInfo;
+        communicatorWithFEModel.showLineInfo = lineInfoData;
     } catch (error) {
         throw error;
     }

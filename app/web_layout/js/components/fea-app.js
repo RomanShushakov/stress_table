@@ -8,9 +8,10 @@ class FeaApp extends HTMLElement {
         this.props = {};
 
         this.state = {
-            actionId: 1,                // u32;
-            actionsRouter: null,        // wasm module "actions_router";
-            isFEModelLoaded: false,     // load status of wasm module "fe_model";
+            actionId: 1,                            // u32;
+            actionsRouter: null,                    // wasm module "actions_router";
+            isFEModelLoaded: false,                 // load status of wasm module "fe_model";
+            isLinesSelectionModeEnabled: false,
             pointsDataDependentMenus: [
                 "fea-geometry-add-point-menu",
                 "fea-geometry-update-point-menu",
@@ -118,6 +119,15 @@ class FeaApp extends HTMLElement {
         this.addEventListener("getProperties", (event) => this.getProperties(event));
         this.addEventListener("getAssignedProperties", (event) => this.getAssignedProperties(event));
 
+        this.addEventListener("selected_points", (event) => this.handleSelectedPointsMessage(event));
+        this.addEventListener("selected_nodes", (event) => this.handleSelectedNodesMessage(event));
+        this.addEventListener("selected_lines", (event) => this.handleSelectedLinesMessage(event));
+        this.addEventListener("selected_line_elements", (event) => this.handleSelectedLineElementsMessage(event));
+
+        this.addEventListener("changeView", (event) => this.changeView(event));
+
+        this.addEventListener("previewSelectedLineNumbers", (event) => this.previewSelectedLineNumbers(event));
+
         this.addEventListener("clientMessage", (event) => this.handleClientMessage(event));
 
         this.addEventListener("add_point_server_message", (event) => this.handleAddPointServerMessage(event));
@@ -155,8 +165,6 @@ class FeaApp extends HTMLElement {
 
         this.addEventListener("disableLinesSelectionMode", 
             (event) => this.handleDisableLinesSelectionModeMessage(event));
-
-        this.addEventListener("refreshPointsData", (event) => this.refreshPointsData(event));
     }
 
     async connectedCallback() {
@@ -184,6 +192,13 @@ class FeaApp extends HTMLElement {
         }
         const feaPreprocessorMenu = document.createElement("fea-preprocessor-menu");
         this.append(feaPreprocessorMenu);
+        this.updateCanvasSize();
+    }
+
+    activatePostprocessor() {
+        this.querySelector("fea-preprocessor-menu").remove();
+        const feaPostprocessor = document.createElement("fea-postprocessor");
+        this.append(feaPostprocessor);
         this.updateCanvasSize();
     }
 
@@ -301,56 +316,6 @@ class FeaApp extends HTMLElement {
         event.stopPropagation();
     }
 
-    activatePostprocessor() {
-        this.querySelector("fea-preprocessor-menu").remove();
-        const feaPostprocessor = document.createElement("fea-postprocessor");
-        this.append(feaPostprocessor);
-        this.updateCanvasSize();
-    }
-
-    async getData(url = "") {
-        const response = await fetch(url, {
-            method: "get"
-        });
-        return response;
-    }
-
-    handleLoadCache() {       
-        this.getData("/cache/load")
-            .then(response => {
-                if (response.ok) {
-                    response.json()
-                        .then(data => {
-                            for (let i = 0; i < data.messages.length; i++) {
-                                const toCache = false;
-                                const currentMessage = JSON.parse(data.messages[i]);
-                                if ("undo" in currentMessage) {
-                                    this.handleDecreaseActionIdMessage();
-                                } 
-                                this.state.actionsRouter.handle_message(
-                                    currentMessage,
-                                    (objectInfo) => this.showObjectInfoHandler(objectInfo),
-                                    (selectedView) => this.changeViewHandler(selectedView),
-                                    toCache);
-                            } 
-                        })
-                }
-        }); 
-    }
-
-    handleClientMessage(event) {
-        const toCache = true;
-        const message = event.detail.message;
-        this.state.actionsRouter.handle_message(
-            message,
-            (objectInfo) => this.showObjectInfoHandler(objectInfo),
-            (selectedView) => this.changeViewHandler(selectedView),
-            toCache,
-            (selectedLinesNumbers) => this.sendSelectedLinesNumbersHandler(selectedLinesNumbers),
-            (selectedLinesNumbers) => this.previewSelectedLinesNumbersHandler(selectedLinesNumbers));
-        event.stopPropagation();
-    }
-
     showObjectInfoHandler(objectInfo) {
         if ("point_data" in objectInfo) {
             const pointNumber = objectInfo.point_data.number;
@@ -392,11 +357,7 @@ class FeaApp extends HTMLElement {
         }
     }
 
-    changeViewHandler(selectedView) {
-        this.shadowRoot.querySelector("fea-renderer").selectedView = selectedView;
-    }
-
-    sendSelectedLinesNumbersHandler(selectedLinesNumbers) {
+    selectLinesInClientForDataAssign(selectedLinesNumbers) {
         for (let i = 0; i < this.state.linesSelectionDependentMenus.length; i++) {
             if (this.querySelector(this.state.linesSelectionDependentMenus[i]) !== null) {
                 if (Array.isArray(selectedLinesNumbers)) {
@@ -414,17 +375,118 @@ class FeaApp extends HTMLElement {
         }  
     }
 
-    previewSelectedLinesNumbersHandler(selectedLinesNumbers) {
-        this.shadowRoot.querySelector("fea-renderer").previewSelectedLinesNumbers = selectedLinesNumbers;
+    handleSelectedPointsMessage(event) {
+        const pointNumbers = event.detail.point_numbers;
+        if (pointNumbers.length > 1) {
+            console.log("Selected point numbers: ", pointNumbers);
+        } else {
+            const pointNumber = pointNumbers[0];
+            if (this.state.isLinesSelectionModeEnabled === false) {
+                this.state.actionsRouter.show_point_info(
+                    pointNumber,
+                    (objectInfo) => this.showObjectInfoHandler(objectInfo),
+                );
+            } else {
+                console.log("Selected point number: ", pointNumbers);
+            }
+        }
+        event.stopPropagation();
+    }
+
+    handleSelectedNodesMessage(event) {
+        const nodeNumbers = event.detail.node_numbers;
+        if (nodeNumbers.length > 1) {
+            console.log("Selected node numbers: ", nodeNumbers);
+        } else {
+            console.log("Selected node number: ", nodeNumbers[0]);
+        }
+        event.stopPropagation();
+    }
+
+    handleSelectedLinesMessage(event) {
+        const lineNumbers = event.detail.line_numbers;
+        if (lineNumbers.length > 1) {
+            if (this.state.isLinesSelectionModeEnabled === false) {
+                console.log("Selected line numbers: ", lineNumbers);
+            } else {
+                this.selectLinesInClientForDataAssign(lineNumbers);
+            }
+        } else {
+            const lineNumber = lineNumbers[0];
+            if (this.state.isLinesSelectionModeEnabled === false) {
+                this.state.actionsRouter.show_line_info(
+                    lineNumber,
+                    (objectInfo) => this.showObjectInfoHandler(objectInfo),
+                );
+            } else {
+                this.selectLinesInClientForDataAssign(lineNumber);
+            }
+        }
+        event.stopPropagation();
+    }
+
+    handleSelectedLineElementsMessage(event) {
+        const lineElementNumbers = event.detail.line_element_numbers;
+        if (lineElementNumbers.length > 1) {
+            console.log("Selected line element numbers: ", lineElementNumbers);
+        } else {
+            console.log("Selected line element number: ", lineElementNumbers[0]);
+        }
+        event.stopPropagation();
+    }
+
+    async getData(url = "") {
+        const response = await fetch(url, {
+            method: "get"
+        });
+        return response;
+    }
+
+    handleLoadCache() {       
+        this.getData("/cache/load")
+            .then(response => {
+                if (response.ok) {
+                    response.json()
+                        .then(data => {
+                            for (let i = 0; i < data.messages.length; i++) {
+                                const toCache = false;
+                                const currentMessage = JSON.parse(data.messages[i]);
+                                if ("undo" in currentMessage) {
+                                    this.handleDecreaseActionIdMessage();
+                                } 
+                                this.state.actionsRouter.handle_message(currentMessage, toCache);
+                            } 
+                        })
+                }
+        }); 
+    }
+
+    handleClientMessage(event) {
+        const toCache = true;
+        const message = event.detail.message;
+        this.state.actionsRouter.handle_message(message, toCache);
+        event.stopPropagation();
+    }
+
+    changeView(event) {
+        const selectedView = event.detail.selectedView;
+        this.shadowRoot.querySelector("fea-renderer").selectedView = selectedView;
+        event.stopPropagation();
+    }
+
+    previewSelectedLineNumbers(event) {
+        const selectedLineNumbersObject = event.detail;
+        this.shadowRoot.querySelector("fea-renderer").previewSelectedLineNumbers = selectedLineNumbersObject;
+        event.stopPropagation();
     }
 
     handleEnableLinesSelectionModeMessage(event) {
-        this.state.actionsRouter.enable_lines_selection_mode();
+        this.state.isLinesSelectionModeEnabled = true;
         event.stopPropagation();
     }
 
     handleDisableLinesSelectionModeMessage(event) {
-        this.state.actionsRouter.disable_lines_selection_mode();
+        this.state.isLinesSelectionModeEnabled = false;
         event.stopPropagation();
     }
 

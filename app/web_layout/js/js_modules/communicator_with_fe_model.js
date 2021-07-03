@@ -4,7 +4,6 @@ class CommunicatorWithFEModel {
     constructor() {
         this.state = {
             feModel: null,     // wasm module "fe_model";
-            objectInfo: null,   // String;
             lineNumbers: [],    // array of: [u32...];
         };
 
@@ -96,28 +95,20 @@ class CommunicatorWithFEModel {
         }
     }
 
-    set showPointInfo(number) {
+    set showPointInfo(pointInfoData) {
         try {
-            const pointInfo = this.state.feModel.show_point_info(number);
-            this.state.objectInfo = pointInfo;
+            this.state.feModel.show_point_info(pointInfoData.number, pointInfoData.handler);
         } catch (error) {
             throw error;
         }
     }
 
-    set showLineInfo(number) {
+    set showLineInfo(lineInfoData) {
         try {
-            const lineInfo = this.state.feModel.show_line_info(number);
-            this.state.objectInfo = lineInfo;
+            this.state.feModel.show_line_info(lineInfoData.number, lineInfoData.handler);
         } catch (error) {
             throw error;
         }
-    }
-
-    get objectInfo() {
-        const objectInfo = this.state.objectInfo;
-        this.state.objectInfo = null;
-        return objectInfo;
     }
 
     get lineNumbers() {

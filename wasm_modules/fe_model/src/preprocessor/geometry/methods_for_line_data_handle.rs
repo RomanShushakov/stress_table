@@ -193,4 +193,34 @@ impl Geometry
             return Err(JsValue::from(error_message));
         }
     }
+
+
+    pub fn extract_line_info_from_geometry(&mut self, number: FEUInt)
+        -> Result<(FEUInt, FEUInt), JsValue>
+    {
+        return if let Some(line) = self.lines.get(&number)
+        {
+            let (start_point_number, end_point_number) = line.extract_points_numbers();
+            Ok((start_point_number, end_point_number))
+        }
+        else
+        {
+            let error_message = &format!("Geometry: Show line info action: Line with \
+                number {} does not exist!", number);
+            Err(JsValue::from(error_message))
+        }
+    }
+
+
+    pub fn extract_lines(&self, handler: js_sys::Function) -> Result<(), JsValue>
+    {
+        let extracted_lines = json!({ "extracted_lines": self.lines });
+        let composed_extracted_lines =
+            JsValue::from_serde(&extracted_lines)
+                .or(Err(JsValue::from("Geometry: Extract lines: Lines could not be \
+                    composed for extraction!")))?;
+        let this = JsValue::null();
+        let _ = handler.call1(&this, &composed_extracted_lines);
+        Ok(())
+    }
 }

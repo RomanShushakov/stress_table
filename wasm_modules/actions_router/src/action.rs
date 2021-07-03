@@ -1,5 +1,3 @@
-use wasm_bindgen::JsValue;
-
 use crate::types::{FEUInt, FEFloat};
 
 
@@ -145,21 +143,6 @@ pub enum ActionType
 {
     GeometryActionType(GeometryActionType),
     PropertiesActionType(PropertiesActionType),
-
-    // ( number, show_object_info_handler )
-    ShowPointInfo(FEUInt, js_sys::Function),
-
-    // ( number, show_object_info_handler )
-    ShowLineInfo(FEUInt, js_sys::Function),
-
-    // ( numbers, send_selected_lines_numbers_handler )
-    ExtractLinesNumbers(JsValue, js_sys::Function),
-
-    // ( numbers, preview_selected_lines_numbers_handler )
-    PreviewLinesNumbers(JsValue, js_sys::Function),
-
-    // ( name, change_view_handler )
-    ChangeView(String, js_sys::Function),
 }
 
 

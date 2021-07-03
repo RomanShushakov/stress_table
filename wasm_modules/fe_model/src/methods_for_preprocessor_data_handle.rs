@@ -292,14 +292,14 @@ impl FEModel
     }
 
 
-    pub fn show_point_info(&mut self, number: FEUInt) -> Result<JsValue, JsValue>
+    pub fn show_point_info(&mut self, number: FEUInt, handler: js_sys::Function) -> Result<(), JsValue>
     {
-        self.preprocessor.show_point_info(number)
+        self.preprocessor.show_point_info(number, handler)
     }
 
 
-    pub fn show_line_info(&mut self, number: FEUInt) -> Result<JsValue, JsValue>
+    pub fn show_line_info(&mut self, number: FEUInt, handler: js_sys::Function) -> Result<(), JsValue>
     {
-        self.preprocessor.show_line_info(number)
+        self.preprocessor.show_line_info(number, handler)
     }
 }

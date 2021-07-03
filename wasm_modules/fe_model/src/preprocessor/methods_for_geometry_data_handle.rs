@@ -73,6 +73,12 @@ impl Preprocessor
     }
 
 
+    pub fn show_point_info(&mut self, number: FEUInt, handler: js_sys::Function) -> Result<(), JsValue>
+    {
+        self.geometry.show_point_info(number, handler)
+    }
+
+
     pub fn extract_points(&self, handler: js_sys::Function) -> Result<(), JsValue>
     {
         self.geometry.extract_points(handler)

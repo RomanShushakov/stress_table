@@ -42,10 +42,10 @@ extern "C"
     pub fn clear_geometry_module_by_action_id(action_id: FEUInt);
 
     #[wasm_bindgen(js_name = showPointInfo, catch)]
-    pub fn show_point_info(number: FEUInt) -> Result<JsValue, JsValue>;
+    pub fn show_point_info(number: FEUInt, handler: js_sys::Function) -> Result<(), JsValue>;
 
     #[wasm_bindgen(js_name = showLineInfo, catch)]
-    pub fn show_line_info(number: FEUInt) -> Result<JsValue, JsValue>;
+    pub fn show_line_info(number: FEUInt, handler: js_sys::Function) -> Result<(), JsValue>;
 
     #[wasm_bindgen(js_name = extractPoints)]
     pub fn extract_points(handler: js_sys::Function);

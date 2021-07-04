@@ -171,13 +171,6 @@ impl Preprocessor
     }
 
 
-    pub fn restore_line_numbers(&mut self, action_id: FEUInt, line_numbers: JsValue)
-        -> Result<(), JsValue>
-    {
-        self.properties.restore_line_numbers(action_id, line_numbers)
-    }
-
-
     pub fn extract_materials(&self, handler: js_sys::Function) -> Result<(), JsValue>
     {
         self.properties.extract_materials(handler)

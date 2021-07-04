@@ -36,7 +36,7 @@ impl FEModel
 
 
     pub fn restore_point(&mut self, action_id: FEUInt, number: FEUInt,
-        is_action_id_should_be_increased: bool) -> Result<JsValue, JsValue>
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.preprocessor.restore_point(action_id, number, is_action_id_should_be_increased)
     }
@@ -66,7 +66,7 @@ impl FEModel
 
 
     pub fn restore_line(&mut self, action_id: FEUInt, number: FEUInt,
-        is_action_id_should_be_increased: bool) -> Result<JsValue, JsValue>
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.preprocessor.restore_line(action_id, number, is_action_id_should_be_increased)
     }
@@ -245,13 +245,6 @@ impl FEModel
     {
         self.preprocessor.restore_assigned_properties(action_id, name,
             is_action_id_should_be_increased)
-    }
-
-
-    pub fn restore_line_numbers(&mut self, action_id: FEUInt, line_numbers: JsValue)
-        -> Result<(), JsValue>
-    {
-        self.preprocessor.restore_line_numbers(action_id, line_numbers)
     }
 
 

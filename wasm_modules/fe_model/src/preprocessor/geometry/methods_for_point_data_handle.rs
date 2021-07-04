@@ -8,7 +8,6 @@ use crate::preprocessor::geometry::consts::
 {
     ADD_POINT_EVENT_NAME, UPDATE_POINT_EVENT_NAME, DELETE_POINT_EVENT_NAME,
     ADD_LINE_EVENT_NAME, DELETE_LINE_EVENT_NAME,
-    RESTORED_LINE_NUMBERS_MESSAGE_HEADER,
 };
 
 use crate::types::{FEUInt, FEFloat};
@@ -98,7 +97,7 @@ impl Geometry
 
 
     pub fn delete_point(&mut self, action_id: FEUInt, number: FEUInt,
-        line_numbers_for_delete: &Vec<u32>, is_action_id_should_be_increased: bool)
+        line_numbers_for_delete: &[FEUInt], is_action_id_should_be_increased: bool)
         -> Result<(), JsValue>
     {
         self.clear_deleted_lines_by_action_id(action_id);
@@ -142,7 +141,7 @@ impl Geometry
 
 
     pub fn restore_point(&mut self, action_id: FEUInt, number: FEUInt,
-        is_action_id_should_be_increased: bool) -> Result<JsValue, JsValue>
+        is_action_id_should_be_increased: bool) -> Result<Vec<FEUInt>, JsValue>
     {
         if let Some(deleted_point) = self.deleted_points.remove(&action_id)
         {
@@ -177,15 +176,10 @@ impl Geometry
                     restored_line_numbers.push(number);
                 }
             }
-            let composed_restored_line_numbers =
-                json!({ RESTORED_LINE_NUMBERS_MESSAGE_HEADER: restored_line_numbers });
-            let converted_line_numbers = JsValue::from_serde(&composed_restored_line_numbers)
-                .or(Err(JsValue::from("Geometry: Restore point info: Restored line numbers \
-                    could not be composed!")))?;
             log(&format!("Geometry: Points: {:?}, Deleted points: {:?}, Lines: {:?}, \
                 Deleted lines {:?}", self.points, self.deleted_points, self.lines,
                 self.deleted_lines));
-            Ok(converted_line_numbers)
+            Ok(restored_line_numbers)
         }
         else
         {

@@ -7,12 +7,12 @@ use crate::types::{FEUInt, FEFloat};
 extern "C"
 {
     #[wasm_bindgen(js_name = addPointToGeometry, catch)]
-    pub fn add_point_to_geometry(action_id: FEUInt, number: FEUInt, x: FEFloat, y: FEFloat, z: FEFloat,
-        is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
+    pub fn add_point_to_geometry(action_id: FEUInt, number: FEUInt, x: FEFloat, y: FEFloat,
+        z: FEFloat, is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
     #[wasm_bindgen(js_name = updatePointInGeometry, catch)]
-    pub fn update_point_in_geometry(action_id: FEUInt, number: FEUInt, x: FEFloat, y: FEFloat, z: FEFloat,
-        is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
+    pub fn update_point_in_geometry(action_id: FEUInt, number: FEUInt, x: FEFloat, y: FEFloat,
+        z: FEFloat, is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
     #[wasm_bindgen(js_name = deletePointFromGeometry, catch)]
     pub fn delete_point_from_geometry(action_id: FEUInt, number: FEUInt,
@@ -20,7 +20,7 @@ extern "C"
 
     #[wasm_bindgen(js_name = restorePointInGeometry, catch)]
     pub fn restore_point_in_geometry(action_id: FEUInt, number: FEUInt,
-        is_action_id_should_be_increased: bool) -> Result<JsValue, JsValue>;
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
     #[wasm_bindgen(js_name = addLineToGeometry, catch)]
     pub fn add_line_to_geometry(action_id: FEUInt, number: FEUInt, start_point_number: FEUInt,
@@ -36,7 +36,7 @@ extern "C"
 
     #[wasm_bindgen(js_name = restoreLineInGeometry, catch)]
     pub fn restore_line_in_geometry(action_id: FEUInt, number: FEUInt,
-        is_action_id_should_be_increased: bool) -> Result<JsValue, JsValue>;
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
     #[wasm_bindgen(js_name = clearGeometryModuleByActionId)]
     pub fn clear_geometry_module_by_action_id(action_id: FEUInt);

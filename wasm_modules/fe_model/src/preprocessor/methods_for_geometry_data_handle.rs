@@ -29,13 +29,6 @@ impl Preprocessor
     }
 
 
-    pub fn restore_point(&mut self, action_id: FEUInt, number: FEUInt,
-        is_action_id_should_be_increased: bool) -> Result<JsValue, JsValue>
-    {
-        self.geometry.restore_point(action_id, number, is_action_id_should_be_increased)
-    }
-
-
     pub fn add_line(&mut self, action_id: FEUInt, number: FEUInt, start_point_number: FEUInt,
         end_point_number: FEUInt, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
@@ -49,13 +42,6 @@ impl Preprocessor
     {
         self.geometry.update_line(action_id, number, start_point_number,
             end_point_number, is_action_id_should_be_increased)
-    }
-
-
-    pub fn restore_line(&mut self, action_id: FEUInt, number: FEUInt,
-        is_action_id_should_be_increased: bool) -> Result<JsValue, JsValue>
-    {
-        self.geometry.restore_line(action_id, number, is_action_id_should_be_increased)
     }
 
 

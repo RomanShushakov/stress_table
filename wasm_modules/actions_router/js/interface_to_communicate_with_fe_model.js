@@ -350,16 +350,6 @@ export function restoreAssignedPropertiesInProperties(action_id, name, is_action
     }
 }
 
-export function restoreLineNumbersInProperties(action_id, lineNumbers) 
-{
-    const lineNumbersData = { "action_id": action_id, "lineNumbers": lineNumbers };
-    try {
-        communicatorWithFEModel.restoreLineNumbersInProperties = lineNumbersData;
-    } catch (error) {
-        throw error;
-    }
-}
-
 export function clearPropertiesModuleByActionId(action_id) {
     communicatorWithFEModel.clearPropertiesModuleByActionId = action_id;
 }

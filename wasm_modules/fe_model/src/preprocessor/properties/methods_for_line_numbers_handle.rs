@@ -1,5 +1,4 @@
 use wasm_bindgen::prelude::*;
-use serde_json::Value;
 use serde_json::json;
 
 use crate::preprocessor::properties::properties::Properties;
@@ -11,7 +10,6 @@ use crate::preprocessor::properties::consts::
 {
     ADD_ASSIGNED_PROPERTIES_EVENT_NAME, UPDATE_ASSIGNED_PROPERTIES_EVENT_NAME,
     DELETE_ASSIGNED_PROPERTIES_EVENT_NAME,
-    RESTORED_LINE_NUMBERS_MESSAGE_HEADER
 };
 
 use crate::types::{FEUInt};
@@ -24,7 +22,7 @@ use crate::functions::{log, dispatch_custom_event};
 impl Properties
 {
     fn extract_assigned_property_names_for_change_or_delete_by_line_numbers(&self,
-        line_numbers: &Vec<FEUInt>) -> Vec<String>
+        line_numbers: &[FEUInt]) -> Vec<String>
     {
         let mut assigned_property_names_for_change_or_delete = Vec::new();
         for (assigned_property_name, assigned_property) in
@@ -40,7 +38,7 @@ impl Properties
 
 
     pub fn delete_line_numbers_from_properties(&mut self, action_id: FEUInt,
-        line_numbers: &Vec<u32>) -> Result<(), JsValue>
+        line_numbers: &[FEUInt]) -> Result<(), JsValue>
     {
         self.clear_deleted_materials_by_action_id(action_id);
         self.clear_deleted_truss_sections_by_action_id(action_id);
@@ -128,95 +126,66 @@ impl Properties
     }
 
 
-    pub fn restore_line_numbers(&mut self, action_id: FEUInt, line_numbers: JsValue)
-        -> Result<(), JsValue>
+    pub fn restore_line_numbers_in_properties(&mut self, action_id: FEUInt,
+        restored_line_numbers: &[FEUInt]) -> Result<(), JsValue>
     {
-        let serialized_restored_line_numbers: Value = line_numbers
-            .into_serde()
-            .or(Err(JsValue::from("Properties: Restore line numbers: Line numbers could not \
-                be serialized!")))?;
-        if let Some(restored_line_numbers) = serialized_restored_line_numbers
-            .get(RESTORED_LINE_NUMBERS_MESSAGE_HEADER)
+        if let Some(changed_assigned_properties) =
+            self.changed_assigned_properties.remove(&action_id)
         {
-            if let Some(line_numbers) = restored_line_numbers.as_array()
+            for changed_assigned_property in &changed_assigned_properties
             {
-                if !line_numbers.is_empty()
+                let (name, line_numbers) =
+                    changed_assigned_property.extract_name_and_data();
+                if restored_line_numbers.iter().position(|restored_line_number|
+                    line_numbers.contains(restored_line_number)).is_none()
                 {
-                    let parsed_line_numbers = line_numbers
-                        .iter()
-                        .map(|num|
-                            {
-                                match num.to_string().parse::<FEUInt>()
-                                {
-                                    Ok(n) => Ok(n),
-                                    Err(_e) =>
-                                        {
-                                            Err(JsValue::from("Properties: Restore line \
-                                                numbers: could not be converted to FEUInt!"))
-                                        }
-                                }
-                            })
-                        .collect::<Result<Vec<FEUInt>, JsValue>>()?;
-                    if let Some(changed_assigned_properties) =
-                        self.changed_assigned_properties.remove(&action_id)
-                    {
-                        for changed_assigned_property in &changed_assigned_properties
-                        {
-                            let (name, line_numbers) =
-                                changed_assigned_property.extract_name_and_data();
-                            if parsed_line_numbers.iter().position(|parsed_line_number|
-                                line_numbers.contains(parsed_line_number)).is_none()
-                            {
-                                return Err(JsValue::from("Properties: Restore line \
-                                    numbers: No line number from restored line numbers does \
-                                    contain in changed assigned properties for appropriate \
-                                    action id!"));
-                            }
-                            if let Some(assigned_property_for_update) =
-                                self.assigned_properties.get_mut(name)
-                            {
-                                assigned_property_for_update.update(line_numbers);
-                                let detail = json!({ "assigned_properties_data":
-                                    { "name": name, "line_numbers": line_numbers },
-                                    "is_action_id_should_be_increased": false });
-                                dispatch_custom_event(detail,
-                                    UPDATE_ASSIGNED_PROPERTIES_EVENT_NAME,
-                                    EVENT_TARGET)?;
-                            }
-                            else
-                            {
-                                let error_message = &format!("Properties: Restore line \
-                                    numbers: Assigned properties with name {} do not exist!", name);
-                                return Err(JsValue::from(error_message));
-                            }
-                        }
-                    }
-                    if let Some(deleted_assigned_properties) =
-                        self.deleted_assigned_properties.remove(&action_id)
-                    {
-                        for deleted_assigned_property in &deleted_assigned_properties
-                        {
-                            let (name, line_numbers) =
-                                deleted_assigned_property.extract_name_and_data();
-                            if parsed_line_numbers.iter().position(|parsed_line_number|
-                                line_numbers.contains(parsed_line_number)).is_none()
-                            {
-                                return Err(JsValue::from("Properties: Restore line \
-                                    numbers: No line number from restored line numbers does \
-                                    contain in deleted assigned properties for appropriate \
-                                    action id!"));
-                            }
-                            self.assigned_properties.insert(name.to_owned(),
-                                AssignedProperty::create(line_numbers));
-                            let detail = json!({ "assigned_properties_data": { "name": name,
-                                "line_numbers": line_numbers },
-                                "is_action_id_should_be_increased": false });
-                            dispatch_custom_event(detail,
-                                ADD_ASSIGNED_PROPERTIES_EVENT_NAME,
-                                EVENT_TARGET)?;
-                        }
-                    }
+                    return Err(JsValue::from("Properties: Restore line \
+                        numbers: No line number from restored line numbers does \
+                        contain in changed assigned properties for appropriate \
+                        action id!"));
                 }
+                if let Some(assigned_property_for_update) =
+                    self.assigned_properties.get_mut(name)
+                {
+                    assigned_property_for_update.update(line_numbers);
+                    let detail = json!({ "assigned_properties_data":
+                        { "name": name, "line_numbers": line_numbers },
+                        "is_action_id_should_be_increased": false });
+                    dispatch_custom_event(detail,
+                        UPDATE_ASSIGNED_PROPERTIES_EVENT_NAME,
+                        EVENT_TARGET)?;
+                }
+                else
+                {
+                    let error_message = &format!("Properties: Restore line \
+                        numbers: Assigned properties with name {} do not exist!", name);
+                    return Err(JsValue::from(error_message));
+                }
+            }
+        }
+        if let Some(deleted_assigned_properties) =
+            self.deleted_assigned_properties.remove(&action_id)
+        {
+            for deleted_assigned_property in &deleted_assigned_properties
+            {
+                let (name, line_numbers) =
+                    deleted_assigned_property.extract_name_and_data();
+                if restored_line_numbers.iter().position(|restored_line_number|
+                    line_numbers.contains(restored_line_number)).is_none()
+                {
+                    return Err(JsValue::from("Properties: Restore line \
+                        numbers: No line number from restored line numbers does \
+                        contain in deleted assigned properties for appropriate \
+                        action id!"));
+                }
+                self.assigned_properties.insert(name.to_owned(),
+                    AssignedProperty::create(line_numbers));
+                let detail = json!({ "assigned_properties_data": { "name": name,
+                    "line_numbers": line_numbers },
+                    "is_action_id_should_be_increased": false });
+                dispatch_custom_event(detail,
+                    ADD_ASSIGNED_PROPERTIES_EVENT_NAME,
+                    EVENT_TARGET)?;
             }
         }
         log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \

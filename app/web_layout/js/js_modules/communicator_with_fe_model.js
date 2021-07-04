@@ -313,15 +313,6 @@ class CommunicatorWithFEModel {
         }
     }
 
-    set restoreLineNumbersInProperties(lineNumbersData) {
-        try {
-            this.state.feModel.restore_line_numbers(lineNumbersData.action_id,
-                lineNumbersData.lineNumbers);
-        } catch (error) {
-            throw error;
-        }
-    }
-
     set clearPropertiesModuleByActionId(action_id) {
         this.state.feModel.clear_properties_module_by_action_id(action_id);
     }

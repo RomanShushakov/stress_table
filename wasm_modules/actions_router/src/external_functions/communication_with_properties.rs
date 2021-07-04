@@ -40,13 +40,13 @@ extern "C"
 
     #[wasm_bindgen(js_name = addBeamSectionToProperties, catch)]
     pub fn add_beam_section_to_properties(action_id: FEUInt, name: &str,
-        area: FEFloat, i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat, is_action_id_should_be_increased: bool)
-        -> Result<(), JsValue>;
+        area: FEFloat, i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
     #[wasm_bindgen(js_name = updateBeamSectionInProperties, catch)]
     pub fn update_beam_section_in_properties(action_id: FEUInt, name: &str,
-        area: FEFloat, i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat, is_action_id_should_be_increased: bool)
-        -> Result<(), JsValue>;
+        area: FEFloat, i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
     #[wasm_bindgen(js_name = deleteBeamSectionFromProperties, catch)]
     pub fn delete_beam_section_from_properties(action_id: FEUInt, name: &str,
@@ -81,8 +81,7 @@ extern "C"
 
     #[wasm_bindgen(js_name = updateAssignedPropertiesInProperties, catch)]
     pub fn update_assigned_properties_in_properties(action_id: FEUInt, name: &str,
-        line_numbers: &[FEUInt], is_action_id_should_be_increased: bool)
-        -> Result<(), JsValue>;
+        line_numbers: &[FEUInt], is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
     #[wasm_bindgen(js_name = deleteAssignedPropertiesFromProperties, catch)]
     pub fn delete_assigned_properties_from_properties(action_id: FEUInt, name: &str,
@@ -91,10 +90,6 @@ extern "C"
     #[wasm_bindgen(js_name = restoreAssignedPropertiesInProperties, catch)]
     pub fn restore_assigned_properties_in_properties(action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
-
-    #[wasm_bindgen(js_name = restoreLineNumbersInProperties, catch)]
-    pub fn restore_line_numbers_in_properties(action_id: FEUInt, line_numbers: JsValue)
-        -> Result<(), JsValue>;
 
     #[wasm_bindgen(js_name = clearPropertiesModuleByActionId)]
     pub fn clear_properties_module_by_action_id(action_id: FEUInt);

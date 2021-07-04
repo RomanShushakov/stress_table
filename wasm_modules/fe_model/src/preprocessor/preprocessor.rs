@@ -71,12 +71,34 @@ impl Preprocessor
     }
 
 
+    pub fn restore_point(&mut self, action_id: FEUInt, number: FEUInt,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        let restored_line_numbers =
+            self.geometry.restore_point(action_id, number, is_action_id_should_be_increased)?;
+
+        self.properties.restore_line_numbers_in_properties(action_id, &restored_line_numbers)?;
+        Ok(())
+    }
+
+
     pub fn delete_line(&mut self, action_id: FEUInt, number: FEUInt,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.properties.delete_line_numbers_from_properties(action_id, &vec![number])?;
 
         self.geometry.delete_line(action_id, number, is_action_id_should_be_increased)?;
+        Ok(())
+    }
+
+
+    pub fn restore_line(&mut self, action_id: FEUInt, number: FEUInt,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.geometry.restore_line(action_id, number, is_action_id_should_be_increased)?;
+
+        self.properties.restore_line_numbers_in_properties(action_id,
+            &vec![number])?;
         Ok(())
     }
 }

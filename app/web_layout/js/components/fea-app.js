@@ -168,6 +168,8 @@ class FeaApp extends HTMLElement {
 
         this.addEventListener("disableLinesSelectionMode", 
             (event) => this.handleDisableLinesSelectionModeMessage(event));
+
+        this.addEventListener("update_lines_color_server_message", (event) => this.handleUpdateLinesColorServerMessage(event));
     }
 
     async connectedCallback() {
@@ -360,6 +362,37 @@ class FeaApp extends HTMLElement {
         }
     }
 
+    showObjectInfoWithoutMenuOpeningHandler(objectInfo) {
+        if ("point_data" in objectInfo) {
+            const pointNumber = objectInfo.point_data.number;
+            const composedObjectInfo = `Point: 
+                number: ${pointNumber},
+                x: ${objectInfo.point_data.x},
+                y: ${objectInfo.point_data.y},
+                z: ${objectInfo.point_data.z}`;
+            this.shadowRoot.querySelector("fea-renderer").objectInfo = composedObjectInfo;          
+        } else if ("line_data" in objectInfo) {
+            const lineNumber = objectInfo.line_data.number;
+            const composedObjectInfo = `Line: 
+                number: ${lineNumber},
+                start point number: ${objectInfo.line_data.start_point_number},
+                end point number: ${objectInfo.line_data.end_point_number}`;
+            this.shadowRoot.querySelector("fea-renderer").objectInfo = composedObjectInfo;    
+        } else if ("line_data_with_props" in objectInfo) {
+            const lineNumber = objectInfo.line_data_with_props.number;
+            const composedObjectInfo = `Line: 
+                number: ${lineNumber},
+                start point number: ${objectInfo.line_data_with_props.start_point_number},
+                end point number: ${objectInfo.line_data_with_props.end_point_number},
+                material name: ${objectInfo.line_data_with_props.material_name.replace(/['"]+/g, "")},
+                cross section name: ${objectInfo.line_data_with_props.cross_section_name.replace(/['"]+/g, "")},
+                cross section type: ${objectInfo.line_data_with_props.cross_section_type},`;
+            this.shadowRoot.querySelector("fea-renderer").objectInfo = composedObjectInfo;    
+        } else {
+            throw "Fea-app: Unknown object!";
+        }
+    }
+
     selectLinesInClientForDataAssign(selectedLinesNumbers) {
         for (let i = 0; i < this.state.linesSelectionDependentMenus.length; i++) {
             if (this.querySelector(this.state.linesSelectionDependentMenus[i]) !== null) {
@@ -390,7 +423,10 @@ class FeaApp extends HTMLElement {
                     (objectInfo) => this.showObjectInfoHandler(objectInfo),
                 );
             } else {
-                console.log("Selected point number: ", pointNumbers);
+                this.state.actionsRouter.show_point_info(
+                    pointNumber,
+                    (objectInfo) => this.showObjectInfoWithoutMenuOpeningHandler(objectInfo),
+                );
             }
         }
         event.stopPropagation();
@@ -423,6 +459,10 @@ class FeaApp extends HTMLElement {
                 );
             } else {
                 this.selectLinesInClientForDataAssign(lineNumber);
+                this.state.actionsRouter.show_line_info(
+                    lineNumber,
+                    (objectInfo) => this.showObjectInfoWithoutMenuOpeningHandler(objectInfo),
+                );
             }
         }
         event.stopPropagation();
@@ -846,6 +886,11 @@ class FeaApp extends HTMLElement {
         } else {
             this.shadowRoot.querySelector("fea-renderer").canvasSize = { "width":  window.innerWidth, "height": window.innerHeight };
         }
+    }
+
+    handleUpdateLinesColorServerMessage(event) {
+        this.shadowRoot.querySelector("fea-renderer").updateLinesColorScheme = event.detail.lines_data_object;
+        event.stopPropagation();
     }
 }
 

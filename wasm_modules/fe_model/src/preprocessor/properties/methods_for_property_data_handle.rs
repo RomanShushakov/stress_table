@@ -9,7 +9,7 @@ use crate::preprocessor::properties::consts::
 {
     ADD_PROPERTIES_EVENT_NAME, UPDATE_PROPERTIES_EVENT_NAME,
     DELETE_PROPERTIES_EVENT_NAME, ADD_ASSIGNED_PROPERTIES_EVENT_NAME,
-    DELETE_ASSIGNED_PROPERTIES_EVENT_NAME,
+    DELETE_ASSIGNED_PROPERTIES_EVENT_NAME, UPDATE_LINES_COLOR_EVENT_NAME,
 };
 
 use crate::types::{FEUInt};
@@ -103,7 +103,23 @@ impl Properties
         }
         if let Some(property) = self.properties.get_mut(name)
         {
-            property.update(material_name, cross_section_name, converted_cross_section_type);
+            let (_, _, previous_cross_section_type) = property.extract_data();
+            property.update(material_name, cross_section_name,
+                converted_cross_section_type.clone());
+            if previous_cross_section_type != converted_cross_section_type
+            {
+                if let Some(assigned_property) = self.assigned_properties.get(name)
+                {
+                    let line_numbers = assigned_property.extract_data();
+                let detail = json!({ "lines_data_object":
+                    {
+                        "line_numbers": line_numbers,
+                        "cross_section_type": converted_cross_section_type.as_str().to_lowercase()
+                    }});
+                dispatch_custom_event(detail, UPDATE_LINES_COLOR_EVENT_NAME,
+                    EVENT_TARGET)?;
+                }
+            }
             let detail = json!({ "properties_data": { "name": name,
                 "material_name": material_name, "cross_section_name": cross_section_name,
                 "cross_section_type": cross_section_type },

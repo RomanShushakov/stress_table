@@ -133,7 +133,7 @@ impl ActionsRouter
                                 _is_action_id_should_be_increased) =>
                                 {
                                     let is_action_id_should_be_increased = false;
-                                    let action_type = ActionType::GeometryActionType(
+                                    let action_type = ActionType::from(
                                         GeometryActionType::DeletePoint(*point_number,
                                             is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
@@ -147,7 +147,7 @@ impl ActionsRouter
                                 _is_action_id_should_be_increased) =>
                                 {
                                     let is_action_id_should_be_increased = false;
-                                    let action_type = ActionType::GeometryActionType(
+                                    let action_type = ActionType::from(
                                         GeometryActionType::UpdatePoint(*point_number,
                                             new_coordinates.clone(), old_coordinates.clone(),
                                             is_action_id_should_be_increased));
@@ -160,7 +160,7 @@ impl ActionsRouter
                                 _is_action_id_should_be_increased) =>
                                 {
                                     let is_action_id_should_be_increased = false;
-                                    let action_type = ActionType::GeometryActionType(
+                                    let action_type = ActionType::from(
                                         GeometryActionType::RestorePoint(*point_number,
                                             is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
@@ -175,7 +175,7 @@ impl ActionsRouter
                                 _is_action_id_should_be_increased) =>
                                 {
                                     let is_action_id_should_be_increased = false;
-                                    let action_type = ActionType::GeometryActionType(
+                                    let action_type = ActionType::from(
                                         GeometryActionType::DeleteLine(*line_number,
                                             is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
@@ -191,7 +191,7 @@ impl ActionsRouter
                                 _is_action_id_should_be_increased) =>
                                 {
                                     let is_action_id_should_be_increased = false;
-                                    let action_type = ActionType::GeometryActionType(
+                                    let action_type = ActionType::from(
                                         GeometryActionType::UpdateLine(*line_number,
                                             *new_start_point_number, *new_end_point_number,
                                             *old_start_point_number, *old_end_point_number,
@@ -205,7 +205,7 @@ impl ActionsRouter
                                 _is_action_id_should_be_increased) =>
                                 {
                                     let is_action_id_should_be_increased = false;
-                                    let action_type = ActionType::GeometryActionType(
+                                    let action_type = ActionType::from(
                                         GeometryActionType::RestoreLine(*line_number,
                                             is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
@@ -226,7 +226,7 @@ impl ActionsRouter
                                 _is_action_id_should_be_increased) =>
                                 {
                                     let is_action_id_should_be_increased = false;
-                                    let action_type = ActionType::PropertiesActionType(
+                                    let action_type = ActionType::from(
                                         PropertiesActionType::DeleteMaterial(material_name.clone(),
                                             is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
@@ -242,7 +242,7 @@ impl ActionsRouter
                                 _is_action_id_should_be_increased) =>
                                 {
                                     let is_action_id_should_be_increased = false;
-                                    let action_type = ActionType::PropertiesActionType(
+                                    let action_type = ActionType::from(
                                         PropertiesActionType::UpdateMaterial(material_name.clone(),
                                             *new_young_modulus, *new_poisson_ratio,
                                             *old_young_modulus, *old_poisson_ratio,
@@ -256,7 +256,7 @@ impl ActionsRouter
                                 _is_action_id_should_be_increased) =>
                                 {
                                     let is_action_id_should_be_increased = false;
-                                    let action_type = ActionType::PropertiesActionType(
+                                    let action_type = ActionType::from(
                                         PropertiesActionType::RestoreMaterial(
                                             material_name.clone(), is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
@@ -271,7 +271,7 @@ impl ActionsRouter
                                 _is_action_id_should_be_increased) =>
                                 {
                                     let is_action_id_should_be_increased = false;
-                                    let action_type = ActionType::PropertiesActionType(
+                                    let action_type = ActionType::from(
                                         PropertiesActionType::DeleteTrussSection(
                                             truss_section_name.clone(),
                                             is_action_id_should_be_increased));
@@ -288,7 +288,7 @@ impl ActionsRouter
                                 _is_action_id_should_be_increased) =>
                                 {
                                     let is_action_id_should_be_increased = false;
-                                    let action_type = ActionType::PropertiesActionType(
+                                    let action_type = ActionType::from(
                                         PropertiesActionType::UpdateTrussSection(
                                             truss_section_name.clone(),
                                             *new_area, *new_area2,
@@ -303,7 +303,7 @@ impl ActionsRouter
                                 _is_action_id_should_be_increased) =>
                                 {
                                     let is_action_id_should_be_increased = false;
-                                    let action_type = ActionType::PropertiesActionType(
+                                    let action_type = ActionType::from(
                                         PropertiesActionType::RestoreTrussSection(
                                             truss_section_name.clone(),
                                             is_action_id_should_be_increased));
@@ -322,7 +322,7 @@ impl ActionsRouter
                                 _is_action_id_should_be_increased) =>
                                 {
                                     let is_action_id_should_be_increased = false;
-                                    let action_type = ActionType::PropertiesActionType(
+                                    let action_type = ActionType::from(
                                         PropertiesActionType::DeleteBeamSection(
                                             beam_section_name.clone(),
                                             is_action_id_should_be_increased));
@@ -345,7 +345,7 @@ impl ActionsRouter
                                 _is_action_id_should_be_increased) =>
                                 {
                                     let is_action_id_should_be_increased = false;
-                                    let action_type = ActionType::PropertiesActionType(
+                                    let action_type = ActionType::from(
                                         PropertiesActionType::UpdateBeamSection(
                                             beam_section_name.clone(),
                                             *new_area, *new_i11, *new_i22, *new_i12, *new_it,
@@ -360,7 +360,7 @@ impl ActionsRouter
                                 _is_action_id_should_be_increased) =>
                                 {
                                     let is_action_id_should_be_increased = false;
-                                    let action_type = ActionType::PropertiesActionType(
+                                    let action_type = ActionType::from(
                                         PropertiesActionType::RestoreBeamSection(
                                             beam_section_name.clone(),
                                             is_action_id_should_be_increased));
@@ -377,7 +377,7 @@ impl ActionsRouter
                                 _is_action_id_should_be_increased) =>
                                 {
                                     let is_action_id_should_be_increased = false;
-                                    let action_type = ActionType::PropertiesActionType(
+                                    let action_type = ActionType::from(
                                         PropertiesActionType::DeleteProperties(
                                             properties_name.clone(),
                                             is_action_id_should_be_increased));
@@ -396,7 +396,7 @@ impl ActionsRouter
                                 _is_action_id_should_be_increased) =>
                                 {
                                     let is_action_id_should_be_increased = false;
-                                    let action_type = ActionType::PropertiesActionType(
+                                    let action_type = ActionType::from(
                                         PropertiesActionType::UpdateProperties(
                                             properties_name.clone(),
                                             new_material_name.clone(),
@@ -415,7 +415,7 @@ impl ActionsRouter
                                 _is_action_id_should_be_increased) =>
                                 {
                                     let is_action_id_should_be_increased = false;
-                                    let action_type = ActionType::PropertiesActionType(
+                                    let action_type = ActionType::from(
                                         PropertiesActionType::RestoreProperties(
                                             properties_name.clone(),
                                             is_action_id_should_be_increased));
@@ -430,7 +430,7 @@ impl ActionsRouter
                                 _is_action_id_should_be_increased) =>
                                 {
                                     let is_action_id_should_be_increased = false;
-                                    let action_type = ActionType::PropertiesActionType(
+                                    let action_type = ActionType::from(
                                         PropertiesActionType::DeleteAssignedProperties(
                                             assigned_properties_name.clone(),
                                             is_action_id_should_be_increased));
@@ -445,7 +445,7 @@ impl ActionsRouter
                                 _is_action_id_should_be_increased) =>
                                 {
                                     let is_action_id_should_be_increased = false;
-                                    let action_type = ActionType::PropertiesActionType(
+                                    let action_type = ActionType::from(
                                         PropertiesActionType::UpdateAssignedProperties(
                                             assigned_properties_name.clone(),
                                             new_line_numbers.clone(),
@@ -460,7 +460,7 @@ impl ActionsRouter
                                 _is_action_id_should_be_increased) =>
                                 {
                                     let is_action_id_should_be_increased = false;
-                                    let action_type = ActionType::PropertiesActionType(
+                                    let action_type = ActionType::from(
                                         PropertiesActionType::RestoreAssignedProperties(
                                             assigned_properties_name.clone(),
                                             is_action_id_should_be_increased));
@@ -493,7 +493,6 @@ impl ActionsRouter
         }
         Ok(())
     }
-
 
     fn handle_current_action(&mut self) -> Result<(), JsValue>
     {

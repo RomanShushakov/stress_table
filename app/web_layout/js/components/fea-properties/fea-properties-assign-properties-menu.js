@@ -562,7 +562,7 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
         document.querySelector("fea-app").dispatchEvent(new CustomEvent("enableLinesSelectionMode"));
         const frame = () => {
             this.getFEModelLoadStatus();
-            if (this.props.isFEModelLoaded === true && this.props.isFEModelLoaded) {
+            if (this.props.isFEModelLoaded === true) {
                 clearInterval(id);
                 this.getLines();
                 this.getProperties();

@@ -160,10 +160,14 @@ impl Properties
             let assigned_property =
                 self.assigned_properties.remove(assigned_property_name).unwrap();
             let deleted_assigned_property = DeletedAssignedProperty::create(
-                assigned_property_name, assigned_property);
+                assigned_property_name, assigned_property.clone());
             deleted_assigned_properties.push(deleted_assigned_property);
 
-            let detail = json!({ "assigned_properties_data": { "name": assigned_property_name },
+            let detail = json!({ "assigned_properties_data":
+                {
+                    "name": assigned_property_name,
+                    "line_numbers": assigned_property.extract_data(),
+                },
                 "is_action_id_should_be_increased": false });
             dispatch_custom_event(detail, DELETE_ASSIGNED_PROPERTIES_EVENT_NAME,
                 EVENT_TARGET)?;
@@ -269,8 +273,14 @@ impl Properties
                         deleted_assigned_property.extract_name_and_data();
                     self.assigned_properties.insert(name.to_owned(),
                         AssignedProperty::create(line_numbers));
-                    let detail = json!({ "assigned_properties_data": { "name": name,
-                        "line_numbers": line_numbers },
+                    let (_, _, cross_section_type) =
+                        self.properties.get(name).unwrap().extract_data();
+                    let detail = json!({ "assigned_properties_data":
+                        {
+                            "name": name,
+                            "line_numbers": line_numbers,
+                            "cross_section_type": cross_section_type.as_str().to_lowercase(),
+                        },
                         "is_action_id_should_be_increased": is_action_id_should_be_increased });
                     dispatch_custom_event(detail, ADD_ASSIGNED_PROPERTIES_EVENT_NAME,
                         EVENT_TARGET)?;

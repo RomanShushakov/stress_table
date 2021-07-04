@@ -4,7 +4,7 @@ use std::f32::consts::PI;
 use std::collections::{HashMap, HashSet};
 
 use crate::line_object::{LineObject, LineObjectKey};
-use crate::line_object::{LineObjectType};
+use crate::line_object::{LineObjectType, LineObjectColorScheme};
 
 use crate::{PointObjectKey, PointObject};
 use crate::{PointObjectType};
@@ -61,16 +61,22 @@ pub const DRAWN_POINT_OBJECT_DENOTATION_SHIFT: f32 = 0.02;
 pub const DRAWN_ELEMENTS_COLOR: [f32; 4] = [0.0, 1.0, 1.0, 1.0]; // cyan
 pub const CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR: &str = "cyan";
 
-pub const DRAWN_LINES_COLOR: [f32; 4] = [0.6, 0.2, 1.0, 1.0]; // purple
-pub const CANVAS_DRAWN_LINES_DENOTATION_COLOR: &str = "rgb(153, 51, 255)";
+pub const DRAWN_LINES_DEFAULT_COLOR: [f32; 4] = [0.6, 0.196, 0.8, 1.0]; // DarkOrchid
+pub const CANVAS_DRAWN_LINES_DEFAULT_DENOTATION_COLOR: &str = "rgb(153, 50, 204)"; // DarkOrchid
+
+pub const DRAWN_LINES_TRUSS_PROPS_COLOR: [f32; 4] = [0.4, 0.803, 0.666, 1.0]; // MediumAquamarine
+pub const CANVAS_DRAWN_LINES_TRUSS_PROPS_DENOTATION_COLOR: &str = "rgb(102, 205, 170)"; // MediumAquamarine
+
+pub const DRAWN_LINES_BEAM_PROPS_COLOR: [f32; 4] = [1.0, 0.894, 0.709, 1.0]; // Moccasin
+pub const CANVAS_DRAWN_LINES_BEAM_PROPS_DENOTATION_COLOR: &str = "rgb(255, 228, 181)"; // Moccasin
 
 pub const DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER: u32 = 48; // the number of points in cylinder circular base
 pub const DRAWN_LINE_OBJECTS_BASE_RADIUS: f32 = 0.006; // the radius of cylinder circular base
 
 pub const DRAWN_LINE_OBJECTS_DENOTATION_SHIFT: f32 = 0.01;
 
-pub const SELECTION_RECTANGLE_STROKE_COLOR: &str = "rgb(217, 217, 217)"; // white
-pub const SELECTION_RECTANGLE_FILL_COLOR: &str = "rgba(37, 55, 95, 0.5)"; // white
+pub const SELECTION_RECTANGLE_STROKE_COLOR: &str = "rgb(211, 211, 211)"; // LightGrey
+pub const SELECTION_RECTANGLE_FILL_COLOR: &str = "rgba(47, 79, 79, 0.5)"; // DarkSlateGrey
 
 // pub const CANVAS_BACKGROUND_COLOR: &str = "black";
 
@@ -370,7 +376,15 @@ impl DrawnObject
         {
             let initial_color = match line_object_key.get_object_type()
                 {
-                    LineObjectType::Line => DRAWN_LINES_COLOR,
+                    LineObjectType::Line =>
+                        {
+                            match line_object.get_color_scheme()
+                            {
+                                LineObjectColorScheme::Default => DRAWN_LINES_DEFAULT_COLOR,
+                                LineObjectColorScheme::TrussProps => DRAWN_LINES_TRUSS_PROPS_COLOR,
+                                LineObjectColorScheme::BeamProps => DRAWN_LINES_BEAM_PROPS_COLOR,
+                            }
+                        },
                     LineObjectType::Element => DRAWN_ELEMENTS_COLOR,
                 };
             let line_object_color = define_drawn_object_color(&gl_mode,

@@ -1,6 +1,6 @@
 import { initializeRenderer } from "../wasm_modules_initialization/renderer_initialization.js";
 
-import { PointObjectType, LineObjectType } from "../../wasm/renderer/renderer.js";
+import { PointObjectType, LineObjectType, LineObjectColorScheme } from "../../wasm/renderer/renderer.js";
 
 
 class FeaRenderer extends HTMLElement {
@@ -177,6 +177,22 @@ class FeaRenderer extends HTMLElement {
 
     set previewSelectedLineNumbers(selectedLineNumbersObject) {
         this.state.renderer.preview_selected_line_objects(selectedLineNumbersObject, LineObjectType.Line);
+        this.state.renderer.tick();
+    }
+
+    set updateLinesColorScheme(linesDataObject) {
+        console.log(linesDataObject);
+        let lineObjectColorScheme = LineObjectColorScheme.Default;
+        switch (linesDataObject.cross_section_type) {
+            case "truss":
+                lineObjectColorScheme = LineObjectColorScheme.TrussProps;
+                break;
+            case "beam":
+                lineObjectColorScheme = LineObjectColorScheme.BeamProps;
+                break;
+        }
+        this.state.renderer.update_line_objects_color_scheme(linesDataObject.line_numbers,
+            LineObjectType.Line, lineObjectColorScheme);
         this.state.renderer.tick();
     }
 

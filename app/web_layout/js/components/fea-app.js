@@ -62,6 +62,9 @@ class FeaApp extends HTMLElement {
                 "fea-properties-assign-properties-menu",
                 "fea-properties-beam-section-orientation-menu",
             ],
+            beamSectionsOrientationsDependentMenus: [
+                "fea-properties-beam-section-orientation-menu",
+            ]
         };
 
         this.attachShadow({ mode: "open" });
@@ -788,6 +791,7 @@ class FeaApp extends HTMLElement {
                     .addAssignedPropertiesToClient = assignedProperties;
             }
         } 
+        this.shadowRoot.querySelector("fea-renderer").updateLinesColorScheme = event.detail.assigned_properties_data;
         event.stopPropagation();
     }
 
@@ -805,6 +809,7 @@ class FeaApp extends HTMLElement {
                     .updateAssignedPropertiesInClient = assignedProperties;
             }
         } 
+        this.shadowRoot.querySelector("fea-renderer").updateLinesColorScheme = event.detail.assigned_properties_data;
         event.stopPropagation();
     }
 
@@ -819,6 +824,7 @@ class FeaApp extends HTMLElement {
                     .deleteAssignedPropertiesFromClient = assignedProperties;
             }
         } 
+        this.shadowRoot.querySelector("fea-renderer").updateLinesColorScheme = event.detail.assigned_properties_data;
         event.stopPropagation();
     }
 

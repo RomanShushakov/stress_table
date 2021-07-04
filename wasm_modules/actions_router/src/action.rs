@@ -148,7 +148,7 @@ pub enum ActionType
 
 impl From<GeometryActionType> for ActionType
 {
-    fn from(action_type: GeometryActionType) -> ActionType
+    fn from(action_type: GeometryActionType) -> Self
     {
         ActionType::GeometryActionType(action_type)
     }
@@ -157,7 +157,7 @@ impl From<GeometryActionType> for ActionType
 
 impl From<PropertiesActionType> for ActionType
 {
-    fn from(action_type: PropertiesActionType) -> ActionType
+    fn from(action_type: PropertiesActionType) -> Self
     {
         ActionType::PropertiesActionType(action_type)
     }

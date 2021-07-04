@@ -66,10 +66,22 @@ impl LineObjectKey
 }
 
 
+#[wasm_bindgen]
+#[repr(u8)]
+#[derive(Copy, Clone)]
+pub enum LineObjectColorScheme
+{
+    Default,
+    TrussProps,
+    BeamProps,
+}
+
+
 pub struct LineObject
 {
     start_point_object_key: PointObjectKey,
     end_point_object_key: PointObjectKey,
+    line_object_color_scheme: LineObjectColorScheme,
     uid: u32,
 }
 
@@ -79,7 +91,8 @@ impl LineObject
     pub fn create(start_point_object_key: PointObjectKey, end_point_object_key: PointObjectKey,
         uid: u32) -> Self
     {
-        LineObject { start_point_object_key, end_point_object_key, uid }
+        let line_object_color_scheme = LineObjectColorScheme::Default;
+        LineObject { start_point_object_key, end_point_object_key, line_object_color_scheme, uid }
     }
 
 
@@ -192,6 +205,18 @@ impl LineObject
             3, vec![q_11, q_12, q_13, q_21, q_22, q_23, q_31, q_32, q_33]);
         rotation_matrix.transpose();
         Ok(rotation_matrix)
+    }
+
+
+    pub fn get_color_scheme(&self) -> LineObjectColorScheme
+    {
+        self.line_object_color_scheme
+    }
+
+
+    pub fn update_color_scheme(&mut self, color_scheme: LineObjectColorScheme)
+    {
+        self.line_object_color_scheme = color_scheme;
     }
 }
 

@@ -43,7 +43,7 @@ impl ActionsRouter
         self.undo_actions.clear();
         let coordinates = Coordinates::create(x, y, z);
         let is_action_id_should_be_increased = true;
-        let action_type = ActionType::GeometryActionType(GeometryActionType::AddPoint(
+        let action_type = ActionType::from(GeometryActionType::AddPoint(
             number, coordinates, is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
         let add_to_active_actions = true;
@@ -101,7 +101,7 @@ impl ActionsRouter
         let new_coordinates = Coordinates::create(new_x_value,
             new_y_value, new_z_value);
         let is_action_id_should_be_increased = true;
-        let action_type = ActionType::GeometryActionType(GeometryActionType::UpdatePoint(
+        let action_type = ActionType::from(GeometryActionType::UpdatePoint(
             number, old_coordinates, new_coordinates, is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
         let add_to_active_actions = true;
@@ -122,7 +122,7 @@ impl ActionsRouter
                 Point number could not be converted to FEUInt!")))?;
         self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
-        let action_type = ActionType::GeometryActionType(GeometryActionType::DeletePoint(
+        let action_type = ActionType::from(GeometryActionType::DeletePoint(
             number, is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
         let add_to_active_actions = true;
@@ -157,7 +157,7 @@ impl ActionsRouter
                 Line end point number could not be converted to FEUInt!")))?;
         self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
-        let action_type = ActionType::GeometryActionType(GeometryActionType::AddLine(
+        let action_type = ActionType::from(GeometryActionType::AddLine(
             number, start_point_number, end_point_number, is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
         let add_to_active_actions = true;
@@ -200,7 +200,7 @@ impl ActionsRouter
                 Line new end point number could not be converted to FEUInt!")))?;
         self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
-        let action_type = ActionType::GeometryActionType(GeometryActionType::UpdateLine(
+        let action_type = ActionType::from(GeometryActionType::UpdateLine(
             number, old_start_point_number, old_end_point_number, new_start_point_number,
             new_end_point_number, is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
@@ -224,7 +224,7 @@ impl ActionsRouter
                 Line number could not be converted to FEUInt!")))?;
         self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
-        let action_type = ActionType::GeometryActionType(GeometryActionType::DeleteLine(
+        let action_type = ActionType::from(GeometryActionType::DeleteLine(
             number, is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
         let add_to_active_actions = true;

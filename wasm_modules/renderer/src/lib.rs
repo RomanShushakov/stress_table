@@ -12,7 +12,7 @@ use rand;
 
 mod line_object;
 use line_object::{LineObject, LineObjectKey, LineObjectNumbers};
-use line_object::{LineObjectType};
+use line_object::{LineObjectType, LineObjectColorScheme};
 
 mod aux_functions;
 use aux_functions::
@@ -49,7 +49,9 @@ use drawn_object::
         CANVAS_DRAWN_FORCES_DENOTATION_COLOR, DRAWN_FORCES_DENOTATION_SHIFT_X,
         DRAWN_FORCES_DENOTATION_SHIFT_Y, HINTS_COLOR, DRAWN_LINE_OBJECTS_DENOTATION_SHIFT,
         CANVAS_DRAWN_POINTS_DENOTATION_COLOR, DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
-        DRAWN_LINE_OBJECTS_BASE_RADIUS, CANVAS_DRAWN_LINES_DENOTATION_COLOR,
+        DRAWN_LINE_OBJECTS_BASE_RADIUS, CANVAS_DRAWN_LINES_DEFAULT_DENOTATION_COLOR,
+        CANVAS_DRAWN_LINES_TRUSS_PROPS_DENOTATION_COLOR,
+        CANVAS_DRAWN_LINES_BEAM_PROPS_DENOTATION_COLOR,
         SELECTION_RECTANGLE_STROKE_COLOR, SELECTION_RECTANGLE_FILL_COLOR,
     };
 
@@ -117,7 +119,7 @@ pub struct Renderer
 impl Renderer
 {
     pub fn create(canvas_text: web_sys::HtmlCanvasElement, canvas_gl: web_sys::HtmlCanvasElement)
-        -> Renderer
+        -> Self
     {
         let props = Props
         {
@@ -297,6 +299,31 @@ impl Renderer
                 number {} does not exist!", line_object_type.as_str().to_lowercase(),
                 line_object_type.as_str(), number);
             return Err(JsValue::from(error_message));
+        }
+        Ok(())
+    }
+
+
+    pub fn update_line_objects_color_scheme(&mut self, line_object_numbers: &[u32],
+        line_object_type: LineObjectType, line_object_color_scheme: LineObjectColorScheme)
+        -> Result<(), JsValue>
+    {
+        for line_object_number in line_object_numbers
+        {
+            let line_object_key = LineObjectKey::create(
+                *line_object_number, line_object_type);
+            if let Some(line_object) = self.state.line_objects
+                .get_mut(&line_object_key)
+            {
+                line_object.update_color_scheme(line_object_color_scheme);
+            }
+            else
+            {
+                let error_message = format!("Renderer: Update {} color scheme action: {} \
+                    with number {} does not exist!", line_object_type.as_str().to_lowercase(),
+                    line_object_type.as_str(), line_object_number);
+                return Err(JsValue::from(error_message));
+            }
         }
         Ok(())
     }
@@ -696,7 +723,18 @@ impl Renderer
                 {
                     let initial_color = match line_object_key.get_object_type()
                     {
-                        LineObjectType::Line => CANVAS_DRAWN_LINES_DENOTATION_COLOR,
+                        LineObjectType::Line =>
+                            {
+                                match line_object.get_color_scheme()
+                                {
+                                    LineObjectColorScheme::Default =>
+                                        CANVAS_DRAWN_LINES_DEFAULT_DENOTATION_COLOR,
+                                    LineObjectColorScheme::TrussProps =>
+                                        CANVAS_DRAWN_LINES_TRUSS_PROPS_DENOTATION_COLOR,
+                                    LineObjectColorScheme::BeamProps =>
+                                        CANVAS_DRAWN_LINES_BEAM_PROPS_DENOTATION_COLOR,
+                                }
+                            },
                         LineObjectType::Element => CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR,
                     };
 

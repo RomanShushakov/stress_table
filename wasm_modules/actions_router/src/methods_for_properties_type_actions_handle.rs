@@ -33,7 +33,7 @@ impl ActionsRouter
                 Poisson's ratio value could not be converted to FEFloat!")))?;
         self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
-        let action_type = ActionType::PropertiesActionType(PropertiesActionType::AddMaterial(
+        let action_type = ActionType::from(PropertiesActionType::AddMaterial(
                 name, young_modulus, poisson_ratio, is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
         let add_to_active_actions = true;
@@ -76,7 +76,7 @@ impl ActionsRouter
                 Material new Poisson's ratio value could not be converted to FEFloat!")))?;
         self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
-        let action_type = ActionType::PropertiesActionType(PropertiesActionType::UpdateMaterial(
+        let action_type = ActionType::from(PropertiesActionType::UpdateMaterial(
             name, old_young_modulus, old_poisson_ratio, new_young_modulus,
             new_poisson_ratio, is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
@@ -96,7 +96,7 @@ impl ActionsRouter
         self.undo_actions.clear();
         let name = material_data["name"].to_string();
         let is_action_id_should_be_increased = true;
-        let action_type = ActionType::PropertiesActionType(PropertiesActionType::DeleteMaterial(
+        let action_type = ActionType::from(PropertiesActionType::DeleteMaterial(
             name, is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
         let add_to_active_actions = true;
@@ -138,7 +138,7 @@ impl ActionsRouter
             };
         self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
-        let action_type = ActionType::PropertiesActionType(PropertiesActionType::AddTrussSection(
+        let action_type = ActionType::from(PropertiesActionType::AddTrussSection(
                 name, area, area2, is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
         let add_to_active_actions = true;
@@ -205,7 +205,7 @@ impl ActionsRouter
             };
         self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
-        let action_type = ActionType::PropertiesActionType(PropertiesActionType::UpdateTrussSection(
+        let action_type = ActionType::from(PropertiesActionType::UpdateTrussSection(
             name, old_area, old_area2, new_area, new_area2, is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
         let add_to_active_actions = true;
@@ -224,7 +224,7 @@ impl ActionsRouter
         self.undo_actions.clear();
         let name = truss_section_data["name"].to_string();
         let is_action_id_should_be_increased = true;
-        let action_type = ActionType::PropertiesActionType(PropertiesActionType::DeleteTrussSection(
+        let action_type = ActionType::from(PropertiesActionType::DeleteTrussSection(
             name, is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
         let add_to_active_actions = true;
@@ -273,7 +273,7 @@ impl ActionsRouter
                 It value could not be converted to FEFloat!")))?;
         self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
-        let action_type = ActionType::PropertiesActionType(PropertiesActionType::AddBeamSection(
+        let action_type = ActionType::from(PropertiesActionType::AddBeamSection(
                 name, area, i11, i22, i12, it, is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
         let add_to_active_actions = true;
@@ -352,7 +352,7 @@ impl ActionsRouter
                 Beam section new It value could not be converted to FEFloat!")))?;
         self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
-        let action_type = ActionType::PropertiesActionType(PropertiesActionType::UpdateBeamSection(
+        let action_type = ActionType::from(PropertiesActionType::UpdateBeamSection(
             name, old_area, old_i11, old_i22, old_i12, old_it, new_area,
             new_i11, new_i22, new_i12, new_it, is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
@@ -372,7 +372,7 @@ impl ActionsRouter
         self.undo_actions.clear();
         let name = beam_section_data["name"].to_string();
         let is_action_id_should_be_increased = true;
-        let action_type = ActionType::PropertiesActionType(PropertiesActionType::DeleteBeamSection(
+        let action_type = ActionType::from(PropertiesActionType::DeleteBeamSection(
             name, is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
         let add_to_active_actions = true;
@@ -394,7 +394,7 @@ impl ActionsRouter
         let cross_section_type = properties_data["cross_section_type"].to_string();
         self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
-        let action_type = ActionType::PropertiesActionType(PropertiesActionType::AddProperties(
+        let action_type = ActionType::from(PropertiesActionType::AddProperties(
                 name, material_name, cross_section_name, cross_section_type,
                 is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
@@ -426,7 +426,7 @@ impl ActionsRouter
             ["cross_section_type"].to_string();
         self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
-        let action_type = ActionType::PropertiesActionType(PropertiesActionType::UpdateProperties(
+        let action_type = ActionType::from(PropertiesActionType::UpdateProperties(
             name, old_material_name, old_cross_section_name, old_cross_section_type,
             new_material_name, new_cross_section_name, new_cross_section_type,
             is_action_id_should_be_increased));
@@ -447,7 +447,7 @@ impl ActionsRouter
         self.undo_actions.clear();
         let name = properties_data["name"].to_string();
         let is_action_id_should_be_increased = true;
-        let action_type = ActionType::PropertiesActionType(PropertiesActionType::DeleteProperties(
+        let action_type = ActionType::from(PropertiesActionType::DeleteProperties(
             name, is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
         let add_to_active_actions = true;
@@ -470,7 +470,7 @@ impl ActionsRouter
                 Line numbers could not be converted to FEUInt!")))?;
         self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
-        let action_type = ActionType::PropertiesActionType(
+        let action_type = ActionType::from(
             PropertiesActionType::AddAssignedProperties(name, line_numbers,
                 is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
@@ -499,7 +499,7 @@ impl ActionsRouter
                 New line numbers could not be converted to FEUInt!")))?;
         self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
-        let action_type = ActionType::PropertiesActionType(
+        let action_type = ActionType::from(
             PropertiesActionType::UpdateAssignedProperties(name, old_line_numbers,
                 new_line_numbers, is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
@@ -519,7 +519,7 @@ impl ActionsRouter
         self.undo_actions.clear();
         let name = assigned_properties_data["name"].to_string();
         let is_action_id_should_be_increased = true;
-        let action_type = ActionType::PropertiesActionType(
+        let action_type = ActionType::from(
             PropertiesActionType::DeleteAssignedProperties(name, is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
         let add_to_active_actions = true;

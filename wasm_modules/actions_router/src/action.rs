@@ -135,6 +135,9 @@ pub enum PropertiesActionType
 
     // ( name, is_action_id_should_be_increased )
     RestoreAssignedProperties(String, bool),
+
+    // ( local_axis_1_direction, is_action_id_should_be_increased )
+    AddBeamSectionLocalAxis1Direction(Vec<FEFloat>, bool),
 }
 
 

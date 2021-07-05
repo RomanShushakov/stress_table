@@ -775,7 +775,7 @@ class FeaPropertiesUpdatePropertiesMenu extends HTMLElement {
             for (let i = 0; i < this.props.materials.length; i++) {
                 let updateOption = document.createElement("option");
                 updateOption.value = this.props.materials[i].name.replace(/['"]+/g, "");
-                updateOption.innerHTML = this.props.materials[i].name.replace(/['"]+/g, "");;
+                updateOption.innerHTML = this.props.materials[i].name.replace(/['"]+/g, "");
                 materialNameSelect.appendChild(updateOption);
             }
         }
@@ -800,7 +800,7 @@ class FeaPropertiesUpdatePropertiesMenu extends HTMLElement {
                     for (let i = 0; i < this.props.trussSections.length; i++) {
                         let updateOption = document.createElement("option");
                         updateOption.value = this.props.trussSections[i].name.replace(/['"]+/g, "");
-                        updateOption.innerHTML = this.props.trussSections[i].name.replace(/['"]+/g, "");;
+                        updateOption.innerHTML = this.props.trussSections[i].name.replace(/['"]+/g, "");
                         sectionNameSelect.appendChild(updateOption);
                     }
                 }
@@ -810,7 +810,7 @@ class FeaPropertiesUpdatePropertiesMenu extends HTMLElement {
                     for (let i = 0; i < this.props.beamSections.length; i++) {
                         let updateOption = document.createElement("option");
                         updateOption.value = this.props.beamSections[i].name.replace(/['"]+/g, "");
-                        updateOption.innerHTML = this.props.beamSections[i].name.replace(/['"]+/g, "");;
+                        updateOption.innerHTML = this.props.beamSections[i].name.replace(/['"]+/g, "");
                         sectionNameSelect.appendChild(updateOption);
                     }
                 }

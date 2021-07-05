@@ -3,6 +3,8 @@ use std::collections::HashMap;
 use crate::preprocessor::geometry::point::{Point, DeletedPoint};
 use crate::preprocessor::geometry::line::{Line, DeletedLine};
 
+use crate::functions::log;
+
 
 use crate::types::FEUInt;
 
@@ -59,5 +61,14 @@ impl Geometry
     {
         self.clear_deleted_lines_by_action_id(action_id);
         self.clear_deleted_points_by_action_id(action_id);
+    }
+
+
+    pub fn logging(&self)
+    {
+        log(&format!("Geometry: \n
+            Points: {:?}, Deleted points: {:?}, \n
+            Lines: {:?}, Deleted lines {:?} \n", self.points, self.deleted_points, self.lines,
+            self.deleted_lines));
     }
 }

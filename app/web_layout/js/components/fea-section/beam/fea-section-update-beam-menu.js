@@ -605,7 +605,7 @@ class FeaSectionUpdateBeamMenu extends HTMLElement {
             for (let i = 0; i < this.props.beamSections.length; i++) {
                 let updateOption = document.createElement("option");
                 updateOption.value = this.props.beamSections[i].name.replace(/['"]+/g, "");
-                updateOption.innerHTML = this.props.beamSections[i].name.replace(/['"]+/g, "");;
+                updateOption.innerHTML = this.props.beamSections[i].name.replace(/['"]+/g, "");
                 updateBeamSectionNameSelect.appendChild(updateOption);
             }
             this.shadowRoot.querySelector(".area").value = this.props.beamSections[0].area;

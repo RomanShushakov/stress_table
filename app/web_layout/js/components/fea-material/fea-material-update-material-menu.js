@@ -423,7 +423,7 @@ class FeaMaterialUpdateMaterialMenu extends HTMLElement {
             for (let i = 0; i < this.props.materials.length; i++) {
                 let updateOption = document.createElement("option");
                 updateOption.value = this.props.materials[i].name.replace(/['"]+/g, "");
-                updateOption.innerHTML = this.props.materials[i].name.replace(/['"]+/g, "");;
+                updateOption.innerHTML = this.props.materials[i].name.replace(/['"]+/g, "");
                 updateMaterialNameSelect.appendChild(updateOption);
             }
             this.shadowRoot.querySelector(".young-modulus").value = this.props.materials[0].young_modulus;

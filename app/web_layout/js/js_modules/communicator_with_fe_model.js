@@ -313,6 +313,16 @@ class CommunicatorWithFEModel {
         }
     }
 
+    set addBeamSectionLocalAxis1DirectionToProperties(beamSectionLocalAxis1DirectionData) {
+        try {
+            this.state.feModel.add_beam_section_local_axis_1_direction(beamSectionLocalAxis1DirectionData.action_id,
+                beamSectionLocalAxis1DirectionData.local_axis_1_direction, 
+                beamSectionLocalAxis1DirectionData.is_action_id_should_be_increased);
+        } catch (error) {
+            throw error;
+        }
+    }
+
     set clearPropertiesModuleByActionId(action_id) {
         this.state.feModel.clear_properties_module_by_action_id(action_id);
     }

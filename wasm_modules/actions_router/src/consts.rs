@@ -25,5 +25,8 @@ pub const ADD_ASSIGNED_PROPERTIES_MESSAGE_HEADER: &str = "add_assigned_propertie
 pub const UPDATE_ASSIGNED_PROPERTIES_MESSAGE_HEADER: &str = "update_assigned_properties";
 pub const DELETE_ASSIGNED_PROPERTIES_MESSAGE_HEADER: &str = "delete_assigned_properties";
 
+pub const ADD_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_MESSAGE_HEADER: &str =
+    "add_beam_section_local_axis_1_direction";
+
 pub const UNDO_MESSAGE_HEADER: &str = "undo";
 pub const REDO_MESSAGE_HEADER: &str = "redo";

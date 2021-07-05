@@ -12,3 +12,4 @@ pub mod methods_for_beam_section_data_handle;
 pub mod methods_for_property_data_handle;
 pub mod methods_for_assigned_property_data_handle;
 pub mod methods_for_line_numbers_handle;
+pub mod methods_for_beam_section_orientation_handle;

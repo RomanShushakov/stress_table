@@ -18,4 +18,7 @@ pub const ADD_ASSIGNED_PROPERTIES_EVENT_NAME: &str = "add_assigned_properties_se
 pub const UPDATE_ASSIGNED_PROPERTIES_EVENT_NAME: &str = "update_assigned_properties_server_message";
 pub const DELETE_ASSIGNED_PROPERTIES_EVENT_NAME: &str = "delete_assigned_properties_server_message";
 
+pub const ADD_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_EVENT_NAME: &str =
+    "add_beam_section_local_axis_1_direction_server_message";
+
 pub const UPDATE_LINES_COLOR_EVENT_NAME: &str = "update_lines_color_server_message";

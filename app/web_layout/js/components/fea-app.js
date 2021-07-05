@@ -161,6 +161,9 @@ class FeaApp extends HTMLElement {
         this.addEventListener("update_assigned_properties_server_message", (event) => this.handleUpdateAssignedPropertiesServerMessage(event));
         this.addEventListener("delete_assigned_properties_server_message", (event) => this.handleDeleteAssignedPropertiesServerMessage(event));
 
+        this.addEventListener("add_beam_section_local_axis_1_direction_server_message", 
+            (event) => this.handleAddBeamSectionLocalAxis1DirectionServerMessage(event));
+
         this.addEventListener("decreaseActionId", (_event) => this.handleDecreaseActionIdMessage());
 
         this.addEventListener("enableLinesSelectionMode", 
@@ -865,6 +868,17 @@ class FeaApp extends HTMLElement {
             }
         } 
         this.shadowRoot.querySelector("fea-renderer").updateLinesColorScheme = event.detail.assigned_properties_data;
+        event.stopPropagation();
+    }
+
+    handleAddBeamSectionLocalAxis1DirectionServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;           
+        }
+        const beamSectionOrientation = { 
+            local_axis_1_direction: event.detail.beam_section_orientation_data.local_axis_1_direction,
+            line_numbers: event.detail.beam_section_orientation_data.line_numbers };
+        console.log("From server:", beamSectionOrientation);
         event.stopPropagation();
     }
 

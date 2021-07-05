@@ -28,6 +28,7 @@ use external_functions::communication_with_properties::
     delete_properties_from_properties, restore_properties_in_properties,
     add_assigned_properties_to_properties, update_assigned_properties_in_properties,
     delete_assigned_properties_from_properties, restore_assigned_properties_in_properties,
+    add_beam_section_local_axis_1_direction_to_properties,
     clear_properties_module_by_action_id,
     extract_materials, extract_truss_sections, extract_beam_sections,
     extract_properties, extract_assigned_properties,
@@ -52,6 +53,7 @@ use consts::
     ADD_PROPERTIES_MESSAGE_HEADER, UPDATE_PROPERTIES_MESSAGE_HEADER,
     DELETE_PROPERTIES_MESSAGE_HEADER, ADD_ASSIGNED_PROPERTIES_MESSAGE_HEADER,
     UPDATE_ASSIGNED_PROPERTIES_MESSAGE_HEADER, DELETE_ASSIGNED_PROPERTIES_MESSAGE_HEADER,
+    ADD_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_MESSAGE_HEADER,
     UNDO_MESSAGE_HEADER, REDO_MESSAGE_HEADER,
 };
 
@@ -469,6 +471,7 @@ impl ActionsRouter
                                     self.current_action = Some((action, add_to_active_actions));
                                 },
                             PropertiesActionType::RestoreAssignedProperties(_, _) => (),
+                            PropertiesActionType::AddBeamSectionLocalAxis1Direction(_, _) => (),
                         }
                     }
             }
@@ -924,6 +927,18 @@ impl ActionsRouter
                                         self.active_actions.push(action.clone());
                                     }
                                 },
+                            PropertiesActionType::AddBeamSectionLocalAxis1Direction(
+                                local_axis_1_direction,
+                                is_action_id_should_be_increased) =>
+                                {
+                                    add_beam_section_local_axis_1_direction_to_properties(action_id,
+                                        local_axis_1_direction,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions == true
+                                    {
+                                        self.active_actions.push(action.clone());
+                                    }
+                                },
                         }
                     }
             }
@@ -1040,6 +1055,11 @@ impl ActionsRouter
         {
             self.handle_delete_assigned_properties_message(&assigned_properties_data)?;
         }
+        else if let Some(local_axis_1_direction_data) = serialized_message
+            .get(ADD_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_MESSAGE_HEADER)
+        {
+            self.handle_add_beam_section_local_axis_1_direction_message(&local_axis_1_direction_data)?;
+        }
         else if let Some(undo_data) = serialized_message.get(UNDO_MESSAGE_HEADER)
         {
             self.handle_undo_message(&undo_data)?;
@@ -1067,7 +1087,8 @@ impl ActionsRouter
         {
             let action_id = &action.get_action_id();
             let action_type = &action.get_action_type();
-            log(&format!("Actions router active actions: Action id: {:?}, action type: {:?}",
+            log(&format!("Actions router active actions: \n
+                Action id: {:?}, action type: {:?} \n",
                 action_id, action_type));
         }
         log(&format!("Actions router: The number of active actions: {}",
@@ -1077,7 +1098,8 @@ impl ActionsRouter
         {
             let action_id = &action.get_action_id();
             let action_type = &action.get_action_type();
-            log(&format!("Actions router undo actions: Action id: {:?}, action type: {:?}",
+            log(&format!("Actions router undo actions: \n
+                Action id: {:?}, action type: {:?} \n",
                 action_id, action_type));
         }
         log(&format!("Actions router: The number of undo actions: {}",

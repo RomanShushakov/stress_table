@@ -13,7 +13,7 @@ use crate::types::{FEUInt};
 
 use crate::consts::EVENT_TARGET;
 
-use crate::functions::{log, dispatch_custom_event};
+use crate::functions::{dispatch_custom_event};
 
 
 impl Properties
@@ -66,19 +66,7 @@ impl Properties
             "is_action_id_should_be_increased": is_action_id_should_be_increased });
         dispatch_custom_event(detail, ADD_ASSIGNED_PROPERTIES_EVENT_NAME,
             EVENT_TARGET)?;
-        log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
-            truss sections: {:?}, deleted truss sections: {:?}, \
-            beam sections: {:?}, deleted beam sections: {:?}, \
-            properties: {:?}, deleted properties: {:?}, \
-            assigned_properties: {:?}, changed_assigned_properties: {:?}, \
-            deleted_assigned_properties: {:?}",
-            self.materials, self.deleted_materials,
-            self.truss_sections, self.deleted_truss_sections,
-            self.beam_sections, self.deleted_beam_sections,
-            self.properties, self.deleted_properties,
-            self.assigned_properties, self.changed_assigned_properties,
-            self.deleted_assigned_properties)
-        );
+        self.logging();
         Ok(())
     }
 
@@ -127,19 +115,7 @@ impl Properties
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, UPDATE_ASSIGNED_PROPERTIES_EVENT_NAME,
                 EVENT_TARGET)?;
-            log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
-                truss sections: {:?}, deleted truss sections: {:?}, \
-                beam sections: {:?}, deleted beam sections: {:?}, \
-                properties: {:?}, deleted properties: {:?}, \
-                assigned_properties: {:?}, changed_assigned_properties: {:?}, \
-                deleted_assigned_properties: {:?}",
-                self.materials, self.deleted_materials,
-                self.truss_sections, self.deleted_truss_sections,
-                self.beam_sections, self.deleted_beam_sections,
-                self.properties, self.deleted_properties,
-                self.assigned_properties, self.changed_assigned_properties,
-                self.deleted_assigned_properties)
-            );
+            self.logging();
             Ok(())
         }
         else
@@ -176,19 +152,7 @@ impl Properties
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, DELETE_ASSIGNED_PROPERTIES_EVENT_NAME,
                 EVENT_TARGET)?;
-            log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
-                truss sections: {:?}, deleted truss sections: {:?}, \
-                beam sections: {:?}, deleted beam sections: {:?}, \
-                properties: {:?}, deleted properties: {:?}, \
-                assigned_properties: {:?}, changed_assigned_properties: {:?}, \
-                deleted_assigned_properties: {:?}",
-                self.materials, self.deleted_materials,
-                self.truss_sections, self.deleted_truss_sections,
-                self.beam_sections, self.deleted_beam_sections,
-                self.properties, self.deleted_properties,
-                self.assigned_properties, self.changed_assigned_properties,
-                self.deleted_assigned_properties)
-            );
+            self.logging();
             Ok(())
         }
         else
@@ -233,19 +197,7 @@ impl Properties
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, ADD_ASSIGNED_PROPERTIES_EVENT_NAME,
                 EVENT_TARGET)?;
-            log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
-                truss sections: {:?}, deleted truss sections: {:?}, \
-                beam sections: {:?}, deleted beam sections: {:?}, \
-                properties: {:?}, deleted properties: {:?}, \
-                assigned_properties: {:?}, changed_assigned_properties: {:?}, \
-                deleted_assigned_properties: {:?}",
-                self.materials, self.deleted_materials,
-                self.truss_sections, self.deleted_truss_sections,
-                self.beam_sections, self.deleted_beam_sections,
-                self.properties, self.deleted_properties,
-                self.assigned_properties, self.changed_assigned_properties,
-                self.deleted_assigned_properties)
-            );
+            self.logging();
             Ok(())
         }
         else

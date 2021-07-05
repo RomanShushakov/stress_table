@@ -10,7 +10,7 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
                                             //              cross_section_type: String }];
             assignedProperties: [],         // array of: [{ name: String, line_numbers: [u32...] }];
             beamSectionsOrientations: [
-                { local_axis_1_direction: [1.5, 0.0, 0.0], line_numbers: [1, 2, 3] },
+                { "local_axis_1_direction": [1.5, 0.0, 0.0], "line_numbers": [] },
                 // { local_axis_1_direction: [2.5, 0.0, 0.0], line_numbers: [4, 5, 6] }
             ],   // array of: [{ local_axis_1_direction: [f64; 3], line_numbers: [u32...] }];    
         };
@@ -482,6 +482,23 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
                     width: 12rem;
                 }
 
+                .local-axis-1-direction-input-info {
+                    display: flex;
+                    margin: 0rem;
+                    padding: 0rem;
+                }
+
+                .local-axis-1-direction-input-info-message {
+                    margin-top: 1rem;
+                    margin-bottom: 0rem;
+                    margin-left: 0rem;
+                    margin-right: 0rem;
+                    padding: 0rem;
+                    color: #D9D9D9;
+                    font-size: 80%;
+                    width: 12rem;
+                }
+
                 .highlighted {
                     box-shadow: 0rem 0.1rem 0rem #72C5FF;
                 }
@@ -499,6 +516,10 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
                 <div class="local-axis-1-direction-input-buttons">
                     <button class="add-inputted-button">Add inputted</button>
                     <button class="remove-inputted-button">Remove inputted</button>
+                </div>
+
+                <div class="local-axis-1-direction-input-info">
+                    <p class="local-axis-1-direction-input-info-message"></p>
                 </div>
 
                 <div class="local-axis-1-direction-field-content">
@@ -547,9 +568,13 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
             </div>
         `;
 
-        this.shadowRoot.querySelector(".apply-button").addEventListener("click", () => this.deleteProperties());
+        this.shadowRoot.querySelector(".add-inputted-button").addEventListener("click", () => this.addLocalAxis1Direction());
 
-        this.shadowRoot.querySelector(".cancel-button").addEventListener("click", () => this.cancelPropertiesAssign());
+        this.shadowRoot.querySelector(".remove-inputted-button").addEventListener("click", () => this.removeLocalAxis1Direction());
+
+        this.shadowRoot.querySelector(".apply-button").addEventListener("click", () => this.updateBeamSectionOrientationData());
+
+        this.shadowRoot.querySelector(".cancel-button").addEventListener("click", () => this.cancelBeamSectionOrientationDataUpdate());
 
         this.shadowRoot.querySelector(".local-axis-1-direction").addEventListener("change",
             (event) => this.updateSelectedBeamSectionOrientationData(event.target.value));
@@ -558,6 +583,12 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
             this.filter(
                 this.shadowRoot.querySelector(".local-axis-1-direction-filter").value,
                 this.shadowRoot.querySelector(".local-axis-1-direction"));
+        });
+
+        this.shadowRoot.querySelector(".local-axis-1-direction-input").addEventListener("click", () => {
+            const highlightedElement = this.shadowRoot.querySelector(".local-axis-1-direction-input");
+            this.dropHighlight(highlightedElement);
+            this.shadowRoot.querySelector(".local-axis-1-direction-input-info-message").innerHTML = "";
         });
 
         this.shadowRoot.querySelector(".selected-lines").addEventListener("click", () => {
@@ -687,6 +718,64 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
         }));
     }
 
+    addLocalAxis1Direction() {
+        const localAxis1DirectionInputField = this.shadowRoot.querySelector(".local-axis-1-direction-input");
+        let localAxis1Direction = localAxis1DirectionInputField.value
+            .split(",")
+            .map((item) => item.replace(/\s/g,'', ""))
+            .filter((item) => item !== "");
+        for (let i = 0; i < localAxis1Direction.length; i++) {
+            if (this.isNumeric(localAxis1Direction[i]) === false) {
+                if (localAxis1DirectionInputField.classList.contains("highlighted") === false) {
+                    localAxis1DirectionInputField.classList.add("highlighted");
+                }
+                if (this.shadowRoot.querySelector(".local-axis-1-direction-input-info-message").innerHTML === "") {
+                    this.shadowRoot.querySelector(".local-axis-1-direction-input-info-message").innerHTML = 
+                        "Note: Only numbers could be used as local axis 1 direction values!";
+                }
+                return;
+            }
+        }
+        localAxis1Direction = localAxis1Direction.map((item) => parseFloat(item));
+        if (localAxis1Direction.length !== 3) {
+            if (localAxis1DirectionInputField.classList.contains("highlighted") === false) {
+                localAxis1DirectionInputField.classList.add("highlighted");
+            }
+            if (this.shadowRoot.querySelector(".local-axis-1-direction-input-info-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".local-axis-1-direction-input-info-message").innerHTML = 
+                    "Note: Incorrect number of coordinates for local axis 1 direction!";
+            }
+            return;
+        }
+        const equals = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
+        if (this.props.beamSectionsOrientations.find((item) => 
+            equals(item.local_axis_1_direction, localAxis1Direction)) !== undefined) {
+            if (localAxis1DirectionInputField.classList.contains("highlighted") === false) {
+                localAxis1DirectionInputField.classList.add("highlighted");
+            }
+            if (this.shadowRoot.querySelector(".local-axis-1-direction-input-info-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".local-axis-1-direction-input-info-message").innerHTML = 
+                    "Note: The same value of beam section local axis 1 direction does already exist!";
+            }
+            return;
+        }
+        this.getActionId();
+        const message = { 
+            "add_beam_section_local_axis_1_direction": { 
+                "actionId": this.props.actionId,
+                "local_axis_1_direction": localAxis1Direction,
+            } 
+        };
+        this.dispatchEvent(new CustomEvent("clientMessage", {
+            bubbles: true,
+            composed: true,
+            detail: {
+                message: message,
+            },
+        }));
+        localAxis1DirectionInputField.value = null;
+    }
+
     addToSelectedLines(lineNumber) {
         const selectedLinesField = this.shadowRoot.querySelector(".selected-lines");
         let selectedLines = selectedLinesField.value
@@ -700,7 +789,7 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
                 }
                 if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                     this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                        "Note: Only numbers could be used as selected lines values!";;
+                        "Note: Only numbers could be used as selected lines values!";
                 }
                 return;
             }
@@ -710,7 +799,7 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
                 }
                 if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                     this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                        "Note: Only existed lines numbers could be used as selected lines values!";;
+                        "Note: Only existed lines numbers could be used as selected lines values!";
                 }
                 return;
             }
@@ -734,7 +823,7 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
                 }
                 if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                     this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                        "Note: Only numbers could be used as selected lines values!";;
+                        "Note: Only numbers could be used as selected lines values!";
                 }
                 return;
             }
@@ -744,7 +833,7 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
                 }
                 if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                     this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                        "Note: Only existed lines numbers could be used as selected lines values!";;
+                        "Note: Only existed lines numbers could be used as selected lines values!";
                 }
                 return;
             }
@@ -771,7 +860,7 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
                 }
                 if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                     this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                        "Note: Only numbers could be used as selected lines values!";;
+                        "Note: Only numbers could be used as selected lines values!";
                 }
                 return;
             }
@@ -781,7 +870,7 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
                 }
                 if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                     this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                        "Note: Only existed lines numbers could be used as selected lines values!";;
+                        "Note: Only existed lines numbers could be used as selected lines values!";
                 }
                 return;
             }
@@ -826,7 +915,6 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
     }
 
     updateSelectedBeamSectionOrientationData(selectedLocalAxis1Direction) {
-        console.log(selectedLocalAxis1Direction);
         const selectedBeamSectionOrientationInProps = this.props.beamSectionsOrientations
             .find(existedBeamSectionOrientation => 
                 existedBeamSectionOrientation.local_axis_1_direction == selectedLocalAxis1Direction);
@@ -856,7 +944,7 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
         }
     }
 
-    deleteProperties() {
+    updateBeamSectionOrientationData() {
         const selectedPropertiesNameField = this.shadowRoot.querySelector(".properties-name");
         if (selectedPropertiesNameField.value == "") {
             if (selectedPropertiesNameField.classList.contains("highlighted") === false) {
@@ -884,7 +972,7 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
                 }
                 if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                     this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                        "Note: Only numbers could be used as assign to lines values!";;
+                        "Note: Only numbers could be used as assign to lines values!";
                 }
                 return;
             }
@@ -894,7 +982,7 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
                 }
                 if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                     this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                        "Note: Only existed lines numbers could be used as assign to lines values!";;
+                        "Note: Only existed lines numbers could be used as assign to lines values!";
                 }
                 return;
             }
@@ -917,7 +1005,7 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
         this.shadowRoot.querySelector(".properties-name-filter").value = null;
     }
 
-    cancelPropertiesAssign() {
+    cancelBeamSectionOrientationDataUpdate() {
         if (this.props.properties.length > 0) {
             this.defineLocalAxis1DirectionOptions();
         }

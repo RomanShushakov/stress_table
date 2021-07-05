@@ -350,6 +350,18 @@ export function restoreAssignedPropertiesInProperties(action_id, name, is_action
     }
 }
 
+export function addBeamSectionLocalAxis1DirectionToProperties(action_id, local_axis_1_direction,
+    is_action_id_should_be_increased) {
+    const beamSectionLocalAxis1DirectionData = { "action_id": action_id, 
+        "local_axis_1_direction": local_axis_1_direction, 
+        "is_action_id_should_be_increased": is_action_id_should_be_increased };
+    try {
+        communicatorWithFEModel.addBeamSectionLocalAxis1DirectionToProperties = beamSectionLocalAxis1DirectionData;
+    } catch (error) {
+        throw error;
+    }
+}
+
 export function clearPropertiesModuleByActionId(action_id) {
     communicatorWithFEModel.clearPropertiesModuleByActionId = action_id;
 }

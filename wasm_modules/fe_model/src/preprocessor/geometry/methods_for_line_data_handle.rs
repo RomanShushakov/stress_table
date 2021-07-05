@@ -12,7 +12,7 @@ use crate::types::{FEUInt};
 
 use crate::consts::EVENT_TARGET;
 
-use crate::functions::{log, dispatch_custom_event};
+use crate::functions::{dispatch_custom_event};
 
 
 impl Geometry
@@ -68,8 +68,7 @@ impl Geometry
             "start_point_number": start_point_number, "end_point_number": end_point_number },
             "is_action_id_should_be_increased": is_action_id_should_be_increased });
         dispatch_custom_event(detail, ADD_LINE_EVENT_NAME, EVENT_TARGET)?;
-        log(&format!("Geometry: Points: {:?}, Deleted points: {:?}, Lines: {:?}, \
-            Deleted lines {:?}", self.points, self.deleted_points, self.lines, self.deleted_lines));
+        self.logging();
         Ok(())
     }
 
@@ -112,8 +111,7 @@ impl Geometry
                 number {} does not exist!", number);
             return Err(JsValue::from(error_message));
         }
-        log(&format!("Geometry: Points: {:?}, Deleted points: {:?}, Lines: {:?}, \
-            Deleted lines {:?}", self.points, self.deleted_points, self.lines, self.deleted_lines));
+        self.logging();
         Ok(())
     }
 
@@ -130,9 +128,7 @@ impl Geometry
             let detail = json!({ "line_data": { "number": number },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, DELETE_LINE_EVENT_NAME, EVENT_TARGET)?;
-            log(&format!("Geometry: Points: {:?}, Deleted points: {:?}, Lines: {:?}, \
-                Deleted lines {:?}", self.points, self.deleted_points, self.lines,
-                self.deleted_lines));
+            self.logging();
             Ok(())
         }
         else
@@ -168,9 +164,7 @@ impl Geometry
                 "start_point_number": start_point_number, "end_point_number": end_point_number },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, ADD_LINE_EVENT_NAME, EVENT_TARGET)?;
-            log(&format!("Geometry: Points: {:?}, Deleted points: {:?}, Lines: {:?}, \
-                Deleted lines {:?}", self.points, self.deleted_points, self.lines,
-                self.deleted_lines));
+            self.logging();
             Ok(())
         }
         else

@@ -12,7 +12,7 @@ use crate::preprocessor::geometry::consts::
 
 use crate::types::{FEUInt, FEFloat};
 
-use crate::functions::{log, dispatch_custom_event};
+use crate::functions::{dispatch_custom_event};
 use crate::consts::EVENT_TARGET;
 
 
@@ -42,8 +42,7 @@ impl Geometry
         let detail = json!({ "point_data": { "number": number, "x": x, "y": y, "z": z },
             "is_action_id_should_be_increased": is_action_id_should_be_increased });
         dispatch_custom_event(detail, ADD_POINT_EVENT_NAME, EVENT_TARGET)?;
-        log(&format!("Geometry: Points: {:?}, Deleted points: {:?}, Lines: {:?}, \
-            Deleted lines {:?}", self.points, self.deleted_points, self.lines, self.deleted_lines));
+        self.logging();
         Ok(())
     }
 
@@ -67,9 +66,7 @@ impl Geometry
             let detail = json!({ "point_data": { "number": number, "x": x, "y": y, "z": z },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, UPDATE_POINT_EVENT_NAME, EVENT_TARGET)?;
-            log(&format!("Geometry: Points: {:?}, Deleted points: {:?}, Lines: {:?}, \
-                Deleted lines {:?}", self.points, self.deleted_points, self.lines,
-                self.deleted_lines));
+            self.logging();
             Ok(())
         }
         else
@@ -126,9 +123,7 @@ impl Geometry
             let detail = json!({ "point_data": { "number": number },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, DELETE_POINT_EVENT_NAME, EVENT_TARGET)?;
-            log(&format!("Geometry: Points: {:?}, Deleted points: {:?}, Lines: {:?}, \
-                Deleted lines {:?}", self.points, self.deleted_points, self.lines,
-                self.deleted_lines));
+            self.logging();
             Ok(())
         }
         else
@@ -176,9 +171,7 @@ impl Geometry
                     restored_line_numbers.push(number);
                 }
             }
-            log(&format!("Geometry: Points: {:?}, Deleted points: {:?}, Lines: {:?}, \
-                Deleted lines {:?}", self.points, self.deleted_points, self.lines,
-                self.deleted_lines));
+            self.logging();
             Ok(restored_line_numbers)
         }
         else

@@ -113,20 +113,7 @@ impl Properties
             self.deleted_assigned_properties.insert(action_id,
                 deleted_assigned_properties);
         }
-
-        log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
-            truss sections: {:?}, deleted truss sections: {:?}, \
-            beam sections: {:?}, deleted beam sections: {:?}, \
-            properties: {:?}, deleted properties: {:?}, \
-            assigned_properties: {:?}, changed_assigned_properties: {:?}, \
-            deleted_assigned_properties: {:?}",
-            self.materials, self.deleted_materials,
-            self.truss_sections, self.deleted_truss_sections,
-            self.beam_sections, self.deleted_beam_sections,
-            self.properties, self.deleted_properties,
-            self.assigned_properties, self.changed_assigned_properties,
-            self.deleted_assigned_properties)
-        );
+        self.logging();
         Ok(())
     }
 
@@ -205,19 +192,7 @@ impl Properties
                     EVENT_TARGET)?;
             }
         }
-        log(&format!("Properties: Materials: {:?}, deleted materials: {:?}, \
-            truss sections: {:?}, deleted truss sections: {:?}, \
-            beam sections: {:?}, deleted beam sections: {:?}, \
-            properties: {:?}, deleted properties: {:?}, \
-            assigned_properties: {:?}, changed_assigned_properties: {:?}, \
-            deleted_assigned_properties: {:?}",
-            self.materials, self.deleted_materials,
-            self.truss_sections, self.deleted_truss_sections,
-            self.beam_sections, self.deleted_beam_sections,
-            self.properties, self.deleted_properties,
-            self.assigned_properties, self.changed_assigned_properties,
-            self.deleted_assigned_properties)
-        );
+        self.logging();
         Ok(())
     }
 }

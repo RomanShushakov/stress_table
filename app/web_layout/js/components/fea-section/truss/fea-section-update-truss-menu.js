@@ -423,7 +423,7 @@ class FeaSectionUpdateTrussMenu extends HTMLElement {
             for (let i = 0; i < this.props.trussSections.length; i++) {
                 let updateOption = document.createElement("option");
                 updateOption.value = this.props.trussSections[i].name.replace(/['"]+/g, "");
-                updateOption.innerHTML = this.props.trussSections[i].name.replace(/['"]+/g, "");;
+                updateOption.innerHTML = this.props.trussSections[i].name.replace(/['"]+/g, "");
                 updateTrussSectionNameSelect.appendChild(updateOption);
             }
             this.shadowRoot.querySelector(".area").value = this.props.trussSections[0].area;

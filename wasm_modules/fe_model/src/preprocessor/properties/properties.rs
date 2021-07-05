@@ -12,10 +12,12 @@ use crate::preprocessor::properties::assigned_property::
 };
 use crate::preprocessor::properties::beam_section_orientation::
 {
-    BeamSectionOrientation, ChangedBeamSectionOrientation, DeletedBeamSectionOrientation,
+    BeamSectionOrientation,
 };
 
 use crate::types::{FEUInt, FEFloat};
+
+use crate::functions::log;
 
 
 pub struct Properties
@@ -32,9 +34,9 @@ pub struct Properties
     pub changed_assigned_properties: HashMap<FEUInt, Vec<ChangedAssignedProperty>>,   // { action_id: Vec<ChangedAssignedProperty> }
     pub deleted_assigned_properties: HashMap<FEUInt, Vec<DeletedAssignedProperty>>,   // { action_id: Vec<DeletedAssignedProperty> }
 
-    pub beam_sections_orientations: HashMap<[FEFloat; 3], BeamSectionOrientation>,  // { local_axis_1_direction: BeamSectionOrientation }
-    pub changed_beam_sections_orientations: HashMap<FEUInt, ChangedBeamSectionOrientation>,    // { action_id: ChangedBeamSectionOrientation }
-    pub deleted_beam_sections_orientations: HashMap<FEUInt, DeletedBeamSectionOrientation>,    // { action_id: DeletedBeamSectionOrientation }
+    pub beam_sections_orientations: Vec<BeamSectionOrientation>,
+    pub changed_beam_sections_orientations: HashMap<FEUInt, BeamSectionOrientation>,    // { action_id: BeamSectionOrientation }
+    pub deleted_beam_sections_orientations: HashMap<FEUInt, BeamSectionOrientation>,    // { action_id: BeamSectionOrientation }
 }
 
 
@@ -53,7 +55,7 @@ impl Properties
         let assigned_properties = HashMap::new();
         let changed_assigned_properties = HashMap::new();
         let deleted_assigned_properties = HashMap::new();
-        let beam_sections_orientations = HashMap::new();
+        let beam_sections_orientations = Vec::new();
         let changed_beam_sections_orientations = HashMap::new();
         let deleted_beam_sections_orientations = HashMap::new();
         Properties {
@@ -261,5 +263,25 @@ impl Properties
         let this = JsValue::null();
         let _ = handler.call1(&this, &composed_extracted_assigned_properties);
         Ok(())
+    }
+
+    pub fn logging(&self)
+    {
+        log(&format!("Properties: \n
+            materials: {:?}, deleted materials: {:?}, \n
+            truss sections: {:?}, deleted truss sections: {:?}, \n
+            beam sections: {:?}, deleted beam sections: {:?}, \n
+            properties: {:?}, deleted properties: {:?}, \n
+            assigned_properties: {:?}, changed_assigned_properties: {:?}, \n
+            deleted_assigned_properties: {:?}, beam_sections_orientations: {:?}, \n
+            changed_beam_sections_orientations: {:?}, deleted_beam_sections_orientations: {:?} \n",
+            self.materials, self.deleted_materials,
+            self.truss_sections, self.deleted_truss_sections,
+            self.beam_sections, self.deleted_beam_sections,
+            self.properties, self.deleted_properties,
+            self.assigned_properties, self.changed_assigned_properties,
+            self.deleted_assigned_properties, self.beam_sections_orientations,
+            self.changed_beam_sections_orientations, self.deleted_beam_sections_orientations)
+        );
     }
 }

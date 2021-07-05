@@ -635,7 +635,7 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
                 }
                 if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                     this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                        "Note: Only numbers could be used as selected lines values!";;
+                        "Note: Only numbers could be used as selected lines values!";
                 }
                 return;
             }
@@ -645,7 +645,7 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
                 }
                 if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                     this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                        "Note: Only existed lines numbers could be used as selected lines values!";;
+                        "Note: Only existed lines numbers could be used as selected lines values!";
                 }
                 return;
             }
@@ -669,7 +669,7 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
                 }
                 if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                     this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                        "Note: Only numbers could be used as selected lines values!";;
+                        "Note: Only numbers could be used as selected lines values!";
                 }
                 return;
             }
@@ -679,7 +679,7 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
                 }
                 if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                     this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                        "Note: Only existed lines numbers could be used as selected lines values!";;
+                        "Note: Only existed lines numbers could be used as selected lines values!";
                 }
                 return;
             }
@@ -706,7 +706,7 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
                 }
                 if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                     this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                        "Note: Only numbers could be used as selected lines values!";;
+                        "Note: Only numbers could be used as selected lines values!";
                 }
                 return;
             }
@@ -716,7 +716,7 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
                 }
                 if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                     this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                        "Note: Only existed lines numbers could be used as selected lines values!";;
+                        "Note: Only existed lines numbers could be used as selected lines values!";
                 }
                 return;
             }
@@ -806,7 +806,7 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
                 }
                 if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                     this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                        "Note: Only numbers could be used as assign to lines values!";;
+                        "Note: Only numbers could be used as assign to lines values!";
                 }
                 return;
             }
@@ -816,7 +816,7 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
                 }
                 if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                     this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                        "Note: Only existed lines numbers could be used as assign to lines values!";;
+                        "Note: Only existed lines numbers could be used as assign to lines values!";
                 }
                 return;
             }
@@ -871,7 +871,7 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
                 }
                 if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                     this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                        "Note: Only numbers could be used as assign to lines values!";;
+                        "Note: Only numbers could be used as assign to lines values!";
                 }
                 return;
             }
@@ -881,7 +881,7 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
                 }
                 if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                     this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                        "Note: Only existed lines numbers could be used as assign to lines values!";;
+                        "Note: Only existed lines numbers could be used as assign to lines values!";
                 }
                 return;
             }

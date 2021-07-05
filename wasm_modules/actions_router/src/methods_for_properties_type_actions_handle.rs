@@ -1,5 +1,6 @@
 use serde_json::Value;
 use wasm_bindgen::prelude::*;
+use std::convert::TryFrom;
 
 use crate::ActionsRouter;
 use crate::{Action};
@@ -93,8 +94,8 @@ impl ActionsRouter
             .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Delete material action: \
                 Action id could not be converted to FEUInt!")))?;
-        self.undo_actions.clear();
         let name = material_data["name"].to_string();
+        self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
         let action_type = ActionType::from(PropertiesActionType::DeleteMaterial(
             name, is_action_id_should_be_increased));
@@ -221,8 +222,8 @@ impl ActionsRouter
             .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Delete truss section action: \
                 Action id could not be converted to FEUInt!")))?;
-        self.undo_actions.clear();
         let name = truss_section_data["name"].to_string();
+        self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
         let action_type = ActionType::from(PropertiesActionType::DeleteTrussSection(
             name, is_action_id_should_be_increased));
@@ -369,8 +370,8 @@ impl ActionsRouter
             .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Delete beam section action: \
                 Action id could not be converted to FEUInt!")))?;
-        self.undo_actions.clear();
         let name = beam_section_data["name"].to_string();
+        self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
         let action_type = ActionType::from(PropertiesActionType::DeleteBeamSection(
             name, is_action_id_should_be_increased));
@@ -444,8 +445,8 @@ impl ActionsRouter
             .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Delete properties action: \
                 Action id could not be converted to FEUInt!")))?;
-        self.undo_actions.clear();
         let name = properties_data["name"].to_string();
+        self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
         let action_type = ActionType::from(PropertiesActionType::DeleteProperties(
             name, is_action_id_should_be_increased));
@@ -516,11 +517,55 @@ impl ActionsRouter
             .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Delete assigned properties action: \
                 Action id could not be converted to FEUInt!")))?;
-        self.undo_actions.clear();
         let name = assigned_properties_data["name"].to_string();
+        self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
         let action_type = ActionType::from(
             PropertiesActionType::DeleteAssignedProperties(name, is_action_id_should_be_increased));
+        let action = Action::create(action_id, action_type);
+        let add_to_active_actions = true;
+        self.current_action = Some((action, add_to_active_actions));
+        Ok(())
+    }
+
+
+    pub(super) fn handle_add_beam_section_local_axis_1_direction_message(&mut self,
+        local_axis_1_direction_data: &Value) -> Result<(), JsValue>
+    {
+        let action_id = local_axis_1_direction_data["actionId"].to_string()
+            .parse::<FEUInt>()
+            .or(Err(JsValue::from("Actions router: Add beam section local axis 1 direction \
+                action: Action id could not be converted to FEUInt!")))?;
+        let local_axis_1_direction = local_axis_1_direction_data["local_axis_1_direction"]
+            .to_string()
+            .replace("[", "")
+            .replace("]", "")
+            .split(",")
+            .map(|num|
+                {
+                    match num.parse::<FEFloat>()
+                    {
+                        Ok(n) => Ok(n),
+                        Err(_e) =>
+                            {
+                                Err(JsValue::from("Actions router: Add beam section local axis 1 \
+                                    direction action: Local axis 1 direction coordinate could not \
+                                    be converted to FEFloat!"))
+                            }
+                    }
+                })
+            .collect::<Result<Vec<FEFloat>, JsValue>>()?;
+        if local_axis_1_direction.len() != 3
+        {
+            let error_message = "Actions router: Update beam section local axis 1 direction \
+                action: Incorrect number of coordinates for local axis 1 direction!";
+            return Err(JsValue::from(error_message));
+        }
+        self.undo_actions.clear();
+        let is_action_id_should_be_increased = true;
+        let action_type = ActionType::from(
+            PropertiesActionType::AddBeamSectionLocalAxis1Direction(
+            local_axis_1_direction, is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
         let add_to_active_actions = true;
         self.current_action = Some((action, add_to_active_actions));

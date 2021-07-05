@@ -1,7 +1,9 @@
+use serde::Serialize;
+
 use crate::types::{FEUInt, FEFloat};
 
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct BeamSectionOrientation
 {
     local_axis_1_direction: [FEFloat; 3],

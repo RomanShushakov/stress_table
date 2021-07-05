@@ -31,7 +31,7 @@ use external_functions::communication_with_properties::
     add_beam_section_local_axis_1_direction_to_properties,
     clear_properties_module_by_action_id,
     extract_materials, extract_truss_sections, extract_beam_sections,
-    extract_properties, extract_assigned_properties,
+    extract_properties, extract_assigned_properties, extract_beam_sections_orientations,
 };
 
 mod action;
@@ -1148,6 +1148,12 @@ impl ActionsRouter
     pub fn extract_assigned_properties(&self, handler: js_sys::Function)
     {
         extract_assigned_properties(handler);
+    }
+
+
+    pub fn extract_beam_sections_orientations(&self, handler: js_sys::Function)
+    {
+        extract_beam_sections_orientations(handler);
     }
 
 

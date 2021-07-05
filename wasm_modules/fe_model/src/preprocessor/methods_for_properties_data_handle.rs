@@ -208,4 +208,11 @@ impl Preprocessor
     {
         self.properties.extract_assigned_properties(handler)
     }
+
+
+    pub fn extract_beam_sections_orientations(&self, handler: js_sys::Function)
+        -> Result<(), JsValue>
+    {
+        self.properties.extract_beam_sections_orientations(handler)
+    }
 }

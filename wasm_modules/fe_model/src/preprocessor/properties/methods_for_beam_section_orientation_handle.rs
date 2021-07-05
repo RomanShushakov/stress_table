@@ -37,15 +37,16 @@ impl Properties
                     converted_local_axis_1_direction))
             .is_some()
         {
-            let error_message = &format!("Properties: Add beam section orientation action: \
-                Local axis 1 direction {:?} does already exist!", local_axis_1_direction);
+            let error_message = &format!("Properties: Add beam section local axis 1 \
+                direction action: Local axis 1 direction {:?} does already exist!",
+                local_axis_1_direction);
             return Err(JsValue::from(error_message));
         }
         let line_numbers = Vec::new();
         let beam_section_orientation = BeamSectionOrientation::create(
             converted_local_axis_1_direction, line_numbers.clone());
         self.beam_sections_orientations.push(beam_section_orientation);
-        let detail = json!({ "beam_section_orientation_data":
+        let detail = json!({ "local_axis_1_direction_data":
             {
                 "local_axis_1_direction": converted_local_axis_1_direction,
                 "line_numbers": line_numbers,

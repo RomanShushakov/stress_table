@@ -181,7 +181,6 @@ class FeaRenderer extends HTMLElement {
     }
 
     set updateLinesColorScheme(linesDataObject) {
-        console.log(linesDataObject);
         let lineObjectColorScheme = LineObjectColorScheme.Default;
         switch (linesDataObject.cross_section_type) {
             case "truss":

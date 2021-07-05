@@ -113,4 +113,7 @@ extern "C"
 
     #[wasm_bindgen(js_name = extractAssignedProperties)]
     pub fn extract_assigned_properties(handler: js_sys::Function);
+
+    #[wasm_bindgen(js_name = extractBeamSectionsOrientations)]
+    pub fn extract_beam_sections_orientations(handler: js_sys::Function);
 }

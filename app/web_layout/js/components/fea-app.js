@@ -121,6 +121,7 @@ class FeaApp extends HTMLElement {
         this.addEventListener("getBeamSections", (event) => this.getBeamSections(event));
         this.addEventListener("getProperties", (event) => this.getProperties(event));
         this.addEventListener("getAssignedProperties", (event) => this.getAssignedProperties(event));
+        this.addEventListener("getBeamSectionsOrientations", (event) => this.getBeamSectionsOrientations(event))
 
         this.addEventListener("selected_points", (event) => this.handleSelectedPointsMessage(event));
         this.addEventListener("selected_nodes", (event) => this.handleSelectedNodesMessage(event));
@@ -319,6 +320,17 @@ class FeaApp extends HTMLElement {
                         "name": key, "line_numbers": value.line_numbers,
                     }));
                 this.querySelector(event.target.tagName.toLowerCase()).assignedProperties = assignedProperties; 
+            }
+        );
+        event.stopPropagation();
+    }
+
+
+    getBeamSectionsOrientations(event) {
+        this.state.actionsRouter.extract_beam_sections_orientations(
+            (extractedBeamSectionsOrientationsData) => {
+                this.querySelector(event.target.tagName.toLowerCase()).beamSectionsOrientations = 
+                    extractedBeamSectionsOrientationsData.extracted_beam_sections_orientations; 
             }
         );
         event.stopPropagation();
@@ -875,10 +887,15 @@ class FeaApp extends HTMLElement {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;           
         }
-        const beamSectionOrientation = { 
-            local_axis_1_direction: event.detail.beam_section_orientation_data.local_axis_1_direction,
-            line_numbers: event.detail.beam_section_orientation_data.line_numbers };
-        console.log("From server:", beamSectionOrientation);
+        const beamSectionLocalAxis1DirectionData = { 
+            local_axis_1_direction: event.detail.local_axis_1_direction_data.local_axis_1_direction,
+            line_numbers: event.detail.local_axis_1_direction_data.line_numbers };
+        for (let i = 0; i < this.state.beamSectionsOrientationsDependentMenus.length; i++) {
+            if (this.querySelector(this.state.beamSectionsOrientationsDependentMenus[i]) !== null) {
+                this.querySelector(this.state.beamSectionsOrientationsDependentMenus[i])
+                    .addBeamSectionLocalAxis1DirectionToClient = beamSectionLocalAxis1DirectionData;
+            }
+        } 
         event.stopPropagation();
     }
 

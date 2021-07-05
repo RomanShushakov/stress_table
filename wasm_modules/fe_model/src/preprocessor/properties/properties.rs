@@ -265,6 +265,22 @@ impl Properties
         Ok(())
     }
 
+
+    pub fn extract_beam_sections_orientations(&self, handler: js_sys::Function)
+        -> Result<(), JsValue>
+    {
+        let extracted_beam_sections_orientations = json!(
+            { "extracted_beam_sections_orientations": self.beam_sections_orientations });
+        let composed_extracted_beam_sections_orientations =
+            JsValue::from_serde(&extracted_beam_sections_orientations)
+                .or(Err(JsValue::from("Properties: Extract beam sections orientations: \
+                    Beam sections orientations could not be composed for extraction!")))?;
+        let this = JsValue::null();
+        let _ = handler.call1(&this, &composed_extracted_beam_sections_orientations);
+        Ok(())
+    }
+
+
     pub fn logging(&self)
     {
         log(&format!("Properties: \n

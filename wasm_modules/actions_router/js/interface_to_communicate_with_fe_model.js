@@ -390,3 +390,8 @@ export function extractAssignedProperties(handler)
 {
     communicatorWithFEModel.extractAssignedProperties = handler;
 }
+
+export function extractBeamSectionsOrientations(handler) 
+{
+    communicatorWithFEModel.extractBeamSectionsOrientations = handler;
+}

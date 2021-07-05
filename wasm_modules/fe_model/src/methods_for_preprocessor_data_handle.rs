@@ -287,6 +287,13 @@ impl FEModel
     }
 
 
+    pub fn extract_beam_sections_orientations(&self, handler: js_sys::Function)
+        -> Result<(), JsValue>
+    {
+        self.preprocessor.extract_beam_sections_orientations(handler)
+    }
+
+
     pub fn show_point_info(&mut self, number: FEUInt, handler: js_sys::Function) -> Result<(), JsValue>
     {
         self.preprocessor.show_point_info(number, handler)

@@ -346,6 +346,10 @@ class CommunicatorWithFEModel {
     set extractAssignedProperties(handler) {
         this.state.feModel.extract_assigned_properties(handler);
     }
+
+    set extractBeamSectionsOrientations(handler) {
+        this.state.feModel.extract_beam_sections_orientations(handler);
+    }
 }
 
 export const communicatorWithFEModel = new CommunicatorWithFEModel();

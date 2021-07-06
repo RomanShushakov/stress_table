@@ -9,43 +9,14 @@ use crate::line_object::{LineObjectType, LineObjectColorScheme};
 use crate::{PointObjectKey, PointObject};
 use crate::{PointObjectType};
 
-use crate::aux_functions::define_drawn_object_color;
+use crate::functions::define_drawn_object_color;
 
 use crate::extended_matrix::ExtendedMatrix;
 use crate::extended_matrix::extract_element_value;
 
-use crate::TOLERANCE;
+use crate::types::{RendererFloat, RendererUInt};
+use crate::consts::TOLERANCE;
 
-
-
-
-const CS_ORIGIN: [f32; 3] = [0.0, 0.0, 0.0];
-const CS_AXIS_X: [f32; 3] = [1.0, 0.0, 0.0];
-const CS_AXIS_Y: [f32; 3] = [0.0, 1.0, 0.0];
-const CS_AXIS_Z: [f32; 3] = [0.0, 0.0, 1.0];
-
-const CS_AXIS_X_COLOR: [f32; 4] = [0.3843, 0.1490, 0.1607, 1.0]; // red
-const CS_AXIS_Y_COLOR: [f32; 4] = [0.1372, 0.3019, 0.1764, 1.0]; // green
-const CS_AXIS_Z_COLOR: [f32; 4] = [0.4549, 0.4588, 0.9019, 1.0]; // blue
-
-pub const CS_AXES_SCALE: f32 = 0.1;
-pub const CS_AXES_CAPS_HEIGHT: f32 = 0.15; // arrow length
-pub const CS_AXES_CAPS_WIDTH: f32 = 0.075; // half of arrow width
-pub const CS_AXES_CAPS_BASE_POINTS_NUMBER: u32 = 12; // the number of points in cone circular base
-
-pub const CS_AXES_X_SHIFT: f32 = 0.85; // shift of the cs in the x-direction
-pub const CS_AXES_Y_SHIFT: f32 = 0.85; // shift of the cs in the y-direction
-pub const CS_AXES_Z_SHIFT: f32 = -1.5; // shift of the cs in the z-direction
-
-pub const AXIS_X_DENOTATION_SHIFT_X: f32 = 0.1;
-pub const AXIS_X_DENOTATION_SHIFT_Y: f32 = -0.05;
-pub const AXIS_Y_DENOTATION_SHIFT_X: f32 = -0.05;
-pub const AXIS_Y_DENOTATION_SHIFT_Y: f32 = 0.1;
-pub const AXIS_Z_DENOTATION_SHIFT_X: f32 = -0.05;
-pub const AXIS_Z_DENOTATION_SHIFT_Y: f32 = -0.05;
-pub const AXIS_Z_DENOTATION_SHIFT_Z: f32 = 0.1;
-
-pub const CANVAS_AXES_DENOTATION_COLOR: &str = "rgb(217, 217, 217)"; // white
 
 pub const DRAWN_OBJECT_TO_CANVAS_WIDTH_SCALE: f32 = 0.8;
 pub const DRAWN_OBJECT_TO_CANVAS_HEIGHT_SCALE: f32 = 0.9;
@@ -142,7 +113,13 @@ pub const COLOR_BAR_Y_TOP: f32 = 0.2;
 pub const COLOR_BAR_WIDTH: f32 = 0.015;
 
 
-
+pub trait DrawnObjectTrait
+{
+    fn get_vertices_coordinates(&self) -> &[RendererFloat];
+    fn get_colors_values(&self) -> &[RendererFloat];
+    fn get_indexes_numbers(&self) -> &[RendererUInt];
+    fn draw(&self, gl: &GL);
+}
 
 
 pub enum CSAxis
@@ -151,6 +128,7 @@ pub enum CSAxis
 }
 
 
+#[derive(Clone)]
 pub enum GLPrimitiveType
 {
     Points,
@@ -166,6 +144,7 @@ pub enum GLMode
 }
 
 
+#[derive(Clone)]
 pub struct DrawnObject
 {
     vertices_coordinates: Vec<f32>,
@@ -174,6 +153,44 @@ pub struct DrawnObject
     modes: Vec<GLPrimitiveType>,
     elements_numbers: Vec<i32>,
     offsets: Vec<i32>,
+}
+
+
+impl DrawnObjectTrait for DrawnObject
+{
+    fn get_vertices_coordinates(&self) -> &[RendererFloat]
+    {
+        self.vertices_coordinates.as_slice()
+    }
+
+
+    fn get_colors_values(&self) -> &[RendererFloat]
+    {
+        self.colors_values.as_slice()
+    }
+
+
+    fn get_indexes_numbers(&self) -> &[RendererUInt]
+    {
+        self.indexes_numbers.as_slice()
+    }
+
+
+    fn draw(&self, gl: &GL)
+    {
+        for index in 0..self.modes.len()
+        {
+            let count = self.elements_numbers[index];
+            let offset = self.offsets[index];
+            let mode = match self.modes[index]
+            {
+                GLPrimitiveType::Lines => GL::LINES,
+                GLPrimitiveType::Triangles => GL::TRIANGLES,
+                GLPrimitiveType::Points => GL::POINTS,
+            };
+            gl.draw_elements_with_i32(mode, count, GL::UNSIGNED_INT, offset);
+        }
+    }
 }
 
 
@@ -198,24 +215,6 @@ impl DrawnObject
     }
 
 
-    pub fn get_vertices_coordinates(&self) -> &[f32]
-    {
-        self.vertices_coordinates.as_slice()
-    }
-
-
-    pub fn get_colors_values(&self) -> &[f32]
-    {
-        self.colors_values.as_slice()
-    }
-
-
-    pub fn get_indexes_numbers(&self) -> &[u32]
-    {
-        self.indexes_numbers.as_slice()
-    }
-
-
     fn define_offset(&self) -> i32
     {
         if self.offsets.is_empty()
@@ -229,104 +228,6 @@ impl DrawnObject
             let previous_offset = self.offsets[previous_index];
             previous_offset + previous_elements_number * 4
         }
-    }
-
-
-    pub fn add_cs_axis_line(&mut self, cs_axis: CSAxis)
-    {
-        let start_index =
-            if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
-        self.vertices_coordinates.extend(&CS_ORIGIN);
-        match cs_axis
-        {
-            CSAxis::X =>
-                {
-                    self.vertices_coordinates.extend(&CS_AXIS_X);
-                    self.colors_values.extend(&CS_AXIS_X_COLOR);
-                    self.colors_values.extend(&CS_AXIS_X_COLOR);
-                },
-            CSAxis::Y =>
-                {
-                    self.vertices_coordinates.extend(&CS_AXIS_Y);
-                    self.colors_values.extend(&CS_AXIS_Y_COLOR);
-                    self.colors_values.extend(&CS_AXIS_Y_COLOR);
-                },
-            CSAxis::Z =>
-                {
-                    self.vertices_coordinates.extend(&CS_AXIS_Z);
-                    self.colors_values.extend(&CS_AXIS_Z_COLOR);
-                    self.colors_values.extend(&CS_AXIS_Z_COLOR);
-                },
-        }
-        self.indexes_numbers.extend(&[start_index, start_index + 1]);
-        self.modes.push(GLPrimitiveType::Lines);
-        self.elements_numbers.push(2);
-        let offset = self.define_offset();
-        self.offsets.push(offset);
-    }
-
-
-    pub fn add_cs_axis_cap(&mut self, cs_axis: CSAxis, base_points_number: u32,
-        height: f32, base_radius: f32)
-    {
-        let start_index =
-            if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
-        let tolerance = TOLERANCE;
-        match cs_axis
-        {
-            CSAxis::X => self.vertices_coordinates.extend(&CS_AXIS_X),
-            CSAxis::Y => self.vertices_coordinates.extend(&CS_AXIS_Y),
-            CSAxis::Z => self.vertices_coordinates.extend(&CS_AXIS_Z),
-        }
-
-        let angle = 2.0 * PI / base_points_number as f32;
-        for point_number in 0..base_points_number
-        {
-            let angle = angle * point_number as f32;
-            let local_x = {
-                let value = base_radius * angle.cos();
-                if value.abs() < tolerance { 0.0 } else { value }
-            };
-            let local_y =
-                {
-                    let value = base_radius * angle.sin();
-                    if value.abs() < tolerance { 0.0 } else { value }
-                };
-            let coordinates = match cs_axis
-            {
-                CSAxis::X => [1.0 - height, local_y, local_x],
-                CSAxis::Y => [local_y, 1.0 - height, local_x],
-                CSAxis::Z => [local_x, local_y, 1.0 - height],
-            };
-            self.vertices_coordinates.extend(&coordinates);
-        }
-
-        let local_color_value = match cs_axis
-        {
-            CSAxis::X => CS_AXIS_X_COLOR,
-            CSAxis::Y => CS_AXIS_Y_COLOR,
-            CSAxis::Z => CS_AXIS_Z_COLOR,
-        };
-
-        for point_number in 1..base_points_number
-        {
-            if point_number == 1
-            {
-                self.colors_values.extend(&local_color_value);
-                self.colors_values.extend(&local_color_value);
-                self.colors_values.extend(&local_color_value);
-            } else {
-                self.colors_values.extend(&local_color_value);
-            }
-            self.indexes_numbers.extend(
-                &[start_index, start_index + point_number, start_index + point_number + 1]);
-        }
-        self.indexes_numbers.extend(
-            &[start_index, start_index + 1, start_index + base_points_number]);
-        let offset = self.define_offset();
-        self.modes.push(GLPrimitiveType::Triangles);
-        self.elements_numbers.push(base_points_number as i32 * 3);
-        self.offsets.push(offset);
     }
 
 

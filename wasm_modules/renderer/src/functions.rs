@@ -10,8 +10,8 @@ use crate::line_object::{LineObject, LineObjectKey};
 
 use crate::{PointObject, PointObjectKey, Coordinates};
 
-use crate::drawn_object::{GLMode};
-use crate::drawn_object::
+use crate::drawn_object::drawn_object::{GLMode};
+use crate::drawn_object::drawn_object::
 {
     HINT_SHIFT_X, ROTATION_HINT_SHIFT_Y, ZOOM_HINT_SHIFT_Y, PAN_HINT_SHIFT_Y,
     DRAWN_OBJECT_TO_CANVAS_WIDTH_SCALE, DRAWN_OBJECT_TO_CANVAS_HEIGHT_SCALE,
@@ -19,7 +19,7 @@ use crate::drawn_object::
     CANVAS_DRAWN_OBJECT_UNDER_CURSOR_DENOTATION_COLOR, DRAWN_OBJECT_UNDER_CURSOR_COLOR,
 };
 
-use crate::TOLERANCE;
+use crate::consts::TOLERANCE;
 
 
 

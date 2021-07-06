@@ -4,14 +4,14 @@ use web_sys::{WebGlRenderingContext as GL};
 use std::f32::consts::PI;
 use std::collections::HashMap;
 
-use crate::aux_functions::{define_drawn_object_color, compare_with_tolerance};
+use crate::functions::{define_drawn_object_color, compare_with_tolerance};
 
 use crate::extended_matrix::{ExtendedMatrix, MatrixElementPosition};
 use crate::extended_matrix::extract_element_value;
 
 use crate::{PointObjectKey, PointObject};
 
-use crate::{TOLERANCE, ElementsValues, ElementsNumbers, log};
+use crate::consts::TOLERANCE;
 
 
 #[wasm_bindgen]

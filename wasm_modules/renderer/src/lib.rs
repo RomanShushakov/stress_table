@@ -10,12 +10,45 @@ use std::collections::{HashMap, HashSet};
 use std::convert::TryFrom;
 use rand;
 
+mod point_object;
+use point_object::{PointObjectKey, PointObject, Coordinates};
+use point_object::{PointObjectType};
+
 mod line_object;
 use line_object::{LineObject, LineObjectKey, LineObjectNumbers};
 use line_object::{LineObjectType, LineObjectColorScheme};
 
-mod aux_functions;
-use aux_functions::
+mod drawn_object;
+use crate::drawn_object::drawn_object::DrawnObjectTrait;
+use drawn_object::drawn_object::DrawnObject;
+use drawn_object::drawn_object::{CSAxis, GLMode};
+use drawn_object::drawn_object::
+{
+    CANVAS_DRAWN_NODES_DENOTATION_COLOR, DRAWN_POINT_OBJECT_DENOTATION_SHIFT,
+    CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR, DRAWN_DISPLACEMENTS_CAPS_BASE_POINTS_NUMBER,
+    DRAWN_DISPLACEMENTS_CAPS_HEIGHT, DRAWN_DISPLACEMENTS_CAPS_WIDTH,
+    CANVAS_DRAWN_DISPLACEMENTS_DENOTATION_COLOR, DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_X,
+    DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_Y, DRAWN_FORCES_LINE_LENGTH, DRAWN_FORCES_CAPS_HEIGHT,
+    DRAWN_FORCES_CAPS_WIDTH, DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER,
+    CANVAS_DRAWN_FORCES_DENOTATION_COLOR, DRAWN_FORCES_DENOTATION_SHIFT_X,
+    DRAWN_FORCES_DENOTATION_SHIFT_Y, HINTS_COLOR, DRAWN_LINE_OBJECTS_DENOTATION_SHIFT,
+    CANVAS_DRAWN_POINTS_DENOTATION_COLOR, DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
+    DRAWN_LINE_OBJECTS_BASE_RADIUS, CANVAS_DRAWN_LINES_DEFAULT_DENOTATION_COLOR,
+    CANVAS_DRAWN_LINES_TRUSS_PROPS_DENOTATION_COLOR,
+    CANVAS_DRAWN_LINES_BEAM_PROPS_DENOTATION_COLOR,
+    SELECTION_RECTANGLE_STROKE_COLOR, SELECTION_RECTANGLE_FILL_COLOR,
+};
+use drawn_object::cs_axes_drawn_object::CSAxesDrawnObject;
+use drawn_object::consts::
+{    CS_AXES_Y_SHIFT, CS_AXES_X_SHIFT, CS_AXES_Z_SHIFT, CS_AXES_SCALE,
+    CS_AXES_CAPS_BASE_POINTS_NUMBER, CS_AXES_CAPS_WIDTH, CS_AXES_CAPS_HEIGHT,
+    AXIS_X_DENOTATION_SHIFT_X, AXIS_X_DENOTATION_SHIFT_Y, AXIS_Y_DENOTATION_SHIFT_X,
+    AXIS_Y_DENOTATION_SHIFT_Y, AXIS_Z_DENOTATION_SHIFT_X, AXIS_Z_DENOTATION_SHIFT_Y,
+    AXIS_Z_DENOTATION_SHIFT_Z, CANVAS_AXES_DENOTATION_COLOR,
+};
+
+mod functions;
+use functions::
 {
     initialize_shaders, add_denotation, add_hints, normalize_point_objects_coordinates,
     define_drawn_object_denotation_color, transform_u32_to_array_of_u8,
@@ -24,54 +57,23 @@ use aux_functions::
 
 mod extended_matrix;
 
-mod buffers;
-use buffers::Buffers;
+mod buffer_objects;
+use crate::buffer_objects::BufferObjects;
 
-mod shaders_variables;
-use shaders_variables::ShadersVariables;
-
-mod drawn_object;
-use drawn_object::DrawnObject;
-use drawn_object::{CSAxis, GLMode};
-use drawn_object::
-    {
-        CS_AXES_Y_SHIFT, CS_AXES_X_SHIFT, CS_AXES_Z_SHIFT, CS_AXES_SCALE,
-        CS_AXES_CAPS_BASE_POINTS_NUMBER, CS_AXES_CAPS_WIDTH, CS_AXES_CAPS_HEIGHT,
-        AXIS_X_DENOTATION_SHIFT_X, AXIS_X_DENOTATION_SHIFT_Y, AXIS_Y_DENOTATION_SHIFT_X,
-        AXIS_Y_DENOTATION_SHIFT_Y, AXIS_Z_DENOTATION_SHIFT_X, AXIS_Z_DENOTATION_SHIFT_Y,
-        AXIS_Z_DENOTATION_SHIFT_Z, CANVAS_AXES_DENOTATION_COLOR,
-        CANVAS_DRAWN_NODES_DENOTATION_COLOR, DRAWN_POINT_OBJECT_DENOTATION_SHIFT,
-        CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR, DRAWN_DISPLACEMENTS_CAPS_BASE_POINTS_NUMBER,
-        DRAWN_DISPLACEMENTS_CAPS_HEIGHT, DRAWN_DISPLACEMENTS_CAPS_WIDTH,
-        CANVAS_DRAWN_DISPLACEMENTS_DENOTATION_COLOR, DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_X,
-        DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_Y, DRAWN_FORCES_LINE_LENGTH, DRAWN_FORCES_CAPS_HEIGHT,
-        DRAWN_FORCES_CAPS_WIDTH, DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER,
-        CANVAS_DRAWN_FORCES_DENOTATION_COLOR, DRAWN_FORCES_DENOTATION_SHIFT_X,
-        DRAWN_FORCES_DENOTATION_SHIFT_Y, HINTS_COLOR, DRAWN_LINE_OBJECTS_DENOTATION_SHIFT,
-        CANVAS_DRAWN_POINTS_DENOTATION_COLOR, DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
-        DRAWN_LINE_OBJECTS_BASE_RADIUS, CANVAS_DRAWN_LINES_DEFAULT_DENOTATION_COLOR,
-        CANVAS_DRAWN_LINES_TRUSS_PROPS_DENOTATION_COLOR,
-        CANVAS_DRAWN_LINES_BEAM_PROPS_DENOTATION_COLOR,
-        SELECTION_RECTANGLE_STROKE_COLOR, SELECTION_RECTANGLE_FILL_COLOR,
-    };
+mod shader_programs;
+use crate::shader_programs::ShaderPrograms;
 
 mod methods_for_canvas_manipulation;
 
-mod point_object;
-use point_object::{PointObjectKey, PointObject, Coordinates};
-use point_object::{PointObjectType};
+mod types;
+use types::{RendererUInt, RendererInt, RendererFloat};
 
-
-
-pub const TOLERANCE: f32 = 1e-6;
-pub type ElementsNumbers = u32;
-pub type ElementsValues = f32;
-
-const EVENT_TARGET: &str = "fea-app";
-const SELECTED_POINTS_EVENT_MAME: &str = "selected_points";
-const SELECTED_NODES_EVENT_MAME: &str = "selected_nodes";
-const SELECTED_LINES_EVENT_MAME: &str = "selected_lines";
-const SELECTED_LINE_ELEMENTS_EVENT_MAME: &str = "selected_line_elements";
+mod consts;
+use consts::
+{
+    EVENT_TARGET, SELECTED_POINTS_EVENT_MAME, SELECTED_NODES_EVENT_MAME, SELECTED_LINES_EVENT_MAME,
+    SELECTED_LINE_ELEMENTS_EVENT_MAME
+};
 
 
 #[wasm_bindgen]
@@ -86,24 +88,31 @@ struct Props
 {
     canvas_text: web_sys::HtmlCanvasElement,
     canvas_gl: web_sys::HtmlCanvasElement,
-    cursor_coord_x: i32,
-    cursor_coord_y: i32,
-    theta: f32,
-    phi: f32,
-    dx: f32,
-    dy: f32,
-    d_scale: f32,
+    cursor_coord_x: RendererInt,
+    cursor_coord_y: RendererInt,
+    theta: RendererFloat,
+    phi: RendererFloat,
+    dx: RendererFloat,
+    dy: RendererFloat,
+    d_scale: RendererFloat,
     point_objects: HashMap<PointObjectKey, PointObject>,
 }
 
 
 struct State
 {
+    ctx: CTX,
+    gl: GL,
+    shader_programs: ShaderPrograms,
+    cs_axes_drawn_object: CSAxesDrawnObject,
+    drawn_object_for_selection: Option<DrawnObject>,
+    drawn_object_visible: Option<DrawnObject>,
+    buffer_objects: BufferObjects,
     under_selection_box_colors: Vec<u8>,
     selected_colors: HashSet<[u8; 4]>,
     line_objects: HashMap<LineObjectKey, LineObject>,
-    selection_box_start_x: Option<i32>,
-    selection_box_start_y: Option<i32>,
+    selection_box_start_x: Option<RendererInt>,
+    selection_box_start_y: Option<RendererInt>,
 }
 
 
@@ -119,17 +128,45 @@ pub struct Renderer
 impl Renderer
 {
     pub fn create(canvas_text: web_sys::HtmlCanvasElement, canvas_gl: web_sys::HtmlCanvasElement)
-        -> Self
+        -> Result<Renderer, JsValue>
     {
         let props = Props
         {
-            canvas_text, canvas_gl, cursor_coord_x: -1, cursor_coord_y: -1,
+            canvas_text: canvas_text.clone(), canvas_gl: canvas_gl.clone(),
+            cursor_coord_x: -1, cursor_coord_y: -1,
             theta: 0.0, phi: 0.0, dx: 0.0, dy: 0.0, d_scale: 0.0,
             point_objects: HashMap::new(),
         };
 
+        let ctx: CTX = canvas_text
+            .get_context("2d")?
+            .unwrap()
+            .dyn_into::<CTX>()?;
+
+        let gl: GL = canvas_gl
+            .get_context("webgl")?
+            .unwrap()
+            .dyn_into::<GL>()?;
+        gl.get_extension("OES_element_index_uint")?;
+
+        let mut cs_axes_drawn_object = CSAxesDrawnObject::create();
+        cs_axes_drawn_object.add_cs_axes_lines();
+        cs_axes_drawn_object.add_cs_axes_caps(CS_AXES_CAPS_BASE_POINTS_NUMBER,
+            CS_AXES_CAPS_HEIGHT, CS_AXES_CAPS_WIDTH);
+
+        let shader_programs = ShaderPrograms::initialize(&gl);
+
+        let buffer_objects = BufferObjects::initialize(&gl);
+
         let state = State
         {
+            ctx,
+            gl,
+            shader_programs,
+            cs_axes_drawn_object,
+            drawn_object_for_selection: None,
+            drawn_object_visible: None,
+            buffer_objects,
             under_selection_box_colors: Vec::new(),
             selected_colors: HashSet::new(),
             line_objects: HashMap::new(),
@@ -137,31 +174,86 @@ impl Renderer
             selection_box_start_y: None,
         };
 
-        Renderer { props, state }
+        Ok(Renderer { props, state })
     }
 
 
     fn update_point_objects_normalized_coordinates(&mut self)
     {
         normalize_point_objects_coordinates(&mut self.props.point_objects, &self.state.line_objects,
-            self.props.canvas_gl.width() as f32,
-            self.props.canvas_gl.height() as f32);
+            self.props.canvas_gl.width() as RendererFloat,
+            self.props.canvas_gl.height() as RendererFloat);
         log(&format!("{:?}", self.props.point_objects));
     }
 
+    fn update_drawn_object_for_selection(&mut self) -> Result<(), JsValue>
+    {
+        if !self.props.point_objects.is_empty()
+        {
+            let mut drawn_object_for_selection = DrawnObject::create();
+            drawn_object_for_selection.add_point_object(&self.props.point_objects, GLMode::Selection,
+                &self.state.under_selection_box_colors,
+                &self.state.selected_colors)?;
 
-    pub fn add_point_object(&mut self, number: u32, x: f32, y: f32, z: f32,
-        point_object_type: PointObjectType)
+            if !self.state.line_objects.is_empty()
+            {
+                drawn_object_for_selection.add_line_objects(
+                    &self.props.point_objects,
+                    &self.state.line_objects,
+                    GLMode::Selection,
+                    &self.state.under_selection_box_colors,
+                    &self.state.selected_colors,
+                    DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
+                    DRAWN_LINE_OBJECTS_BASE_RADIUS / (1.0 + self.props.d_scale))?;
+            }
+            self.state.drawn_object_for_selection = Some(drawn_object_for_selection);
+        }
+        Ok(())
+    }
+
+
+    fn update_drawn_object_visible(&mut self) -> Result<(), JsValue>
+    {
+        if !self.props.point_objects.is_empty()
+        {
+            let mut drawn_object_visible = DrawnObject::create();
+            drawn_object_visible.add_point_object(&self.props.point_objects, GLMode::Visible,
+                &self.state.under_selection_box_colors,
+                &self.state.selected_colors)?;
+
+            if !self.state.line_objects.is_empty()
+            {
+                drawn_object_visible.add_line_objects(
+                    &self.props.point_objects,
+                    &self.state.line_objects,
+                    GLMode::Visible,
+                    &self.state.under_selection_box_colors,
+                    &self.state.selected_colors,
+                    DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
+                    DRAWN_LINE_OBJECTS_BASE_RADIUS / (1.0 + self.props.d_scale))?;
+            }
+
+            self.state.drawn_object_visible = Some(drawn_object_visible);
+        }
+        Ok(())
+    }
+
+
+    pub fn add_point_object(&mut self, number: u32, x: RendererFloat, y: RendererFloat, z: RendererFloat,
+        point_object_type: PointObjectType) -> Result<(), JsValue>
     {
         let point_object_key = PointObjectKey::create(number, point_object_type);
         let coordinates = Coordinates::create(x, y, z);
         let point_object = PointObject::create(coordinates);
         self.props.point_objects.insert(point_object_key, point_object);
         self.update_point_objects_normalized_coordinates();
+        self.update_drawn_object_for_selection()?;
+        self.update_drawn_object_visible()?;
+        Ok(())
     }
 
 
-    pub fn update_point_object(&mut self, number: u32, x: f32, y: f32, z: f32,
+    pub fn update_point_object(&mut self, number: u32, x: RendererFloat, y: RendererFloat, z: RendererFloat,
         point_object_type: PointObjectType) -> Result<(), JsValue>
     {
         if let Some(point_object) = self.props.point_objects
@@ -177,6 +269,8 @@ impl Renderer
                 point_object_type.as_str(), number);
             return Err(JsValue::from(error_message));
         }
+        self.update_drawn_object_for_selection()?;
+        self.update_drawn_object_visible()?;
         Ok(())
     }
 
@@ -196,6 +290,8 @@ impl Renderer
         {
             self.update_point_objects_normalized_coordinates();
         }
+        self.update_drawn_object_for_selection()?;
+        self.update_drawn_object_visible()?;
         Ok(())
     }
 
@@ -242,6 +338,8 @@ impl Renderer
         let line_object = LineObject::create(start_point_object_key,
             end_point_object_key, uid);
         self.state.line_objects.insert(line_object_key, line_object);
+        self.update_drawn_object_for_selection()?;
+        self.update_drawn_object_visible()?;
         Ok(())
     }
 
@@ -285,6 +383,8 @@ impl Renderer
                 line_object_type.as_str(), number);
             return Err(JsValue::from(error_message));
         }
+        self.update_drawn_object_for_selection()?;
+        self.update_drawn_object_visible()?;
         Ok(())
     }
 
@@ -300,6 +400,8 @@ impl Renderer
                 line_object_type.as_str(), number);
             return Err(JsValue::from(error_message));
         }
+        self.update_drawn_object_for_selection()?;
+        self.update_drawn_object_visible()?;
         Ok(())
     }
 
@@ -325,6 +427,8 @@ impl Renderer
                 return Err(JsValue::from(error_message));
             }
         }
+        self.update_drawn_object_for_selection()?;
+        self.update_drawn_object_visible()?;
         Ok(())
     }
 
@@ -409,6 +513,7 @@ impl Renderer
                 EVENT_TARGET)?;
         }
 
+        self.update_drawn_object_visible()?;
         if is_object_selected
         {
             Ok(())
@@ -417,6 +522,7 @@ impl Renderer
         {
             let this = JsValue::null();
             let _ = drop_selection.call0(&this);
+
             Ok(())
         }
     }
@@ -449,6 +555,7 @@ impl Renderer
                 return Err(JsValue::from(error_message));
             }
         }
+        self.update_drawn_object_visible()?;
         Ok(())
     }
 
@@ -464,62 +571,31 @@ impl Renderer
     {
         let width = self.props.canvas_gl.width();
         let height = self.props.canvas_gl.height();
+        let old_under_selection_box_colors = self.state.under_selection_box_colors.clone();
 
-        let ctx: CTX = self.props.canvas_text
-            .get_context("2d")?
-            .unwrap()
-            .dyn_into::<CTX>()?;
+        self.state.gl.clear_color(0.0, 0.0, 0.0, 1.0);
+        self.state.ctx.clear_rect(0.0, 0.0, width as f64, height as f64);
+        self.state.gl.enable(GL::DEPTH_TEST);
+        self.state.gl.clear(GL::COLOR_BUFFER_BIT);
+        self.state.gl.clear(GL::DEPTH_BUFFER_BIT);
 
-        let gl = self.props.canvas_gl
-            .get_context("webgl")?
-            .unwrap()
-            .dyn_into::<GL>()?;
-        gl.get_extension("OES_element_index_uint")?;
+        self.state.gl.viewport(0, 0, width as RendererInt, height as RendererInt);
 
-        gl.clear_color(0.0, 0.0, 0.0, 1.0);
-        ctx.clear_rect(0.0, 0.0, width as f64, height as f64);
-        gl.enable(GL::DEPTH_TEST);
-        gl.clear(GL::COLOR_BUFFER_BIT);
-        gl.clear(GL::DEPTH_BUFFER_BIT);
-
-        let vertex_shader_code = include_str!("shaders/main_vert_shader.vert");
-        let fragment_shader_code = include_str!("shaders/main_frag_shader.frag");
-
-        let shader_program = initialize_shaders(&gl, vertex_shader_code, fragment_shader_code);
-        let shaders_variables = ShadersVariables::initialize(&gl, &shader_program);
-
-        gl.viewport(0, 0, width as i32, height as i32);
-
-        let aspect: f32 = width as f32 / height as f32;
+        let aspect: RendererFloat = width as RendererFloat / height as RendererFloat;
         let z_near = 1.0;
         let z_far = 101.0;
 
-        if !self.props.point_objects.is_empty()
+        if let Some(drawn_object_for_selection)= &self.state.drawn_object_for_selection
         {
-            let mut drawn_objects_buffers = Buffers::initialize(&gl);
-            let mut drawn_object = DrawnObject::create();
+            let boxed_drawn_object_for_selection: Box<dyn DrawnObjectTrait> =
+                Box::new(drawn_object_for_selection.clone());
+            self.state.buffer_objects.store_drawn_object(&self.state.gl,
+                &boxed_drawn_object_for_selection);
+            self.state.buffer_objects.associate_with_shader_programs(&self.state.gl,
+                &self.state.shader_programs);
 
-            drawn_object.add_point_object(&self.props.point_objects, GLMode::Selection,
-                &self.state.under_selection_box_colors,
-                &self.state.selected_colors)?;
-
-            if !self.state.line_objects.is_empty()
-            {
-                drawn_object.add_line_objects(
-                    &self.props.point_objects,
-                    &self.state.line_objects,
-                    GLMode::Selection,
-                    &self.state.under_selection_box_colors,
-                    &self.state.selected_colors,
-                    DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
-                    DRAWN_LINE_OBJECTS_BASE_RADIUS / (1.0 + self.props.d_scale))?;
-            }
-
-            drawn_objects_buffers.render(&gl, &drawn_object, &shaders_variables);
             let point_size = 12.0;
-
             let mut projection_matrix = mat4::new_zero();
-
             mat4::orthographic(&mut projection_matrix,
                 &(1.0 / aspect), &1.0, &(-1.0 / aspect), &-1.0,
                 &z_near, &z_far);
@@ -531,106 +607,95 @@ impl Renderer
             mat4::scale(&mut model_view_matrix, &mat_to_scale,
                 &[1.0 + self.props.d_scale, 1.0 + self.props.d_scale, 1.0 + self.props.d_scale]);
             let mat_to_rotate = model_view_matrix;
-            mat4::rotate_x(&mut model_view_matrix,&mat_to_rotate,&self.props.phi);
+            mat4::rotate_x(&mut model_view_matrix, &mat_to_rotate, &self.props.phi);
             let mat_to_rotate = model_view_matrix;
             mat4::rotate_y(&mut model_view_matrix, &mat_to_rotate, &self.props.theta);
-            gl.uniform1f(Some(shaders_variables.get_point_size()), point_size);
-            gl.uniform_matrix4fv_with_f32_array(
-                Some(shaders_variables.get_projection_matrix()), false, &projection_matrix);
-            gl.uniform_matrix4fv_with_f32_array(
-                Some(shaders_variables.get_model_view_matrix()), false, &model_view_matrix);
+            self.state.gl.uniform1f(Some(self.state.shader_programs.get_point_size()), point_size);
+            self.state.gl.uniform_matrix4fv_with_f32_array(
+                Some(self.state.shader_programs.get_projection_matrix()), false, &projection_matrix);
+            self.state.gl.uniform_matrix4fv_with_f32_array(
+                Some(self.state.shader_programs.get_model_view_matrix()), false, &model_view_matrix);
 
-            drawn_object.draw(&gl);
+            drawn_object_for_selection.draw(&self.state.gl);
+        }
 
-            if let (Some(start_x), Some(start_y)) =
-                (self.state.selection_box_start_x, self.state.selection_box_start_y)
+        if let (Some(start_x), Some(start_y)) =
+        (self.state.selection_box_start_x, self.state.selection_box_start_y)
+        {
+            let selection_rectangle_width = self.props.cursor_coord_x - start_x;
+            let selection_rectangle_height = self.props.cursor_coord_y - start_y;
+            if selection_rectangle_width > 0 && selection_rectangle_height > 0
             {
-                let selection_rectangle_width = self.props.cursor_coord_x - start_x;
-                let selection_rectangle_height = self.props.cursor_coord_y - start_y;
-                if selection_rectangle_width > 0 && selection_rectangle_height > 0
+                let mut pixels = vec![0u8; (selection_rectangle_width *
+                    selection_rectangle_height).abs() as usize * 4];
+                match self.state.gl.read_pixels_with_opt_u8_array(
+                    start_x,
+                    start_y,
+                    selection_rectangle_width.abs(),
+                    selection_rectangle_height.abs(),
+                    GL::RGBA,
+                    GL::UNSIGNED_BYTE,
+                    Some(&mut pixels))
                 {
-                    let mut pixels = vec![0u8; (selection_rectangle_width *
-                        selection_rectangle_height).abs() as usize * 4];
-                    match gl.read_pixels_with_opt_u8_array(
-                        start_x,
-                        start_y,
-                        selection_rectangle_width.abs(),
-                        selection_rectangle_height.abs(),
-                        GL::RGBA,
-                        GL::UNSIGNED_BYTE,
-                        Some(&mut pixels))
-                    {
-                        Ok(_) => self.state.under_selection_box_colors = pixels,
-                        Err(msg) => return Err(JsValue::from(&format!("{:?}", msg))),
-                    }
+                    Ok(_) => self.state.under_selection_box_colors = pixels,
+                    Err(msg) => return Err(JsValue::from(&format!("{:?}", msg))),
                 }
-                else if selection_rectangle_width < 0 && selection_rectangle_height > 0
+            }
+            else if selection_rectangle_width < 0 && selection_rectangle_height > 0
+            {
+                let mut pixels = vec![0u8; (selection_rectangle_width *
+                    selection_rectangle_height).abs() as usize * 4];
+                match self.state.gl.read_pixels_with_opt_u8_array(
+                    self.props.cursor_coord_x,
+                    start_y,
+                    selection_rectangle_width.abs(),
+                    selection_rectangle_height.abs(),
+                    GL::RGBA,
+                    GL::UNSIGNED_BYTE,
+                    Some(&mut pixels))
                 {
-                    let mut pixels = vec![0u8; (selection_rectangle_width *
-                        selection_rectangle_height).abs() as usize * 4];
-                    match gl.read_pixels_with_opt_u8_array(
-                        self.props.cursor_coord_x,
-                        start_y,
-                        selection_rectangle_width.abs(),
-                        selection_rectangle_height.abs(),
-                        GL::RGBA,
-                        GL::UNSIGNED_BYTE,
-                        Some(&mut pixels))
-                    {
-                        Ok(_) => self.state.under_selection_box_colors = pixels,
-                        Err(msg) => return Err(JsValue::from(&format!("{:?}", msg))),
-                    }
+                    Ok(_) => self.state.under_selection_box_colors = pixels,
+                    Err(msg) => return Err(JsValue::from(&format!("{:?}", msg))),
                 }
-                else if selection_rectangle_width > 0 && selection_rectangle_height < 0
+            }
+            else if selection_rectangle_width > 0 && selection_rectangle_height < 0
+            {
+                let mut pixels = vec![0u8; (selection_rectangle_width *
+                    selection_rectangle_height).abs() as usize * 4];
+                match self.state.gl.read_pixels_with_opt_u8_array(
+                    start_x,
+                    self.props.cursor_coord_y,
+                    selection_rectangle_width.abs(),
+                    selection_rectangle_height.abs(),
+                    GL::RGBA,
+                    GL::UNSIGNED_BYTE,
+                    Some(&mut pixels))
                 {
-                    let mut pixels = vec![0u8; (selection_rectangle_width *
-                        selection_rectangle_height).abs() as usize * 4];
-                    match gl.read_pixels_with_opt_u8_array(
-                        start_x,
-                        self.props.cursor_coord_y,
-                        selection_rectangle_width.abs(),
-                        selection_rectangle_height.abs(),
-                        GL::RGBA,
-                        GL::UNSIGNED_BYTE,
-                        Some(&mut pixels))
-                    {
-                        Ok(_) => self.state.under_selection_box_colors = pixels,
-                        Err(msg) => return Err(JsValue::from(&format!("{:?}", msg))),
-                    }
+                    Ok(_) => self.state.under_selection_box_colors = pixels,
+                    Err(msg) => return Err(JsValue::from(&format!("{:?}", msg))),
                 }
-                else if selection_rectangle_width < 0 && selection_rectangle_height < 0
+            }
+            else if selection_rectangle_width < 0 && selection_rectangle_height < 0
+            {
+                let mut pixels = vec![0u8; (selection_rectangle_width *
+                    selection_rectangle_height).abs() as usize * 4];
+                match self.state.gl.read_pixels_with_opt_u8_array(
+                    self.props.cursor_coord_x,
+                    self.props.cursor_coord_y,
+                    selection_rectangle_width.abs(),
+                    selection_rectangle_height.abs(),
+                    GL::RGBA,
+                    GL::UNSIGNED_BYTE,
+                    Some(&mut pixels))
                 {
-                    let mut pixels = vec![0u8; (selection_rectangle_width *
-                        selection_rectangle_height).abs() as usize * 4];
-                    match gl.read_pixels_with_opt_u8_array(
-                        self.props.cursor_coord_x,
-                        self.props.cursor_coord_y,
-                        selection_rectangle_width.abs(),
-                        selection_rectangle_height.abs(),
-                        GL::RGBA,
-                        GL::UNSIGNED_BYTE,
-                        Some(&mut pixels))
-                    {
-                        Ok(_) => self.state.under_selection_box_colors = pixels,
-                        Err(msg) => return Err(JsValue::from(&format!("{:?}", msg))),
-                    }
-                }
-                else
-                {
-                    let mut pixels = vec![0u8; 4];
-                    match gl.read_pixels_with_opt_u8_array(
-                        self.props.cursor_coord_x, self.props.cursor_coord_y, 1, 1, GL::RGBA,
-                        GL::UNSIGNED_BYTE, Some(&mut pixels))
-                    {
-                        Ok(_) => self.state.under_selection_box_colors = pixels,
-                        Err(msg) => return Err(JsValue::from(&format!("{:?}", msg))),
-                    }
+                    Ok(_) => self.state.under_selection_box_colors = pixels,
+                    Err(msg) => return Err(JsValue::from(&format!("{:?}", msg))),
                 }
             }
             else
             {
                 let mut pixels = vec![0u8; 4];
-                match gl.read_pixels_with_opt_u8_array(
+                match self.state.gl.read_pixels_with_opt_u8_array(
                     self.props.cursor_coord_x, self.props.cursor_coord_y, 1, 1, GL::RGBA,
                     GL::UNSIGNED_BYTE, Some(&mut pixels))
                 {
@@ -638,31 +703,36 @@ impl Renderer
                     Err(msg) => return Err(JsValue::from(&format!("{:?}", msg))),
                 }
             }
-
-            gl.clear(GL::COLOR_BUFFER_BIT);
-            gl.clear(GL::DEPTH_BUFFER_BIT);
-            gl.line_width(1.0);
-
-            drawn_object = DrawnObject::create();
-            drawn_objects_buffers = Buffers::initialize(&gl);
-
-            drawn_object.add_point_object(&self.props.point_objects,
-                GLMode::Visible, &self.state.under_selection_box_colors,
-                &self.state.selected_colors)?;
-
-            if !self.state.line_objects.is_empty()
+        }
+        else
+        {
+            let mut pixels = vec![0u8; 4];
+            match self.state.gl.read_pixels_with_opt_u8_array(
+                self.props.cursor_coord_x, self.props.cursor_coord_y, 1, 1, GL::RGBA,
+                GL::UNSIGNED_BYTE, Some(&mut pixels))
             {
-                drawn_object.add_line_objects(
-                    &self.props.point_objects,
-                    &self.state.line_objects,
-                    GLMode::Visible,
-                    &self.state.under_selection_box_colors,
-                    &self.state.selected_colors,
-                    DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
-                    DRAWN_LINE_OBJECTS_BASE_RADIUS / (1.0 + self.props.d_scale))?;
+                Ok(_) => self.state.under_selection_box_colors = pixels,
+                Err(msg) => return Err(JsValue::from(&format!("{:?}", msg))),
             }
+        }
 
-            drawn_objects_buffers.render(&gl, &drawn_object, &shaders_variables);
+        self.state.gl.clear(GL::COLOR_BUFFER_BIT);
+        self.state.gl.clear(GL::DEPTH_BUFFER_BIT);
+        self.state.gl.line_width(1.0);
+
+        if old_under_selection_box_colors != self.state.under_selection_box_colors
+        {
+            self.update_drawn_object_visible()?;
+        }
+
+        if let Some(drawn_object_visible) = &self.state.drawn_object_visible
+        {
+            let boxed_drawn_object_visible: Box<dyn DrawnObjectTrait> =
+                Box::new(drawn_object_visible.clone());
+            self.state.buffer_objects.store_drawn_object(&self.state.gl,
+                &boxed_drawn_object_visible);
+            self.state.buffer_objects.associate_with_shader_programs(&self.state.gl,
+                &self.state.shader_programs);
 
             let point_size = 5.0;
 
@@ -679,16 +749,16 @@ impl Renderer
             mat4::scale(&mut model_view_matrix, &mat_to_scale,
                 &[1.0 + self.props.d_scale, 1.0 + self.props.d_scale, 1.0 + self.props.d_scale]);
             let mat_to_rotate = model_view_matrix;
-            mat4::rotate_x(&mut model_view_matrix,&mat_to_rotate,&self.props.phi);
+            mat4::rotate_x(&mut model_view_matrix, &mat_to_rotate, &self.props.phi);
             let mat_to_rotate = model_view_matrix;
             mat4::rotate_y(&mut model_view_matrix, &mat_to_rotate, &self.props.theta);
-            gl.uniform1f(Some(shaders_variables.get_point_size()), point_size);
-            gl.uniform_matrix4fv_with_f32_array(
-                Some(shaders_variables.get_projection_matrix()), false, &projection_matrix);
-            gl.uniform_matrix4fv_with_f32_array(
-                Some(shaders_variables.get_model_view_matrix()), false, &model_view_matrix);
+            self.state.gl.uniform1f(Some(self.state.shader_programs.get_point_size()), point_size);
+            self.state.gl.uniform_matrix4fv_with_f32_array(
+                Some(self.state.shader_programs.get_projection_matrix()), false, &projection_matrix);
+            self.state.gl.uniform_matrix4fv_with_f32_array(
+                Some(self.state.shader_programs.get_model_view_matrix()), false, &model_view_matrix);
 
-            drawn_object.draw(&gl);
+            drawn_object_visible.draw(&self.state.gl);
 
             let mut matrix = mat4::new_identity();
             mat4::mul(&mut matrix, &projection_matrix, &model_view_matrix);
@@ -703,8 +773,8 @@ impl Renderer
                 let denotation_color = define_drawn_object_denotation_color(
                     point_object.get_uid().unwrap(), &self.state.selected_colors,
                     &self.state.under_selection_box_colors, initial_color);
-                ctx.set_fill_style(&denotation_color.into());
-                add_denotation(&ctx,
+                self.state.ctx.set_fill_style(&denotation_color.into());
+                add_denotation(&self.state.ctx,
                 &[point_object.get_normalized_x()? -
                     DRAWN_POINT_OBJECT_DENOTATION_SHIFT / (1.0 + self.props.d_scale),
                     point_object.get_normalized_y()? - DRAWN_POINT_OBJECT_DENOTATION_SHIFT /
@@ -712,9 +782,9 @@ impl Renderer
                     point_object.get_normalized_z()?,
                     1.0],
                 &matrix,
-                width as f32, height as f32,
+                width as RendererFloat, height as RendererFloat,
                 &point_object_key.get_number().to_string());
-                ctx.stroke();
+                self.state.ctx.stroke();
             }
 
             if !self.state.line_objects.is_empty()
@@ -756,40 +826,24 @@ impl Renderer
                                 end_point_object_coordinates[2]) / 2.0,
                             ]
                         };
-                    ctx.set_fill_style(&denotation_color.into());
-                    add_denotation(&ctx,
+                    self.state.ctx.set_fill_style(&denotation_color.into());
+                    add_denotation(&self.state.ctx,
                     &[denotation_coordinates[0],
                         denotation_coordinates[1] +
                             DRAWN_LINE_OBJECTS_DENOTATION_SHIFT / (1.0 + self.props.d_scale),
                         denotation_coordinates[2],
                         1.0],
                     &matrix,
-                    width as f32, height as f32,
+                    width as RendererFloat, height as RendererFloat,
                     &line_object_key.get_number().to_string());
-                    ctx.stroke();
+                    self.state.ctx.stroke();
                 }
             }
         }
 
-        let cs_buffers = Buffers::initialize(&gl);
-        let mut cs_drawn_object = DrawnObject::create();
-
-        cs_drawn_object.add_cs_axis_line(CSAxis::X);
-        cs_drawn_object.add_cs_axis_line(CSAxis::Y);
-        cs_drawn_object.add_cs_axis_line(CSAxis::Z);
-        cs_drawn_object.add_cs_axis_cap(
-            CSAxis::X, CS_AXES_CAPS_BASE_POINTS_NUMBER,
-            CS_AXES_CAPS_HEIGHT, CS_AXES_CAPS_WIDTH);
-        cs_drawn_object.add_cs_axis_cap(
-            CSAxis::Y, CS_AXES_CAPS_BASE_POINTS_NUMBER,
-            CS_AXES_CAPS_HEIGHT, CS_AXES_CAPS_WIDTH);
-        cs_drawn_object.add_cs_axis_cap(
-            CSAxis::Z, CS_AXES_CAPS_BASE_POINTS_NUMBER,
-            CS_AXES_CAPS_HEIGHT, CS_AXES_CAPS_WIDTH);
-
-        cs_buffers.render(&gl, &cs_drawn_object, &shaders_variables);
-
-        let point_size = 5.0;
+        let boxed_cs_axes_drawn_object: Box<dyn DrawnObjectTrait> = Box::new(self.state.cs_axes_drawn_object.clone());
+        self.state.buffer_objects.store_drawn_object(&self.state.gl, &boxed_cs_axes_drawn_object);
+        self.state.buffer_objects.associate_with_shader_programs(&self.state.gl, &self.state.shader_programs);
 
         let mut projection_matrix = mat4::new_zero();
         mat4::orthographic(&mut projection_matrix,
@@ -808,43 +862,44 @@ impl Renderer
         mat4::rotate_x(&mut model_view_matrix,&mat_to_rotate,&self.props.phi);
         let mat_to_rotate = model_view_matrix;
         mat4::rotate_y(&mut model_view_matrix, &mat_to_rotate, &self.props.theta);
-        gl.uniform1f(Some(shaders_variables.get_point_size()), point_size);
-        gl.uniform_matrix4fv_with_f32_array(
-            Some(shaders_variables.get_projection_matrix()), false, &projection_matrix);
-        gl.uniform_matrix4fv_with_f32_array(
-            Some(shaders_variables.get_model_view_matrix()), false, &model_view_matrix);
+        self.state.gl.uniform_matrix4fv_with_f32_array(
+            Some(self.state.shader_programs.get_projection_matrix()), false, &projection_matrix);
+        self.state.gl.uniform_matrix4fv_with_f32_array(
+            Some(self.state.shader_programs.get_model_view_matrix()), false, &model_view_matrix);
 
-        cs_drawn_object.draw(&gl);
+        self.state.cs_axes_drawn_object.draw(&self.state.gl);
 
-        ctx.set_fill_style(&CANVAS_AXES_DENOTATION_COLOR.into());
+        self.state.ctx.set_fill_style(&CANVAS_AXES_DENOTATION_COLOR.into());
 
-        add_denotation(&ctx,
+        add_denotation(&self.state.ctx,
             &[1.0 + AXIS_X_DENOTATION_SHIFT_X, 0.0 + AXIS_X_DENOTATION_SHIFT_Y, 0.0, 1.0],
-            &model_view_matrix, width as f32,height as f32, "X");
-        add_denotation(&ctx,
+            &model_view_matrix, width as RendererFloat,height as RendererFloat, "X");
+        add_denotation(&self.state.ctx,
             &[0.0 + AXIS_Y_DENOTATION_SHIFT_X, 1.0 + AXIS_Y_DENOTATION_SHIFT_Y, 0.0, 1.0],
-            &model_view_matrix, width as f32, height as f32, "Y");
-        add_denotation(&ctx,
+            &model_view_matrix, width as RendererFloat, height as RendererFloat, "Y");
+        add_denotation(&self.state.ctx,
             &[0.0 + AXIS_Z_DENOTATION_SHIFT_X, 0.0 + AXIS_Z_DENOTATION_SHIFT_Y,
                 1.0 + AXIS_Z_DENOTATION_SHIFT_Z, 1.0],
-            &model_view_matrix, width as f32, height as f32, "Z");
-        ctx.stroke();
+            &model_view_matrix, width as RendererFloat, height as RendererFloat, "Z");
+        self.state.ctx.stroke();
 
-        ctx.set_fill_style(&HINTS_COLOR.into());
-        add_hints(&ctx, width as f32, height as f32);
-        ctx.stroke();
+        self.state.ctx.set_fill_style(&HINTS_COLOR.into());
+        add_hints(&self.state.ctx, width as RendererFloat, height as RendererFloat);
+        self.state.ctx.stroke();
 
         if let (Some(start_x), Some(start_y)) =
             (self.state.selection_box_start_x, self.state.selection_box_start_y)
         {
             let selection_rectangle_width = self.props.cursor_coord_x - start_x;
             let selection_rectangle_height = self.props.cursor_coord_y - start_y;
-            ctx.set_stroke_style(&SELECTION_RECTANGLE_STROKE_COLOR.into());
-            ctx.stroke_rect(start_x as f64, self.props.canvas_text.height() as f64 - start_y as f64,
-                selection_rectangle_width as f64, -selection_rectangle_height as f64);
-            ctx.set_fill_style(&SELECTION_RECTANGLE_FILL_COLOR.into());
-            ctx.fill_rect(start_x as f64, self.props.canvas_text.height() as f64 - start_y as f64,
-                selection_rectangle_width as f64, -selection_rectangle_height as f64);
+            self.state.ctx.set_stroke_style(&SELECTION_RECTANGLE_STROKE_COLOR.into());
+            self.state.ctx.stroke_rect(start_x as f64, self.props.canvas_text.height() as f64 -
+                start_y as f64, selection_rectangle_width as f64,
+                -selection_rectangle_height as f64);
+            self.state.ctx.set_fill_style(&SELECTION_RECTANGLE_FILL_COLOR.into());
+            self.state.ctx.fill_rect(start_x as f64, self.props.canvas_text.height() as f64 -
+                start_y as f64, selection_rectangle_width as f64,
+                -selection_rectangle_height as f64);
         }
 
         Ok(())

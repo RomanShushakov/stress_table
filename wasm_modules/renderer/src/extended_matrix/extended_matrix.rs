@@ -8,7 +8,10 @@ use crate::extended_matrix::
         matrices_dimensions_conformity_check, extract_element_value, remove_zero_values
     };
 
-use crate::{ElementsNumbers, ElementsValues, TOLERANCE};
+
+use crate::types::{RendererUInt, RendererFloat};
+use crate::consts::TOLERANCE;
+
 
 use crate::log;
 
@@ -36,12 +39,12 @@ pub struct ExtendedMatrix<T, V>
 
 
 impl<T, V> ExtendedMatrix<T, V>
-    where T: Copy + From<ElementsNumbers> + Into<ElementsNumbers> + Debug + Mul<Output = T> +
+    where T: Copy + From<RendererUInt> + Into<RendererUInt> + Debug + Mul<Output = T> +
              PartialOrd + Add<Output = T> + Sub<Output = T> + Default +
              Div<Output = T> + Rem<Output = T> + Eq + Hash + SubAssign + 'static,
           V: Copy + Debug + PartialEq + Default + AddAssign + MulAssign + Mul<Output = V> +
-             Div<Output = V> + SubAssign + Sub<Output = V> + Into<ElementsValues> +
-             From<ElementsValues> + Add<Output = V> + 'static,
+             Div<Output = V> + SubAssign + Sub<Output = V> + Into<RendererFloat> +
+             From<RendererFloat> + Add<Output = V> + 'static,
 {
     pub fn show_matrix(&self)
     {

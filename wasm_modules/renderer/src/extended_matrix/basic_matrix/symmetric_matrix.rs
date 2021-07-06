@@ -7,7 +7,7 @@ use crate::extended_matrix::BasicMatrixType;
 use crate::extended_matrix::{matrix_size_check, extract_value_by_index};
 
 
-use crate::ElementsNumbers;
+use crate::types::RendererUInt;
 
 use std::ops::{Sub, Add, Mul, MulAssign, Div, Rem, SubAssign};
 use std::any::Any;
@@ -27,8 +27,8 @@ pub struct SymmetricMatrix<T, V>
 
 impl<T, V> BasicMatrixTrait<T, V> for SymmetricMatrix<T, V>
     where T: Copy + PartialOrd + Sub<Output = T> + Add<Output = T> + Mul<Output = T> +
-             Div<Output = T> + Debug + Rem<Output = T> + Eq + Hash + Into<ElementsNumbers> +
-             From<ElementsNumbers> + SubAssign + Default + 'static,
+             Div<Output = T> + Debug + Rem<Output = T> + Eq + Hash + Into<RendererUInt> +
+             From<RendererUInt> + SubAssign + Default + 'static,
           V: Copy + Default + Debug + PartialEq + MulAssign + 'static,
 {
    // fn create_element_value(&mut self, requested_index: T, new_value: V)
@@ -182,7 +182,7 @@ impl<T, V> BasicMatrixTrait<T, V> for SymmetricMatrix<T, V>
 
 
 impl<T, V> SymmetricMatrix<T, V>
-    where T: Copy + Debug + Into<ElementsNumbers> + From<ElementsNumbers> + PartialEq +
+    where T: Copy + Debug + Into<RendererUInt> + From<RendererUInt> + PartialEq +
              Mul<Output = T> + Add<Output = T> + PartialOrd + SubAssign + Div<Output = T> +
              Sub<Output = T> + Rem<Output = T>,
           V: Copy + Default

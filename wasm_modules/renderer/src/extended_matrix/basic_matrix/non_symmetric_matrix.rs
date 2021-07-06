@@ -6,7 +6,7 @@ use crate::extended_matrix::
         matrix_size_check, extract_value_by_index
     };
 
-use crate::ElementsNumbers;
+use crate::types::RendererUInt;
 
 use std::ops::{Mul, Add, Sub, Div, Rem, MulAssign, SubAssign};
 use std::fmt::Debug;
@@ -30,7 +30,7 @@ pub struct NonSymmetricMatrix<T, V>
 impl<T, V> BasicMatrixTrait<T, V> for NonSymmetricMatrix<T, V>
     where T: Copy + PartialEq + Debug + PartialOrd + Mul<Output = T> + Add<Output = T> +
              Default + Sub<Output = T> + Div<Output = T> + Rem<Output = T> + Eq + Hash +
-             Into<ElementsNumbers> + From<ElementsNumbers> + SubAssign + 'static,
+             Into<RendererUInt> + From<RendererUInt> + SubAssign + 'static,
           V: Copy + Default + PartialEq + Debug + MulAssign + 'static,
 {
    // fn create_element_value(&mut self, requested_index: T, new_value: V)
@@ -243,7 +243,7 @@ impl<T, V> BasicMatrixTrait<T, V> for NonSymmetricMatrix<T, V>
 
 
 impl<T, V> NonSymmetricMatrix<T, V>
-    where T: Copy + Debug + Into<ElementsNumbers> + From<ElementsNumbers> + PartialEq +
+    where T: Copy + Debug + Into<RendererUInt> + From<RendererUInt> + PartialEq +
              Mul<Output = T> + Add<Output = T> + PartialOrd + SubAssign + Div<Output = T> +
              Sub<Output = T> + Rem<Output = T>,
           V: Copy + Default

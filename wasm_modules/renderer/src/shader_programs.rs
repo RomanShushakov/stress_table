@@ -1,12 +1,10 @@
 use web_sys::{WebGlUniformLocation, WebGlProgram, WebGlRenderingContext as GL};
 
-use crate::types::RendererUInt;
-
 
 pub struct ShaderPrograms
 {
-    vertex_position: RendererUInt,
-    vertex_color: RendererUInt,
+    vertex_position: u32,
+    vertex_color: u32,
     point_size: WebGlUniformLocation,
     projection_matrix: WebGlUniformLocation,
     model_view_matrix: WebGlUniformLocation,
@@ -32,8 +30,8 @@ impl ShaderPrograms
         gl.link_program(&shader_program);
         gl.use_program(Some(&shader_program));
 
-        let vertex_position = gl.get_attrib_location(&shader_program, "aVertexPosition") as RendererUInt;
-        let vertex_color = gl.get_attrib_location(&shader_program, "aVertexColor") as RendererUInt;
+        let vertex_position = gl.get_attrib_location(&shader_program, "aVertexPosition") as u32;
+        let vertex_color = gl.get_attrib_location(&shader_program, "aVertexColor") as u32;
         let point_size = gl.get_uniform_location(&shader_program, "uPointSize").unwrap();
         let projection_matrix = gl
             .get_uniform_location(&shader_program, "uProjectionMatrix")
@@ -46,13 +44,13 @@ impl ShaderPrograms
     }
 
 
-    pub fn get_vertex_position(&self) -> RendererUInt
+    pub fn get_vertex_position(&self) -> u32
     {
         self.vertex_position
     }
 
 
-    pub fn get_vertex_color(&self) -> RendererUInt
+    pub fn get_vertex_color(&self) -> u32
     {
         self.vertex_color
     }

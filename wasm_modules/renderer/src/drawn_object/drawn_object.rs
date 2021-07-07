@@ -14,7 +14,6 @@ use crate::functions::define_drawn_object_color;
 use crate::extended_matrix::ExtendedMatrix;
 use crate::extended_matrix::extract_element_value;
 
-use crate::types::{RendererFloat, RendererUInt};
 use crate::consts::TOLERANCE;
 
 
@@ -115,9 +114,9 @@ pub const COLOR_BAR_WIDTH: f32 = 0.015;
 
 pub trait DrawnObjectTrait
 {
-    fn get_vertices_coordinates(&self) -> &[RendererFloat];
-    fn get_colors_values(&self) -> &[RendererFloat];
-    fn get_indexes_numbers(&self) -> &[RendererUInt];
+    fn get_vertices_coordinates(&self) -> &[f32];
+    fn get_colors_values(&self) -> &[f32];
+    fn get_indexes_numbers(&self) -> &[u32];
     fn draw(&self, gl: &GL);
 }
 
@@ -158,19 +157,19 @@ pub struct DrawnObject
 
 impl DrawnObjectTrait for DrawnObject
 {
-    fn get_vertices_coordinates(&self) -> &[RendererFloat]
+    fn get_vertices_coordinates(&self) -> &[f32]
     {
         self.vertices_coordinates.as_slice()
     }
 
 
-    fn get_colors_values(&self) -> &[RendererFloat]
+    fn get_colors_values(&self) -> &[f32]
     {
         self.colors_values.as_slice()
     }
 
 
-    fn get_indexes_numbers(&self) -> &[RendererUInt]
+    fn get_indexes_numbers(&self) -> &[u32]
     {
         self.indexes_numbers.as_slice()
     }

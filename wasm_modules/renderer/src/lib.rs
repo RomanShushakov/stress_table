@@ -2,13 +2,13 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::
 {
-    WebGlProgram, WebGlRenderingContext as GL, WebGlShader, CanvasRenderingContext2d as CTX
+    WebGlProgram, WebGlRenderingContext as GL, WebGlShader, CanvasRenderingContext2d as CTX,
 };
 use mat4;
 use serde_json::json;
+use rand;
 use std::collections::{HashMap, HashSet};
 use std::convert::TryFrom;
-use rand;
 
 mod point_object;
 use point_object::{PointObjectKey, PointObject, Coordinates};
@@ -19,7 +19,7 @@ use line_object::{LineObject, LineObjectKey, LineObjectNumbers};
 use line_object::{LineObjectType, LineObjectColorScheme};
 
 mod drawn_object;
-use crate::drawn_object::drawn_object::DrawnObjectTrait;
+use drawn_object::drawn_object::DrawnObjectTrait;
 use drawn_object::drawn_object::DrawnObject;
 use drawn_object::drawn_object::{CSAxis, GLMode};
 use drawn_object::drawn_object::
@@ -47,15 +47,6 @@ use drawn_object::consts::
     AXIS_Z_DENOTATION_SHIFT_Z, CANVAS_AXES_DENOTATION_COLOR,
 };
 
-mod functions;
-use functions::
-{
-    initialize_shaders, add_denotation, add_hints, normalize_point_objects_coordinates,
-    define_drawn_object_denotation_color, transform_u32_to_array_of_u8,
-    dispatch_custom_event, convert_into_array
-};
-
-mod extended_matrix;
 
 mod buffer_objects;
 use crate::buffer_objects::BufferObjects;
@@ -63,16 +54,25 @@ use crate::buffer_objects::BufferObjects;
 mod shader_programs;
 use crate::shader_programs::ShaderPrograms;
 
+mod extended_matrix;
+
 mod methods_for_canvas_manipulation;
 
 mod types;
-use types::{RendererUInt, RendererInt, RendererFloat};
 
 mod consts;
 use consts::
 {
     EVENT_TARGET, SELECTED_POINTS_EVENT_MAME, SELECTED_NODES_EVENT_MAME, SELECTED_LINES_EVENT_MAME,
     SELECTED_LINE_ELEMENTS_EVENT_MAME
+};
+
+mod functions;
+use functions::
+{
+    initialize_shaders, add_denotation, add_hints, normalize_point_objects_coordinates,
+    define_drawn_object_denotation_color, transform_u32_to_array_of_u8,
+    dispatch_custom_event, convert_into_array
 };
 
 
@@ -88,13 +88,13 @@ struct Props
 {
     canvas_text: web_sys::HtmlCanvasElement,
     canvas_gl: web_sys::HtmlCanvasElement,
-    cursor_coord_x: RendererInt,
-    cursor_coord_y: RendererInt,
-    theta: RendererFloat,
-    phi: RendererFloat,
-    dx: RendererFloat,
-    dy: RendererFloat,
-    d_scale: RendererFloat,
+    cursor_coord_x: i32,
+    cursor_coord_y: i32,
+    theta: f32,
+    phi: f32,
+    dx: f32,
+    dy: f32,
+    d_scale: f32,
     point_objects: HashMap<PointObjectKey, PointObject>,
 }
 
@@ -111,8 +111,8 @@ struct State
     under_selection_box_colors: Vec<u8>,
     selected_colors: HashSet<[u8; 4]>,
     line_objects: HashMap<LineObjectKey, LineObject>,
-    selection_box_start_x: Option<RendererInt>,
-    selection_box_start_y: Option<RendererInt>,
+    selection_box_start_x: Option<i32>,
+    selection_box_start_y: Option<i32>,
 }
 
 
@@ -181,8 +181,8 @@ impl Renderer
     fn update_point_objects_normalized_coordinates(&mut self)
     {
         normalize_point_objects_coordinates(&mut self.props.point_objects, &self.state.line_objects,
-            self.props.canvas_gl.width() as RendererFloat,
-            self.props.canvas_gl.height() as RendererFloat);
+            self.props.canvas_gl.width() as f32,
+            self.props.canvas_gl.height() as f32);
         log(&format!("{:?}", self.props.point_objects));
     }
 
@@ -239,7 +239,7 @@ impl Renderer
     }
 
 
-    pub fn add_point_object(&mut self, number: u32, x: RendererFloat, y: RendererFloat, z: RendererFloat,
+    pub fn add_point_object(&mut self, number: u32, x: f32, y: f32, z: f32,
         point_object_type: PointObjectType) -> Result<(), JsValue>
     {
         let point_object_key = PointObjectKey::create(number, point_object_type);
@@ -253,7 +253,7 @@ impl Renderer
     }
 
 
-    pub fn update_point_object(&mut self, number: u32, x: RendererFloat, y: RendererFloat, z: RendererFloat,
+    pub fn update_point_object(&mut self, number: u32, x: f32, y: f32, z: f32,
         point_object_type: PointObjectType) -> Result<(), JsValue>
     {
         if let Some(point_object) = self.props.point_objects
@@ -579,18 +579,16 @@ impl Renderer
         self.state.gl.clear(GL::COLOR_BUFFER_BIT);
         self.state.gl.clear(GL::DEPTH_BUFFER_BIT);
 
-        self.state.gl.viewport(0, 0, width as RendererInt, height as RendererInt);
+        self.state.gl.viewport(0, 0, width as i32, height as i32);
 
-        let aspect: RendererFloat = width as RendererFloat / height as RendererFloat;
+        let aspect: f32 = width as f32 / height as f32;
         let z_near = 1.0;
         let z_far = 101.0;
 
         if let Some(drawn_object_for_selection)= &self.state.drawn_object_for_selection
         {
-            let boxed_drawn_object_for_selection: Box<dyn DrawnObjectTrait> =
-                Box::new(drawn_object_for_selection.clone());
             self.state.buffer_objects.store_drawn_object(&self.state.gl,
-                &boxed_drawn_object_for_selection);
+                drawn_object_for_selection);
             self.state.buffer_objects.associate_with_shader_programs(&self.state.gl,
                 &self.state.shader_programs);
 
@@ -727,10 +725,8 @@ impl Renderer
 
         if let Some(drawn_object_visible) = &self.state.drawn_object_visible
         {
-            let boxed_drawn_object_visible: Box<dyn DrawnObjectTrait> =
-                Box::new(drawn_object_visible.clone());
             self.state.buffer_objects.store_drawn_object(&self.state.gl,
-                &boxed_drawn_object_visible);
+                drawn_object_visible);
             self.state.buffer_objects.associate_with_shader_programs(&self.state.gl,
                 &self.state.shader_programs);
 
@@ -782,7 +778,7 @@ impl Renderer
                     point_object.get_normalized_z()?,
                     1.0],
                 &matrix,
-                width as RendererFloat, height as RendererFloat,
+                width as f32, height as f32,
                 &point_object_key.get_number().to_string());
                 self.state.ctx.stroke();
             }
@@ -834,15 +830,14 @@ impl Renderer
                         denotation_coordinates[2],
                         1.0],
                     &matrix,
-                    width as RendererFloat, height as RendererFloat,
+                    width as f32, height as f32,
                     &line_object_key.get_number().to_string());
                     self.state.ctx.stroke();
                 }
             }
         }
 
-        let boxed_cs_axes_drawn_object: Box<dyn DrawnObjectTrait> = Box::new(self.state.cs_axes_drawn_object.clone());
-        self.state.buffer_objects.store_drawn_object(&self.state.gl, &boxed_cs_axes_drawn_object);
+        self.state.buffer_objects.store_drawn_object(&self.state.gl, &self.state.cs_axes_drawn_object);
         self.state.buffer_objects.associate_with_shader_programs(&self.state.gl, &self.state.shader_programs);
 
         let mut projection_matrix = mat4::new_zero();
@@ -873,18 +868,18 @@ impl Renderer
 
         add_denotation(&self.state.ctx,
             &[1.0 + AXIS_X_DENOTATION_SHIFT_X, 0.0 + AXIS_X_DENOTATION_SHIFT_Y, 0.0, 1.0],
-            &model_view_matrix, width as RendererFloat,height as RendererFloat, "X");
+            &model_view_matrix, width as f32,height as f32, "X");
         add_denotation(&self.state.ctx,
             &[0.0 + AXIS_Y_DENOTATION_SHIFT_X, 1.0 + AXIS_Y_DENOTATION_SHIFT_Y, 0.0, 1.0],
-            &model_view_matrix, width as RendererFloat, height as RendererFloat, "Y");
+            &model_view_matrix, width as f32, height as f32, "Y");
         add_denotation(&self.state.ctx,
             &[0.0 + AXIS_Z_DENOTATION_SHIFT_X, 0.0 + AXIS_Z_DENOTATION_SHIFT_Y,
                 1.0 + AXIS_Z_DENOTATION_SHIFT_Z, 1.0],
-            &model_view_matrix, width as RendererFloat, height as RendererFloat, "Z");
+            &model_view_matrix, width as f32, height as f32, "Z");
         self.state.ctx.stroke();
 
         self.state.ctx.set_fill_style(&HINTS_COLOR.into());
-        add_hints(&self.state.ctx, width as RendererFloat, height as RendererFloat);
+        add_hints(&self.state.ctx, width as f32, height as f32);
         self.state.ctx.stroke();
 
         if let (Some(start_x), Some(start_y)) =

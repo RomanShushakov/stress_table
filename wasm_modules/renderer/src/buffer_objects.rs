@@ -24,7 +24,7 @@ impl BufferObjects
     }
 
 
-    pub fn store_drawn_object(&self, gl: &GL, drawn_object: &Box<dyn DrawnObjectTrait>)
+    pub fn store_drawn_object(&self, gl: &GL, drawn_object: &impl DrawnObjectTrait)
     {
         let vertices = js_sys::Float32Array::from(drawn_object.get_vertices_coordinates());
         let colors = js_sys::Float32Array::from(drawn_object.get_colors_values());

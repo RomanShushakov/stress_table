@@ -8,37 +8,36 @@ use crate::drawn_object::consts::
     CS_ORIGIN, CS_AXIS_X, CS_AXIS_X_COLOR, CS_AXIS_Y, CS_AXIS_Y_COLOR, CS_AXIS_Z, CS_AXIS_Z_COLOR
 };
 
-use crate::types::{RendererUInt, RendererInt, RendererFloat};
 use crate::consts::TOLERANCE;
 
 
 #[derive(Clone)]
 pub struct CSAxesDrawnObject
 {
-    vertices_coordinates: Vec<RendererFloat>,
-    colors_values: Vec<RendererFloat>,
-    indexes_numbers: Vec<RendererUInt>,
+    vertices_coordinates: Vec<f32>,
+    colors_values: Vec<f32>,
+    indexes_numbers: Vec<u32>,
     modes: Vec<GLPrimitiveType>,
-    element_numbers: Vec<RendererInt>,
-    offsets: Vec<RendererInt>,
+    element_numbers: Vec<i32>,
+    offsets: Vec<i32>,
 }
 
 
 impl DrawnObjectTrait for CSAxesDrawnObject
 {
-    fn get_vertices_coordinates(&self) -> &[RendererFloat]
+    fn get_vertices_coordinates(&self) -> &[f32]
     {
         self.vertices_coordinates.as_slice()
     }
 
 
-    fn get_colors_values(&self) -> &[RendererFloat]
+    fn get_colors_values(&self) -> &[f32]
     {
         self.colors_values.as_slice()
     }
 
 
-    fn get_indexes_numbers(&self) -> &[RendererUInt]
+    fn get_indexes_numbers(&self) -> &[u32]
     {
         self.indexes_numbers.as_slice()
     }
@@ -83,7 +82,7 @@ impl CSAxesDrawnObject
     }
 
 
-    fn define_offset(&self) -> RendererInt
+    fn define_offset(&self) -> i32
     {
         if self.offsets.is_empty()
         {
@@ -129,14 +128,13 @@ impl CSAxesDrawnObject
     }
 
 
-    pub fn add_cs_axes_caps(&mut self, base_points_number: RendererUInt, height: RendererFloat,
-        base_radius: RendererFloat)
+    pub fn add_cs_axes_caps(&mut self, base_points_number: u32, height: f32, base_radius: f32)
     {
-        let d_angle = 2.0 * PI / base_points_number as RendererFloat;
+        let d_angle = 2.0 * PI / base_points_number as f32;
         let local_coordinates = (0..base_points_number)
             .map(|point_number|
                 {
-                    let angle = d_angle * point_number as RendererFloat;
+                    let angle = d_angle * point_number as f32;
                     let local_x =
                         {
                             let value = base_radius * angle.cos();
@@ -149,7 +147,7 @@ impl CSAxesDrawnObject
                         };
                     (local_x, local_y)
                 })
-            .collect::<Vec<(RendererFloat, RendererFloat)>>();
+            .collect::<Vec<(f32, f32)>>();
         let start_x_axis_cap_index =
             if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
         self.vertices_coordinates.extend(&CS_AXIS_X);
@@ -229,7 +227,7 @@ impl CSAxesDrawnObject
             start_z_axis_cap_index + 1, start_z_axis_cap_index + base_points_number]);
 
         self.modes.push(GLPrimitiveType::Triangles);
-        self.element_numbers.push(base_points_number as RendererInt * 9);
+        self.element_numbers.push(base_points_number as i32 * 9);
         let offset = self.define_offset();
         self.offsets.push(offset);
     }

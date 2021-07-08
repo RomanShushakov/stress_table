@@ -8,6 +8,7 @@ use crate::preprocessor::properties::beam_section_orientation::{BeamSectionOrien
 use crate::preprocessor::properties::consts::
 {
     ADD_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_EVENT_NAME,
+    REMOVE_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_EVENT_NAME,
 };
 
 use crate::types::{FEUInt, FEFloat};
@@ -30,7 +31,8 @@ impl Properties
         self.clear_deleted_assigned_properties_by_action_id(action_id);
         self.clear_changed_assigned_properties_by_action_id(action_id);
 
-        let converted_local_axis_1_direction = <[FEFloat; 3]>::try_from(local_axis_1_direction).unwrap();
+        let converted_local_axis_1_direction = <[FEFloat; 3]>::try_from(local_axis_1_direction)
+            .unwrap();
         if self.beam_sections_orientations.iter()
             .position(|beam_section_orientation|
                 beam_section_orientation.is_local_axis_1_direction_same(&
@@ -56,5 +58,48 @@ impl Properties
             EVENT_TARGET)?;
         self.logging();
         Ok(())
+    }
+
+
+    pub fn remove_beam_section_local_axis_1_direction(&mut self, action_id: FEUInt,
+        local_axis_1_direction: &[FEFloat], is_action_id_should_be_increased: bool)
+        -> Result<(), JsValue>
+    {
+        self.clear_deleted_materials_by_action_id(action_id);
+        self.clear_deleted_truss_sections_by_action_id(action_id);
+        self.clear_deleted_beam_sections_by_action_id(action_id);
+        self.clear_deleted_properties_by_action_id(action_id);
+        self.clear_deleted_assigned_properties_by_action_id(action_id);
+        self.clear_changed_assigned_properties_by_action_id(action_id);
+
+        let converted_local_axis_1_direction = <[FEFloat; 3]>::try_from(local_axis_1_direction)
+            .unwrap();
+        if let Some(position) = self.beam_sections_orientations.iter()
+            .position(|beam_section_orientation|
+                beam_section_orientation.is_local_axis_1_direction_same(&
+                    converted_local_axis_1_direction))
+        {
+            let deleted_beam_section_orientation =
+                self.beam_sections_orientations.remove(position);
+            self.deleted_beam_sections_orientations.insert(action_id,
+                vec![deleted_beam_section_orientation]);
+            let detail = json!({ "local_axis_1_direction_data":
+                {
+                    "local_axis_1_direction": converted_local_axis_1_direction,
+                },
+                "is_action_id_should_be_increased": is_action_id_should_be_increased });
+            dispatch_custom_event(detail,
+                REMOVE_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_EVENT_NAME,
+                EVENT_TARGET)?;
+            self.logging();
+            Ok(())
+        }
+        else
+        {
+            let error_message = &format!("Properties: Remove beam section local axis 1 \
+                direction action: Local axis 1 direction {:?} does not exist!",
+                local_axis_1_direction);
+            return Err(JsValue::from(error_message));
+        }
     }
 }

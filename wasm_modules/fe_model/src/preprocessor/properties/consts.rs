@@ -20,5 +20,7 @@ pub const DELETE_ASSIGNED_PROPERTIES_EVENT_NAME: &str = "delete_assigned_propert
 
 pub const ADD_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_EVENT_NAME: &str =
     "add_beam_section_local_axis_1_direction_server_message";
+pub const REMOVE_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_EVENT_NAME: &str =
+    "remove_beam_section_local_axis_1_direction_server_message";
 
 pub const UPDATE_LINES_COLOR_EVENT_NAME: &str = "update_lines_color_server_message";

@@ -28,5 +28,8 @@ pub const DELETE_ASSIGNED_PROPERTIES_MESSAGE_HEADER: &str = "delete_assigned_pro
 pub const ADD_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_MESSAGE_HEADER: &str =
     "add_beam_section_local_axis_1_direction";
 
+pub const REMOVE_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_MESSAGE_HEADER: &str =
+    "remove_beam_section_local_axis_1_direction";
+
 pub const UNDO_MESSAGE_HEADER: &str = "undo";
 pub const REDO_MESSAGE_HEADER: &str = "redo";

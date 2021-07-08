@@ -36,7 +36,7 @@ pub struct Properties
 
     pub beam_sections_orientations: Vec<BeamSectionOrientation>,
     pub changed_beam_sections_orientations: HashMap<FEUInt, BeamSectionOrientation>,    // { action_id: BeamSectionOrientation }
-    pub deleted_beam_sections_orientations: HashMap<FEUInt, BeamSectionOrientation>,    // { action_id: BeamSectionOrientation }
+    pub deleted_beam_sections_orientations: HashMap<FEUInt, Vec<BeamSectionOrientation>>,   // { action_id: BeamSectionOrientation }
 }
 
 

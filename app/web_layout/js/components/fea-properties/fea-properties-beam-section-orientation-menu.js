@@ -567,7 +567,7 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
 
         this.shadowRoot.querySelector(".add-inputted-button").addEventListener("click", () => this.addBeamSectionLocalAxis1Direction());
 
-        this.shadowRoot.querySelector(".remove-inputted-button").addEventListener("click", () => this.removeLocalAxis1Direction());
+        this.shadowRoot.querySelector(".remove-inputted-button").addEventListener("click", () => this.removeBeamSectionLocalAxis1Direction());
 
         this.shadowRoot.querySelector(".apply-button").addEventListener("click", () => this.updateBeamSectionOrientationData());
 
@@ -683,6 +683,16 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
 
     set addBeamSectionLocalAxis1DirectionToClient(beamSectionLocalAxis1DirectionData) {
         this.props.beamSectionsOrientations.push(beamSectionLocalAxis1DirectionData);
+        this.props.beamSectionsOrientations.sort((a, b) => a.local_axis_1_direction - b.local_axis_1_direction);
+        this.defineLocalAxis1DirectionOptions();
+    }
+
+    set removeBeamSectionLocalAxis1DirectionFromClient(beamSectionLocalAxis1DirectionData) {
+        const equals = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
+        let beamSectionLocalAxis1DirectionIndexInProps = this.props.beamSectionsOrientations
+            .findIndex(existedbeamSectionOrientation => equals(existedbeamSectionOrientation.local_axis_1_direction,
+                beamSectionLocalAxis1DirectionData.local_axis_1_direction));
+        this.props.beamSectionsOrientations.splice(beamSectionLocalAxis1DirectionIndexInProps, 1);
         this.props.beamSectionsOrientations.sort((a, b) => a.local_axis_1_direction - b.local_axis_1_direction);
         this.defineLocalAxis1DirectionOptions();
     }
@@ -810,6 +820,64 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
         this.getActionId();
         const message = { 
             "add_beam_section_local_axis_1_direction": { 
+                "actionId": this.props.actionId,
+                "local_axis_1_direction": localAxis1Direction,
+            } 
+        };
+        this.dispatchEvent(new CustomEvent("clientMessage", {
+            bubbles: true,
+            composed: true,
+            detail: {
+                message: message,
+            },
+        }));
+        localAxis1DirectionInputField.value = null;
+    }
+
+    removeBeamSectionLocalAxis1Direction() {
+        const localAxis1DirectionInputField = this.shadowRoot.querySelector(".local-axis-1-direction-input");
+        let localAxis1Direction = localAxis1DirectionInputField.value
+            .split(",")
+            .map((item) => item.replace(/\s/g,'', ""))
+            .filter((item) => item !== "");
+        for (let i = 0; i < localAxis1Direction.length; i++) {
+            if (this.isNumeric(localAxis1Direction[i]) === false) {
+                if (localAxis1DirectionInputField.classList.contains("highlighted") === false) {
+                    localAxis1DirectionInputField.classList.add("highlighted");
+                }
+                if (this.shadowRoot.querySelector(".local-axis-1-direction-input-info-message").innerHTML === "") {
+                    this.shadowRoot.querySelector(".local-axis-1-direction-input-info-message").innerHTML = 
+                        "Note: Only numbers could be used as local axis 1 direction values!";
+                }
+                return;
+            }
+        }
+        localAxis1Direction = localAxis1Direction.map((item) => parseFloat(item));
+        if (localAxis1Direction.length !== 3) {
+            if (localAxis1DirectionInputField.classList.contains("highlighted") === false) {
+                localAxis1DirectionInputField.classList.add("highlighted");
+            }
+            if (this.shadowRoot.querySelector(".local-axis-1-direction-input-info-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".local-axis-1-direction-input-info-message").innerHTML = 
+                    "Note: Incorrect number of coordinates for local axis 1 direction!";
+            }
+            return;
+        }
+        const equals = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
+        if (this.props.beamSectionsOrientations.find((item) => 
+            equals(item.local_axis_1_direction, localAxis1Direction)) === undefined) {
+            if (localAxis1DirectionInputField.classList.contains("highlighted") === false) {
+                localAxis1DirectionInputField.classList.add("highlighted");
+            }
+            if (this.shadowRoot.querySelector(".local-axis-1-direction-input-info-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".local-axis-1-direction-input-info-message").innerHTML = 
+                    "Note: The inputted value of beam section local axis 1 direction does not exist!";
+            }
+            return;
+        }
+        this.getActionId();
+        const message = { 
+            "remove_beam_section_local_axis_1_direction": { 
                 "actionId": this.props.actionId,
                 "local_axis_1_direction": localAxis1Direction,
             } 

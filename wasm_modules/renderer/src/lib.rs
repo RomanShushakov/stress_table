@@ -194,7 +194,6 @@ impl Renderer
             drawn_object_for_selection.add_point_object(&self.props.point_objects, GLMode::Selection,
                 &self.state.under_selection_box_colors,
                 &self.state.selected_colors)?;
-
             if !self.state.line_objects.is_empty()
             {
                 drawn_object_for_selection.add_line_objects(
@@ -208,6 +207,10 @@ impl Renderer
             }
             self.state.drawn_object_for_selection = Some(drawn_object_for_selection);
         }
+        else
+        {
+            self.state.drawn_object_for_selection = None;
+        }
         Ok(())
     }
 
@@ -220,7 +223,6 @@ impl Renderer
             drawn_object_visible.add_point_object(&self.props.point_objects, GLMode::Visible,
                 &self.state.under_selection_box_colors,
                 &self.state.selected_colors)?;
-
             if !self.state.line_objects.is_empty()
             {
                 drawn_object_visible.add_line_objects(
@@ -232,8 +234,11 @@ impl Renderer
                     DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
                     DRAWN_LINE_OBJECTS_BASE_RADIUS / (1.0 + self.props.d_scale))?;
             }
-
             self.state.drawn_object_visible = Some(drawn_object_visible);
+        }
+        else
+        {
+            self.state.drawn_object_visible = None;
         }
         Ok(())
     }

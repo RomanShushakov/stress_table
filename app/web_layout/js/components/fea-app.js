@@ -165,6 +165,9 @@ class FeaApp extends HTMLElement {
         this.addEventListener("add_beam_section_local_axis_1_direction_server_message", 
             (event) => this.handleAddBeamSectionLocalAxis1DirectionServerMessage(event));
 
+        this.addEventListener("remove_beam_section_local_axis_1_direction_server_message",
+            (event) => this.handleRemoveBeamSectionLocalAxis1DirectionServerMessage(event));
+
         this.addEventListener("decreaseActionId", (_event) => this.handleDecreaseActionIdMessage());
 
         this.addEventListener("enableLinesSelectionMode", 
@@ -894,6 +897,21 @@ class FeaApp extends HTMLElement {
             if (this.querySelector(this.state.beamSectionsOrientationsDependentMenus[i]) !== null) {
                 this.querySelector(this.state.beamSectionsOrientationsDependentMenus[i])
                     .addBeamSectionLocalAxis1DirectionToClient = beamSectionLocalAxis1DirectionData;
+            }
+        } 
+        event.stopPropagation();
+    }
+
+    handleRemoveBeamSectionLocalAxis1DirectionServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;           
+        }
+        const beamSectionLocalAxis1DirectionData = { 
+            local_axis_1_direction: event.detail.local_axis_1_direction_data.local_axis_1_direction };
+        for (let i = 0; i < this.state.beamSectionsOrientationsDependentMenus.length; i++) {
+            if (this.querySelector(this.state.beamSectionsOrientationsDependentMenus[i]) !== null) {
+                this.querySelector(this.state.beamSectionsOrientationsDependentMenus[i])
+                    .removeBeamSectionLocalAxis1DirectionFromClient = beamSectionLocalAxis1DirectionData;
             }
         } 
         event.stopPropagation();

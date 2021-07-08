@@ -557,7 +557,7 @@ impl ActionsRouter
             .collect::<Result<Vec<FEFloat>, JsValue>>()?;
         if local_axis_1_direction.len() != 3
         {
-            let error_message = "Actions router: Update beam section local axis 1 direction \
+            let error_message = "Actions router: Add beam section local axis 1 direction \
                 action: Incorrect number of coordinates for local axis 1 direction!";
             return Err(JsValue::from(error_message));
         }
@@ -565,6 +565,50 @@ impl ActionsRouter
         let is_action_id_should_be_increased = true;
         let action_type = ActionType::from(
             PropertiesActionType::AddBeamSectionLocalAxis1Direction(
+            local_axis_1_direction, is_action_id_should_be_increased));
+        let action = Action::create(action_id, action_type);
+        let add_to_active_actions = true;
+        self.current_action = Some((action, add_to_active_actions));
+        Ok(())
+    }
+
+
+    pub(super) fn handle_remove_beam_section_local_axis_1_direction_message(&mut self,
+        local_axis_1_direction_data: &Value) -> Result<(), JsValue>
+    {
+        let action_id = local_axis_1_direction_data["actionId"].to_string()
+            .parse::<FEUInt>()
+            .or(Err(JsValue::from("Actions router: Remove beam section local axis 1 \
+                direction action: Action id could not be converted to FEUInt!")))?;
+        let local_axis_1_direction = local_axis_1_direction_data["local_axis_1_direction"]
+            .to_string()
+            .replace("[", "")
+            .replace("]", "")
+            .split(",")
+            .map(|num|
+                {
+                    match num.parse::<FEFloat>()
+                    {
+                        Ok(n) => Ok(n),
+                        Err(_e) =>
+                            {
+                                Err(JsValue::from("Actions router: Remove beam section local \
+                                    axis 1 direction action: Local axis 1 direction coordinate \
+                                    could not be converted to FEFloat!"))
+                            }
+                    }
+                })
+            .collect::<Result<Vec<FEFloat>, JsValue>>()?;
+        if local_axis_1_direction.len() != 3
+        {
+            let error_message = "Actions router: Remove beam section local axis 1 direction \
+                action: Incorrect number of coordinates for local axis 1 direction!";
+            return Err(JsValue::from(error_message));
+        }
+        self.undo_actions.clear();
+        let is_action_id_should_be_increased = true;
+        let action_type = ActionType::from(
+            PropertiesActionType::RemoveBeamSectionLocalAxis1Direction(
             local_axis_1_direction, is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
         let add_to_active_actions = true;

@@ -29,6 +29,7 @@ use external_functions::communication_with_properties::
     add_assigned_properties_to_properties, update_assigned_properties_in_properties,
     delete_assigned_properties_from_properties, restore_assigned_properties_in_properties,
     add_beam_section_local_axis_1_direction_to_properties,
+    remove_beam_section_local_axis_1_direction_to_properties,
     clear_properties_module_by_action_id,
     extract_materials, extract_truss_sections, extract_beam_sections,
     extract_properties, extract_assigned_properties, extract_beam_sections_orientations,
@@ -54,6 +55,7 @@ use consts::
     DELETE_PROPERTIES_MESSAGE_HEADER, ADD_ASSIGNED_PROPERTIES_MESSAGE_HEADER,
     UPDATE_ASSIGNED_PROPERTIES_MESSAGE_HEADER, DELETE_ASSIGNED_PROPERTIES_MESSAGE_HEADER,
     ADD_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_MESSAGE_HEADER,
+    REMOVE_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_MESSAGE_HEADER,
     UNDO_MESSAGE_HEADER, REDO_MESSAGE_HEADER,
 };
 
@@ -229,7 +231,8 @@ impl ActionsRouter
                                 {
                                     let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::from(
-                                        PropertiesActionType::DeleteMaterial(material_name.clone(),
+                                        PropertiesActionType::DeleteMaterial(
+                                            material_name.clone(),
                                             is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
                                     let add_to_active_actions = false;
@@ -245,7 +248,8 @@ impl ActionsRouter
                                 {
                                     let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::from(
-                                        PropertiesActionType::UpdateMaterial(material_name.clone(),
+                                        PropertiesActionType::UpdateMaterial(
+                                            material_name.clone(),
                                             *new_young_modulus, *new_poisson_ratio,
                                             *old_young_modulus, *old_poisson_ratio,
                                             is_action_id_should_be_increased));
@@ -260,7 +264,8 @@ impl ActionsRouter
                                     let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::from(
                                         PropertiesActionType::RestoreMaterial(
-                                            material_name.clone(), is_action_id_should_be_increased));
+                                            material_name.clone(),
+                                            is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
                                     let add_to_active_actions = false;
                                     self.current_action = Some((action, add_to_active_actions));
@@ -472,6 +477,7 @@ impl ActionsRouter
                                 },
                             PropertiesActionType::RestoreAssignedProperties(_, _) => (),
                             PropertiesActionType::AddBeamSectionLocalAxis1Direction(_, _) => (),
+                            PropertiesActionType::RemoveBeamSectionLocalAxis1Direction(_, _) => (),
                         }
                     }
             }
@@ -939,6 +945,19 @@ impl ActionsRouter
                                         self.active_actions.push(action.clone());
                                     }
                                 },
+                            PropertiesActionType::RemoveBeamSectionLocalAxis1Direction(
+                                local_axis_1_direction,
+                                is_action_id_should_be_increased) =>
+                                {
+                                    remove_beam_section_local_axis_1_direction_to_properties(
+                                        action_id,
+                                        local_axis_1_direction,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions == true
+                                    {
+                                        self.active_actions.push(action.clone());
+                                    }
+                                }
                         }
                     }
             }
@@ -1058,7 +1077,14 @@ impl ActionsRouter
         else if let Some(local_axis_1_direction_data) = serialized_message
             .get(ADD_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_MESSAGE_HEADER)
         {
-            self.handle_add_beam_section_local_axis_1_direction_message(&local_axis_1_direction_data)?;
+            self.handle_add_beam_section_local_axis_1_direction_message(
+                &local_axis_1_direction_data)?;
+        }
+        else if let Some(local_axis_1_direction_data) = serialized_message
+            .get(REMOVE_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_MESSAGE_HEADER)
+        {
+            self.handle_remove_beam_section_local_axis_1_direction_message(
+                &local_axis_1_direction_data)?;
         }
         else if let Some(undo_data) = serialized_message.get(UNDO_MESSAGE_HEADER)
         {

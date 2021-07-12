@@ -28,12 +28,7 @@ impl Properties
     pub fn add_material(&mut self, action_id: FEUInt, name: &str, young_modulus: FEFloat,
         poisson_ratio: FEFloat, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.clear_deleted_materials_by_action_id(action_id);
-        self.clear_deleted_truss_sections_by_action_id(action_id);
-        self.clear_deleted_beam_sections_by_action_id(action_id);
-        self.clear_deleted_properties_by_action_id(action_id);
-        self.clear_deleted_assigned_properties_by_action_id(action_id);
-        self.clear_changed_assigned_properties_by_action_id(action_id);
+        self.clear_properties_module_by_action_id(action_id);
 
         if self.materials.contains_key(&name.to_owned())
         {
@@ -63,12 +58,7 @@ impl Properties
     pub fn update_material(&mut self, action_id: FEUInt, name: &str, young_modulus: FEFloat,
         poisson_ratio: FEFloat, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.clear_deleted_materials_by_action_id(action_id);
-        self.clear_deleted_truss_sections_by_action_id(action_id);
-        self.clear_deleted_beam_sections_by_action_id(action_id);
-        self.clear_deleted_properties_by_action_id(action_id);
-        self.clear_deleted_assigned_properties_by_action_id(action_id);
-        self.clear_changed_assigned_properties_by_action_id(action_id);
+        self.clear_properties_module_by_action_id(action_id);
 
         if self.materials.values().position(|material|
             material.data_same(young_modulus, poisson_ratio)).is_some()
@@ -116,12 +106,7 @@ impl Properties
     pub fn delete_material(&mut self, action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.clear_deleted_materials_by_action_id(action_id);
-        self.clear_deleted_truss_sections_by_action_id(action_id);
-        self.clear_deleted_beam_sections_by_action_id(action_id);
-        self.clear_deleted_properties_by_action_id(action_id);
-        self.clear_deleted_assigned_properties_by_action_id(action_id);
-        self.clear_changed_assigned_properties_by_action_id(action_id);
+        self.clear_properties_module_by_action_id(action_id);
 
         let deleted_property_names =
             self.extract_property_names_for_delete_by_material_name(name);

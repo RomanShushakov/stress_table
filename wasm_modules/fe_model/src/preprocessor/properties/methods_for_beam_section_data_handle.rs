@@ -26,12 +26,7 @@ impl Properties
         i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat, is_action_id_should_be_increased: bool)
         -> Result<(), JsValue>
     {
-        self.clear_deleted_materials_by_action_id(action_id);
-        self.clear_deleted_truss_sections_by_action_id(action_id);
-        self.clear_deleted_beam_sections_by_action_id(action_id);
-        self.clear_deleted_properties_by_action_id(action_id);
-        self.clear_deleted_assigned_properties_by_action_id(action_id);
-        self.clear_changed_assigned_properties_by_action_id(action_id);
+        self.clear_properties_module_by_action_id(action_id);
 
         if self.beam_sections.contains_key(&name.to_owned())
         {
@@ -63,12 +58,7 @@ impl Properties
         i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat, is_action_id_should_be_increased: bool)
         -> Result<(), JsValue>
     {
-        self.clear_deleted_materials_by_action_id(action_id);
-        self.clear_deleted_truss_sections_by_action_id(action_id);
-        self.clear_deleted_beam_sections_by_action_id(action_id);
-        self.clear_deleted_properties_by_action_id(action_id);
-        self.clear_deleted_assigned_properties_by_action_id(action_id);
-        self.clear_changed_assigned_properties_by_action_id(action_id);
+        self.clear_properties_module_by_action_id(action_id);
 
         if self.beam_sections.values().position(|beam_section|
             beam_section.data_same(area, i11, i22, i12, it)).is_some()
@@ -120,12 +110,7 @@ impl Properties
     pub fn delete_beam_section(&mut self, action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.clear_deleted_materials_by_action_id(action_id);
-        self.clear_deleted_truss_sections_by_action_id(action_id);
-        self.clear_deleted_beam_sections_by_action_id(action_id);
-        self.clear_deleted_properties_by_action_id(action_id);
-        self.clear_deleted_assigned_properties_by_action_id(action_id);
-        self.clear_changed_assigned_properties_by_action_id(action_id);
+        self.clear_properties_module_by_action_id(action_id);
 
         let deleted_property_names =
             self.extract_property_names_for_delete_by_beam_section_name(name);

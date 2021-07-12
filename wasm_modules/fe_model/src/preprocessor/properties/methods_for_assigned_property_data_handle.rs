@@ -21,12 +21,7 @@ impl Properties
     pub fn add_assigned_properties(&mut self, action_id: FEUInt, name: &str, line_numbers: &[FEUInt],
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.clear_deleted_materials_by_action_id(action_id);
-        self.clear_deleted_truss_sections_by_action_id(action_id);
-        self.clear_deleted_beam_sections_by_action_id(action_id);
-        self.clear_deleted_properties_by_action_id(action_id);
-        self.clear_deleted_assigned_properties_by_action_id(action_id);
-        self.clear_changed_assigned_properties_by_action_id(action_id);
+        self.clear_properties_module_by_action_id(action_id);
 
         if self.assigned_properties.contains_key(&name.to_owned())
         {
@@ -74,12 +69,7 @@ impl Properties
     pub fn update_assigned_properties(&mut self, action_id: FEUInt, name: &str, line_numbers: &[FEUInt],
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.clear_deleted_materials_by_action_id(action_id);
-        self.clear_deleted_truss_sections_by_action_id(action_id);
-        self.clear_deleted_beam_sections_by_action_id(action_id);
-        self.clear_deleted_properties_by_action_id(action_id);
-        self.clear_deleted_assigned_properties_by_action_id(action_id);
-        self.clear_changed_assigned_properties_by_action_id(action_id);
+        self.clear_properties_module_by_action_id(action_id);
 
         if self.assigned_properties.values().position(|assigned_property|
             assigned_property.data_same(line_numbers)).is_some()
@@ -131,12 +121,7 @@ impl Properties
     pub fn delete_assigned_properties(&mut self, action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.clear_deleted_materials_by_action_id(action_id);
-        self.clear_deleted_truss_sections_by_action_id(action_id);
-        self.clear_deleted_beam_sections_by_action_id(action_id);
-        self.clear_deleted_properties_by_action_id(action_id);
-        self.clear_deleted_assigned_properties_by_action_id(action_id);
-        self.clear_changed_assigned_properties_by_action_id(action_id);
+        self.clear_properties_module_by_action_id(action_id);
 
         if let Some((assigned_property_name, assigned_property)) =
             self.assigned_properties.remove_entry(&name.to_owned())

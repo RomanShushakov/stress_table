@@ -6,20 +6,27 @@ use std::collections::{HashMap, HashSet};
 use std::convert::TryInto;
 use rand;
 
+use crate::point_object::{PointObject, PointObjectKey, Coordinates};
+
 use crate::line_object::{LineObject, LineObjectKey};
 
-use crate::{PointObject, PointObjectKey, Coordinates};
+use crate::extended_matrix::ExtendedMatrix;
 
 use crate::drawn_object::drawn_object::{GLMode};
 use crate::drawn_object::drawn_object::
 {
     HINT_SHIFT_X, ROTATION_HINT_SHIFT_Y, ZOOM_HINT_SHIFT_Y, PAN_HINT_SHIFT_Y,
-    DRAWN_OBJECT_TO_CANVAS_WIDTH_SCALE, DRAWN_OBJECT_TO_CANVAS_HEIGHT_SCALE,
     DRAWN_OBJECT_SELECTED_COLOR, CANVAS_DRAWN_OBJECT_SELECTED_DENOTATION_COLOR,
     CANVAS_DRAWN_OBJECT_UNDER_CURSOR_DENOTATION_COLOR, DRAWN_OBJECT_UNDER_CURSOR_COLOR,
 };
+use crate::drawn_object::consts::
+{
+    DRAWN_OBJECT_TO_CANVAS_WIDTH_SCALE, DRAWN_OBJECT_TO_CANVAS_HEIGHT_SCALE,
+};
 
 use crate::consts::TOLERANCE;
+
+use crate::log;
 
 
 
@@ -327,7 +334,49 @@ pub fn compare_with_tolerance(value: f32) -> f32
 }
 
 
-pub fn convert_into_array<T, const N: usize>(v: Vec<T>) -> [T; N] {
+pub fn convert_into_array<T, const N: usize>(v: Vec<T>) -> [T; N]
+{
     v.try_into()
         .unwrap_or_else(|v: Vec<T>| panic!("Expected a Vec of length {} but it was {}", N, v.len()))
+}
+
+
+pub fn compose_rotation_matrix_for_vector(vector_start_point_coordinates: [f32; 3],
+    vector_end_point_coordinates: [f32; 3]) -> ExtendedMatrix<u32, f32>
+{
+    let x = (vector_end_point_coordinates[0] - vector_start_point_coordinates[0]);
+    let y = (vector_end_point_coordinates[1] - vector_start_point_coordinates[1]);
+    let z = (vector_end_point_coordinates[2] - vector_start_point_coordinates[2]);
+    let vector_length = f32::sqrt(x.powi(2) + y.powi(2) + z.powi(2));
+    let (u, v, w) = (vector_length, 0.0, 0.0);
+    let alpha = ((x * u + y * v + z * w) / (vector_length.powi(2))).acos();
+    let (rotation_axis_coord_x, mut rotation_axis_coord_y,
+        mut rotation_axis_coord_z) = (0f32, 0f32, 0f32);
+    if x != 0.0 && y == 0.0 && z == 0.0
+    {
+        rotation_axis_coord_z = x;
+    }
+    else
+    {
+        rotation_axis_coord_y = z * vector_length;
+        rotation_axis_coord_z = - y * vector_length;
+    }
+    let norm = 1.0 / (rotation_axis_coord_x.powi(2) +
+        rotation_axis_coord_y.powi(2) + rotation_axis_coord_z.powi(2)).sqrt();
+    let (x_n, y_n, z_n) = (rotation_axis_coord_x * norm,
+        rotation_axis_coord_y * norm, rotation_axis_coord_z * norm);
+    let (c, s) = (alpha.cos(), alpha.sin());
+    let t = 1.0 - c;
+    let q_11 = compare_with_tolerance(t * x_n * x_n + c);
+    let q_12 = compare_with_tolerance(t * x_n * y_n - z_n * s);
+    let q_13 = compare_with_tolerance(t * x_n * z_n + y_n * s);
+    let q_21 = compare_with_tolerance(t * x_n * y_n + z_n * s);
+    let q_22 = compare_with_tolerance(t * y_n * y_n + c);
+    let q_23 = compare_with_tolerance(t * y_n * z_n - x_n * s);
+    let q_31 = compare_with_tolerance(t * x_n * z_n - y_n * s);
+    let q_32 = compare_with_tolerance(t * y_n * z_n + x_n * s);
+    let q_33 = compare_with_tolerance(t * z_n * z_n + c);
+    let mut rotation_matrix = ExtendedMatrix::create(3,
+        3, vec![q_11, q_12, q_13, q_21, q_22, q_23, q_31, q_32, q_33]);
+    rotation_matrix
 }

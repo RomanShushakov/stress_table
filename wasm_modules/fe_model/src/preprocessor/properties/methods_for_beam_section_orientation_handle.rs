@@ -24,12 +24,7 @@ impl Properties
         local_axis_1_direction: &[FEFloat], is_action_id_should_be_increased: bool)
         -> Result<(), JsValue>
     {
-        self.clear_deleted_materials_by_action_id(action_id);
-        self.clear_deleted_truss_sections_by_action_id(action_id);
-        self.clear_deleted_beam_sections_by_action_id(action_id);
-        self.clear_deleted_properties_by_action_id(action_id);
-        self.clear_deleted_assigned_properties_by_action_id(action_id);
-        self.clear_changed_assigned_properties_by_action_id(action_id);
+        self.clear_properties_module_by_action_id(action_id);
 
         let converted_local_axis_1_direction = <[FEFloat; 3]>::try_from(local_axis_1_direction)
             .unwrap();
@@ -65,12 +60,7 @@ impl Properties
         local_axis_1_direction: &[FEFloat], is_action_id_should_be_increased: bool)
         -> Result<(), JsValue>
     {
-        self.clear_deleted_materials_by_action_id(action_id);
-        self.clear_deleted_truss_sections_by_action_id(action_id);
-        self.clear_deleted_beam_sections_by_action_id(action_id);
-        self.clear_deleted_properties_by_action_id(action_id);
-        self.clear_deleted_assigned_properties_by_action_id(action_id);
-        self.clear_changed_assigned_properties_by_action_id(action_id);
+        self.clear_properties_module_by_action_id(action_id);
 
         let converted_local_axis_1_direction = <[FEFloat; 3]>::try_from(local_axis_1_direction)
             .unwrap();
@@ -99,6 +89,53 @@ impl Properties
             let error_message = &format!("Properties: Remove beam section local axis 1 \
                 direction action: Local axis 1 direction {:?} does not exist!",
                 local_axis_1_direction);
+            return Err(JsValue::from(error_message));
+        }
+    }
+
+
+    pub fn restore_beam_section_local_axis_1_direction(&mut self, action_id: FEUInt,
+        local_axis_1_direction: &[FEFloat], is_action_id_should_be_increased: bool)
+        -> Result<(), JsValue>
+    {
+        if let Some(deleted_beam_sections_orientations) =
+            self.deleted_beam_sections_orientations.remove(&action_id)
+        {
+            if deleted_beam_sections_orientations.is_empty() ||
+                deleted_beam_sections_orientations.len() > 1
+            {
+                let error_message = &format!("Properties: Restore beam section local axis 1 \
+                    direction action: Incorrect number of beam sections orientations!");
+                return Err(JsValue::from(error_message));
+            }
+            let (deleted_local_axis_1_direction, line_numbers) =
+                deleted_beam_sections_orientations[0].extract_direction_and_line_numbers();
+            if deleted_local_axis_1_direction != local_axis_1_direction
+            {
+                let error_message = &format!("Properties: Restore beam section local \
+                    axis 1 direction action: Beam section orientation with local axis 1 direction \
+                    value {:?} does not exist!", local_axis_1_direction);
+                return Err(JsValue::from(error_message));
+            }
+            let converted_local_axis_1_direction = <[FEFloat; 3]>::try_from(local_axis_1_direction)
+                .unwrap();
+            self.beam_sections_orientations.push(deleted_beam_sections_orientations[0].clone());
+            let detail = json!({ "local_axis_1_direction_data":
+                {
+                    "local_axis_1_direction": converted_local_axis_1_direction,
+                    "line_numbers": line_numbers,
+                },
+                "is_action_id_should_be_increased": is_action_id_should_be_increased });
+            dispatch_custom_event(detail, ADD_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_EVENT_NAME,
+                EVENT_TARGET)?;
+            self.logging();
+            Ok(())
+        }
+        else
+        {
+            let error_message = &format!("Properties: Restore beam section local axis 1 \
+                direction action: Beam section orientation with local axis 1 direction \
+                value {:?} does not exist!", local_axis_1_direction);
             return Err(JsValue::from(error_message));
         }
     }

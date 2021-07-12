@@ -190,6 +190,16 @@ impl Preprocessor
     }
 
 
+    pub fn restore_beam_section_local_axis_1_direction(&mut self, action_id: FEUInt,
+        local_axis_1_direction: &[FEFloat], is_action_id_should_be_increased: bool)
+        -> Result<(), JsValue>
+    {
+        self.properties.restore_beam_section_local_axis_1_direction(action_id,
+            local_axis_1_direction,
+            is_action_id_should_be_increased)
+    }
+
+
     pub fn extract_materials(&self, handler: js_sys::Function) -> Result<(), JsValue>
     {
         self.properties.extract_materials(handler)

@@ -29,5 +29,11 @@ impl BeamSectionOrientation
     {
         self.line_numbers.as_slice()
     }
+
+
+    pub fn extract_direction_and_line_numbers(&self) -> ([FEFloat; 3], &[FEUInt])
+    {
+        (self.local_axis_1_direction, self.line_numbers.as_slice())
+    }
 }
 

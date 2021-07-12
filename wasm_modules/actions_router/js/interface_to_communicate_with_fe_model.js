@@ -27,8 +27,6 @@ export function deletePointFromGeometry(action_id, number, is_action_id_should_b
     const pointData = { "action_id": action_id, "number": number, "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
         communicatorWithFEModel.deletePointFromGeometry = pointData;
-        const deletedLineNumbers = communicatorWithFEModel.lineNumbers;
-        return deletedLineNumbers;
     } catch (error) {
         throw error;
     }
@@ -39,8 +37,6 @@ export function restorePointInGeometry(action_id, number, is_action_id_should_be
     const pointData = { "action_id": action_id, "number": number, "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
         communicatorWithFEModel.restorePointInGeometry = pointData;
-        const restoredLineNumbers = communicatorWithFEModel.lineNumbers;
-        return restoredLineNumbers;
     } catch (error) {
         throw error;
     }
@@ -77,8 +73,6 @@ export function deleteLineFromGeometry(action_id, number, is_action_id_should_be
     const lineData = { "action_id": action_id, "number": number, "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
         communicatorWithFEModel.deleteLineFromGeometry = lineData;
-        const deletedLineNumbers = communicatorWithFEModel.lineNumbers;
-        return deletedLineNumbers;
     } catch (error) {
         throw error;
     }
@@ -89,8 +83,6 @@ export function restoreLineInGeometry(action_id, number, is_action_id_should_be_
     const lineData = { "action_id": action_id, "number": number, "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
         communicatorWithFEModel.restoreLineInGeometry = lineData;
-        const restoredLineNumbers = communicatorWithFEModel.lineNumbers;
-        return restoredLineNumbers;
     } catch (error) {
         throw error;
     }
@@ -362,13 +354,25 @@ export function addBeamSectionLocalAxis1DirectionToProperties(action_id, local_a
     }
 }
 
-export function removeBeamSectionLocalAxis1DirectionToProperties(action_id, local_axis_1_direction,
+export function removeBeamSectionLocalAxis1DirectionFromProperties(action_id, local_axis_1_direction,
     is_action_id_should_be_increased) {
     const beamSectionLocalAxis1DirectionData = { "action_id": action_id, 
         "local_axis_1_direction": local_axis_1_direction, 
         "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
-        communicatorWithFEModel.removeBeamSectionLocalAxis1DirectionToProperties = beamSectionLocalAxis1DirectionData;
+        communicatorWithFEModel.removeBeamSectionLocalAxis1DirectionFromProperties = beamSectionLocalAxis1DirectionData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function restoreBeamSectionLocalAxis1DirectionInProperties(action_id, local_axis_1_direction,
+    is_action_id_should_be_increased) {
+    const beamSectionLocalAxis1DirectionData = { "action_id": action_id, 
+        "local_axis_1_direction": local_axis_1_direction, 
+        "is_action_id_should_be_increased": is_action_id_should_be_increased };
+    try {
+        communicatorWithFEModel.restoreBeamSectionLocalAxis1DirectionInProperties = beamSectionLocalAxis1DirectionData;
     } catch (error) {
         throw error;
     }

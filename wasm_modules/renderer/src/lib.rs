@@ -15,38 +15,31 @@ use point_object::{PointObjectKey, PointObject, Coordinates};
 use point_object::{PointObjectType};
 
 mod line_object;
-use line_object::{LineObject, LineObjectKey, LineObjectNumbers};
+use line_object::{LineObject, LineObjectKey, LineObjectNumbers, BeamSectionOrientation};
 use line_object::{LineObjectType, LineObjectColorScheme};
 
 mod drawn_object;
 use drawn_object::drawn_object::DrawnObjectTrait;
 use drawn_object::drawn_object::DrawnObject;
 use drawn_object::drawn_object::{CSAxis, GLMode};
-use drawn_object::drawn_object::
-{
-    CANVAS_DRAWN_NODES_DENOTATION_COLOR, DRAWN_POINT_OBJECT_DENOTATION_SHIFT,
-    CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR, DRAWN_DISPLACEMENTS_CAPS_BASE_POINTS_NUMBER,
-    DRAWN_DISPLACEMENTS_CAPS_HEIGHT, DRAWN_DISPLACEMENTS_CAPS_WIDTH,
-    CANVAS_DRAWN_DISPLACEMENTS_DENOTATION_COLOR, DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_X,
-    DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_Y, DRAWN_FORCES_LINE_LENGTH, DRAWN_FORCES_CAPS_HEIGHT,
-    DRAWN_FORCES_CAPS_WIDTH, DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER,
-    CANVAS_DRAWN_FORCES_DENOTATION_COLOR, DRAWN_FORCES_DENOTATION_SHIFT_X,
-    DRAWN_FORCES_DENOTATION_SHIFT_Y, HINTS_COLOR, DRAWN_LINE_OBJECTS_DENOTATION_SHIFT,
-    CANVAS_DRAWN_POINTS_DENOTATION_COLOR, DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
-    DRAWN_LINE_OBJECTS_BASE_RADIUS, CANVAS_DRAWN_LINES_DEFAULT_DENOTATION_COLOR,
-    CANVAS_DRAWN_LINES_TRUSS_PROPS_DENOTATION_COLOR,
-    CANVAS_DRAWN_LINES_BEAM_PROPS_DENOTATION_COLOR,
-    SELECTION_RECTANGLE_STROKE_COLOR, SELECTION_RECTANGLE_FILL_COLOR,
-};
 use drawn_object::cs_axes_drawn_object::CSAxesDrawnObject;
 use drawn_object::consts::
-{    CS_AXES_Y_SHIFT, CS_AXES_X_SHIFT, CS_AXES_Z_SHIFT, CS_AXES_SCALE,
+{
+    CS_AXES_Y_SHIFT, CS_AXES_X_SHIFT, CS_AXES_Z_SHIFT, CS_AXES_SCALE,
     CS_AXES_CAPS_BASE_POINTS_NUMBER, CS_AXES_CAPS_WIDTH, CS_AXES_CAPS_HEIGHT,
     AXIS_X_DENOTATION_SHIFT_X, AXIS_X_DENOTATION_SHIFT_Y, AXIS_Y_DENOTATION_SHIFT_X,
     AXIS_Y_DENOTATION_SHIFT_Y, AXIS_Z_DENOTATION_SHIFT_X, AXIS_Z_DENOTATION_SHIFT_Y,
     AXIS_Z_DENOTATION_SHIFT_Z, CANVAS_AXES_DENOTATION_COLOR,
+    DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER, DRAWN_LINE_OBJECTS_BASE_RADIUS,
+    DRAWN_BEAM_SECTION_ORIENTATION_LINE_LENGTH,
+    DRAWN_BEAM_SECTION_ORIENTATION_CAPS_BASE_POINTS_NUMBER,
+    DRAWN_BEAM_SECTION_ORIENTATION_CAPS_HEIGHT, DRAWN_BEAM_SECTION_ORIENTATION_CAPS_WIDTH,
+    CANVAS_DRAWN_POINTS_DENOTATION_COLOR, CANVAS_DRAWN_NODES_DENOTATION_COLOR,
+    DRAWN_POINT_OBJECT_DENOTATION_SHIFT, CANVAS_DRAWN_LINES_DEFAULT_DENOTATION_COLOR,
+    CANVAS_DRAWN_LINES_TRUSS_PROPS_DENOTATION_COLOR, CANVAS_DRAWN_LINES_BEAM_PROPS_DENOTATION_COLOR,
+    CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR, DRAWN_LINE_OBJECTS_DENOTATION_SHIFT, HINTS_COLOR,
+    SELECTION_RECTANGLE_STROKE_COLOR, SELECTION_RECTANGLE_FILL_COLOR,
 };
-
 
 mod buffer_objects;
 use crate::buffer_objects::BufferObjects;
@@ -111,6 +104,7 @@ struct State
     under_selection_box_colors: Vec<u8>,
     selected_colors: HashSet<[u8; 4]>,
     line_objects: HashMap<LineObjectKey, LineObject>,
+    beam_section_orientation_for_preview: Option<BeamSectionOrientation>,
     selection_box_start_x: Option<i32>,
     selection_box_start_y: Option<i32>,
 }
@@ -170,6 +164,7 @@ impl Renderer
             under_selection_box_colors: Vec::new(),
             selected_colors: HashSet::new(),
             line_objects: HashMap::new(),
+            beam_section_orientation_for_preview: None,
             selection_box_start_x: None,
             selection_box_start_y: None,
         };
@@ -186,12 +181,15 @@ impl Renderer
         log(&format!("{:?}", self.props.point_objects));
     }
 
+
     fn update_drawn_object_for_selection(&mut self) -> Result<(), JsValue>
     {
         if !self.props.point_objects.is_empty()
         {
             let mut drawn_object_for_selection = DrawnObject::create();
-            drawn_object_for_selection.add_point_object(&self.props.point_objects, GLMode::Selection,
+            drawn_object_for_selection.add_point_object(
+                &self.props.point_objects,
+                GLMode::Selection,
                 &self.state.under_selection_box_colors,
                 &self.state.selected_colors)?;
             if !self.state.line_objects.is_empty()
@@ -220,7 +218,9 @@ impl Renderer
         if !self.props.point_objects.is_empty()
         {
             let mut drawn_object_visible = DrawnObject::create();
-            drawn_object_visible.add_point_object(&self.props.point_objects, GLMode::Visible,
+            drawn_object_visible.add_point_object(
+                &self.props.point_objects,
+                GLMode::Visible,
                 &self.state.under_selection_box_colors,
                 &self.state.selected_colors)?;
             if !self.state.line_objects.is_empty()
@@ -233,6 +233,22 @@ impl Renderer
                     &self.state.selected_colors,
                     DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
                     DRAWN_LINE_OBJECTS_BASE_RADIUS / (1.0 + self.props.d_scale))?;
+                if let Some(beam_section_orientation) =
+                    &self.state.beam_section_orientation_for_preview
+                {
+                    drawn_object_visible.add_beam_section_orientation_for_preview(
+                        &self.props.point_objects,
+                        &self.state.line_objects,
+                        beam_section_orientation,
+                        DRAWN_BEAM_SECTION_ORIENTATION_LINE_LENGTH /
+                            (1.0 + self.props.d_scale),
+                        DRAWN_BEAM_SECTION_ORIENTATION_CAPS_BASE_POINTS_NUMBER,
+                        DRAWN_BEAM_SECTION_ORIENTATION_CAPS_HEIGHT /
+                            (1.0 + self.props.d_scale),
+                        DRAWN_BEAM_SECTION_ORIENTATION_CAPS_WIDTH /
+                            (1.0 + self.props.d_scale),
+                    )?;
+                }
             }
             self.state.drawn_object_visible = Some(drawn_object_visible);
         }
@@ -517,7 +533,7 @@ impl Renderer
             dispatch_custom_event(detail, SELECTED_LINE_ELEMENTS_EVENT_MAME,
                 EVENT_TARGET)?;
         }
-
+        self.state.beam_section_orientation_for_preview = None;
         self.update_drawn_object_visible()?;
         if is_object_selected
         {
@@ -560,6 +576,40 @@ impl Renderer
                 return Err(JsValue::from(error_message));
             }
         }
+        self.update_drawn_object_visible()?;
+        Ok(())
+    }
+
+
+    pub fn preview_beam_section_orientation(&mut self, beam_section_orientation: JsValue,
+        line_object_type: LineObjectType) -> Result<(), JsValue>
+    {
+        self.state.selected_colors.clear();
+        let beam_section_orientation_for_preview =
+            beam_section_orientation
+                .into_serde::<BeamSectionOrientation>()
+                .or(Err(JsValue::from("Renderer: Preview beam section orientation action: \
+                        Beam section orientation could not be serialized!")))?;
+        for line_object_number in beam_section_orientation_for_preview.extract_line_numbers()
+        {
+            let current_line_object_key =
+                LineObjectKey::create(*line_object_number, line_object_type);
+            if let Some(line_object) =
+                self.state.line_objects.get(&current_line_object_key)
+            {
+                let current_uid = line_object.get_uid();
+                let current_color = transform_u32_to_array_of_u8(current_uid);
+                self.state.selected_colors.insert(current_color);
+            }
+            else
+            {
+                let error_message = format!("Renderer: Preview beam section orientation \
+                    action: {} with number {} does not exist!",
+                    line_object_type.as_str(), line_object_number);
+                return Err(JsValue::from(error_message));
+            }
+        }
+        self.state.beam_section_orientation_for_preview = Some(beam_section_orientation_for_preview);
         self.update_drawn_object_visible()?;
         Ok(())
     }

@@ -131,6 +131,7 @@ class FeaApp extends HTMLElement {
         this.addEventListener("changeView", (event) => this.handleChangeViewMessage(event));
 
         this.addEventListener("previewSelectedLineNumbers", (event) => this.handlePreviewSelectedLineNumbersMessage(event));
+        this.addEventListener("previewBeamSectionOrientation", (event) => this.handlePreviewBeamSectionOrientationMessage(event));
 
         this.addEventListener("clientMessage", (event) => this.handleClientMessage(event));
 
@@ -505,6 +506,12 @@ class FeaApp extends HTMLElement {
     handlePreviewSelectedLineNumbersMessage(event) {
         const selectedLineNumbersObject = event.detail;
         this.shadowRoot.querySelector("fea-renderer").previewSelectedLineNumbers = selectedLineNumbersObject;
+        event.stopPropagation();
+    }
+
+    handlePreviewBeamSectionOrientationMessage(event) {
+        const beamSectionOrientationObject = event.detail;
+        this.shadowRoot.querySelector("fea-renderer").previewBeamSectionOrientation = beamSectionOrientationObject;
         event.stopPropagation();
     }
 

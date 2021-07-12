@@ -25,12 +25,7 @@ impl Properties
     pub fn add_truss_section(&mut self, action_id: FEUInt, name: &str, area: FEFloat,
         area2: Option<FEFloat>, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.clear_deleted_materials_by_action_id(action_id);
-        self.clear_deleted_truss_sections_by_action_id(action_id);
-        self.clear_deleted_beam_sections_by_action_id(action_id);
-        self.clear_deleted_properties_by_action_id(action_id);
-        self.clear_deleted_assigned_properties_by_action_id(action_id);
-        self.clear_changed_assigned_properties_by_action_id(action_id);
+        self.clear_properties_module_by_action_id(action_id);
 
         if self.truss_sections.contains_key(&name.to_owned())
         {
@@ -61,12 +56,7 @@ impl Properties
     pub fn update_truss_section(&mut self, action_id: FEUInt, name: &str, area: FEFloat,
         area2: Option<FEFloat>, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.clear_deleted_materials_by_action_id(action_id);
-        self.clear_deleted_truss_sections_by_action_id(action_id);
-        self.clear_deleted_beam_sections_by_action_id(action_id);
-        self.clear_deleted_properties_by_action_id(action_id);
-        self.clear_deleted_assigned_properties_by_action_id(action_id);
-        self.clear_changed_assigned_properties_by_action_id(action_id);
+        self.clear_properties_module_by_action_id(action_id);
 
         if self.truss_sections.values().position(|truss_section|
             truss_section.data_same(area, area2)).is_some()
@@ -118,12 +108,7 @@ impl Properties
     pub fn delete_truss_section(&mut self, action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.clear_deleted_materials_by_action_id(action_id);
-        self.clear_deleted_truss_sections_by_action_id(action_id);
-        self.clear_deleted_beam_sections_by_action_id(action_id);
-        self.clear_deleted_properties_by_action_id(action_id);
-        self.clear_deleted_assigned_properties_by_action_id(action_id);
-        self.clear_changed_assigned_properties_by_action_id(action_id);
+        self.clear_properties_module_by_action_id(action_id);
 
         let deleted_property_names =
             self.extract_property_names_for_delete_by_truss_section_name(name);

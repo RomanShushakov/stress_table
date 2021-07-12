@@ -606,6 +606,8 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
             this.state.selectedLines.clear();
             this.updateSelectedLinesField();
         });
+
+        this.shadowRoot.querySelector(".preview-button").addEventListener("click", () => this.previewBeamSectionOrientationOnSelectedLines());
     }
 
     set actionId(value) {
@@ -1044,6 +1046,56 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
         }
         this.shadowRoot.querySelector(".assign-to-lines").value = assignToLinesFieldValue;
         this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+    }
+
+    previewBeamSectionOrientationOnSelectedLines() {
+        const localAxis1DirectionSelect = this.shadowRoot.querySelector(".local-axis-1-direction");
+        if (localAxis1DirectionSelect.value == "") {
+            return;
+        }
+        const assignToLinesField = this.shadowRoot.querySelector(".assign-to-lines");
+        const assignToLines = assignToLinesField.value
+            .split(",")
+            .map((item) => item.replace(/\s/g,'', ""))
+            .filter((item) => item !== "");
+        for (let i = 0; i < assignToLines.length; i++) {
+            if (this.isNumeric(assignToLines[i]) === false) {
+                if (assignToLinesField.classList.contains("highlighted") === false) {
+                    assignToLinesField.classList.add("highlighted");
+                }
+                if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+                    this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
+                        "Note: Only numbers could be used as assign to lines values!";
+                }
+                return;
+            }
+            if (this.props.lines.has(parseInt(assignToLines[i])) === false) {
+                if (assignToLinesField.classList.contains("highlighted") === false) {
+                    assignToLinesField.classList.add("highlighted");
+                }
+                if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+                    this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
+                        "Note: Only existed lines numbers could be used as assign to lines values!";
+                }
+                return;
+            }
+            assignToLines[i] = Number.parseInt(assignToLines[i]);
+        }
+        if (assignToLines.length > 0) {
+            const localAxis1Direction = localAxis1DirectionSelect.value
+                .split(",")
+                .map((item) => item.replace(/\s/g,'', ""))
+                .filter((item) => item !== "")
+                .map((item) => parseInt(item));
+            this.dispatchEvent(new CustomEvent("previewBeamSectionOrientation", {
+                bubbles: true,
+                composed: true,
+                detail: { 
+                    "local_axis_1_direction": localAxis1Direction,
+                    "line_numbers": assignToLines, 
+                },
+            }));
+        }
     }
 
     filter(keywordField, selectField) {

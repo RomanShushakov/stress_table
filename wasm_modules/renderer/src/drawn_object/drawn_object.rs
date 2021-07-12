@@ -3,50 +3,27 @@ use web_sys::{WebGlRenderingContext as GL};
 use std::f32::consts::PI;
 use std::collections::{HashMap, HashSet};
 
-use crate::line_object::{LineObject, LineObjectKey};
+use crate::point_object::{PointObjectKey, PointObject};
+use crate::point_object::{PointObjectType};
+
+use crate::line_object::{LineObject, LineObjectKey, BeamSectionOrientation};
 use crate::line_object::{LineObjectType, LineObjectColorScheme};
 
-use crate::{PointObjectKey, PointObject};
-use crate::{PointObjectType};
-
-use crate::functions::define_drawn_object_color;
-
-use crate::extended_matrix::ExtendedMatrix;
+use crate::extended_matrix::{ExtendedMatrix, MatrixElementPosition};
 use crate::extended_matrix::extract_element_value;
+
+use crate::drawn_object::consts::
+{
+    DRAWN_POINTS_COLOR, DRAWN_NODES_COLOR, DRAWN_LINES_DEFAULT_COLOR, DRAWN_LINES_TRUSS_PROPS_COLOR,
+    DRAWN_LINES_BEAM_PROPS_COLOR, DRAWN_ELEMENTS_COLOR, DRAWN_BEAM_SECTION_ORIENTATION_COLOR,
+};
 
 use crate::consts::TOLERANCE;
 
+use crate::functions::{define_drawn_object_color, compose_rotation_matrix_for_vector};
 
-pub const DRAWN_OBJECT_TO_CANVAS_WIDTH_SCALE: f32 = 0.8;
-pub const DRAWN_OBJECT_TO_CANVAS_HEIGHT_SCALE: f32 = 0.9;
+use crate::log;
 
-pub const DRAWN_NODES_COLOR: [f32; 4] = [1.0, 1.0, 0.0, 1.0]; // yellow
-pub const CANVAS_DRAWN_NODES_DENOTATION_COLOR: &str = "yellow";
-
-pub const DRAWN_POINTS_COLOR: [f32; 4] = [0.26, 0.81, 0.20, 1.0]; // apple
-pub const CANVAS_DRAWN_POINTS_DENOTATION_COLOR: &str = "rgb(67, 208, 52)";
-
-pub const DRAWN_POINT_OBJECT_DENOTATION_SHIFT: f32 = 0.02;
-
-pub const DRAWN_ELEMENTS_COLOR: [f32; 4] = [0.0, 1.0, 1.0, 1.0]; // cyan
-pub const CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR: &str = "cyan";
-
-pub const DRAWN_LINES_DEFAULT_COLOR: [f32; 4] = [0.6, 0.196, 0.8, 1.0]; // DarkOrchid
-pub const CANVAS_DRAWN_LINES_DEFAULT_DENOTATION_COLOR: &str = "rgb(153, 50, 204)"; // DarkOrchid
-
-pub const DRAWN_LINES_TRUSS_PROPS_COLOR: [f32; 4] = [0.4, 0.803, 0.666, 1.0]; // MediumAquamarine
-pub const CANVAS_DRAWN_LINES_TRUSS_PROPS_DENOTATION_COLOR: &str = "rgb(102, 205, 170)"; // MediumAquamarine
-
-pub const DRAWN_LINES_BEAM_PROPS_COLOR: [f32; 4] = [1.0, 0.894, 0.709, 1.0]; // Moccasin
-pub const CANVAS_DRAWN_LINES_BEAM_PROPS_DENOTATION_COLOR: &str = "rgb(255, 228, 181)"; // Moccasin
-
-pub const DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER: u32 = 48; // the number of points in cylinder circular base
-pub const DRAWN_LINE_OBJECTS_BASE_RADIUS: f32 = 0.006; // the radius of cylinder circular base
-
-pub const DRAWN_LINE_OBJECTS_DENOTATION_SHIFT: f32 = 0.01;
-
-pub const SELECTION_RECTANGLE_STROKE_COLOR: &str = "rgb(211, 211, 211)"; // LightGrey
-pub const SELECTION_RECTANGLE_FILL_COLOR: &str = "rgba(47, 79, 79, 0.5)"; // DarkSlateGrey
 
 // pub const CANVAS_BACKGROUND_COLOR: &str = "black";
 
@@ -60,21 +37,19 @@ pub const DRAWN_DISPLACEMENTS_CAPS_BASE_POINTS_NUMBER: u16 = 12; // the number o
 pub const DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_X: f32 = 0.01;
 pub const DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_Y: f32 = 0.015;
 
-
 pub const DRAWN_FORCES_COLOR: [f32; 4] = [1.0, 0.0, 1.0, 1.0]; // magenta
 pub const CANVAS_DRAWN_FORCES_DENOTATION_COLOR: &str = "magenta";
 
 pub const DRAWN_FORCES_LINE_LENGTH: f32 = 0.07; // line length
 pub const DRAWN_FORCES_CAPS_HEIGHT: f32 = 0.015; // arrow length
 pub const DRAWN_FORCES_CAPS_WIDTH: f32 = 0.007; // half of arrow width
-pub const DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER: u16 = 12; // the number of points in cone circular base
+pub const DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER: u32 = 12; // the number of points in cone circular base
 pub const DRAWN_FORCES_LINE_LENGTH_COEFFICIENT: f32 = 1.5; // line length coefficient for moments values
 pub const DRAWN_FORCES_CAPS_LENGTH_COEFFICIENT: f32 = 1.5; // line length coefficient for moments values
 
 pub const DRAWN_FORCES_DENOTATION_SHIFT_X: f32 = 0.01;
 pub const DRAWN_FORCES_DENOTATION_SHIFT_Y: f32 = 0.01;
 
-pub const HINTS_COLOR: &str = "rgb(217, 217, 217)"; // white
 pub const HINT_SHIFT_X: f32 = 0.05;
 pub const ROTATION_HINT_SHIFT_Y: f32 = 0.85;
 pub const ZOOM_HINT_SHIFT_Y: f32 = 0.9;
@@ -298,8 +273,9 @@ impl DrawnObject
             {
                 GLMode::Selection =>
                     {
-                        let transposed_rotation_matrix =
-                            line_object.extract_transposed_rotation_matrix(point_objects)?;
+                        let mut rotation_matrix =
+                            line_object.extract_rotation_matrix(point_objects)?;
+                        rotation_matrix.transpose();
                         let point_object_coordinates_shift =
                             ExtendedMatrix::create(3u32, 1u32,
                             vec![base_radius * 2.0, 0.0, 0.0]);
@@ -329,10 +305,10 @@ impl DrawnObject
                             let mut directional_vector_end_point_object_coordinates =
                                 end_point_object_coordinates;
                             let transformed_directional_vector =
-                                transposed_rotation_matrix.multiply_by_matrix(directional_vector)
+                                rotation_matrix.multiply_by_matrix(directional_vector)
                                     .map_err(|e| JsValue::from(e))?;
                             let transformed_point_object_coordinates_shift =
-                                transposed_rotation_matrix.multiply_by_matrix(&point_object_coordinates_shift)
+                                rotation_matrix.multiply_by_matrix(&point_object_coordinates_shift)
                                     .map_err(|e| JsValue::from(e))?;
                             let all_directional_vector_values =
                                 transformed_directional_vector.extract_all_elements_values();
@@ -355,11 +331,14 @@ impl DrawnObject
                                 extract_element_value(2, 0,
                                     &all_point_object_coordinates_shift_values);
                             directional_vector_start_point_object_coordinates[0] +=
-                                directional_vector_x_coordinate + object_coordinates_shift_x_coordinate;
+                                directional_vector_x_coordinate +
+                                    object_coordinates_shift_x_coordinate;
                             directional_vector_start_point_object_coordinates[1] +=
-                                directional_vector_y_coordinate + object_coordinates_shift_y_coordinate;
+                                directional_vector_y_coordinate +
+                                    object_coordinates_shift_y_coordinate;
                             directional_vector_start_point_object_coordinates[2] +=
-                                directional_vector_z_coordinate + object_coordinates_shift_z_coordinate;
+                                directional_vector_z_coordinate +
+                                    object_coordinates_shift_z_coordinate;
                             self.vertices_coordinates.extend(
                                 &directional_vector_start_point_object_coordinates);
                             self.colors_values.extend(&line_object_color);
@@ -397,19 +376,181 @@ impl DrawnObject
     }
 
 
-    pub fn draw(&self, gl: &GL)
+    pub fn add_beam_section_orientation_for_preview(&mut self,
+        point_objects: &HashMap<PointObjectKey, PointObject>,
+        line_objects: &HashMap<LineObjectKey, LineObject>,
+        beam_section_orientation: &BeamSectionOrientation,
+        line_length: f32,
+        base_points_number: u32,
+        height: f32,
+        base_radius: f32) -> Result<(), JsValue>
     {
-        for index in 0..self.modes.len()
+        let local_axis_1_direction =
+            beam_section_orientation.extract_local_axis_1_direction();
+        for line_number in beam_section_orientation.extract_line_numbers()
         {
-            let count = self.elements_numbers[index];
-            let offset = self.offsets[index];
-            let mode = match self.modes[index]
+            let line_object_key = LineObjectKey::create(*line_number,
+                LineObjectType::Line);
+            if let Some(line_object) = line_objects.get(&line_object_key)
             {
-                GLPrimitiveType::Lines => GL::LINES,
-                GLPrimitiveType::Triangles => GL::TRIANGLES,
-                GLPrimitiveType::Points => GL::POINTS,
-            };
-            gl.draw_elements_with_i32(mode, count, GL::UNSIGNED_INT, offset);
+                let start_index = if let Some(index) =
+                    self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
+                let mut count = 0;
+                let a_x = - local_axis_1_direction[0];
+                let a_y = - local_axis_1_direction[1];
+                let a_z = - local_axis_1_direction[2];
+                let line_start_point_coordinates =
+                    line_object.get_start_point_object_coordinates(point_objects)?;
+                let line_end_point_coordinates =
+                    line_object.get_end_point_object_coordinates(point_objects)?;
+                let b_x = line_end_point_coordinates[0] - line_start_point_coordinates[0];
+                let b_y = line_end_point_coordinates[1] - line_start_point_coordinates[1];
+                let b_z = line_end_point_coordinates[2] - line_start_point_coordinates[2];
+                let a = ExtendedMatrix::create(3u32,
+                    1u32, vec![a_x, a_y, a_z]);
+                let coeff_matrix = ExtendedMatrix::create(3u32,
+                    3u32, vec![
+                        - b_z * b_z - b_y * b_y, b_x * b_y, b_x * b_z,
+                        b_y * b_x, - b_x * b_x - b_z * b_z,	b_y * b_z,
+                        b_z * b_x,	b_z * b_y, - b_y * b_y - b_x * b_x,
+                    ]);
+                let local_axis_1_direction_projection_matrix =
+                    coeff_matrix
+                        .multiply_by_matrix(&a)
+                        .map_err(|e| JsValue::from(e))?;
+                let local_axis_1_direction_projection_all_values =
+                    local_axis_1_direction_projection_matrix.extract_all_elements_values();
+                let local_axis_1_direction_projection_x_coord_value = extract_element_value(
+                    0, 0, &local_axis_1_direction_projection_all_values);
+                let local_axis_1_direction_projection_y_coord_value = extract_element_value(
+                    1, 0, &local_axis_1_direction_projection_all_values);
+                let local_axis_1_direction_projection_z_coord_value = extract_element_value(
+                    2, 0, &local_axis_1_direction_projection_all_values);
+                let local_axis_1_direction_projection_length = f32::sqrt(
+                    (local_axis_1_direction_projection_x_coord_value.powi(2) +
+                        local_axis_1_direction_projection_y_coord_value.powi(2) +
+                        local_axis_1_direction_projection_z_coord_value.powi(2)));
+                if local_axis_1_direction_projection_length == 0f32
+                {
+                    let error_message = format!("Renderer: Add beam section orientation for \
+                        preview action: Projection of local axis 1 direction on line number {} \
+                        equals to zero!", line_number);
+                    return Err(JsValue::from(error_message));
+                }
+                let line_mid_point_coordinates = [
+                    (line_end_point_coordinates[0] + line_start_point_coordinates[0]) / 2.0,
+                    (line_end_point_coordinates[1] + line_start_point_coordinates[1]) / 2.0,
+                    (line_end_point_coordinates[2] + line_start_point_coordinates[2]) / 2.0,
+                ];
+                let updated_local_axis_1_end_point_coordinates = [
+                    (line_mid_point_coordinates[0] +
+                    local_axis_1_direction_projection_x_coord_value /
+                        local_axis_1_direction_projection_length * line_length),
+                    (line_mid_point_coordinates[1] +
+                    local_axis_1_direction_projection_y_coord_value /
+                        local_axis_1_direction_projection_length * line_length),
+                    (line_mid_point_coordinates[2] +
+                     local_axis_1_direction_projection_z_coord_value /
+                        local_axis_1_direction_projection_length * line_length),
+                ];
+                let updated_local_axis_1_color = DRAWN_BEAM_SECTION_ORIENTATION_COLOR;
+                self.vertices_coordinates.extend(&line_mid_point_coordinates);
+                self.colors_values.extend(&updated_local_axis_1_color);
+                self.indexes_numbers.push(start_index + count);
+                count += 1;
+                self.vertices_coordinates.extend(&updated_local_axis_1_end_point_coordinates);
+                self.colors_values.extend(&updated_local_axis_1_color);
+                self.indexes_numbers.push(start_index + count);
+                count += 1;
+                self.modes.push(GLPrimitiveType::Lines);
+                self.elements_numbers.push(count as i32);
+                let offset = self.define_offset();
+                self.offsets.push(offset);
+                let mut rotation_matrix_for_cap =
+                    compose_rotation_matrix_for_vector(
+                        line_mid_point_coordinates,
+                        updated_local_axis_1_end_point_coordinates
+                    );
+                rotation_matrix_for_cap.transpose();
+                let d_angle = 2.0 * PI / base_points_number as f32;
+                let local_coordinates = (0..base_points_number)
+                    .map(|point_number|
+                        {
+                            let angle = d_angle * point_number as f32;
+                            let local_x =
+                                {
+                                    let value = base_radius * angle.cos();
+                                    if value.abs() < TOLERANCE { 0.0 } else { value }
+                                };
+                            let local_y =
+                                {
+                                    let value = base_radius * angle.sin();
+                                    if value.abs() < TOLERANCE { 0.0 } else { value }
+                                };
+                            (local_x, local_y)
+                        })
+                    .collect::<Vec<(f32, f32)>>();
+
+                let start_x_axis_cap_index =
+                    if let Some(index) =
+                        self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
+                self.vertices_coordinates.extend(&updated_local_axis_1_end_point_coordinates);
+                for (local_x, local_y) in &local_coordinates
+                {
+                    let local_coordinates = ExtendedMatrix::create(
+                        3u32, 1u32, vec![
+                            - height,
+                            *local_y,
+                            *local_x,
+                        ]);
+                    let transformed_local_coordinates = rotation_matrix_for_cap
+                        .multiply_by_matrix(&local_coordinates)
+                        .map_err(|e| JsValue::from(e))?;
+                    let transformed_local_coordinates_values =
+                        transformed_local_coordinates.extract_all_elements_values();
+                    let coordinates = [
+                        extract_element_value(0, 0,
+                            &transformed_local_coordinates_values) +
+                            updated_local_axis_1_end_point_coordinates[0],
+                        extract_element_value(1, 0,
+                            &transformed_local_coordinates_values) +
+                            updated_local_axis_1_end_point_coordinates[1],
+                        extract_element_value(2, 0,
+                            &transformed_local_coordinates_values) +
+                            updated_local_axis_1_end_point_coordinates[2],
+                    ];
+                    self.vertices_coordinates.extend(&coordinates);
+                }
+                for point_number in 1..base_points_number
+                {
+                    if point_number == 1
+                    {
+                        self.colors_values.extend(&DRAWN_BEAM_SECTION_ORIENTATION_COLOR);
+                        self.colors_values.extend(&DRAWN_BEAM_SECTION_ORIENTATION_COLOR);
+                        self.colors_values.extend(&DRAWN_BEAM_SECTION_ORIENTATION_COLOR);
+                    }
+                    else
+                    {
+                        self.colors_values.extend(&DRAWN_BEAM_SECTION_ORIENTATION_COLOR);
+                    }
+                    self.indexes_numbers.extend(&[start_x_axis_cap_index,
+                        start_x_axis_cap_index + point_number,
+                        start_x_axis_cap_index + point_number + 1]);
+                }
+                self.indexes_numbers.extend(&[start_x_axis_cap_index,
+                    start_x_axis_cap_index + 1, start_x_axis_cap_index + base_points_number]);
+                self.modes.push(GLPrimitiveType::Triangles);
+                self.elements_numbers.push(base_points_number as i32 * 3);
+                let offset = self.define_offset();
+                self.offsets.push(offset);
+            }
+            else
+            {
+                let error_message = format!("Renderer: Add beam section orientation for \
+                    preview action: Line number {} does not exist!", line_number);
+                return Err(JsValue::from(error_message));
+            }
         }
+        Ok(())
     }
 }

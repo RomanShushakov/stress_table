@@ -20,7 +20,7 @@ impl Geometry
     pub fn add_line(&mut self, action_id: FEUInt, number: FEUInt, start_point_number: FEUInt,
         end_point_number: FEUInt, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.clear_deleted_lines_by_action_id(action_id);
+        self.clear_geometry_module_by_action_id(action_id);
 
         if self.lines.contains_key(&number)
         {
@@ -76,7 +76,7 @@ impl Geometry
     pub fn update_line(&mut self, action_id: FEUInt, number: FEUInt, start_point_number: FEUInt,
         end_point_number: FEUInt, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.clear_deleted_lines_by_action_id(action_id);
+        self.clear_geometry_module_by_action_id(action_id);
 
         if self.lines.values().position(|line| line.start_and_end_points_same(
             start_point_number, end_point_number)).is_some()
@@ -119,7 +119,7 @@ impl Geometry
     pub fn delete_line(&mut self, action_id: FEUInt, number: FEUInt,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.clear_deleted_lines_by_action_id(action_id);
+        self.clear_geometry_module_by_action_id(action_id);
 
         if let Some((line_number, line)) = self.lines.remove_entry(&number)
         {

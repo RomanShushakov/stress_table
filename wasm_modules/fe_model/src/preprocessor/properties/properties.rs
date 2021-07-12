@@ -148,6 +148,32 @@ impl Properties
     }
 
 
+    pub fn clear_deleted_beam_sections_orientations_by_action_id(&mut self, action_id: FEUInt)
+    {
+        for action_id in self.deleted_beam_sections_orientations.clone()
+            .keys()
+            .filter(|deleted_action_id| **deleted_action_id >= action_id)
+            .collect::<Vec<&FEUInt>>()
+            .iter()
+        {
+            let _ = self.deleted_beam_sections_orientations.remove(&action_id);
+        }
+    }
+
+
+    pub fn clear_changed_beam_sections_orientations_by_action_id(&mut self, action_id: FEUInt)
+    {
+        for action_id in self.changed_beam_sections_orientations.clone()
+            .keys()
+            .filter(|deleted_action_id| **deleted_action_id >= action_id)
+            .collect::<Vec<&FEUInt>>()
+            .iter()
+        {
+            let _ = self.changed_beam_sections_orientations.remove(&action_id);
+        }
+    }
+
+
     pub fn clear_properties_module_by_action_id(&mut self, action_id: FEUInt)
     {
         self.clear_deleted_materials_by_action_id(action_id);
@@ -156,6 +182,8 @@ impl Properties
         self.clear_deleted_properties_by_action_id(action_id);
         self.clear_deleted_assigned_properties_by_action_id(action_id);
         self.clear_changed_assigned_properties_by_action_id(action_id);
+        self.clear_deleted_beam_sections_orientations_by_action_id(action_id);
+        self.clear_changed_beam_sections_orientations_by_action_id(action_id);
     }
 
 

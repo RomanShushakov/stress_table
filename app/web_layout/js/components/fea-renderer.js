@@ -180,6 +180,11 @@ class FeaRenderer extends HTMLElement {
         this.state.renderer.tick();
     }
 
+    set previewBeamSectionOrientation(beamSectionOrientationObject) {
+        this.state.renderer.preview_beam_section_orientation(beamSectionOrientationObject, LineObjectType.Line);
+        this.state.renderer.tick();
+    }
+
     set updateLinesColorScheme(linesDataObject) {
         let lineObjectColorScheme = LineObjectColorScheme.Default;
         switch (linesDataObject.cross_section_type) {

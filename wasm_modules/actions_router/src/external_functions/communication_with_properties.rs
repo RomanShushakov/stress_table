@@ -96,8 +96,13 @@ extern "C"
         local_axis_1_direction: &[FEFloat], is_action_id_should_be_increased: bool)
         -> Result<(), JsValue>;
 
-    #[wasm_bindgen(js_name = removeBeamSectionLocalAxis1DirectionToProperties, catch)]
-    pub fn remove_beam_section_local_axis_1_direction_to_properties(action_id: FEUInt,
+    #[wasm_bindgen(js_name = removeBeamSectionLocalAxis1DirectionFromProperties, catch)]
+    pub fn remove_beam_section_local_axis_1_direction_from_properties(action_id: FEUInt,
+        local_axis_1_direction: &[FEFloat], is_action_id_should_be_increased: bool)
+        -> Result<(), JsValue>;
+
+    #[wasm_bindgen(js_name = restoreBeamSectionLocalAxis1DirectionInProperties, catch)]
+    pub fn restore_beam_section_local_axis_1_direction_in_properties(action_id: FEUInt,
         local_axis_1_direction: &[FEFloat], is_action_id_should_be_increased: bool)
         -> Result<(), JsValue>;
 

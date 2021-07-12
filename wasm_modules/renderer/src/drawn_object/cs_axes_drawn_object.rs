@@ -18,7 +18,7 @@ pub struct CSAxesDrawnObject
     colors_values: Vec<f32>,
     indexes_numbers: Vec<u32>,
     modes: Vec<GLPrimitiveType>,
-    element_numbers: Vec<i32>,
+    elements_numbers: Vec<i32>,
     offsets: Vec<i32>,
 }
 
@@ -47,7 +47,7 @@ impl DrawnObjectTrait for CSAxesDrawnObject
     {
         for index in 0..self.modes.len()
         {
-            let count = self.element_numbers[index];
+            let count = self.elements_numbers[index];
             let offset = self.offsets[index];
             let mode = match self.modes[index]
             {
@@ -76,7 +76,7 @@ impl CSAxesDrawnObject
             colors_values,
             indexes_numbers,
             modes,
-            element_numbers,
+            elements_numbers: element_numbers,
             offsets
         }
     }
@@ -91,7 +91,7 @@ impl CSAxesDrawnObject
         else
         {
             let previous_index = &self.offsets.len() - 1;
-            let previous_elements_number = self.element_numbers[previous_index];
+            let previous_elements_number = self.elements_numbers[previous_index];
             let previous_offset = self.offsets[previous_index];
             previous_offset + previous_elements_number * 4
         }
@@ -122,7 +122,7 @@ impl CSAxesDrawnObject
         self.colors_values.extend(&CS_AXIS_Z_COLOR);
         self.indexes_numbers.extend(&[start_z_axis_index, start_z_axis_index + 1]);
         self.modes.push(GLPrimitiveType::Lines);
-        self.element_numbers.push(6);
+        self.elements_numbers.push(6);
         let offset = self.define_offset();
         self.offsets.push(offset);
     }
@@ -227,7 +227,7 @@ impl CSAxesDrawnObject
             start_z_axis_cap_index + 1, start_z_axis_cap_index + base_points_number]);
 
         self.modes.push(GLPrimitiveType::Triangles);
-        self.element_numbers.push(base_points_number as i32 * 9);
+        self.elements_numbers.push(base_points_number as i32 * 9);
         let offset = self.define_offset();
         self.offsets.push(offset);
     }

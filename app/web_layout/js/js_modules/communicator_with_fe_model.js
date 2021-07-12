@@ -4,7 +4,6 @@ class CommunicatorWithFEModel {
     constructor() {
         this.state = {
             feModel: null,     // wasm module "fe_model";
-            lineNumbers: [],    // array of: [u32...];
         };
 
         this.initFEModel();
@@ -39,9 +38,8 @@ class CommunicatorWithFEModel {
 
     set deletePointFromGeometry(pointData) {
         try {
-            const deletedLineNumbers = this.state.feModel.delete_point(pointData.action_id,
+            this.state.feModel.delete_point(pointData.action_id,
                 pointData.number, pointData.is_action_id_should_be_increased);
-            this.state.lineNumbers = deletedLineNumbers;
         } catch (error) {
             throw error;
         }
@@ -49,9 +47,8 @@ class CommunicatorWithFEModel {
 
     set restorePointInGeometry(pointData) {
         try {
-            const restoredLineNumbers = this.state.feModel.restore_point(pointData.action_id,
+            this.state.feModel.restore_point(pointData.action_id,
                 pointData.number, pointData.is_action_id_should_be_increased);
-            this.state.lineNumbers = restoredLineNumbers;
         } catch (error) {
             throw error;
         }
@@ -77,9 +74,8 @@ class CommunicatorWithFEModel {
 
     set deleteLineFromGeometry(lineData) {
         try {
-            const deletedLineNumbers = this.state.feModel.delete_line(lineData.action_id,
+            this.state.feModel.delete_line(lineData.action_id,
                 lineData.number, lineData.is_action_id_should_be_increased);
-            this.state.lineNumbers = deletedLineNumbers;
         } catch (error) {
             throw error;
         }
@@ -87,9 +83,8 @@ class CommunicatorWithFEModel {
 
     set restoreLineInGeometry(lineData) {
         try {
-            const restoredLineNumbers = this.state.feModel.restore_line(lineData.action_id,
+            this.state.feModel.restore_line(lineData.action_id,
                 lineData.number, lineData.is_action_id_should_be_increased);
-            this.state.lineNumbers = restoredLineNumbers;
         } catch (error) {
             throw error;
         }
@@ -109,12 +104,6 @@ class CommunicatorWithFEModel {
         } catch (error) {
             throw error;
         }
-    }
-
-    get lineNumbers() {
-        const lineNumbers = this.state.lineNumbers;
-        this.state.lineNumbers = [];
-        return lineNumbers;
     }
 
     set clearGeometryModuleByActionId(action_id) {
@@ -323,9 +312,19 @@ class CommunicatorWithFEModel {
         }
     }
 
-    set removeBeamSectionLocalAxis1DirectionToProperties(beamSectionLocalAxis1DirectionData) {
+    set removeBeamSectionLocalAxis1DirectionFromProperties(beamSectionLocalAxis1DirectionData) {
         try {
             this.state.feModel.remove_beam_section_local_axis_1_direction(beamSectionLocalAxis1DirectionData.action_id,
+                beamSectionLocalAxis1DirectionData.local_axis_1_direction, 
+                beamSectionLocalAxis1DirectionData.is_action_id_should_be_increased);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    set restoreBeamSectionLocalAxis1DirectionInProperties(beamSectionLocalAxis1DirectionData) {
+        try {
+            this.state.feModel.restore_beam_section_local_axis_1_direction(beamSectionLocalAxis1DirectionData.action_id,
                 beamSectionLocalAxis1DirectionData.local_axis_1_direction, 
                 beamSectionLocalAxis1DirectionData.is_action_id_should_be_increased);
         } catch (error) {

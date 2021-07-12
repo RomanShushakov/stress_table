@@ -29,7 +29,8 @@ use external_functions::communication_with_properties::
     add_assigned_properties_to_properties, update_assigned_properties_in_properties,
     delete_assigned_properties_from_properties, restore_assigned_properties_in_properties,
     add_beam_section_local_axis_1_direction_to_properties,
-    remove_beam_section_local_axis_1_direction_to_properties,
+    remove_beam_section_local_axis_1_direction_from_properties,
+    restore_beam_section_local_axis_1_direction_in_properties,
     clear_properties_module_by_action_id,
     extract_materials, extract_truss_sections, extract_beam_sections,
     extract_properties, extract_assigned_properties, extract_beam_sections_orientations,
@@ -476,8 +477,35 @@ impl ActionsRouter
                                     self.current_action = Some((action, add_to_active_actions));
                                 },
                             PropertiesActionType::RestoreAssignedProperties(_, _) => (),
-                            PropertiesActionType::AddBeamSectionLocalAxis1Direction(_, _) => (),
-                            PropertiesActionType::RemoveBeamSectionLocalAxis1Direction(_, _) => (),
+                            PropertiesActionType::AddBeamSectionLocalAxis1Direction(
+                                local_axis_1_direction,
+                                _is_action_id_should_be_increased) =>
+                                {
+                                    let is_action_id_should_be_increased = false;
+                                    let action_type = ActionType::from(
+                                        PropertiesActionType::
+                                            RemoveBeamSectionLocalAxis1Direction(
+                                                local_axis_1_direction.clone(),
+                                                is_action_id_should_be_increased));
+                                    let action = Action::create(action_id, action_type);
+                                    let add_to_active_actions = false;
+                                    self.current_action = Some((action, add_to_active_actions));
+                                },
+                            PropertiesActionType::RemoveBeamSectionLocalAxis1Direction(
+                                local_axis_1_direction,
+                                _is_action_id_should_be_increased) =>
+                                {
+                                    let is_action_id_should_be_increased = false;
+                                    let action_type = ActionType::from(
+                                        PropertiesActionType::
+                                            RestoreBeamSectionLocalAxis1Direction(
+                                                local_axis_1_direction.clone(),
+                                                is_action_id_should_be_increased));
+                                    let action = Action::create(action_id, action_type);
+                                    let add_to_active_actions = false;
+                                    self.current_action = Some((action, add_to_active_actions));
+                                },
+                            PropertiesActionType::RestoreBeamSectionLocalAxis1Direction(_, _) => (),
                         }
                     }
             }
@@ -949,7 +977,20 @@ impl ActionsRouter
                                 local_axis_1_direction,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    remove_beam_section_local_axis_1_direction_to_properties(
+                                    remove_beam_section_local_axis_1_direction_from_properties(
+                                        action_id,
+                                        local_axis_1_direction,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions == true
+                                    {
+                                        self.active_actions.push(action.clone());
+                                    }
+                                },
+                            PropertiesActionType::RestoreBeamSectionLocalAxis1Direction(
+                                local_axis_1_direction,
+                                is_action_id_should_be_increased) =>
+                                {
+                                    restore_beam_section_local_axis_1_direction_in_properties(
                                         action_id,
                                         local_axis_1_direction,
                                         *is_action_id_should_be_increased)?;

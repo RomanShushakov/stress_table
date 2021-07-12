@@ -608,6 +608,12 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
         });
 
         this.shadowRoot.querySelector(".preview-button").addEventListener("click", () => this.previewBeamSectionOrientationOnSelectedLines());
+
+        this.shadowRoot.querySelector(".assign-to-lines").addEventListener("click", () => {
+            const highlightedElement = this.shadowRoot.querySelector(".assign-to-lines");
+            this.dropHighlight(highlightedElement);
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+        });
     }
 
     set actionId(value) {
@@ -697,6 +703,16 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
         this.props.beamSectionsOrientations.splice(beamSectionLocalAxis1DirectionIndexInProps, 1);
         this.props.beamSectionsOrientations.sort((a, b) => a.local_axis_1_direction - b.local_axis_1_direction);
         this.defineLocalAxis1DirectionOptions();
+    }
+
+    set previewBeamSectionOrientationError(error) {
+        const assignToLinesField = this.shadowRoot.querySelector(".assign-to-lines");
+        if (assignToLinesField.classList.contains("highlighted") === false) {
+            assignToLinesField.classList.add("highlighted");
+        }
+        if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = error;
+        }
     }
 
     connectedCallback() {

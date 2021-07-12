@@ -589,7 +589,7 @@ impl Renderer
             beam_section_orientation
                 .into_serde::<BeamSectionOrientation>()
                 .or(Err(JsValue::from("Renderer: Preview beam section orientation action: \
-                        Beam section orientation could not be serialized!")))?;
+                    Beam section orientation could not be serialized!")))?;
         for line_object_number in beam_section_orientation_for_preview.extract_line_numbers()
         {
             let current_line_object_key =
@@ -945,11 +945,11 @@ impl Renderer
             self.state.ctx.set_stroke_style(&SELECTION_RECTANGLE_STROKE_COLOR.into());
             self.state.ctx.stroke_rect(start_x as f64, self.props.canvas_text.height() as f64 -
                 start_y as f64, selection_rectangle_width as f64,
-                -selection_rectangle_height as f64);
+                - selection_rectangle_height as f64);
             self.state.ctx.set_fill_style(&SELECTION_RECTANGLE_FILL_COLOR.into());
             self.state.ctx.fill_rect(start_x as f64, self.props.canvas_text.height() as f64 -
                 start_y as f64, selection_rectangle_width as f64,
-                -selection_rectangle_height as f64);
+                - selection_rectangle_height as f64);
         }
 
         Ok(())

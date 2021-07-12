@@ -183,7 +183,7 @@ class FeaApp extends HTMLElement {
     async connectedCallback() {
         this.state.actionsRouter = await initializeActionsRouter();
         this.activatePreprocessorMenu();
-        // this.handleLoadCache();
+        this.handleLoadCache();
     }
 
     disconnectedCallback() {
@@ -328,7 +328,6 @@ class FeaApp extends HTMLElement {
         );
         event.stopPropagation();
     }
-
 
     getBeamSectionsOrientations(event) {
         this.state.actionsRouter.extract_beam_sections_orientations(
@@ -511,7 +510,11 @@ class FeaApp extends HTMLElement {
 
     handlePreviewBeamSectionOrientationMessage(event) {
         const beamSectionOrientationObject = event.detail;
-        this.shadowRoot.querySelector("fea-renderer").previewBeamSectionOrientation = beamSectionOrientationObject;
+        try {
+            this.shadowRoot.querySelector("fea-renderer").previewBeamSectionOrientation = beamSectionOrientationObject;
+        } catch (error) {
+            this.querySelector(event.target.tagName.toLowerCase()).previewBeamSectionOrientationError = error;
+        }
         event.stopPropagation();
     }
 

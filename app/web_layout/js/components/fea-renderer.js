@@ -181,7 +181,11 @@ class FeaRenderer extends HTMLElement {
     }
 
     set previewBeamSectionOrientation(beamSectionOrientationObject) {
-        this.state.renderer.preview_beam_section_orientation(beamSectionOrientationObject, LineObjectType.Line);
+        try {
+            this.state.renderer.preview_beam_section_orientation(beamSectionOrientationObject, LineObjectType.Line);
+        } catch (error) {
+            throw error;
+        }
         this.state.renderer.tick();
     }
 

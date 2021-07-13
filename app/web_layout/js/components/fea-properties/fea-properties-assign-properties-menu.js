@@ -831,18 +831,6 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
         }
     }
 
-    arraysEqual(a, b) {
-        if (a === b) return true;
-        if (a == null || b == null) return false;
-        if (a.length !== b.length) return false;
-        a.sort();
-        b.sort();     
-        for (var i = 0; i < a.length; ++i) {
-          if (a[i] !== b[i]) return false;
-        }
-        return true;
-      }
-
     assignProperties() {
         const selectedPropertiesNameField = this.shadowRoot.querySelector(".properties-name");
         if (selectedPropertiesNameField.value == "") {
@@ -907,16 +895,6 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
                     },
                 }));
             } else {
-                if (this.arraysEqual(selectedAssignedPropertiesInProps.line_numbers, assignToLines) === true) {
-                    if (assignToLinesField.classList.contains("highlighted") === false) {
-                        assignToLinesField.classList.add("highlighted");
-                    }
-                    if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                        this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                            "Note: The assigned properties with the same data does already exist!";
-                    }
-                    return;
-                }
                 for (let i = 0; i < this.props.assignedProperties.length; i++) {
                     for (let j = 0; j < assignToLines.length; j++) {
                         const numberInArray = (number) => number === assignToLines[j] && 

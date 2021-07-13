@@ -6,7 +6,7 @@ use crate::preprocessor::properties::assigned_property::{AssignedProperty, Delet
 use crate::preprocessor::properties::consts::
 {
     ADD_ASSIGNED_PROPERTIES_EVENT_NAME, UPDATE_ASSIGNED_PROPERTIES_EVENT_NAME,
-    DELETE_ASSIGNED_PROPERTIES_EVENT_NAME,
+    DELETE_ASSIGNED_PROPERTIES_EVENT_NAME, UPDATE_LINES_COLOR_SCHEME_EVENT_NAME,
 };
 
 use crate::types::{FEUInt};
@@ -50,16 +50,22 @@ impl Properties
         }
         let assigned_property = AssignedProperty::create(line_numbers);
         self.assigned_properties.insert(name.to_owned(), assigned_property);
-        let (_, _, cross_section_type) =
-            self.properties.get(name).unwrap().extract_data();
         let detail = json!({ "assigned_properties_data":
             {
                 "name": name,
                 "line_numbers": line_numbers,
-                "cross_section_type": cross_section_type.as_str().to_lowercase()
             },
             "is_action_id_should_be_increased": is_action_id_should_be_increased });
         dispatch_custom_event(detail, ADD_ASSIGNED_PROPERTIES_EVENT_NAME,
+            EVENT_TARGET)?;
+        let (_, _, cross_section_type) =
+            self.properties.get(name).unwrap().extract_data();
+        let detail = json!({ "lines_color_scheme_data":
+            {
+                "line_numbers": line_numbers,
+                "cross_section_type": cross_section_type.as_str().to_lowercase()
+            } });
+        dispatch_custom_event(detail, UPDATE_LINES_COLOR_SCHEME_EVENT_NAME,
             EVENT_TARGET)?;
         self.logging();
         Ok(())
@@ -93,17 +99,26 @@ impl Properties
 
         if let Some(assigned_property) = self.assigned_properties.get_mut(name)
         {
+            let old_assigned_property = assigned_property.clone();
+            let old_line_numbers = old_assigned_property.extract_data();
             assigned_property.update(line_numbers);
-            let (_, _, cross_section_type) =
-                self.properties.get(name).unwrap().extract_data();
             let detail = json!({ "assigned_properties_data":
                 {
                     "name": name,
                     "line_numbers": line_numbers,
-                    "cross_section_type": cross_section_type.as_str().to_lowercase(),
                 },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, UPDATE_ASSIGNED_PROPERTIES_EVENT_NAME,
+                EVENT_TARGET)?;
+            let (_, _, cross_section_type) =
+                self.properties.get(name).unwrap().extract_data();
+            let detail = json!({ "lines_color_scheme_data":
+                {
+                    "old_line_numbers": old_line_numbers,
+                    "line_numbers": line_numbers,
+                    "cross_section_type": cross_section_type.as_str().to_lowercase(),
+                } });
+            dispatch_custom_event(detail, UPDATE_LINES_COLOR_SCHEME_EVENT_NAME,
                 EVENT_TARGET)?;
             self.logging();
             Ok(())
@@ -132,10 +147,15 @@ impl Properties
             let detail = json!({ "assigned_properties_data":
                 {
                     "name": name,
-                    "line_numbers": assigned_property.extract_data(),
                 },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, DELETE_ASSIGNED_PROPERTIES_EVENT_NAME,
+                EVENT_TARGET)?;
+            let detail = json!({ "lines_color_scheme_data":
+                {
+                    "line_numbers": assigned_property.extract_data(),
+                } });
+            dispatch_custom_event(detail, UPDATE_LINES_COLOR_SCHEME_EVENT_NAME,
                 EVENT_TARGET)?;
             self.logging();
             Ok(())
@@ -171,16 +191,22 @@ impl Properties
             }
             self.assigned_properties.insert(deleted_assigned_property_name.to_owned(),
                AssignedProperty::create(line_numbers));
-            let (_, _, cross_section_type) =
-                self.properties.get(name).unwrap().extract_data();
             let detail = json!({ "assigned_properties_data":
                 {
                     "name": name,
                     "line_numbers": line_numbers,
-                    "cross_section_type": cross_section_type.as_str().to_lowercase()
                 },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, ADD_ASSIGNED_PROPERTIES_EVENT_NAME,
+                EVENT_TARGET)?;
+            let (_, _, cross_section_type) =
+                self.properties.get(name).unwrap().extract_data();
+            let detail = json!({ "lines_color_scheme_data":
+                {
+                    "line_numbers": line_numbers,
+                    "cross_section_type": cross_section_type.as_str().to_lowercase(),
+                } });
+            dispatch_custom_event(detail, UPDATE_LINES_COLOR_SCHEME_EVENT_NAME,
                 EVENT_TARGET)?;
             self.logging();
             Ok(())

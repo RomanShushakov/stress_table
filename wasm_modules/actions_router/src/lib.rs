@@ -1142,13 +1142,13 @@ impl ActionsRouter
         }
         self.handle_current_action()?;
 
-        if to_cache
-        {
-            spawn_local(async
-            {
-                add_to_cache(message).await.unwrap_throw();
-            });
-        }
+        // if to_cache
+        // {
+        //     spawn_local(async
+        //     {
+        //         add_to_cache(message).await.unwrap_throw();
+        //     });
+        // }
 
         for action in &self.active_actions
         {

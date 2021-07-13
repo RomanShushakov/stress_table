@@ -189,9 +189,9 @@ class FeaRenderer extends HTMLElement {
         this.state.renderer.tick();
     }
 
-    set updateLinesColorScheme(linesDataObject) {
+    set updateLinesColorScheme(linesColorSchemeData) {
         let lineObjectColorScheme = LineObjectColorScheme.Default;
-        switch (linesDataObject.cross_section_type) {
+        switch (linesColorSchemeData.cross_section_type) {
             case "truss":
                 lineObjectColorScheme = LineObjectColorScheme.TrussProps;
                 break;
@@ -199,7 +199,11 @@ class FeaRenderer extends HTMLElement {
                 lineObjectColorScheme = LineObjectColorScheme.BeamProps;
                 break;
         }
-        this.state.renderer.update_line_objects_color_scheme(linesDataObject.line_numbers,
+        if (linesColorSchemeData.old_line_numbers != undefined) {
+            this.state.renderer.update_line_objects_color_scheme(linesColorSchemeData.old_line_numbers,
+                LineObjectType.Line, LineObjectColorScheme.Default);
+        }
+        this.state.renderer.update_line_objects_color_scheme(linesColorSchemeData.line_numbers,
             LineObjectType.Line, lineObjectColorScheme);
         this.state.renderer.tick();
     }

@@ -573,8 +573,9 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
 
         this.shadowRoot.querySelector(".cancel-button").addEventListener("click", () => this.cancelBeamSectionOrientationDataUpdate());
 
-        this.shadowRoot.querySelector(".local-axis-1-direction").addEventListener("change",
-            (event) => this.updateSelectedBeamSectionOrientationData(event.target.value));
+        this.shadowRoot.querySelector(".local-axis-1-direction").addEventListener("change", (event) => 
+            this.updateSelectedBeamSectionOrientationData(event.target.value)
+        );
 
         this.shadowRoot.querySelector(".local-axis-1-direction-filter").addEventListener("keyup", () => {
             this.filter(
@@ -1062,6 +1063,8 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
         }
         this.shadowRoot.querySelector(".assign-to-lines").value = assignToLinesFieldValue;
         this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+        const highlightedElement = this.shadowRoot.querySelector(".local-axis-1-direction");
+        this.dropHighlight(highlightedElement);
     }
 
     previewBeamSectionOrientationOnSelectedLines() {
@@ -1131,14 +1134,14 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
     }
 
     updateBeamSectionOrientationData() {
-        const selectedPropertiesNameField = this.shadowRoot.querySelector(".properties-name");
-        if (selectedPropertiesNameField.value == "") {
-            if (selectedPropertiesNameField.classList.contains("highlighted") === false) {
-                selectedPropertiesNameField.classList.add("highlighted");
+        const selectedLocalAxis1DirectionField = this.shadowRoot.querySelector(".local-axis-1-direction");
+        if (selectedLocalAxis1DirectionField.value === "") {
+            if (selectedLocalAxis1DirectionField.classList.contains("highlighted") === false) {
+                selectedLocalAxis1DirectionField.classList.add("highlighted");
             }
         }
 
-        if (selectedPropertiesNameField.value === "") {
+        if (selectedLocalAxis1DirectionField.value === "") {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "Note: The highlighted fields should be filled!";
                 return;
@@ -1151,44 +1154,70 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
             .split(",")
             .map((item) => item.replace(/\s/g,'', ""))
             .filter((item) => item !== "");
-        for (let i = 0; i < assignToLinesField.length; i++) {
-            if (this.isNumeric(assignToLines[i]) === false) {
-                if (assignToLinesField.classList.contains("highlighted") === false) {
-                    assignToLinesField.classList.add("highlighted");
-                }
-                if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                    this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                        "Note: Only numbers could be used as assign to lines values!";
-                }
-                return;
-            }
-            if (this.props.lines.has(parseInt(assignToLines[i])) === false) {
-                if (assignToLinesField.classList.contains("highlighted") === false) {
-                    assignToLinesField.classList.add("highlighted");
-                }
-                if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                    this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                        "Note: Only existed lines numbers could be used as assign to lines values!";
-                }
-                return;
-            }
-        }
-        const assignPropertiesData = this.props.properties.find(properties => properties.name == `"${selectedPropertiesNameField.value}"`);
-        const message = { 
-            "assign_properties": { 
-                "actionId": this.props.actionId,
-                "name": assignPropertiesData.name.replace(/['"]+/g, ""),
-                "usedIn": assignToLines
-            } 
-        };
-        this.dispatchEvent(new CustomEvent("clientMessage", {
-            bubbles: true,
-            composed: true,
-            detail: {
-                message: message,
-            },
-        }));
-        this.shadowRoot.querySelector(".properties-name-filter").value = null;
+        console.log(assignToLines);
+        // for (let i = 0; i < assignToLines.length; i++) {
+        //     let currentLineNumber = assignToLines[i];
+        //     if (this.isNumeric(currentLineNumber) === false) {
+        //         if (assignToLinesField.classList.contains("highlighted") === false) {
+        //             assignToLinesField.classList.add("highlighted");
+        //         }
+        //         if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+        //             this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
+        //                 "Note: Only numbers could be used as assign to lines values!";
+        //         }
+        //         return;
+        //     }
+        //     currentLineNumber = parseInt(currentLineNumber);
+        //     if (this.props.lines.has(currentLineNumber) === false) {
+        //         if (assignToLinesField.classList.contains("highlighted") === false) {
+        //             assignToLinesField.classList.add("highlighted");
+        //         }
+        //         if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+        //             this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
+        //                 "Note: Only existed lines numbers could be used as assign to lines values!";
+        //         }
+        //         return;
+        //     }
+            
+        //     for (i = 0; i < this.props.assignedProperties.length; i++) {
+        //         const currentAssignedProperties = this.props.assignedProperties[i];
+        //         if (currentAssignedProperties.line_numbers.includes(currentLineNumber) === true) {
+        //             const currentProperties = this.props.properties.find((properties) => 
+        //                 properties.name === currentAssignedProperties.name);
+        //             if (currentProperties != undefined) {
+        //                 if (currentProperties.cross_section_type !== '"beam"') {
+        //                     if (assignToLinesField.classList.contains("highlighted") === false) {
+        //                         assignToLinesField.classList.add("highlighted");
+        //                     }
+        //                     if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+        //                         this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
+        //                             "Note: Beam section orientation could be applied to 'Beam' cross section type only!";
+        //                     }
+        //                     return;
+        //                 }
+        //             }
+                    
+        //         }
+        //     }
+
+        // }
+
+        // const assignPropertiesData = this.props.properties.find(properties => properties.name == `"${selectedPropertiesNameField.value}"`);
+        // const message = { 
+        //     "assign_properties": { 
+        //         "actionId": this.props.actionId,
+        //         "name": assignPropertiesData.name.replace(/['"]+/g, ""),
+        //         "usedIn": assignToLines
+        //     } 
+        // };
+        // this.dispatchEvent(new CustomEvent("clientMessage", {
+        //     bubbles: true,
+        //     composed: true,
+        //     detail: {
+        //         message: message,
+        //     },
+        // }));
+        // this.shadowRoot.querySelector(".properties-name-filter").value = null;
     }
 
     cancelBeamSectionOrientationDataUpdate() {

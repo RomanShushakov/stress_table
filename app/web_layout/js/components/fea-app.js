@@ -163,6 +163,8 @@ class FeaApp extends HTMLElement {
         this.addEventListener("update_assigned_properties_server_message", (event) => this.handleUpdateAssignedPropertiesServerMessage(event));
         this.addEventListener("delete_assigned_properties_server_message", (event) => this.handleDeleteAssignedPropertiesServerMessage(event));
 
+        this.addEventListener("update_lines_color_scheme_server_message", (event) => this.handleUpdateLinesColorSchemeServerMessage(event))
+
         this.addEventListener("add_beam_section_local_axis_1_direction_server_message", 
             (event) => this.handleAddBeamSectionLocalAxis1DirectionServerMessage(event));
 
@@ -183,7 +185,7 @@ class FeaApp extends HTMLElement {
     async connectedCallback() {
         this.state.actionsRouter = await initializeActionsRouter();
         this.activatePreprocessorMenu();
-        this.handleLoadCache();
+        // this.handleLoadCache();
     }
 
     disconnectedCallback() {
@@ -859,7 +861,6 @@ class FeaApp extends HTMLElement {
                     .addAssignedPropertiesToClient = assignedProperties;
             }
         } 
-        this.shadowRoot.querySelector("fea-renderer").updateLinesColorScheme = event.detail.assigned_properties_data;
         event.stopPropagation();
     }
 
@@ -877,7 +878,6 @@ class FeaApp extends HTMLElement {
                     .updateAssignedPropertiesInClient = assignedProperties;
             }
         } 
-        this.shadowRoot.querySelector("fea-renderer").updateLinesColorScheme = event.detail.assigned_properties_data;
         event.stopPropagation();
     }
 
@@ -892,7 +892,11 @@ class FeaApp extends HTMLElement {
                     .deleteAssignedPropertiesFromClient = assignedProperties;
             }
         } 
-        this.shadowRoot.querySelector("fea-renderer").updateLinesColorScheme = event.detail.assigned_properties_data;
+        event.stopPropagation();
+    }
+
+    handleUpdateLinesColorSchemeServerMessage(event) {
+        this.shadowRoot.querySelector("fea-renderer").updateLinesColorScheme = event.detail.lines_color_scheme_data;
         event.stopPropagation();
     }
 

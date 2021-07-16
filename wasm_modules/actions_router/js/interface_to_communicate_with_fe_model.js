@@ -378,6 +378,19 @@ export function restoreBeamSectionLocalAxis1DirectionInProperties(action_id, loc
     }
 }
 
+export function updateBeamSectionOrientationDataInProperties(action_id, local_axis_1_direction, 
+    line_numbers, is_action_id_should_be_increased) 
+{
+    const beamSectionOrientationData = { "action_id": action_id, 
+        "local_axis_1_direction": local_axis_1_direction, "line_numbers": line_numbers, 
+        "is_action_id_should_be_increased": is_action_id_should_be_increased };
+    try {
+        communicatorWithFEModel.updateBeamSectionOrientationDataInProperties = beamSectionOrientationData;
+    } catch (error) {
+        throw error;
+    }
+}
+
 export function clearPropertiesModuleByActionId(action_id) {
     communicatorWithFEModel.clearPropertiesModuleByActionId = action_id;
 }

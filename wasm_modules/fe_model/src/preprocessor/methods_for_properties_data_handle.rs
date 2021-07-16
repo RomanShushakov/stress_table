@@ -200,6 +200,15 @@ impl Preprocessor
     }
 
 
+    pub fn update_beam_section_orientation_data(&mut self, action_id: FEUInt,
+        local_axis_1_direction: &[FEFloat], line_numbers: &[FEUInt],
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.properties.update_beam_section_orientation_data(action_id, local_axis_1_direction,
+            line_numbers, is_action_id_should_be_increased)
+    }
+
+
     pub fn extract_materials(&self, handler: js_sys::Function) -> Result<(), JsValue>
     {
         self.properties.extract_materials(handler)

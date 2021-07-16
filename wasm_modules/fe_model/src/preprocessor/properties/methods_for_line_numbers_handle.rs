@@ -9,7 +9,7 @@ use crate::preprocessor::properties::assigned_property::
 use crate::preprocessor::properties::consts::
 {
     ADD_ASSIGNED_PROPERTIES_EVENT_NAME, UPDATE_ASSIGNED_PROPERTIES_EVENT_NAME,
-    DELETE_ASSIGNED_PROPERTIES_EVENT_NAME, UPDATE_LINES_COLOR_SCHEME_EVENT_NAME,
+    DELETE_ASSIGNED_PROPERTIES_EVENT_NAME,
 };
 
 use crate::types::{FEUInt};
@@ -69,24 +69,17 @@ impl Properties
                         old_assigned_property);
                 changed_assigned_properties.push(changed_assigned_property);
                 assigned_property.update(new_assigned_property_line_numbers.as_slice());
-
+                let (_, _, cross_section_type) =
+                    self.properties.get(assigned_property_name).unwrap().extract_data();
                 let detail = json!({ "assigned_properties_data":
                     {
                         "name": assigned_property_name,
                         "line_numbers": new_assigned_property_line_numbers.as_slice(),
+                        "old_line_numbers": old_line_numbers,
+                        "cross_section_type": cross_section_type.as_str().to_lowercase(),
                     },
                     "is_action_id_should_be_increased": false });
                 dispatch_custom_event(detail, UPDATE_ASSIGNED_PROPERTIES_EVENT_NAME,
-                    EVENT_TARGET)?;
-                let (_, _, cross_section_type) =
-                    self.properties.get(assigned_property_name).unwrap().extract_data();
-                let detail = json!({ "lines_color_scheme_data":
-                    {
-                        "old_line_numbers": old_line_numbers,
-                        "line_numbers": line_numbers,
-                        "cross_section_type": cross_section_type.as_str().to_lowercase(),
-                    } });
-                dispatch_custom_event(detail, UPDATE_LINES_COLOR_SCHEME_EVENT_NAME,
                     EVENT_TARGET)?;
             }
             else
@@ -100,16 +93,11 @@ impl Properties
                 let detail = json!({ "assigned_properties_data":
                     {
                         "name": assigned_property_name,
+                        "line_numbers": assigned_property_for_delete.extract_data(),
                     },
                     "is_action_id_should_be_increased": false });
                 dispatch_custom_event(detail,
                     DELETE_ASSIGNED_PROPERTIES_EVENT_NAME,
-                    EVENT_TARGET)?;
-                let detail = json!({ "lines_color_scheme_data":
-                    {
-                        "line_numbers": assigned_property_for_delete.extract_data(),
-                    } });
-                dispatch_custom_event(detail, UPDATE_LINES_COLOR_SCHEME_EVENT_NAME,
                     EVENT_TARGET)?;
             }
         }
@@ -152,24 +140,18 @@ impl Properties
                     let old_assigned_property = assigned_property_for_update.clone();
                     let old_line_numbers = old_assigned_property.extract_data();
                     assigned_property_for_update.update(line_numbers);
+                    let (_, _, cross_section_type) =
+                        self.properties.get(name).unwrap().extract_data();
                     let detail = json!({ "assigned_properties_data":
                         {
                             "name": name,
                             "line_numbers": line_numbers,
+                            "old_line_numbers": old_line_numbers,
+                            "cross_section_type": cross_section_type.as_str().to_lowercase(),
                         },
                         "is_action_id_should_be_increased": false });
                     dispatch_custom_event(detail,
                         UPDATE_ASSIGNED_PROPERTIES_EVENT_NAME,
-                        EVENT_TARGET)?;
-                    let (_, _, cross_section_type) =
-                        self.properties.get(name).unwrap().extract_data();
-                    let detail = json!({ "lines_color_scheme_data":
-                        {
-                            "old_line_numbers": old_line_numbers,
-                            "line_numbers": line_numbers,
-                            "cross_section_type": cross_section_type.as_str().to_lowercase(),
-                        } });
-                    dispatch_custom_event(detail, UPDATE_LINES_COLOR_SCHEME_EVENT_NAME,
                         EVENT_TARGET)?;
                 }
                 else
@@ -197,23 +179,17 @@ impl Properties
                 }
                 self.assigned_properties.insert(name.to_owned(),
                     AssignedProperty::create(line_numbers));
+                let (_, _, cross_section_type) =
+                    self.properties.get(name).unwrap().extract_data();
                 let detail = json!({ "assigned_properties_data":
                     {
                         "name": name,
                         "line_numbers": line_numbers,
+                        "cross_section_type": cross_section_type.as_str().to_lowercase(),
                     },
                     "is_action_id_should_be_increased": false });
                 dispatch_custom_event(detail,
                     ADD_ASSIGNED_PROPERTIES_EVENT_NAME,
-                    EVENT_TARGET)?;
-                let (_, _, cross_section_type) =
-                    self.properties.get(name).unwrap().extract_data();
-                let detail = json!({ "lines_color_scheme_data":
-                    {
-                        "line_numbers": line_numbers,
-                        "cross_section_type": cross_section_type.as_str().to_lowercase(),
-                    } });
-                dispatch_custom_event(detail, UPDATE_LINES_COLOR_SCHEME_EVENT_NAME,
                     EVENT_TARGET)?;
             }
         }

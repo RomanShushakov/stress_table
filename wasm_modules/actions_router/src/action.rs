@@ -144,6 +144,10 @@ pub enum PropertiesActionType
 
     // ( local_axis_1_direction, is_action_id_should_be_increased )
     RestoreBeamSectionLocalAxis1Direction(Vec<FEFloat>, bool),
+
+    // ( local_axis_1_direction, old_line_numbers, new_line_numbers,
+    // is_action_id_should_be_increased )
+    UpdateBeamSectionOrientationData(Vec<FEFloat>, Vec<FEUInt>, Vec<FEUInt>, bool)
 }
 
 

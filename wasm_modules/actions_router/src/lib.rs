@@ -31,6 +31,7 @@ use external_functions::communication_with_properties::
     add_beam_section_local_axis_1_direction_to_properties,
     remove_beam_section_local_axis_1_direction_from_properties,
     restore_beam_section_local_axis_1_direction_in_properties,
+    update_beam_section_orientation_data_in_properties,
     clear_properties_module_by_action_id,
     extract_materials, extract_truss_sections, extract_beam_sections,
     extract_properties, extract_assigned_properties, extract_beam_sections_orientations,
@@ -57,6 +58,7 @@ use consts::
     UPDATE_ASSIGNED_PROPERTIES_MESSAGE_HEADER, DELETE_ASSIGNED_PROPERTIES_MESSAGE_HEADER,
     ADD_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_MESSAGE_HEADER,
     REMOVE_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_MESSAGE_HEADER,
+    UPDATE_BEAM_SECTION_ORIENTATION_DATA_MESSAGE_HEADER,
     UNDO_MESSAGE_HEADER, REDO_MESSAGE_HEADER,
 };
 
@@ -506,6 +508,24 @@ impl ActionsRouter
                                     self.current_action = Some((action, add_to_active_actions));
                                 },
                             PropertiesActionType::RestoreBeamSectionLocalAxis1Direction(_, _) => (),
+                            PropertiesActionType::UpdateBeamSectionOrientationData(
+                                local_axis_1_direction,
+                                old_line_numbers,
+                                new_line_numbers,
+                                _is_action_id_should_be_increased) =>
+                                {
+                                    let is_action_id_should_be_increased = false;
+                                    let action_type = ActionType::from(
+                                        PropertiesActionType::
+                                        UpdateBeamSectionOrientationData(
+                                            local_axis_1_direction.clone(),
+                                            new_line_numbers.clone(),
+                                            old_line_numbers.clone(),
+                                            is_action_id_should_be_increased));
+                                    let action = Action::create(action_id, action_type);
+                                    let add_to_active_actions = false;
+                                    self.current_action = Some((action, add_to_active_actions));
+                                },
                         }
                     }
             }
@@ -998,7 +1018,22 @@ impl ActionsRouter
                                     {
                                         self.active_actions.push(action.clone());
                                     }
-                                }
+                                },
+                            PropertiesActionType::UpdateBeamSectionOrientationData(
+                                local_axis_1_direction,
+                                _old_line_numbers,
+                                new_line_numbers,
+                                is_action_id_should_be_increased) =>
+                                {
+                                    clear_geometry_module_by_action_id(action_id);
+                                    update_beam_section_orientation_data_in_properties(action_id,
+                                        local_axis_1_direction, new_line_numbers,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions == true
+                                    {
+                                        self.active_actions.push(action.clone());
+                                    }
+                                },
                         }
                     }
             }
@@ -1126,6 +1161,12 @@ impl ActionsRouter
         {
             self.handle_remove_beam_section_local_axis_1_direction_message(
                 &local_axis_1_direction_data)?;
+        }
+        else if let Some(beam_section_orientation_data) = serialized_message
+            .get(UPDATE_BEAM_SECTION_ORIENTATION_DATA_MESSAGE_HEADER)
+        {
+            self.handle_update_beam_section_orientation_data_message(
+                &beam_section_orientation_data)?;
         }
         else if let Some(undo_data) = serialized_message.get(UNDO_MESSAGE_HEADER)
         {

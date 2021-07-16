@@ -332,6 +332,17 @@ class CommunicatorWithFEModel {
         }
     }
 
+    set updateBeamSectionOrientationDataInProperties(beamSectionOrientationData) {
+        try {
+            this.state.feModel.update_beam_section_orientation_data(beamSectionOrientationData.action_id,
+                beamSectionOrientationData.local_axis_1_direction, 
+                beamSectionOrientationData.line_numbers,
+                beamSectionOrientationData.is_action_id_should_be_increased);
+        } catch (error) {
+            throw error;
+        }
+    }
+
     set clearPropertiesModuleByActionId(action_id) {
         this.state.feModel.clear_properties_module_by_action_id(action_id);
     }

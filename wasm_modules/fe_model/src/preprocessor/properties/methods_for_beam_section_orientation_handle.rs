@@ -9,6 +9,7 @@ use crate::preprocessor::properties::consts::
 {
     ADD_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_EVENT_NAME,
     REMOVE_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_EVENT_NAME,
+    UPDATE_BEAM_SECTION_ORIENTATION_DATA_EVENT_NAME,
 };
 
 use crate::types::{FEUInt, FEFloat};
@@ -136,6 +137,73 @@ impl Properties
             let error_message = &format!("Properties: Restore beam section local axis 1 \
                 direction action: Beam section orientation with local axis 1 direction \
                 value {:?} does not exist!", local_axis_1_direction);
+            return Err(JsValue::from(error_message));
+        }
+    }
+
+
+    pub fn update_beam_section_orientation_data(&mut self, action_id: FEUInt,
+        local_axis_1_direction: &[FEFloat], line_numbers: &[FEUInt],
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.clear_properties_module_by_action_id(action_id);
+        let converted_local_axis_1_direction = <[FEFloat; 3]>::try_from(local_axis_1_direction)
+            .unwrap();
+        if self.beam_sections_orientations
+            .iter()
+            .position(|beam_section_orientation|
+                {
+                    let mut is_any_number_in_slice = false;
+                    for line_number in line_numbers
+                    {
+                        if beam_section_orientation.extract_line_numbers().contains(line_number)
+                        {
+                            is_any_number_in_slice = true;
+                            break;
+                        }
+                    }
+                    if is_any_number_in_slice && !beam_section_orientation
+                        .is_local_axis_1_direction_same(&converted_local_axis_1_direction)
+                    {
+                        true
+                    }
+                    else
+                    {
+                        false
+                    }
+
+                })
+            .is_some()
+        {
+            let error_message = &format!("Properties: Update beam section orientation data \
+                action: At least one line number is already used in another beam section \
+                orientation data!");
+            return Err(JsValue::from(error_message));
+        }
+
+        if let Some(position) = self.beam_sections_orientations
+            .iter()
+            .position(|beam_section_orientation|
+                beam_section_orientation.is_local_axis_1_direction_same(
+                    &converted_local_axis_1_direction))
+        {
+            self.beam_sections_orientations[position].update(line_numbers);
+            let detail = json!({ "beam_section_orientation_data":
+                {
+                    "local_axis_1_direction": converted_local_axis_1_direction,
+                    "line_numbers": line_numbers,
+                },
+                "is_action_id_should_be_increased": is_action_id_should_be_increased });
+            dispatch_custom_event(detail, UPDATE_BEAM_SECTION_ORIENTATION_DATA_EVENT_NAME,
+                EVENT_TARGET)?;
+            self.logging();
+            Ok(())
+        }
+        else
+        {
+            let error_message = &format!("Properties: Update beam section orientation data \
+                action: Beam section orientation for local axis 1 direction {:?} does not exist!",
+                    converted_local_axis_1_direction);
             return Err(JsValue::from(error_message));
         }
     }

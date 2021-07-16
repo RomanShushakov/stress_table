@@ -615,4 +615,52 @@ impl ActionsRouter
         self.current_action = Some((action, add_to_active_actions));
         Ok(())
     }
+
+
+    pub(super) fn handle_update_beam_section_orientation_data_message(&mut self,
+        beam_section_orientation_data: &Value) -> Result<(), JsValue>
+    {
+        let action_id = beam_section_orientation_data["actionId"].to_string()
+            .parse::<FEUInt>()
+            .or(Err(JsValue::from("Actions router: Update beam section orientation data \
+                action: Action id could not be converted to FEUInt!")))?;
+        let local_axis_1_direction = beam_section_orientation_data["local_axis_1_direction"]
+            .to_string()
+            .replace("[", "")
+            .replace("]", "")
+            .split(",")
+            .map(|num|
+                {
+                    match num.parse::<FEFloat>()
+                    {
+                        Ok(n) => Ok(n),
+                        Err(_e) =>
+                            {
+                                Err(JsValue::from("Actions router: Update beam section \
+                                    orientation data action: Local axis 1 direction coordinate \
+                                    could not be converted to FEFloat!"))
+                            }
+                    }
+                })
+            .collect::<Result<Vec<FEFloat>, JsValue>>()?;
+        let old_line_numbers = serde_json::from_value::<Vec<FEUInt>>(
+            beam_section_orientation_data["old_beam_section_orientation_values"]
+                ["line_numbers"].clone())
+            .or(Err(JsValue::from("Actions router: Update beam section orientation data \
+                action: Old line numbers could not be converted to FEUInt!")))?;
+        let new_line_numbers = serde_json::from_value::<Vec<FEUInt>>(
+            beam_section_orientation_data["new_beam_section_orientation_values"]
+                ["line_numbers"].clone())
+            .or(Err(JsValue::from("Actions router: Update beam section orientation data \
+                action: New line numbers could not be converted to FEUInt!")))?;
+        self.undo_actions.clear();
+        let is_action_id_should_be_increased = true;
+        let action_type = ActionType::from(
+            PropertiesActionType::UpdateBeamSectionOrientationData(local_axis_1_direction,
+                old_line_numbers, new_line_numbers, is_action_id_should_be_increased));
+        let action = Action::create(action_id, action_type);
+        let add_to_active_actions = true;
+        self.current_action = Some((action, add_to_active_actions));
+        Ok(())
+    }
 }

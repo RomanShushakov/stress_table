@@ -9,9 +9,7 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
             properties: [],                 // array of: [{ name: String, material_name: String, cross_section_name: String,
                                             //              cross_section_type: String }];
             assignedProperties: [],         // array of: [{ name: String, line_numbers: [u32...] }];
-            beamSectionsOrientations: [
-                { local_axis_1_direction: [2.0, 2.0, 2.0], line_numbers: [1] }
-            ],   // array of: [{ local_axis_1_direction: [f64; 3], line_numbers: [u32...] }];    
+            beamSectionsOrientations: [],   // array of: [{ local_axis_1_direction: [f64; 3], line_numbers: [u32...] }];    
         };
 
         this.state = {
@@ -567,13 +565,17 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
             </div>
         `;
 
-        this.shadowRoot.querySelector(".add-inputted-button").addEventListener("click", () => this.addBeamSectionLocalAxis1Direction());
+        this.shadowRoot.querySelector(".add-inputted-button").addEventListener("click", () => 
+            this.addBeamSectionLocalAxis1Direction());
 
-        this.shadowRoot.querySelector(".remove-inputted-button").addEventListener("click", () => this.removeBeamSectionLocalAxis1Direction());
+        this.shadowRoot.querySelector(".remove-inputted-button").addEventListener("click", () => 
+            this.removeBeamSectionLocalAxis1Direction());
 
-        this.shadowRoot.querySelector(".apply-button").addEventListener("click", () => this.updateBeamSectionOrientationData());
+        this.shadowRoot.querySelector(".apply-button").addEventListener("click", () => 
+            this.updateBeamSectionOrientationData());
 
-        this.shadowRoot.querySelector(".cancel-button").addEventListener("click", () => this.cancelBeamSectionOrientationDataUpdate());
+        this.shadowRoot.querySelector(".cancel-button").addEventListener("click", () => 
+            this.cancelBeamSectionOrientationDataUpdate());
 
         this.shadowRoot.querySelector(".local-axis-1-direction").addEventListener("change", (event) => 
             this.updateSelectedBeamSectionOrientationData(event.target.value)
@@ -610,7 +612,8 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
             this.updateSelectedLinesField();
         });
 
-        this.shadowRoot.querySelector(".preview-button").addEventListener("click", () => this.previewBeamSectionOrientationOnSelectedLines());
+        this.shadowRoot.querySelector(".preview-button").addEventListener("click", () => 
+            this.previewBeamSectionOrientationOnSelectedLines());
 
         this.shadowRoot.querySelector(".assign-to-lines").addEventListener("click", () => {
             const highlightedElement = this.shadowRoot.querySelector(".assign-to-lines");
@@ -708,6 +711,16 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
         this.defineLocalAxis1DirectionOptions();
     }
 
+    set updateBeamSectionOrientationDataInClient(beamSectionOrientationData) {
+        const equals = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
+        let beamSectionOrientationDataIndexInProps = this.props.beamSectionsOrientations
+            .find(existedbeamSectionOrientation => equals(existedbeamSectionOrientation.local_axis_1_direction,
+                beamSectionOrientationData.local_axis_1_direction));
+        beamSectionOrientationDataIndexInProps.line_numbers = beamSectionOrientationData.line_numbers;
+        this.props.beamSectionsOrientations.sort((a, b) => a.local_axis_1_direction - b.local_axis_1_direction);
+        this.defineLocalAxis1DirectionOptions();
+    }
+
     set previewBeamSectionOrientationError(error) {
         const assignToLinesField = this.shadowRoot.querySelector(".assign-to-lines");
         if (assignToLinesField.classList.contains("highlighted") === false) {
@@ -734,7 +747,7 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
                 this.getLines();
                 this.getProperties();
                 this.getAssignedProperties();
-                // this.getBeamSectionsOrientations();
+                this.getBeamSectionsOrientations();
                 this.defineLocalAxis1DirectionOptions();
             }
         }
@@ -1054,9 +1067,14 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
     }
 
     updateSelectedBeamSectionOrientationData(selectedLocalAxis1Direction) {
+        const localAxis1Direction = selectedLocalAxis1Direction
+            .split(",")
+            .map((item) => parseFloat(item))
+            .filter((item) => item !== "");
+        const equals = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
         const selectedBeamSectionOrientationInProps = this.props.beamSectionsOrientations
             .find(existedBeamSectionOrientation => 
-                existedBeamSectionOrientation.local_axis_1_direction == selectedLocalAxis1Direction);
+                equals(existedBeamSectionOrientation.local_axis_1_direction, localAxis1Direction) === true);
         let assignToLinesFieldValue = "";
         let assignedToLines = selectedBeamSectionOrientationInProps.line_numbers;
         this.state.assignToLines = new Set(assignedToLines);
@@ -1142,9 +1160,6 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
             if (selectedLocalAxis1DirectionField.classList.contains("highlighted") === false) {
                 selectedLocalAxis1DirectionField.classList.add("highlighted");
             }
-        }
-
-        if (selectedLocalAxis1DirectionField.value === "") {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "Note: The highlighted fields should be filled!";
                 return;
@@ -1152,6 +1167,12 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
                 return;
             }
         }
+
+        const selectedLocalAxis1Direction = selectedLocalAxis1DirectionField.value
+            .split(",")
+            .map((item) => parseFloat(item))
+            .filter((item) => item !== "");
+
         const assignToLinesField = this.shadowRoot.querySelector(".assign-to-lines");
         const assignToLines = assignToLinesField.value
             .split(",")
@@ -1168,6 +1189,7 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
                 }
                 return;
             }
+            
             if (this.props.lines.has(parseInt(assignToLines[i])) === false) {
                 if (assignToLinesField.classList.contains("highlighted") === false) {
                     assignToLinesField.classList.add("highlighted");
@@ -1189,7 +1211,7 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
                 }
                 return;
             }
-            
+
             let isLineInAssignedProperties = false;
             for (let j = 0; j < this.props.assignedProperties.length; j++) {
                 const currentAssignedProperties = this.props.assignedProperties[j];
@@ -1232,11 +1254,6 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
                 return;
             }
 
-            const selectedLocalAxis1Direction = selectedLocalAxis1DirectionField.value
-                .split(",")
-                .map((item) => parseFloat(item))
-                .filter((item) => item !== "");
-            
             for (let k = 0; k < this.props.beamSectionsOrientations.length; k++) {
                 const numberInArray = (number) => number === parseInt(assignToLines[i]) && 
                     equals(this.props.beamSectionsOrientations[k].local_axis_1_direction, selectedLocalAxis1Direction) === false;
@@ -1255,31 +1272,46 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
 
         }
 
-        // const assignPropertiesData = this.props.properties.find(properties => properties.name == `"${selectedPropertiesNameField.value}"`);
-        // const message = { 
-        //     "assign_properties": { 
-        //         "actionId": this.props.actionId,
-        //         "name": assignPropertiesData.name.replace(/['"]+/g, ""),
-        //         "usedIn": assignToLines
-        //     } 
-        // };
-        // this.dispatchEvent(new CustomEvent("clientMessage", {
-        //     bubbles: true,
-        //     composed: true,
-        //     detail: {
-        //         message: message,
-        //     },
-        // }));
-        // this.shadowRoot.querySelector(".properties-name-filter").value = null;
+        const selectedBeamSectionOrientationInProps = this.props.beamSectionsOrientations
+            .find(existedBeamSectionOrientation => 
+                equals(existedBeamSectionOrientation.local_axis_1_direction, selectedLocalAxis1Direction) === true);
+        let oldLineNumbers = selectedBeamSectionOrientationInProps.line_numbers;
+        const lineNumbers = assignToLines.map((item) => parseInt(item));
+
+        this.getActionId();
+        const message = { 
+            "update_beam_section_orientation_data": { 
+                "actionId": this.props.actionId,
+                "local_axis_1_direction": selectedLocalAxis1Direction,
+                "old_beam_section_orientation_values": {
+                    "line_numbers": oldLineNumbers,
+                },
+                "new_beam_section_orientation_values": {
+                    "line_numbers": lineNumbers,
+                },
+            } 
+        };
+        this.dispatchEvent(new CustomEvent("clientMessage", {
+            bubbles: true,
+            composed: true,
+            detail: {
+                message: message,
+            },
+        }));
+        this.shadowRoot.querySelector(".local-axis-1-direction-filter").value = null;
     }
 
     cancelBeamSectionOrientationDataUpdate() {
-        if (this.props.properties.length > 0) {
+        this.shadowRoot.querySelector(".local-axis-1-direction-filter").value = null;
+        if (this.props.beamSectionsOrientations.length > 0) {
             this.defineLocalAxis1DirectionOptions();
         }
-        this.shadowRoot.querySelector(".properties-name-filter").value = null;
-        const selectedPropertiesNameForDeleteField = this.shadowRoot.querySelector(".properties-name");
-        this.dropHighlight(selectedPropertiesNameForDeleteField);
+        const selectedLocalAxis1DirectionForAssignField = this.shadowRoot.querySelector(".local-axis-1-direction");
+        this.dropHighlight(selectedLocalAxis1DirectionForAssignField);
+        const assignToLinesField = this.shadowRoot.querySelector(".assign-to-lines");
+        this.dropHighlight(assignToLinesField);
+        this.state.selectedLines.clear();
+        this.updateSelectedLinesField();
         this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
     }
 

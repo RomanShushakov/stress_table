@@ -35,5 +35,10 @@ impl BeamSectionOrientation
     {
         (self.local_axis_1_direction, self.line_numbers.as_slice())
     }
-}
 
+
+    pub fn update(&mut self, line_numbers: &[FEUInt])
+    {
+        self.line_numbers = line_numbers.to_vec();
+    }
+}

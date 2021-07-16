@@ -163,13 +163,12 @@ class FeaApp extends HTMLElement {
         this.addEventListener("update_assigned_properties_server_message", (event) => this.handleUpdateAssignedPropertiesServerMessage(event));
         this.addEventListener("delete_assigned_properties_server_message", (event) => this.handleDeleteAssignedPropertiesServerMessage(event));
 
-        this.addEventListener("update_lines_color_scheme_server_message", (event) => this.handleUpdateLinesColorSchemeServerMessage(event))
-
         this.addEventListener("add_beam_section_local_axis_1_direction_server_message", 
             (event) => this.handleAddBeamSectionLocalAxis1DirectionServerMessage(event));
-
         this.addEventListener("remove_beam_section_local_axis_1_direction_server_message",
             (event) => this.handleRemoveBeamSectionLocalAxis1DirectionServerMessage(event));
+        this.addEventListener("update_beam_section_orientation_data_server_message",
+            (event) => this.handleUpdateBeamSectionOrientationDataServerMessage(event));
 
         this.addEventListener("decreaseActionId", (_event) => this.handleDecreaseActionIdMessage());
 
@@ -861,6 +860,12 @@ class FeaApp extends HTMLElement {
                     .addAssignedPropertiesToClient = assignedProperties;
             }
         } 
+        const linesColorSchemeData = {
+            line_numbers: event.detail.assigned_properties_data.line_numbers,
+            old_line_numbers: event.detail.assigned_properties_data.old_line_numbers,
+            cross_section_type: event.detail.assigned_properties_data.cross_section_type,
+        }
+        this.shadowRoot.querySelector("fea-renderer").updateLinesColorScheme = linesColorSchemeData;
         event.stopPropagation();
     }
 
@@ -878,6 +883,12 @@ class FeaApp extends HTMLElement {
                     .updateAssignedPropertiesInClient = assignedProperties;
             }
         } 
+        const linesColorSchemeData = {
+            line_numbers: event.detail.assigned_properties_data.line_numbers,
+            old_line_numbers: event.detail.assigned_properties_data.old_line_numbers,
+            cross_section_type: event.detail.assigned_properties_data.cross_section_type,
+        }
+        this.shadowRoot.querySelector("fea-renderer").updateLinesColorScheme = linesColorSchemeData;
         event.stopPropagation();
     }
 
@@ -892,11 +903,12 @@ class FeaApp extends HTMLElement {
                     .deleteAssignedPropertiesFromClient = assignedProperties;
             }
         } 
-        event.stopPropagation();
-    }
-
-    handleUpdateLinesColorSchemeServerMessage(event) {
-        this.shadowRoot.querySelector("fea-renderer").updateLinesColorScheme = event.detail.lines_color_scheme_data;
+        const linesColorSchemeData = {
+            line_numbers: event.detail.assigned_properties_data.line_numbers,
+            old_line_numbers: event.detail.assigned_properties_data.old_line_numbers,
+            cross_section_type: event.detail.assigned_properties_data.cross_section_type,
+        }
+        this.shadowRoot.querySelector("fea-renderer").updateLinesColorScheme = linesColorSchemeData;
         event.stopPropagation();
     }
 
@@ -926,6 +938,23 @@ class FeaApp extends HTMLElement {
             if (this.querySelector(this.state.beamSectionsOrientationsDependentMenus[i]) !== null) {
                 this.querySelector(this.state.beamSectionsOrientationsDependentMenus[i])
                     .removeBeamSectionLocalAxis1DirectionFromClient = beamSectionLocalAxis1DirectionData;
+            }
+        } 
+        event.stopPropagation();
+    }
+
+    handleUpdateBeamSectionOrientationDataServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;   
+        }
+        const beamSectionOrientationData = { 
+            local_axis_1_direction: event.detail.beam_section_orientation_data.local_axis_1_direction,
+            line_numbers: event.detail.beam_section_orientation_data.line_numbers,
+        };
+        for (let i = 0; i < this.state.beamSectionsOrientationsDependentMenus.length; i++) {
+            if (this.querySelector(this.state.beamSectionsOrientationsDependentMenus[i]) !== null) {
+                this.querySelector(this.state.beamSectionsOrientationsDependentMenus[i])
+                    .updateBeamSectionOrientationDataInClient = beamSectionOrientationData;
             }
         } 
         event.stopPropagation();

@@ -74,36 +74,6 @@ class FeaPreprocessorMenu extends HTMLElement {
         }
     }
 
-    // set deleteAssignedPropertiesFromClient(assignedProperties) {
-    //     let assignedPropertiesIndexInProps = this.props.assignedProperties
-    //         .findIndex(existedAssignedProperties => existedAssignedProperties.name == assignedProperties.name);
-    //     this.props.assignedProperties.splice(assignedPropertiesIndexInProps, 1);
-    //     this.props.assignedProperties.sort((a, b) => a.name - b.name);
-    //     this.deleteAssignedPropertiesFromChildren(assignedProperties);
-    // }
-
-    // set addBeamSectionOrientationToClient(beamSectionOrientation) {
-    //     this.props.beamSectionsOrientations.push(beamSectionOrientation);
-    //     this.addBeamSectionOrientationToChildren(beamSectionOrientation);
-    // }
-
-    // set updateBeamSectionOrientationInClient(beamSectionOrientation) {
-    //     let beamSectionOrientationInProps = this.props.beamSectionsOrientations
-    //         .find(existedBeamSectionOrientation => 
-    //             existedBeamSectionOrientation.propertiesName == beamSectionOrientation.propertiesName &&
-    //             existedBeamSectionOrientation.localAxis1Direction == beamSectionOrientation.localAxis1Direction);
-    //         beamSectionOrientationInProps.lineNumbers = beamSectionOrientation.lineNumbers;
-    //     this.updateBeamSectionOrientationInChildren(beamSectionOrientation);
-    // }
-
-    // set deleteBeamSectionOrientationFromClient(beamSectionOrientation) {
-    //     let beamSectionOrientationIndexInProps = this.props.beamSectionsOrientations
-    //         .findIndex(existedBeamSectionOrientation => 
-    //             existedBeamSectionOrientation.propertiesName == beamSectionOrientation.propertiesName);
-    //     this.props.beamSectionsOrientations.splice(beamSectionOrientationIndexInProps, 1);
-    //     this.deleteBeamSectionOrientationFromChildren(beamSectionOrientation);
-    // }
-
     connectedCallback() {
     }
 

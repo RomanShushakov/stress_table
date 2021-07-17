@@ -18,8 +18,8 @@ use crate::functions::{dispatch_custom_event};
 
 impl Properties
 {
-    pub fn add_assigned_properties(&mut self, action_id: FEUInt, name: &str, line_numbers: &[FEUInt],
-        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    pub fn add_assigned_properties(&mut self, action_id: FEUInt, name: &str,
+        line_numbers: &[FEUInt], is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_properties_module_by_action_id(action_id);
 
@@ -66,8 +66,8 @@ impl Properties
     }
 
 
-    pub fn update_assigned_properties(&mut self, action_id: FEUInt, name: &str, line_numbers: &[FEUInt],
-        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    pub fn update_assigned_properties(&mut self, action_id: FEUInt, name: &str,
+        line_numbers: &[FEUInt], is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_properties_module_by_action_id(action_id);
 
@@ -91,7 +91,8 @@ impl Properties
             return Err(JsValue::from(error_message));
         }
 
-        if let Some(assigned_property) = self.assigned_properties.get_mut(name)
+        if let Some(assigned_property) =
+            self.assigned_properties.get_mut(name)
         {
             let old_assigned_property = assigned_property.clone();
             let old_line_numbers = old_assigned_property.extract_data();
@@ -130,8 +131,10 @@ impl Properties
             self.assigned_properties.remove_entry(&name.to_owned())
         {
             let deleted_assigned_property =
-                DeletedAssignedProperty::create(&assigned_property_name, assigned_property.clone());
-            self.deleted_assigned_properties.insert(action_id, vec![deleted_assigned_property]);
+                DeletedAssignedProperty::create(&assigned_property_name,
+                assigned_property.clone());
+            self.deleted_assigned_properties.insert(action_id,
+                vec![deleted_assigned_property]);
             let detail = json!({ "assigned_properties_data":
                 {
                     "name": name,

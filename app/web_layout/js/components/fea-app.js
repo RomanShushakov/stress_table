@@ -514,7 +514,11 @@ class FeaApp extends HTMLElement {
         try {
             this.shadowRoot.querySelector("fea-renderer").previewBeamSectionOrientation = beamSectionOrientationObject;
         } catch (error) {
-            this.querySelector(event.target.tagName.toLowerCase()).previewBeamSectionOrientationError = error;
+            if (event.target.tagName.toLowerCase() === "fea-properties-beam-section-orientation-menu") {
+                this.querySelector(event.target.tagName.toLowerCase()).beamSectionOrientationError = error;
+            } else {
+                throw error;
+            }
         }
         event.stopPropagation();
     }
@@ -558,7 +562,15 @@ class FeaApp extends HTMLElement {
     handleClientMessage(event) {
         const toCache = true;
         const message = event.detail.message;
-        this.state.actionsRouter.handle_message(message, toCache);
+        try {
+            this.state.actionsRouter.handle_message(message, toCache);
+        } catch (error) {
+            if (event.target.tagName.toLowerCase() === "fea-properties-beam-section-orientation-menu") {
+                this.querySelector(event.target.tagName.toLowerCase()).beamSectionOrientationError = error;
+            } else {
+                throw error;
+            }
+        }
         event.stopPropagation();
     }
 

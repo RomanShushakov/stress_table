@@ -2,6 +2,8 @@ use wasm_bindgen::prelude::*;
 use serde_json::json;
 use std::collections::HashMap;
 
+use crate::preprocessor::geometry::geometry::Geometry;
+
 use crate::preprocessor::properties::material::{Material, DeletedMaterial};
 use crate::preprocessor::properties::truss_section::{TrussSection, DeletedTrussSection};
 use crate::preprocessor::properties::beam_section::{BeamSection, DeletedBeamSection};
@@ -33,10 +35,9 @@ pub struct Properties
     pub assigned_properties: HashMap<String, AssignedProperty>, // { property_name: AssignedProperties }
     pub changed_assigned_properties: HashMap<FEUInt, Vec<ChangedAssignedProperty>>,   // { action_id: Vec<ChangedAssignedProperty> }
     pub deleted_assigned_properties: HashMap<FEUInt, Vec<DeletedAssignedProperty>>,   // { action_id: Vec<DeletedAssignedProperty> }
-
     pub beam_sections_orientations: Vec<BeamSectionOrientation>,
-    pub changed_beam_sections_orientations: HashMap<FEUInt, BeamSectionOrientation>,    // { action_id: BeamSectionOrientation }
-    pub deleted_beam_sections_orientations: HashMap<FEUInt, Vec<BeamSectionOrientation>>,   // { action_id: BeamSectionOrientation }
+    pub changed_beam_sections_orientations: HashMap<FEUInt, Vec<BeamSectionOrientation>>,    // { action_id: Vec<BeamSectionOrientation> }
+    pub deleted_beam_sections_orientations: HashMap<FEUInt, Vec<BeamSectionOrientation>>,   // { action_id: Vec<BeamSectionOrientation> }
 }
 
 

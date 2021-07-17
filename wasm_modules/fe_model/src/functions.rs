@@ -2,6 +2,11 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 
 
+use crate::extended_matrix::extended_matrix::ExtendedMatrix;
+use crate::extended_matrix::functions::extract_element_value;
+use crate::types::FEFloat;
+
+
 #[wasm_bindgen]
 extern "C"
 {
@@ -30,4 +35,36 @@ pub fn dispatch_custom_event(detail: serde_json::Value, event_type: &str, query_
         .unwrap()
         .dispatch_event(&custom_event)?;
     Ok(())
+}
+
+
+pub fn find_components_of_line_a_perpendicular_to_line_b(line_a: &[FEFloat; 3],
+    line_b: &[FEFloat; 3]) -> Result<[FEFloat; 3], JsValue>
+{
+    let a_x = - line_a[0];
+    let a_y = - line_a[1];
+    let a_z = - line_a[2];
+    let a = ExtendedMatrix::create(3u32,
+        1u32, vec![a_x, a_y, a_z]);
+    let b_x = line_b[0];
+    let b_y = line_b[1];
+    let b_z = line_b[2];
+    let coeff_matrix = ExtendedMatrix::create(3u32,
+        3u32, vec![
+            - b_z * b_z - b_y * b_y, b_x * b_y, b_x * b_z,
+            b_y * b_x, - b_x * b_x - b_z * b_z,	b_y * b_z,
+            b_z * b_x,	b_z * b_y, - b_y * b_y - b_x * b_x,
+        ]);
+    let components_of_line_a_perpendicular_to_line_b_matrix = coeff_matrix
+        .multiply_by_matrix(&a)
+        .map_err(|e| JsValue::from(e))?;
+    let components_of_line_a_perpendicular_to_line_b_all_values =
+        components_of_line_a_perpendicular_to_line_b_matrix.extract_all_elements_values();
+    let a_perpendicular_to_b_x = extract_element_value(
+        0, 0, &components_of_line_a_perpendicular_to_line_b_all_values);
+    let a_perpendicular_to_b_y = extract_element_value(
+        1, 0, &components_of_line_a_perpendicular_to_line_b_all_values);
+    let a_perpendicular_to_b_z = extract_element_value(
+        2, 0, &components_of_line_a_perpendicular_to_line_b_all_values);
+    Ok([a_perpendicular_to_b_x, a_perpendicular_to_b_y, a_perpendicular_to_b_z])
 }

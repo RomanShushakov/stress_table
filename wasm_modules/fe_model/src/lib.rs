@@ -9,6 +9,8 @@ use fe_solver::fe_solver::FESolver;
 mod postprocessor;
 use postprocessor::postprocessor::Postprocessor;
 
+mod extended_matrix;
+
 mod types;
 
 mod consts;

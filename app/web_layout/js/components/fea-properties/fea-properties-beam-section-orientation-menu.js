@@ -721,7 +721,7 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
         this.defineLocalAxis1DirectionOptions();
     }
 
-    set previewBeamSectionOrientationError(error) {
+    set beamSectionOrientationError(error) {
         const assignToLinesField = this.shadowRoot.querySelector(".assign-to-lines");
         if (assignToLinesField.classList.contains("highlighted") === false) {
             assignToLinesField.classList.add("highlighted");

@@ -2,6 +2,8 @@ use wasm_bindgen::prelude::*;
 
 use crate::Preprocessor;
 
+use crate::preprocessor::functions::line_points_coordinates_extraction_handle;
+
 use crate::types::{FEUInt, FEFloat};
 
 
@@ -199,13 +201,13 @@ impl Preprocessor
             is_action_id_should_be_increased)
     }
 
-
     pub fn update_beam_section_orientation_data(&mut self, action_id: FEUInt,
         local_axis_1_direction: &[FEFloat], line_numbers: &[FEUInt],
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.properties.update_beam_section_orientation_data(action_id, local_axis_1_direction,
-            line_numbers, is_action_id_should_be_increased)
+            line_numbers, is_action_id_should_be_increased, &self.geometry,
+            line_points_coordinates_extraction_handle)
     }
 
 

@@ -1275,8 +1275,20 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
         const selectedBeamSectionOrientationInProps = this.props.beamSectionsOrientations
             .find(existedBeamSectionOrientation => 
                 equals(existedBeamSectionOrientation.local_axis_1_direction, selectedLocalAxis1Direction) === true);
-        let oldLineNumbers = selectedBeamSectionOrientationInProps.line_numbers;
+        const oldLineNumbers = selectedBeamSectionOrientationInProps.line_numbers;
         const lineNumbers = assignToLines.map((item) => parseInt(item));
+
+        if (equals(oldLineNumbers, lineNumbers) === true) {
+            if (assignToLinesField.classList.contains("highlighted") === false) {
+                assignToLinesField.classList.add("highlighted");
+            }
+            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
+                    `Note: Beam section orientation with the same local axis 1 direction and line numbers
+                    does already exist!`;
+            }
+            return;
+        }
 
         this.getActionId();
         const message = { 

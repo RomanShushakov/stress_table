@@ -11,6 +11,7 @@ use crate::preprocessor::properties::consts::
     ADD_BEAM_SECTION_EVENT_NAME, UPDATE_BEAM_SECTION_EVENT_NAME,
     DELETE_BEAM_SECTION_EVENT_NAME, DELETE_PROPERTIES_EVENT_NAME, ADD_PROPERTIES_EVENT_NAME,
     ADD_ASSIGNED_PROPERTIES_EVENT_NAME, DELETE_ASSIGNED_PROPERTIES_EVENT_NAME,
+    UPDATE_BEAM_SECTION_ORIENTATION_DATA_EVENT_NAME,
 };
 
 use crate::types::{FEUInt, FEFloat};
@@ -117,8 +118,39 @@ impl Properties
         let deleted_assigned_property_names =
             self.extract_assigned_property_names_for_delete_by_property_names(
                 &deleted_property_names);
+        let changed_beam_sections_orientations =
+            self.extract_beam_section_orientations_for_change_by_assigned_property_names(
+                &deleted_assigned_property_names
+            );
+
         let mut deleted_properties = Vec::new();
         let mut deleted_assigned_properties = Vec::new();
+
+        for changed_beam_section_orientation in &changed_beam_sections_orientations
+        {
+            let local_axis_1_direction =
+                changed_beam_section_orientation.extract_local_axis_1_direction();
+            if let Some(position) = self.beam_sections_orientations
+                .iter()
+                .position(|beam_section_orientation|
+                    beam_section_orientation
+                        .is_local_axis_1_direction_same(&local_axis_1_direction))
+            {
+                let line_numbers = self.beam_sections_orientations[position]
+                    .extract_line_numbers();
+                let detail = json!({ "beam_section_orientation_data":
+                    {
+                        "local_axis_1_direction": local_axis_1_direction,
+                        "line_numbers": line_numbers,
+                    },
+                    "is_action_id_should_be_increased": false });
+                dispatch_custom_event(detail,
+                    UPDATE_BEAM_SECTION_ORIENTATION_DATA_EVENT_NAME,
+                    EVENT_TARGET)?;
+            }
+        }
+        self.changed_beam_sections_orientations.insert(action_id,
+            changed_beam_sections_orientations);
 
         for assigned_property_name in deleted_assigned_property_names.iter()
         {
@@ -244,6 +276,32 @@ impl Properties
                         "is_action_id_should_be_increased": is_action_id_should_be_increased });
                     dispatch_custom_event(detail, ADD_ASSIGNED_PROPERTIES_EVENT_NAME,
                         EVENT_TARGET)?;
+                }
+            }
+            if let Some(beam_sections_orientations) =
+                self.changed_beam_sections_orientations.remove(&action_id)
+            {
+                for beam_section_orientation in &beam_sections_orientations
+                {
+                    let (local_axis_1_direction, line_numbers) =
+                        beam_section_orientation.extract_direction_and_line_numbers();
+                    if let Some(position) = self.beam_sections_orientations
+                        .iter()
+                        .position(|beam_section_orientation|
+                            beam_section_orientation.is_local_axis_1_direction_same(
+                                &local_axis_1_direction))
+                    {
+                        self.beam_sections_orientations[position].update(line_numbers);
+                        let detail = json!({ "beam_section_orientation_data":
+                            {
+                                "local_axis_1_direction": local_axis_1_direction,
+                                "line_numbers": line_numbers,
+                            },
+                            "is_action_id_should_be_increased": is_action_id_should_be_increased });
+                        dispatch_custom_event(detail,
+                            UPDATE_BEAM_SECTION_ORIENTATION_DATA_EVENT_NAME,
+                            EVENT_TARGET)?;
+                    }
                 }
             }
             self.logging();

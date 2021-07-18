@@ -3,7 +3,7 @@ use crate::preprocessor::geometry::geometry::Geometry;
 use crate::types::{FEUInt, FEFloat};
 
 
-pub fn line_points_coordinates_extraction_handle(line_number: FEUInt, geometry: &Geometry)
+pub fn get_line_points_coordinates(line_number: FEUInt, geometry: &Geometry)
     -> Option<((FEFloat, FEFloat, FEFloat), (FEFloat, FEFloat, FEFloat))>
 {
     if let Some(line) = geometry.lines.get(&line_number)

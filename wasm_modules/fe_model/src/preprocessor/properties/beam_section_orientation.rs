@@ -25,6 +25,18 @@ impl BeamSectionOrientation
     }
 
 
+    pub fn is_line_numbers_same(&self, line_numbers: &[FEUInt]) -> bool
+    {
+        self.line_numbers == line_numbers
+    }
+
+
+    pub fn extract_local_axis_1_direction(&self) -> [FEFloat; 3]
+    {
+        self.local_axis_1_direction
+    }
+
+
     pub fn extract_line_numbers(&self) -> &[FEUInt]
     {
         self.line_numbers.as_slice()
@@ -40,5 +52,16 @@ impl BeamSectionOrientation
     pub fn update(&mut self, line_numbers: &[FEUInt])
     {
         self.line_numbers = line_numbers.to_vec();
+    }
+
+
+    pub fn exclude_line_number(&mut self, line_number: FEUInt)
+    {
+        if let Some(position) = self.line_numbers
+            .iter()
+            .position(|number| *number == line_number)
+        {
+            let _ = self.line_numbers.remove(position);
+        }
     }
 }

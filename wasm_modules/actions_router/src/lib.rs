@@ -933,6 +933,7 @@ impl ActionsRouter
                                 line_numbers,
                                 is_action_id_should_be_increased) =>
                                 {
+                                    clear_geometry_module_by_action_id(action_id);
                                     add_assigned_properties_to_properties(action_id,
                                         properties_name, line_numbers.as_slice(),
                                         *is_action_id_should_be_increased)?;
@@ -985,6 +986,7 @@ impl ActionsRouter
                                 local_axis_1_direction,
                                 is_action_id_should_be_increased) =>
                                 {
+                                    clear_geometry_module_by_action_id(action_id);
                                     add_beam_section_local_axis_1_direction_to_properties(action_id,
                                         local_axis_1_direction,
                                         *is_action_id_should_be_increased)?;
@@ -997,6 +999,7 @@ impl ActionsRouter
                                 local_axis_1_direction,
                                 is_action_id_should_be_increased) =>
                                 {
+                                    clear_geometry_module_by_action_id(action_id);
                                     remove_beam_section_local_axis_1_direction_from_properties(
                                         action_id,
                                         local_axis_1_direction,

@@ -151,8 +151,8 @@ impl Properties
     pub fn update_beam_section_orientation_data(&mut self, action_id: FEUInt,
         local_axis_1_direction: &[FEFloat], line_numbers: &[FEUInt],
         is_action_id_should_be_increased: bool, geometry: &Geometry,
-        line_points_coordinates_extraction_handle: fn(FEUInt, &Geometry) -> Option<(
-            (FEFloat, FEFloat, FEFloat), (FEFloat, FEFloat, FEFloat))>) -> Result<(), JsValue>
+        get_line_points_coordinates: fn(FEUInt, &Geometry) -> Option<((FEFloat, FEFloat, FEFloat),
+            (FEFloat, FEFloat, FEFloat))>) -> Result<(), JsValue>
     {
         self.clear_properties_module_by_action_id(action_id);
         let converted_local_axis_1_direction = <[FEFloat; 3]>::try_from(local_axis_1_direction)
@@ -182,7 +182,7 @@ impl Properties
                 }
             }
             if let Some((start_point_coordinates, end_point_coordinates)) =
-                line_points_coordinates_extraction_handle(*line_number, geometry)
+                get_line_points_coordinates(*line_number, geometry)
             {
                 let transformed_line = [
                     end_point_coordinates.0 - start_point_coordinates.0,
@@ -212,6 +212,19 @@ impl Properties
                     line_number);
                 return Err(JsValue::from(error_message));
             }
+        }
+        if self.beam_sections_orientations
+            .iter()
+            .position(|beam_section_orientation|
+                beam_section_orientation
+                    .is_local_axis_1_direction_same(&converted_local_axis_1_direction) &&
+                beam_section_orientation.is_line_numbers_same(line_numbers))
+            .is_some()
+        {
+            let error_message = &format!("Properties: Update beam section orientation data \
+                action: Beam section orientation with the same local axis 1 direction and line \
+                numbers does already exist!");
+            return Err(JsValue::from(error_message));
         }
         if self.beam_sections_orientations
             .iter()

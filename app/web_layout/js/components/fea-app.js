@@ -993,7 +993,7 @@ class FeaApp extends HTMLElement {
     }
 
     handleUpdateLinesColorServerMessage(event) {
-        this.shadowRoot.querySelector("fea-renderer").updateLinesColorScheme = event.detail.lines_data_object;
+        this.shadowRoot.querySelector("fea-renderer").updateLinesColorScheme = event.detail.lines_color_scheme_data;
         event.stopPropagation();
     }
 }

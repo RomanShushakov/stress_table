@@ -832,6 +832,7 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
     }
 
     assignProperties() {
+        const equals = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
         const selectedPropertiesNameField = this.shadowRoot.querySelector(".properties-name");
         if (selectedPropertiesNameField.value == "") {
             if (selectedPropertiesNameField.classList.contains("highlighted") === false) {
@@ -912,6 +913,18 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
                         }
                     }
                 }
+
+                if (equals(selectedAssignedPropertiesInProps.line_numbers, assignToLines) === true) {
+                    if (assignToLinesField.classList.contains("highlighted") === false) {
+                        assignToLinesField.classList.add("highlighted");
+                    }
+                    if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+                        this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
+                            `Note: Assigned properties with the same name and line numbers does already exist!`;
+                    }
+                    return;
+                }
+
                 this.getActionId();
                 const message = {
                     "update_assigned_properties": {

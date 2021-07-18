@@ -2,7 +2,7 @@ use wasm_bindgen::prelude::*;
 
 use crate::Preprocessor;
 
-use crate::preprocessor::functions::line_points_coordinates_extraction_handle;
+use crate::preprocessor::functions::get_line_points_coordinates;
 
 use crate::types::{FEUInt, FEFloat};
 
@@ -207,7 +207,7 @@ impl Preprocessor
     {
         self.properties.update_beam_section_orientation_data(action_id, local_axis_1_direction,
             line_numbers, is_action_id_should_be_increased, &self.geometry,
-            line_points_coordinates_extraction_handle)
+            get_line_points_coordinates)
     }
 
 

@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use crate::preprocessor::geometry::geometry::Geometry;
 
 use crate::preprocessor::properties::material::{Material, DeletedMaterial};
+use crate::preprocessor::properties::property::CrossSectionType;
 use crate::preprocessor::properties::truss_section::{TrussSection, DeletedTrussSection};
 use crate::preprocessor::properties::beam_section::{BeamSection, DeletedBeamSection};
 use crate::preprocessor::properties::property::{Property, DeletedProperty};
@@ -189,7 +190,7 @@ impl Properties
 
 
     pub fn extract_assigned_property_names_for_delete_by_property_names(&self,
-        property_names_for_delete: &Vec<String>) -> Vec<String>
+        property_names_for_delete: &[String]) -> Vec<String>
     {
         let mut assigned_property_names_for_delete = Vec::new();
         for property_name in property_names_for_delete
@@ -203,6 +204,63 @@ impl Properties
             }
         }
         assigned_property_names_for_delete
+    }
+
+
+    pub fn extract_beam_section_orientations_for_change_by_assigned_property_names(
+        &mut self, assigned_property_names_for_delete: &[String]) -> Vec<BeamSectionOrientation>
+    {
+        let mut beam_section_orientations_for_change: Vec<BeamSectionOrientation> = Vec::new();
+        for assigned_property_name in assigned_property_names_for_delete
+        {
+            let (_, _, cross_section_type) = self.properties
+                .get(assigned_property_name)
+                .unwrap()
+                .extract_data();
+            {
+                match cross_section_type
+                {
+                    CrossSectionType::Beam =>
+                        {
+                            for line_number in self.assigned_properties
+                                .get(assigned_property_name)
+                                .unwrap()
+                                .extract_data()
+                            {
+                                if let Some(position) = self.beam_sections_orientations
+                                    .iter()
+                                    .position(|beam_section_orientation|
+                                        {
+                                            beam_section_orientation
+                                                .extract_line_numbers()
+                                                .contains(line_number)
+                                        })
+                                {
+                                    let old_beam_section_orientation =
+                                        self.beam_sections_orientations[position].clone();
+                                    let local_axis_1_direction =
+                                        old_beam_section_orientation.extract_local_axis_1_direction();
+                                    self.beam_sections_orientations[position]
+                                        .exclude_line_number(*line_number);
+                                    if beam_section_orientations_for_change
+                                        .iter()
+                                        .position(|beam_section_orientation|
+                                            beam_section_orientation
+                                                .is_local_axis_1_direction_same(
+                                                    &local_axis_1_direction))
+                                        .is_none()
+                                    {
+                                        beam_section_orientations_for_change.push(
+                                            old_beam_section_orientation);
+                                    }
+                                }
+                            }
+                        },
+                    CrossSectionType::Truss => ()
+                }
+            }
+        }
+        beam_section_orientations_for_change
     }
 
 

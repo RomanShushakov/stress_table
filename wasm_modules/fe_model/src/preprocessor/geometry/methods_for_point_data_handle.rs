@@ -70,7 +70,7 @@ impl Geometry
         else
         {
             let error_message = format!("Geometry: Update point action: \
-                The point with number {} could not be updated because it does not exist!", number);
+                The point with number {} does not exist!", number);
             Err(JsValue::from(&error_message))
         }
     }

@@ -361,6 +361,12 @@ class FeaMaterialUpdateMaterialMenu extends HTMLElement {
         this.defineMaterialNameOptions();
     }
 
+    set feModelError(error) {
+        if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = error;
+        }
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {
@@ -482,18 +488,6 @@ class FeaMaterialUpdateMaterialMenu extends HTMLElement {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
                     "Note: The highlighted fields should be filled!";
-                return;
-            } else {
-                return;
-            }
-        }
-
-        const materialDataInProps = this.props.materials.find(material => material.young_modulus == inputtedYoungModulusField.value && 
-            material.poisson_ratio == inputtedPoissonRatio.value);
-        if (materialDataInProps != null) {
-            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                    "Note: The material with the same data does already exist!";
                 return;
             } else {
                 return;

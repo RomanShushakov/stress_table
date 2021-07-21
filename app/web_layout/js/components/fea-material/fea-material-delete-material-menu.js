@@ -237,6 +237,12 @@ class FeaMaterialDeleteMaterialMenu extends HTMLElement {
         this.defineMaterialNameOptions();
     }
 
+    set feModelError(error) {
+        if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = error;
+        }
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {

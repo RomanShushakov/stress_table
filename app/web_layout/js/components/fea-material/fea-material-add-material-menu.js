@@ -302,6 +302,12 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
         this.defineNewMaterialName();
     }
 
+    set feModelError(error) {
+        if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = error;
+        }
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {
@@ -394,33 +400,10 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
             }
         }
 
-        const materialNameInProps = this.props.materials.find(material => material.name == `"${newMaterialNameField.value}"`);
-        if (materialNameInProps != null) {
-            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                    "Note: The material with the same name does already exist!";
-                return;
-            } else {
-                return;
-            }
-        }
-
-        const materialDataInProps = this.props.materials.find(material => material.young_modulus == youngModulusField.value && 
-            material.poisson_ratio == poissonRatioField.value);
-        if (materialDataInProps != null) {
-            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                    "Note: The material with the same data does already exist!";
-                return;
-            } else {
-                return;
-            }
-        }
-
         if (this.isNumeric(youngModulusField.value) === false || this.isNumeric(poissonRatioField.value) === false) {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                    "Note: Only numbers could be used as input values for Young's modulus and Poisson's ratio!";
+                    "Note: Only numbers should be used as input values for Young's modulus and Poisson's ratio!";
                 return;
             } else {
                 return;

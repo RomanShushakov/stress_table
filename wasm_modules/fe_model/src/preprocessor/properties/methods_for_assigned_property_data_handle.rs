@@ -256,4 +256,18 @@ impl Properties
             return Err(JsValue::from(error_message));
         }
     }
+
+
+    pub fn extract_assigned_properties(&self, handler: js_sys::Function) -> Result<(), JsValue>
+    {
+        let extracted_assigned_properties = json!(
+            { "extracted_assigned_properties": self.assigned_properties });
+        let composed_extracted_assigned_properties =
+            JsValue::from_serde(&extracted_assigned_properties)
+                .or(Err(JsValue::from("Properties: Extract assigned properties: \
+                    Assigned properties could not be composed for extraction!")))?;
+        let this = JsValue::null();
+        let _ = handler.call1(&this, &composed_extracted_assigned_properties);
+        Ok(())
+    }
 }

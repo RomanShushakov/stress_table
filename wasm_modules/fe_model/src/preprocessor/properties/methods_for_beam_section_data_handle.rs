@@ -314,4 +314,18 @@ impl Properties
             return Err(JsValue::from(error_message));
         }
     }
+
+
+    pub fn extract_beam_sections(&self, handler: js_sys::Function) -> Result<(), JsValue>
+    {
+        let extracted_beam_sections = json!(
+            { "extracted_beam_sections": self.beam_sections });
+        let composed_extracted_beam_sections =
+            JsValue::from_serde(&extracted_beam_sections)
+                .or(Err(JsValue::from("Properties: Extract beam sections: Beam sections \
+                    could not be composed for extraction!")))?;
+        let this = JsValue::null();
+        let _ = handler.call1(&this, &composed_extracted_beam_sections);
+        Ok(())
+    }
 }

@@ -43,32 +43,21 @@ impl Geometry
                 point number {} and {} does already exist!", start_point_number, end_point_number);
             return Err(JsValue::from(error_message));
         }
-        let start_point_number =
-            {
-                if self.points.contains_key(&start_point_number)
-                {
-                    Ok(start_point_number)
-                }
-                else
-                {
-                    let error_message = &format!("Geometry: Add line action: Point with \
-                        number {} does not exist!", start_point_number);
-                    Err(JsValue::from(error_message))
-                }
-            }?;
-        let end_point_number =
-            {
-                if self.points.contains_key(&end_point_number)
-                {
-                    Ok(end_point_number)
-                }
-                else
-                {
-                    let error_message = &format!("Geometry: Add line action: Point with \
-                        number {} does not exist!", end_point_number);
-                    Err(JsValue::from(error_message))
-                }
-            }?;
+
+        if !self.points.contains_key(&start_point_number)
+        {
+            let error_message = &format!("Geometry: Add line action: Point with \
+                number {} does not exist!", start_point_number);
+            return Err(JsValue::from(error_message));
+        }
+
+        if !self.points.contains_key(&end_point_number)
+        {
+            let error_message = &format!("Geometry: Add line action: Point with \
+                number {} does not exist!", end_point_number);
+            return Err(JsValue::from(error_message));
+        }
+
         let line = Line::create( start_point_number, end_point_number);
         self.lines.insert(number, line);
         let detail = json!({ "line_data": { "number": number,

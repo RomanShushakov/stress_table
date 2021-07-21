@@ -595,6 +595,12 @@ class FeaPropertiesUpdatePropertiesMenu extends HTMLElement {
         this.definePropertiesNameOptions();
     }
 
+    set feModelError(error) {
+        if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = error;
+        }
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {
@@ -863,20 +869,6 @@ class FeaPropertiesUpdatePropertiesMenu extends HTMLElement {
         }
 
         const crossSectionTypeField = this.shadowRoot.querySelector(".cross-section-type");
-
-        const propertiesDataInProps = this.props.properties.find(properties =>
-            properties.material_name == `"${materialNameField.value}"` &&
-            properties.cross_section_type == `"${crossSectionTypeField.value}"` &&
-            properties.cross_section_name == `"${crossSectionNameField.value}"`);
-        if (propertiesDataInProps != null) {
-            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                this.shadowRoot.querySelector(".analysis-info-message").innerHTML =
-                    "Note: The properties with the same data does already exist!";
-                return;
-            } else {
-                return;
-            }
-        }
 
         this.getActionId();
 

@@ -35,8 +35,37 @@ impl Properties
             return Err(JsValue::from(error_message));
         }
 
+        if !self.materials.contains_key(material_name)
+        {
+            let error_message = &format!("Properties: Add properties action: \
+                Material with name {} does not exist!", material_name);
+            return Err(JsValue::from(error_message));
+        }
+
         let converted_cross_section_type =
             CrossSectionType::create(cross_section_type)?;
+
+        match converted_cross_section_type
+        {
+            CrossSectionType::Truss =>
+                {
+                    if !self.truss_sections.contains_key(cross_section_name)
+                    {
+                        let error_message = &format!("Properties: Add properties action: \
+                            Truss section with name {} does not exist!", cross_section_name);
+                        return Err(JsValue::from(error_message));
+                    }
+                },
+            CrossSectionType::Beam =>
+                {
+                    if !self.beam_sections.contains_key(cross_section_name)
+                    {
+                        let error_message = &format!("Properties: Add properties action: \
+                            Beam section with name {} does not exist!", cross_section_name);
+                        return Err(JsValue::from(error_message));
+                    }
+                },
+        }
 
         if self.properties.values().position(|property|
             property.data_same(material_name, cross_section_name, &converted_cross_section_type))
@@ -48,7 +77,7 @@ impl Properties
             return Err(JsValue::from(error_message));
         }
         let property = Property::create(material_name, cross_section_name,
-                                        converted_cross_section_type);
+            converted_cross_section_type);
         self.properties.insert(name.to_owned(), property);
         let detail = json!({ "properties_data": { "name": name,
             "material_name": material_name, "cross_section_name": cross_section_name,
@@ -67,8 +96,37 @@ impl Properties
     {
         self.clear_properties_module_by_action_id(action_id);
 
+        if !self.materials.contains_key(material_name)
+        {
+            let error_message = &format!("Properties: Update properties action: \
+                Material with name {} does not exist!", material_name);
+            return Err(JsValue::from(error_message));
+        }
+
         let converted_cross_section_type =
             CrossSectionType::create(cross_section_type)?;
+
+        match converted_cross_section_type
+        {
+            CrossSectionType::Truss =>
+                {
+                    if !self.truss_sections.contains_key(cross_section_name)
+                    {
+                        let error_message = &format!("Properties: Update properties action: \
+                            Truss section with name {} does not exist!", cross_section_name);
+                        return Err(JsValue::from(error_message));
+                    }
+                },
+            CrossSectionType::Beam =>
+                {
+                    if !self.beam_sections.contains_key(cross_section_name)
+                    {
+                        let error_message = &format!("Properties: Update properties action: \
+                            Beam section with name {} does not exist!", cross_section_name);
+                        return Err(JsValue::from(error_message));
+                    }
+                },
+        }
 
         if self.properties.values().position(|property|
             property.data_same(material_name, cross_section_name, &converted_cross_section_type))
@@ -112,7 +170,7 @@ impl Properties
         else
         {
              let error_message = format!("Properties: Update properties action: \
-                The properties with name {} could not be updated because it does not exist!",
+                The properties with name {} does not exist!",
                 name);
             Err(JsValue::from(&error_message))
         }
@@ -292,5 +350,19 @@ impl Properties
                 Properties with name {} do not exist!", name);
             return Err(JsValue::from(error_message));
         }
+    }
+
+
+    pub fn extract_properties(&self, handler: js_sys::Function) -> Result<(), JsValue>
+    {
+        let extracted_properties = json!(
+            { "extracted_properties": self.properties });
+        let composed_extracted_properties =
+            JsValue::from_serde(&extracted_properties)
+                .or(Err(JsValue::from("Properties: Extract properties: Properties \
+                    could not be composed for extraction!")))?;
+        let this = JsValue::null();
+        let _ = handler.call1(&this, &composed_extracted_properties);
+        Ok(())
     }
 }

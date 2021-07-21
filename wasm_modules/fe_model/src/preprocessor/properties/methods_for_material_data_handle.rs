@@ -301,4 +301,17 @@ impl Properties
             return Err(JsValue::from(error_message));
         }
     }
+
+
+    pub fn extract_materials(&self, handler: js_sys::Function) -> Result<(), JsValue>
+    {
+        let extracted_materials = json!({ "extracted_materials": self.materials });
+        let composed_extracted_materials =
+            JsValue::from_serde(&extracted_materials)
+                .or(Err(JsValue::from("Properties: Extract materials: Materials could not \
+                    be composed for extraction!")))?;
+        let this = JsValue::null();
+        let _ = handler.call1(&this, &composed_extracted_materials);
+        Ok(())
+    }
 }

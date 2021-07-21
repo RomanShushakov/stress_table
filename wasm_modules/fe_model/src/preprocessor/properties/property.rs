@@ -15,12 +15,12 @@ pub enum CrossSectionType
 
 impl CrossSectionType
 {
-    pub fn as_str(&self) -> String
+    pub fn as_str(&self) -> &'static str
     {
         match self
         {
-            CrossSectionType::Truss => String::from("Truss"),
-            CrossSectionType::Beam => String::from("Beam"),
+            CrossSectionType::Truss => "Truss",
+            CrossSectionType::Beam => "Beam",
         }
     }
 

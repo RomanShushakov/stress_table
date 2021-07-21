@@ -539,6 +539,12 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
         this.defineSectionNameOptions();
     }
 
+    set feModelError(error) {
+        if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = error;
+        }
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {
@@ -724,32 +730,7 @@ class FeaPropertiesAddPropertiesMenu extends HTMLElement {
             }
         }
 
-        const propertiesNameInProps = this.props.properties.find(properties => properties.name == `"${newPropertiesNameField.value}"`);
-        if (propertiesNameInProps != null) {
-            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                    "Note: The properties with the same name does already exist!";
-                return;
-            } else {
-                return;
-            }
-        }
-
         const crossSectionTypeField = this.shadowRoot.querySelector(".cross-section-type");
-        const propertiesDataInProps = this.props.properties.find(properties => 
-            properties.material_name == `"${materialNameField.value}"` && 
-            properties.cross_section_name == `"${crossSectionNameField.value}"` &&
-            properties.cross_section_type == `"${crossSectionTypeField.value}"`);
-            
-        if (propertiesDataInProps != null) {
-            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                    "Note: The properties with the same data does already exist!";
-                return;
-            } else {
-                return;
-            }
-        }
 
         this.getActionId();
 

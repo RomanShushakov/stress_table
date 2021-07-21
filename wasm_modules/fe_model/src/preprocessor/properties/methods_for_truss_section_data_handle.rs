@@ -249,4 +249,18 @@ impl Properties
             return Err(JsValue::from(error_message));
         }
     }
+
+
+    pub fn extract_truss_sections(&self, handler: js_sys::Function) -> Result<(), JsValue>
+    {
+        let extracted_truss_sections = json!(
+            { "extracted_truss_sections": self.truss_sections });
+        let composed_extracted_truss_sections =
+            JsValue::from_serde(&extracted_truss_sections)
+                .or(Err(JsValue::from("Properties: Extract truss sections: Truss sections \
+                    could not be composed for extraction!")))?;
+        let this = JsValue::null();
+        let _ = handler.call1(&this, &composed_extracted_truss_sections);
+        Ok(())
+    }
 }

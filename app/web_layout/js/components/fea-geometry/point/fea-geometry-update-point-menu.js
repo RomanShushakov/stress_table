@@ -425,6 +425,12 @@ class FeaGeometryUpdatePointMenu extends HTMLElement {
         this.definePointNumberOptions();
     }
 
+    set feModelError(error) {
+        if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = error;
+        }
+    }
+
     set selectPointInClient(pointNumber) {
         const frame = () => {
             if (this.props.isFEModelLoaded === true) {
@@ -575,20 +581,6 @@ class FeaGeometryUpdatePointMenu extends HTMLElement {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
                     "Note: The highlighted fields should be filled!";
-                return;
-            } else {
-                return;
-            }
-        }
-
-        const pointCoordinatesInProps = Array.from(this.props.points.values()).find(coordinates => 
-            coordinates.x == inputtedXField.value && 
-            coordinates.y == inputtedYField.value && 
-            coordinates.z == inputtedZField.value);
-        if (pointCoordinatesInProps != null) {
-            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                    "Note: The point with the same coordinates does already exist!";
                 return;
             } else {
                 return;

@@ -244,6 +244,12 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
         this.definePointNumberOptions();
     }
 
+    set feModelError(error) {
+        if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = error;
+        }
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {

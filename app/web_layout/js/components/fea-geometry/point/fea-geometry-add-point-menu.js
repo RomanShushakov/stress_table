@@ -366,6 +366,12 @@ class FeaGeometryAddPointMenu extends HTMLElement {
         this.defineNewPointNumber();
     }
 
+    set feModelError(error) {
+        if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = error;
+        }
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {
@@ -465,30 +471,6 @@ class FeaGeometryAddPointMenu extends HTMLElement {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
                     "Note: The highlighted fields should be filled!";
-                return;
-            } else {
-                return;
-            }
-        }
-
-        if (this.props.points.has(parseInt(newPointNumberField.value)) === true) {
-            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                    "Note: The point with the same number does already exist!";
-                return;
-            } else {
-                return;
-            }
-        }
-
-        const pointCoordinatesInProps = Array.from(this.props.points.values()).find(coordinates => 
-            coordinates.x == inputtedXField.value && 
-            coordinates.y == inputtedYField.value && 
-            coordinates.z == inputtedZField.value);
-        if (pointCoordinatesInProps != null) {
-            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                    "Note: The point with the same coordinates does already exist!";
                 return;
             } else {
                 return;

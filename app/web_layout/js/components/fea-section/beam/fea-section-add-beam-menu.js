@@ -484,6 +484,12 @@ class FeaSectionAddBeamMenu extends HTMLElement {
         this.defineNewBeamSectionName();
     }
 
+    set feModelError(error) {
+        if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = error;
+        }
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {
@@ -595,32 +601,6 @@ class FeaSectionAddBeamMenu extends HTMLElement {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
                     "Note: The highlighted fields should be filled!";
-                return;
-            } else {
-                return;
-            }
-        }
-
-        const beamSectionNameInProps = this.props.beamSections
-            .find(beamSection => beamSection.name == `"${newBeamSectionNameField.value}"`);
-        if (beamSectionNameInProps != null) {
-            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                    "Note: The beam section with the same name does already exist!";
-                return;
-            } else {
-                return;
-            }
-        }
-
-        const beamSectionDataInProps = this.props.beamSections
-            .find(beamSection => beamSection.area == areaField.value && 
-                beamSection.i11 == I11Field.value && beamSection.i22 == I22Field.value && 
-                beamSection.i12 == I12Field.value && beamSection.it == ItField.value);
-        if (beamSectionDataInProps != null) {
-            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                    "Note: The beam section with the same data does already exist!";
                 return;
             } else {
                 return;

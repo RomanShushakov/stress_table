@@ -83,7 +83,7 @@ impl Properties
         else
         {
              let error_message = format!("Properties: Update beam section action: \
-                The beam section with name {} could not be updated because it does not exist!",
+                The beam section with name {} does not exist!",
                 name);
             Err(JsValue::from(&error_message))
         }

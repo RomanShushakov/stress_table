@@ -543,6 +543,12 @@ class FeaSectionUpdateBeamMenu extends HTMLElement {
         this.defineBeamSectionNameOptions();
     }
 
+    set feModelError(error) {
+        if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = error;
+        }
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {
@@ -700,20 +706,6 @@ class FeaSectionUpdateBeamMenu extends HTMLElement {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
                     "Note: The highlighted fields should be filled!";
-                return;
-            } else {
-                return;
-            }
-        }
-
-        const beamSectionDataInProps = this.props.beamSections
-            .find(beamSection => beamSection.area == inputtedAreaField.value && 
-                beamSection.i11 == inputtedI11Field.value && beamSection.i22 == inputtedI22Field.value &&
-                beamSection.i12 == inputtedI12Field.value && beamSection.it == inputtedItField.value);
-        if (beamSectionDataInProps != null) {
-            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                    "Note: The beam section with the same data does already exist!";
                 return;
             } else {
                 return;

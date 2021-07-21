@@ -450,6 +450,12 @@ class FeaGeometryAddLineMenu extends HTMLElement {
         this.defineEndPointNumberOptions();
     }
 
+    set feModelError(error) {
+        if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = error;
+        }
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {
@@ -592,37 +598,6 @@ class FeaGeometryAddLineMenu extends HTMLElement {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
                     "Note: The highlighted fields should be filled!";
-                return;
-            } else {
-                return;
-            }
-        }
-        if (this.props.lines.has(parseInt(newLineNumberField.value)) === true) {
-            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                    "Note: The line with the same number does already exist!";
-                return;
-            } else {
-                return;
-            }
-        }
-        const linePointNumbersInProps = Array.from(this.props.lines.values()).find(lineNumbers => 
-            (lineNumbers.start_point_number == startPointField.value && lineNumbers.end_point_number == endPointField.value) ||
-            (lineNumbers.start_point_number == endPointField.value && lineNumbers.end_point_number == startPointField.value));
-        if (linePointNumbersInProps != null) {
-            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                    "Note: The line with the same start and end points does already exist!";
-                return;
-            } else {
-                return;
-            }
-        }
-
-        if (startPointField.value === endPointField.value) {
-            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                    "Note: The start and the end point numbers should not be the same!";
                 return;
             } else {
                 return;

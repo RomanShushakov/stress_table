@@ -29,6 +29,13 @@ impl Geometry
             return Err(JsValue::from(error_message));
         }
 
+        if start_point_number == end_point_number
+        {
+            let error_message = "Geometry: Add line action: The start and end point \
+                numbers should not be the same!";
+            return Err(JsValue::from(error_message));
+        }
+
         if self.lines.values().position(|line|  line.start_and_end_points_same(
             start_point_number, end_point_number)).is_some()
         {
@@ -77,6 +84,13 @@ impl Geometry
         end_point_number: FEUInt, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_geometry_module_by_action_id(action_id);
+
+        if start_point_number == end_point_number
+        {
+            let error_message = "Geometry: Update line action: The start and end point \
+                numbers should not be the same!";
+            return Err(JsValue::from(error_message));
+        }
 
         if self.lines.values().position(|line| line.start_and_end_points_same(
             start_point_number, end_point_number)).is_some()

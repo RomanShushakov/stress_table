@@ -503,6 +503,12 @@ class FeaGeometryUpdateLineMenu extends HTMLElement {
         this.defineLineNumberOptions();
     }
 
+    set feModelError(error) {
+        if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = error;
+        }
+    }
+
     set selectLineInClient(lineNumber) {
         const frame = () => {
             if (this.props.isFEModelLoaded === true) {
@@ -711,29 +717,6 @@ class FeaGeometryUpdateLineMenu extends HTMLElement {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
                     "Note: The highlighted fields should be filled!";
-                return;
-            } else {
-                return;
-            }
-        }
-
-        const linePointNumbersInProps = Array.from(this.props.lines.values()).find(line =>
-            (line.start_point_number == startPointField.value && line.end_point_number == endPointField.value) ||
-            (line.start_point_number == endPointField.value && line.end_point_number == startPointField.value));
-        if (linePointNumbersInProps != null) {
-            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                    "Note: The line with the same start and end points does already exist!";
-                return;
-            } else {
-                return;
-            }
-        }
-
-        if (startPointField.value === endPointField.value) {
-            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                    "Note: The start and the end point numbers should not be the same!";
                 return;
             } else {
                 return;

@@ -343,19 +343,17 @@ class FeaGeometryDeletePointMenu extends HTMLElement {
                 return;
             }
         }
-        if (this.props.points.has(parseInt(selectedPointNumberField.value))) {
-            
-            this.getActionId();
 
-            const message = {"delete_point": { "actionId": this.props.actionId, "number": parseInt(selectedPointNumberField.value) }};
-            this.dispatchEvent(new CustomEvent("clientMessage", {
-                bubbles: true,
-                composed: true,
-                detail: {
-                    message: message,
-                },
-            }));
-        }
+        this.getActionId();
+        
+        const message = {"delete_point": { "actionId": this.props.actionId, "number": parseInt(selectedPointNumberField.value) }};
+        this.dispatchEvent(new CustomEvent("clientMessage", {
+            bubbles: true,
+            composed: true,
+            detail: {
+                message: message,
+            },
+        }));
         this.shadowRoot.querySelector(".point-number-filter").value = null;
     }
 

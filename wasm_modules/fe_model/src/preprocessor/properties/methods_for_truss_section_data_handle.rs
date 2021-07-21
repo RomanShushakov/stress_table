@@ -80,7 +80,7 @@ impl Properties
         else
         {
              let error_message = format!("Properties: Update truss section action: \
-                The truss section with name {} could not be updated because it does not exist!",
+                The truss section with name {} does not exist!",
                 name);
             Err(JsValue::from(&error_message))
         }

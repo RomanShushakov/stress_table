@@ -361,6 +361,12 @@ class FeaSectionUpdateTrussMenu extends HTMLElement {
         this.defineTrussSectionNameOptions();
     }
 
+    set feModelError(error) {
+        if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = error;
+        }
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {
@@ -477,20 +483,6 @@ class FeaSectionUpdateTrussMenu extends HTMLElement {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
                     "Note: The highlighted fields should be filled!";
-                return;
-            } else {
-                return;
-            }
-        }
-
-        const trussSectionDataInProps = this.props.trussSections
-            .find(trussSection => trussSection.area == inputtedAreaField.value && 
-                (trussSection.area2 == inputtedArea2Field.value || 
-                    (trussSection.area2 === null && inputtedArea2Field.value === "")));
-        if (trussSectionDataInProps != null) {
-            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                    "Note: The truss section with the same data does already exist!";
                 return;
             } else {
                 return;

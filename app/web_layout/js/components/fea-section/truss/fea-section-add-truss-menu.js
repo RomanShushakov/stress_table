@@ -302,6 +302,12 @@ class FeaSectionAddTrussMenu extends HTMLElement {
         this.defineNewTrussSectionName();
     }
 
+    set feModelError(error) {
+        if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = error;
+        }
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {
@@ -384,31 +390,6 @@ class FeaSectionAddTrussMenu extends HTMLElement {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
                     "Note: The highlighted fields should be filled!";
-                return;
-            } else {
-                return;
-            }
-        }
-
-        const trussSectionNameInProps = this.props.trussSections
-            .find(trussSection => trussSection.name == `"${newTrussSectionNameField.value}"`);
-        if (trussSectionNameInProps != null) {
-            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                    "Note: The truss section with the same name does already exist!";
-                return;
-            } else {
-                return;
-            }
-        }
-
-        const trussSectionDataInProps = this.props.trussSections
-            .find(trussSection => trussSection.area == areaField.value && 
-                (trussSection.area2 == area2Field.value || (trussSection.area2 === null && area2Field.value === "")));
-        if (trussSectionDataInProps != null) {
-            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                    "Note: The truss section with the same data does already exist!";
                 return;
             } else {
                 return;

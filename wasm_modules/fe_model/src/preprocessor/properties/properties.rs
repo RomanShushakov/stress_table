@@ -11,7 +11,7 @@ use crate::preprocessor::properties::beam_section::{BeamSection, DeletedBeamSect
 use crate::preprocessor::properties::property::{Property, DeletedProperty};
 use crate::preprocessor::properties::assigned_property::
 {
-    AssignedProperty, ChangedAssignedProperty, DeletedAssignedProperty,
+    AssignedProperty, ChangedAssignedProperty, DeletedAssignedProperty, AssignedPropertyToLine,
 };
 use crate::preprocessor::properties::beam_section_orientation::
 {
@@ -36,6 +36,7 @@ pub struct Properties
     pub assigned_properties: HashMap<String, AssignedProperty>, // { property_name: AssignedProperties }
     pub changed_assigned_properties: HashMap<FEUInt, Vec<ChangedAssignedProperty>>,   // { action_id: Vec<ChangedAssignedProperty> }
     pub deleted_assigned_properties: HashMap<FEUInt, Vec<DeletedAssignedProperty>>,   // { action_id: Vec<DeletedAssignedProperty> }
+    pub assigned_properties_to_lines: HashMap<String, AssignedPropertyToLine>, // { property_name: AssignedProperties }
     pub beam_sections_orientations: Vec<BeamSectionOrientation>,
     pub changed_beam_sections_orientations: HashMap<FEUInt, Vec<BeamSectionOrientation>>,    // { action_id: Vec<BeamSectionOrientation> }
     pub deleted_beam_sections_orientations: HashMap<FEUInt, Vec<BeamSectionOrientation>>,   // { action_id: Vec<BeamSectionOrientation> }
@@ -57,6 +58,7 @@ impl Properties
         let assigned_properties = HashMap::new();
         let changed_assigned_properties = HashMap::new();
         let deleted_assigned_properties = HashMap::new();
+        let assigned_properties_to_lines = HashMap::new();
         let beam_sections_orientations = Vec::new();
         let changed_beam_sections_orientations = HashMap::new();
         let deleted_beam_sections_orientations = HashMap::new();
@@ -66,8 +68,10 @@ impl Properties
             beam_sections, deleted_beam_sections,
             properties, deleted_properties,
             assigned_properties, changed_assigned_properties,
-            deleted_assigned_properties, beam_sections_orientations,
-            changed_beam_sections_orientations, deleted_beam_sections_orientations,
+            deleted_assigned_properties,
+            assigned_properties_to_lines,
+            beam_sections_orientations, changed_beam_sections_orientations,
+            deleted_beam_sections_orientations,
         }
     }
 
@@ -292,14 +296,16 @@ impl Properties
             beam sections: {:?}, deleted beam sections: {:?}, \n
             properties: {:?}, deleted properties: {:?}, \n
             assigned_properties: {:?}, changed_assigned_properties: {:?}, \n
-            deleted_assigned_properties: {:?}, beam_sections_orientations: {:?}, \n
+            deleted_assigned_properties: {:?}, assigned_properties_to_lines: {:?}, \n
+            beam_sections_orientations: {:?}, \n
             changed_beam_sections_orientations: {:?}, deleted_beam_sections_orientations: {:?} \n",
             self.materials, self.deleted_materials,
             self.truss_sections, self.deleted_truss_sections,
             self.beam_sections, self.deleted_beam_sections,
             self.properties, self.deleted_properties,
             self.assigned_properties, self.changed_assigned_properties,
-            self.deleted_assigned_properties, self.beam_sections_orientations,
+            self.deleted_assigned_properties, self.assigned_properties_to_lines,
+            self.beam_sections_orientations,
             self.changed_beam_sections_orientations, self.deleted_beam_sections_orientations)
         );
     }

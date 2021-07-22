@@ -21,9 +21,9 @@ pub const ADD_PROPERTIES_MESSAGE_HEADER: &str = "add_properties";
 pub const UPDATE_PROPERTIES_MESSAGE_HEADER: &str = "update_properties";
 pub const DELETE_PROPERTIES_MESSAGE_HEADER: &str = "delete_properties";
 
-pub const ADD_ASSIGNED_PROPERTIES_MESSAGE_HEADER: &str = "add_assigned_properties";
-pub const UPDATE_ASSIGNED_PROPERTIES_MESSAGE_HEADER: &str = "update_assigned_properties";
-pub const DELETE_ASSIGNED_PROPERTIES_MESSAGE_HEADER: &str = "delete_assigned_properties";
+pub const ADD_ASSIGNED_PROPERTIES_TO_LINES_MESSAGE_HEADER: &str = "add_assigned_properties_to_lines";
+pub const UPDATE_ASSIGNED_PROPERTIES_TO_LINES_MESSAGE_HEADER: &str = "update_assigned_properties_to_lines";
+pub const DELETE_ASSIGNED_PROPERTIES_TO_LINES_MESSAGE_HEADER: &str = "delete_assigned_properties_to_lines";
 
 pub const ADD_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_MESSAGE_HEADER: &str =
     "add_beam_section_local_axis_1_direction";

@@ -26,15 +26,16 @@ use external_functions::communication_with_properties::
     delete_beam_section_from_properties, restore_beam_section_in_properties,
     add_properties_to_properties, update_properties_in_properties,
     delete_properties_from_properties, restore_properties_in_properties,
-    add_assigned_properties_to_properties, update_assigned_properties_in_properties,
-    delete_assigned_properties_from_properties, restore_assigned_properties_in_properties,
+    add_assigned_properties_to_lines_to_properties, update_assigned_properties_to_lines_in_properties,
+    delete_assigned_properties_to_lines_from_properties, restore_assigned_properties_to_lines_in_properties,
     add_beam_section_local_axis_1_direction_to_properties,
     remove_beam_section_local_axis_1_direction_from_properties,
     restore_beam_section_local_axis_1_direction_in_properties,
     update_beam_section_orientation_data_in_properties,
     clear_properties_module_by_action_id,
     extract_materials, extract_truss_sections, extract_beam_sections,
-    extract_properties, extract_assigned_properties, extract_beam_sections_orientations,
+    extract_properties, extract_assigned_properties, extract_assigned_properties_to_lines,
+    extract_beam_sections_orientations,
 };
 
 mod action;
@@ -54,8 +55,9 @@ use consts::
     DELETE_TRUSS_SECTION_MESSAGE_HEADER, ADD_BEAM_SECTION_MESSAGE_HEADER,
     UPDATE_BEAM_SECTION_MESSAGE_HEADER, DELETE_BEAM_SECTION_MESSAGE_HEADER,
     ADD_PROPERTIES_MESSAGE_HEADER, UPDATE_PROPERTIES_MESSAGE_HEADER,
-    DELETE_PROPERTIES_MESSAGE_HEADER, ADD_ASSIGNED_PROPERTIES_MESSAGE_HEADER,
-    UPDATE_ASSIGNED_PROPERTIES_MESSAGE_HEADER, DELETE_ASSIGNED_PROPERTIES_MESSAGE_HEADER,
+    DELETE_PROPERTIES_MESSAGE_HEADER, ADD_ASSIGNED_PROPERTIES_TO_LINES_MESSAGE_HEADER,
+    UPDATE_ASSIGNED_PROPERTIES_TO_LINES_MESSAGE_HEADER,
+    DELETE_ASSIGNED_PROPERTIES_TO_LINES_MESSAGE_HEADER,
     ADD_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_MESSAGE_HEADER,
     REMOVE_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_MESSAGE_HEADER,
     UPDATE_BEAM_SECTION_ORIENTATION_DATA_MESSAGE_HEADER,
@@ -434,21 +436,21 @@ impl ActionsRouter
                                     self.current_action = Some((action, add_to_active_actions));
                                 },
                             PropertiesActionType::RestoreProperties(_, _) => (),
-                            PropertiesActionType::AddAssignedProperties(
+                            PropertiesActionType::AddAssignedPropertiesToLines(
                                 assigned_properties_name,
                                 _line_numbers,
                                 _is_action_id_should_be_increased) =>
                                 {
                                     let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::from(
-                                        PropertiesActionType::DeleteAssignedProperties(
+                                        PropertiesActionType::DeleteAssignedPropertiesToLines(
                                             assigned_properties_name.clone(),
                                             is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
                                     let add_to_active_actions = false;
                                     self.current_action = Some((action, add_to_active_actions));
                                 },
-                            PropertiesActionType::UpdateAssignedProperties(
+                            PropertiesActionType::UpdateAssignedPropertiesToLines(
                                 assigned_properties_name,
                                 old_line_numbers,
                                 new_line_numbers,
@@ -456,7 +458,7 @@ impl ActionsRouter
                                 {
                                     let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::from(
-                                        PropertiesActionType::UpdateAssignedProperties(
+                                        PropertiesActionType::UpdateAssignedPropertiesToLines(
                                             assigned_properties_name.clone(),
                                             new_line_numbers.clone(),
                                             old_line_numbers.clone(),
@@ -465,20 +467,20 @@ impl ActionsRouter
                                     let add_to_active_actions = false;
                                     self.current_action = Some((action, add_to_active_actions));
                                 },
-                            PropertiesActionType::DeleteAssignedProperties(
+                            PropertiesActionType::DeleteAssignedPropertiesToLines(
                                 assigned_properties_name,
                                 _is_action_id_should_be_increased) =>
                                 {
                                     let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::from(
-                                        PropertiesActionType::RestoreAssignedProperties(
+                                        PropertiesActionType::RestoreAssignedPropertiesToLines(
                                             assigned_properties_name.clone(),
                                             is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
                                     let add_to_active_actions = false;
                                     self.current_action = Some((action, add_to_active_actions));
                                 },
-                            PropertiesActionType::RestoreAssignedProperties(_, _) => (),
+                            PropertiesActionType::RestoreAssignedPropertiesToLines(_, _) => (),
                             PropertiesActionType::AddBeamSectionLocalAxis1Direction(
                                 local_axis_1_direction,
                                 _is_action_id_should_be_increased) =>
@@ -928,13 +930,13 @@ impl ActionsRouter
                                         self.active_actions.push(action.clone());
                                     }
                                 },
-                            PropertiesActionType::AddAssignedProperties(
+                            PropertiesActionType::AddAssignedPropertiesToLines(
                                 properties_name,
                                 line_numbers,
                                 is_action_id_should_be_increased) =>
                                 {
                                     clear_geometry_module_by_action_id(action_id);
-                                    add_assigned_properties_to_properties(action_id,
+                                    add_assigned_properties_to_lines_to_properties(action_id,
                                         properties_name, line_numbers.as_slice(),
                                         *is_action_id_should_be_increased)?;
                                     if *add_to_active_actions == true
@@ -942,14 +944,14 @@ impl ActionsRouter
                                         self.active_actions.push(action.clone());
                                     }
                                 },
-                            PropertiesActionType::UpdateAssignedProperties(
+                            PropertiesActionType::UpdateAssignedPropertiesToLines(
                                 properties_name,
                                 _old_line_numbers,
                                 new_line_numbers,
                                 is_action_id_should_be_increased) =>
                                 {
                                     clear_geometry_module_by_action_id(action_id);
-                                    update_assigned_properties_in_properties(action_id,
+                                    update_assigned_properties_to_lines_in_properties(action_id,
                                         properties_name, new_line_numbers,
                                         *is_action_id_should_be_increased)?;
                                     if *add_to_active_actions == true
@@ -957,24 +959,23 @@ impl ActionsRouter
                                         self.active_actions.push(action.clone());
                                     }
                                 },
-                            PropertiesActionType::DeleteAssignedProperties(
+                            PropertiesActionType::DeleteAssignedPropertiesToLines(
                                 properties_name,
                                 is_action_id_should_be_increased) =>
                                 {
                                     clear_geometry_module_by_action_id(action_id);
-                                    delete_assigned_properties_from_properties(action_id,
-                                        properties_name,
-                                        *is_action_id_should_be_increased)?;
+                                    delete_assigned_properties_to_lines_from_properties(action_id,
+                                        properties_name, *is_action_id_should_be_increased)?;
                                     if *add_to_active_actions == true
                                     {
                                         self.active_actions.push(action.clone());
                                     }
                                 },
-                            PropertiesActionType::RestoreAssignedProperties(
+                            PropertiesActionType::RestoreAssignedPropertiesToLines(
                                 assigned_properties_name,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    restore_assigned_properties_in_properties(action_id,
+                                    restore_assigned_properties_to_lines_in_properties(action_id,
                                         assigned_properties_name,
                                         *is_action_id_should_be_increased)?;
                                     if *add_to_active_actions == true
@@ -1138,20 +1139,20 @@ impl ActionsRouter
         {
             self.handle_delete_properties_message(&properties_data)?;
         }
-        else if let Some(assigned_properties_data) = serialized_message
-            .get(ADD_ASSIGNED_PROPERTIES_MESSAGE_HEADER)
+        else if let Some(assigned_properties_to_lines_data) = serialized_message
+            .get(ADD_ASSIGNED_PROPERTIES_TO_LINES_MESSAGE_HEADER)
         {
-            self.handle_add_assigned_properties_message(&assigned_properties_data)?;
+            self.handle_add_assigned_properties_to_lines_message(&assigned_properties_to_lines_data)?;
         }
-        else if let Some(assigned_properties_data) = serialized_message
-            .get(UPDATE_ASSIGNED_PROPERTIES_MESSAGE_HEADER)
+        else if let Some(assigned_properties_to_lines_data) = serialized_message
+            .get(UPDATE_ASSIGNED_PROPERTIES_TO_LINES_MESSAGE_HEADER)
         {
-            self.handle_update_assigned_properties_message(&assigned_properties_data)?;
+            self.handle_update_assigned_properties_to_lines_message(&assigned_properties_to_lines_data)?;
         }
-        else if let Some(assigned_properties_data) = serialized_message
-            .get(DELETE_ASSIGNED_PROPERTIES_MESSAGE_HEADER)
+        else if let Some(assigned_properties_to_lines_data) = serialized_message
+            .get(DELETE_ASSIGNED_PROPERTIES_TO_LINES_MESSAGE_HEADER)
         {
-            self.handle_delete_assigned_properties_message(&assigned_properties_data)?;
+            self.handle_delete_assigned_properties_to_lines_message(&assigned_properties_to_lines_data)?;
         }
         else if let Some(local_axis_1_direction_data) = serialized_message
             .get(ADD_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_MESSAGE_HEADER)
@@ -1259,6 +1260,12 @@ impl ActionsRouter
     pub fn extract_assigned_properties(&self, handler: js_sys::Function)
     {
         extract_assigned_properties(handler);
+    }
+
+
+    pub fn extract_assigned_properties_to_lines(&self, handler: js_sys::Function)
+    {
+        extract_assigned_properties_to_lines(handler);
     }
 
 

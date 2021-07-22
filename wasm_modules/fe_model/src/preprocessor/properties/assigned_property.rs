@@ -1,5 +1,7 @@
 use serde::Serialize;
+use std::collections::HashMap;
 
+use crate::preprocessor::properties::beam_section_orientation::LocalAxis1Direction;
 use crate::types::FEUInt;
 
 
@@ -92,5 +94,26 @@ impl DeletedAssignedProperty
     {
         let line_numbers = self.assigned_property.extract_data();
         (&self.name, line_numbers)
+    }
+}
+
+
+#[derive(Debug, Clone, Serialize)]
+pub struct AssignedPropertyToLine
+{
+    related_lines_data: HashMap<FEUInt, Option<LocalAxis1Direction>>,
+}
+
+
+impl AssignedPropertyToLine
+{
+    pub fn create_initial(line_numbers: &[FEUInt]) -> Self
+    {
+        let mut related_lines_data = HashMap::new();
+        for line_number in line_numbers
+        {
+            related_lines_data.insert(*line_number, None);
+        }
+        AssignedPropertyToLine { related_lines_data }
     }
 }

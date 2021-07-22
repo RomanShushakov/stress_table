@@ -298,45 +298,45 @@ export function restorePropertiesInProperties(action_id, name, is_action_id_shou
     }
 }
 
-export function addAssignedPropertiesToProperties(action_id, name, line_numbers, is_action_id_should_be_increased) 
+export function addAssignedPropertiesToLinesToProperties(action_id, name, line_numbers, is_action_id_should_be_increased) 
 {
-    const assignedPropertiesData = { "action_id": action_id, "name": name, "line_numbers": line_numbers,
+    const assignedPropertiesToLinesData = { "action_id": action_id, "name": name, "line_numbers": line_numbers,
         "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
-        communicatorWithFEModel.addAssignedPropertiesToProperties = assignedPropertiesData;
+        communicatorWithFEModel.addAssignedPropertiesToLinesToProperties = assignedPropertiesToLinesData;
     } catch (error) {
         throw error;
     }
 }
 
-export function updateAssignedPropertiesInProperties(action_id, name, line_numbers, is_action_id_should_be_increased) 
+export function updateAssignedPropertiesToLinesInProperties(action_id, name, line_numbers, is_action_id_should_be_increased) 
 {
-    const assignedPropertiesData = { "action_id": action_id, "name": name, "line_numbers": line_numbers, 
+    const assignedPropertiesToLinesData = { "action_id": action_id, "name": name, "line_numbers": line_numbers, 
         "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
-        communicatorWithFEModel.updateAssignedPropertiesInProperties = assignedPropertiesData;
+        communicatorWithFEModel.updateAssignedPropertiesToLinesInProperties = assignedPropertiesToLinesData;
     } catch (error) {
         throw error;
     }
 }
 
-export function deleteAssignedPropertiesFromProperties(action_id, name, is_action_id_should_be_increased) 
+export function deleteAssignedPropertiesToLinesFromProperties(action_id, name, is_action_id_should_be_increased) 
 {
-    const assignedPropertiesData = { "action_id": action_id, "name": name, 
+    const assignedPropertiesToLinesData = { "action_id": action_id, "name": name, 
         "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
-        communicatorWithFEModel.deleteAssignedPropertiesFromProperties = assignedPropertiesData;
+        communicatorWithFEModel.deleteAssignedPropertiesToLinesFromProperties = assignedPropertiesToLinesData;
     } catch (error) {
         throw error;
     }
 }
 
-export function restoreAssignedPropertiesInProperties(action_id, name, is_action_id_should_be_increased) 
+export function restoreAssignedPropertiesToLinesInProperties(action_id, name, is_action_id_should_be_increased) 
 {
-    const assignedPropertiesData = { "action_id": action_id, "name": name, 
+    const assignedPropertiesToLinesData = { "action_id": action_id, "name": name, 
         "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
-        communicatorWithFEModel.restoreAssignedPropertiesInProperties = assignedPropertiesData;
+        communicatorWithFEModel.restoreAssignedPropertiesToLinesInProperties = assignedPropertiesToLinesData;
     } catch (error) {
         throw error;
     }
@@ -418,6 +418,11 @@ export function extractProperties(handler)
 export function extractAssignedProperties(handler) 
 {
     communicatorWithFEModel.extractAssignedProperties = handler;
+}
+
+export function extractAssignedPropertiesToLines(handler) 
+{
+    communicatorWithFEModel.extractAssignedPropertiesToLines = handler;
 }
 
 export function extractBeamSectionsOrientations(handler) 

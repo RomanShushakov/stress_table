@@ -266,37 +266,39 @@ class CommunicatorWithFEModel {
         }
     }
 
-    set addAssignedPropertiesToProperties(assignedPropertiesData) {
+    set addAssignedPropertiesToLinesToProperties(assignedPropertiesToLinesData) {
         try {
-            this.state.feModel.add_assigned_properties(assignedPropertiesData.action_id, assignedPropertiesData.name, 
-                assignedPropertiesData.line_numbers, assignedPropertiesData.is_action_id_should_be_increased);
+            this.state.feModel.add_assigned_properties_to_lines(assignedPropertiesToLinesData.action_id, 
+                assignedPropertiesToLinesData.name, assignedPropertiesToLinesData.line_numbers, 
+                assignedPropertiesToLinesData.is_action_id_should_be_increased);
         } catch (error) {
             throw error;
         }
     }
 
-    set updateAssignedPropertiesInProperties(assignedPropertiesData) {
+    set updateAssignedPropertiesToLinesInProperties(assignedPropertiesToLinesData) {
         try {
-            this.state.feModel.update_assigned_properties(assignedPropertiesData.action_id, assignedPropertiesData.name, 
-                assignedPropertiesData.line_numbers, assignedPropertiesData.is_action_id_should_be_increased);
+            this.state.feModel.update_assigned_properties_to_lines(assignedPropertiesToLinesData.action_id, 
+                assignedPropertiesToLinesData.name, assignedPropertiesToLinesData.line_numbers, 
+                assignedPropertiesToLinesData.is_action_id_should_be_increased);
         } catch (error) {
             throw error;
         }
     }
 
-    set deleteAssignedPropertiesFromProperties(assignedPropertiesData) {
+    set deleteAssignedPropertiesToLinesFromProperties(assignedPropertiesToLinesData) {
         try {
-            this.state.feModel.delete_assigned_properties(assignedPropertiesData.action_id,
-                assignedPropertiesData.name, assignedPropertiesData.is_action_id_should_be_increased);
+            this.state.feModel.delete_assigned_properties_to_lines(assignedPropertiesToLinesData.action_id,
+                assignedPropertiesToLinesData.name, assignedPropertiesToLinesData.is_action_id_should_be_increased);
         } catch (error) {
             throw error;
         }
     }
 
-    set restoreAssignedPropertiesInProperties(assignedPropertiesData) {
+    set restoreAssignedPropertiesToLinesInProperties(assignedPropertiesToLinesData) {
         try {
-            this.state.feModel.restore_assigned_properties(assignedPropertiesData.action_id, assignedPropertiesData.name, 
-                assignedPropertiesData.is_action_id_should_be_increased);
+            this.state.feModel.restore_assigned_properties_to_lines(assignedPropertiesToLinesData.action_id,
+                assignedPropertiesToLinesData.name, assignedPropertiesToLinesData.is_action_id_should_be_increased);
         } catch (error) {
             throw error;
         }
@@ -365,6 +367,10 @@ class CommunicatorWithFEModel {
 
     set extractAssignedProperties(handler) {
         this.state.feModel.extract_assigned_properties(handler);
+    }
+
+    set extractAssignedPropertiesToLines(handler) {
+        this.state.feModel.extract_assigned_properties_to_lines(handler);
     }
 
     set extractBeamSectionsOrientations(handler) {

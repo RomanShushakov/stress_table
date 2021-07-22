@@ -74,21 +74,20 @@ extern "C"
     pub fn restore_properties_in_properties(action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
-    #[wasm_bindgen(js_name = addAssignedPropertiesToProperties, catch)]
-    pub fn add_assigned_properties_to_properties(action_id: FEUInt, name: &str,
-        line_numbers: &[FEUInt], is_action_id_should_be_increased: bool)
-        -> Result<(), JsValue>;
-
-    #[wasm_bindgen(js_name = updateAssignedPropertiesInProperties, catch)]
-    pub fn update_assigned_properties_in_properties(action_id: FEUInt, name: &str,
+    #[wasm_bindgen(js_name = addAssignedPropertiesToLinesToProperties, catch)]
+    pub fn add_assigned_properties_to_lines_to_properties(action_id: FEUInt, name: &str,
         line_numbers: &[FEUInt], is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
-    #[wasm_bindgen(js_name = deleteAssignedPropertiesFromProperties, catch)]
-    pub fn delete_assigned_properties_from_properties(action_id: FEUInt, name: &str,
+    #[wasm_bindgen(js_name = updateAssignedPropertiesToLinesInProperties, catch)]
+    pub fn update_assigned_properties_to_lines_in_properties(action_id: FEUInt, name: &str,
+        line_numbers: &[FEUInt], is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
+
+    #[wasm_bindgen(js_name = deleteAssignedPropertiesToLinesFromProperties, catch)]
+    pub fn delete_assigned_properties_to_lines_from_properties(action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
-    #[wasm_bindgen(js_name = restoreAssignedPropertiesInProperties, catch)]
-    pub fn restore_assigned_properties_in_properties(action_id: FEUInt, name: &str,
+    #[wasm_bindgen(js_name = restoreAssignedPropertiesToLinesInProperties, catch)]
+    pub fn restore_assigned_properties_to_lines_in_properties(action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
     #[wasm_bindgen(js_name = addBeamSectionLocalAxis1DirectionToProperties, catch)]
@@ -128,6 +127,9 @@ extern "C"
 
     #[wasm_bindgen(js_name = extractAssignedProperties)]
     pub fn extract_assigned_properties(handler: js_sys::Function);
+
+    #[wasm_bindgen(js_name = extractAssignedPropertiesToLines)]
+    pub fn extract_assigned_properties_to_lines(handler: js_sys::Function);
 
     #[wasm_bindgen(js_name = extractBeamSectionsOrientations)]
     pub fn extract_beam_sections_orientations(handler: js_sys::Function);

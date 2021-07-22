@@ -216,34 +216,34 @@ impl FEModel
     }
 
 
-    pub fn add_assigned_properties(&mut self, action_id: FEUInt, name: &str, line_numbers: &[FEUInt],
-        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    pub fn add_assigned_properties_to_lines(&mut self, action_id: FEUInt, name: &str,
+        line_numbers: &[FEUInt], is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.preprocessor.add_assigned_properties(action_id, name, line_numbers,
+        self.preprocessor.add_assigned_properties_to_lines(action_id, name, line_numbers,
             is_action_id_should_be_increased)
     }
 
 
-    pub fn update_assigned_properties(&mut self, action_id: FEUInt, name: &str, line_numbers: &[FEUInt],
-        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    pub fn update_assigned_properties_to_lines(&mut self, action_id: FEUInt, name: &str,
+        line_numbers: &[FEUInt], is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.preprocessor.update_assigned_properties(action_id, name, line_numbers,
+        self.preprocessor.update_assigned_properties_to_lines(action_id, name, line_numbers,
             is_action_id_should_be_increased)
     }
 
 
-    pub fn delete_assigned_properties(&mut self, action_id: FEUInt, name: &str,
+    pub fn delete_assigned_properties_to_lines(&mut self, action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.preprocessor.delete_assigned_properties(action_id, name,
+        self.preprocessor.delete_assigned_properties_to_lines(action_id, name,
             is_action_id_should_be_increased)
     }
 
 
-    pub fn restore_assigned_properties(&mut self, action_id: FEUInt, name: &str,
+    pub fn restore_assigned_properties_to_lines(&mut self, action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.preprocessor.restore_assigned_properties(action_id, name,
+        self.preprocessor.restore_assigned_properties_to_lines(action_id, name,
             is_action_id_should_be_increased)
     }
 
@@ -313,6 +313,12 @@ impl FEModel
     pub fn extract_assigned_properties(&self, handler: js_sys::Function) -> Result<(), JsValue>
     {
         self.preprocessor.extract_assigned_properties(handler)
+    }
+
+
+    pub fn extract_assigned_properties_to_lines(&self, handler: js_sys::Function) -> Result<(), JsValue>
+    {
+        self.preprocessor.extract_assigned_properties_to_lines(handler)
     }
 
 

@@ -3,12 +3,13 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
         super();
 
         this.props = {
-            actionId: null,             // u32;
-            isFEModelLoaded: false,     // load status of wasm module "fe_model";
-            lines: new Map(),           // map: { number: u32, start_point_number: u32, end_point_number: u32 }, ...};
-            properties: [],             // array of: [{ name: String, material_name: String, cross_section_name: String,
-                                        //              cross_section_type: String }];
-            assignedProperties: [],     // array of: [{ name: String, line_numbers: [u32...] }];
+            actionId: null,                 // u32;
+            isFEModelLoaded: false,         // load status of wasm module "fe_model";
+            lines: new Map(),               // map: { number: u32, start_point_number: u32, end_point_number: u32 }, ...};
+            properties: [],                 // array of: [{ name: String, material_name: String, cross_section_name: String,
+                                            //              cross_section_type: String }];
+            assignedProperties: [],         // array of: [{ name: String, line_numbers: [u32...] }];
+            assignedPropertiesToLines: [],  // array of: [{ name: String, related_lines_data: object { number: [f64; 3] or null } }];
         };
 
         this.state = {
@@ -497,6 +498,10 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
         this.props.assignedProperties = value;
     }
 
+    set assignedPropertiesToLines(value) {
+        this.props.assignedPropertiesToLines = value;
+    }
+
     set addLineToClient(line) {
         this.props.lines.set(line.number, { "start_point_number": line.start_point_number, "end_point_number": line.end_point_number });
     }
@@ -566,7 +571,7 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
                 clearInterval(id);
                 this.getLines();
                 this.getProperties();
-                this.getAssignedProperties();
+                this.getAssignedPropertiesToLines();
                 this.definePropertiesNameOptions();
             }
         }
@@ -622,35 +627,19 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
         }));
     }
 
+    getAssignedPropertiesToLines() {
+        this.dispatchEvent(new CustomEvent("getAssignedPropertiesToLines", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
     addToSelectedLines(lineNumber) {
         const selectedLinesField = this.shadowRoot.querySelector(".selected-lines");
         let selectedLines = selectedLinesField.value
             .split(",")
             .map((item) => item.replace(/\s/g,'', ""))
             .filter((item) => item !== "");
-        for (let i = 0; i < selectedLines.length; i++) {
-            if (this.isNumeric(selectedLines[i]) === false) {
-                if (selectedLinesField.classList.contains("highlighted") === false) {
-                    selectedLinesField.classList.add("highlighted");
-                }
-                if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                    this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                        "Note: Only numbers could be used as selected lines values!";
-                }
-                return;
-            }
-            if (this.props.lines.has(parseInt(selectedLines[i])) === false) {
-                if (selectedLinesField.classList.contains("highlighted") === false) {
-                    selectedLinesField.classList.add("highlighted");
-                }
-                if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                    this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                        "Note: Only existed lines numbers could be used as selected lines values!";
-                }
-                return;
-            }
-
-        }
         selectedLines = selectedLines.map((item) => parseInt(item));
         this.state.selectedLines = new Set(selectedLines);
         this.state.selectedLines.add(lineNumber);
@@ -777,11 +766,11 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
     }
 
     updateSelectedPropertiesData(selectedPropertiesName) {
-        const selectedAssignedPropertiesInProps = this.props.assignedProperties
-            .find(existedAssignedProperties => existedAssignedProperties.name == `"${selectedPropertiesName}"`);
+        const selectedAssignedPropertiesToLinesInProps = this.props.assignedPropertiesToLines
+            .find(existedAssignedPropertiesToLines => existedAssignedPropertiesToLines.name == `"${selectedPropertiesName}"`);
         let assignToLinesFieldValue = "";
-        if (selectedAssignedPropertiesInProps !== undefined) {
-            let assignedToLines = selectedAssignedPropertiesInProps.line_numbers;
+        if (selectedAssignedPropertiesToLinesInProps !== undefined) {
+            let assignedToLines = Array.from(Object.keys(selectedAssignedPropertiesToLinesInProps.related_lines_data));
             this.state.assignToLines = new Set(assignedToLines);
             for (let i = 0; i < assignedToLines.length; i++) {
                 assignToLinesFieldValue += `${assignedToLines[i]}, `
@@ -876,16 +865,16 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
             }
             assignToLines[i] = Number.parseInt(assignToLines[i]);
         }
-        const assignPropertiesData = this.props.properties.find(properties => properties.name == `"${selectedPropertiesNameField.value}"`);
-        const selectedAssignedPropertiesInProps = this.props.assignedProperties
-            .find(existedAssignedProperties => existedAssignedProperties.name == `"${selectedPropertiesNameField.value}"`);
-        if (selectedAssignedPropertiesInProps !== undefined) {
+        const propertiesData = this.props.properties.find(properties => properties.name == `"${selectedPropertiesNameField.value}"`);
+        const selectedAssignedPropertiesToLinesInProps = this.props.assignedPropertiesToLines
+            .find(existedAssignedPropertiesToLines => existedAssignedPropertiesToLines.name == `"${selectedPropertiesNameField.value}"`);
+        if (selectedAssignedPropertiesToLinesInProps !== undefined) {
             if (assignToLines.length === 0) {
                 this.getActionId();
                 const message = { 
-                    "delete_assigned_properties": { 
+                    "delete_assigned_properties_to_lines": { 
                         "actionId": this.props.actionId,
-                        "name": assignPropertiesData.name.replace(/['"]+/g, ""),
+                        "name": propertiesData.name.replace(/['"]+/g, ""),
                     } 
                 };
                 this.dispatchEvent(new CustomEvent("clientMessage", {
@@ -896,25 +885,28 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
                     },
                 }));
             } else {
-                for (let i = 0; i < this.props.assignedProperties.length; i++) {
+                for (let i = 0; i < this.props.assignedPropertiesToLines.length; i++) {
                     for (let j = 0; j < assignToLines.length; j++) {
                         const numberInArray = (number) => number === assignToLines[j] && 
-                            this.props.assignedProperties[i].name !== `"${selectedPropertiesNameField.value}"`;
-                        if (this.props.assignedProperties[i].line_numbers.some(numberInArray) === true) {
+                            this.props.assignedPropertiesToLines[i].name !== `"${selectedPropertiesNameField.value}"`;
+                        const currentAssignedPropertyLineNumbers = Array.from(Object.keys(this.props.assignedProperties[i].related_lines_data));
+                        if (currentAssignedPropertyLineNumbers.some(numberInArray) === true) {
                             if (assignToLinesField.classList.contains("highlighted") === false) {
                                 assignToLinesField.classList.add("highlighted");
                             }
                             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
                                     `Note: At least one number from assign to lines field is already used in 
-                                    assigned properties ${this.props.assignedProperties[i].name}!`;
+                                    assigned properties ${this.props.assignedPropertiesToLines[i].name}!`;
                             }
                             return;
                         }
                     }
                 }
 
-                if (equals(selectedAssignedPropertiesInProps.line_numbers, assignToLines) === true) {
+                const selectedAssignedPropertiesLineNumbers = Array.from(Object.keys(selectedAssignedPropertiesToLinesInProps.related_lines_data));
+
+                if (equals(selectedAssignedPropertiesLineNumbers, assignToLines) === true) {
                     if (assignToLinesField.classList.contains("highlighted") === false) {
                         assignToLinesField.classList.add("highlighted");
                     }
@@ -927,13 +919,13 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
 
                 this.getActionId();
                 const message = {
-                    "update_assigned_properties": {
+                    "update_assigned_properties_to_lines": {
                         "actionId": this.props.actionId,
-                        "name": assignPropertiesData.name.replace(/['"]+/g, ""),
-                        "old_assigned_properties_values": {
-                            "line_numbers": selectedAssignedPropertiesInProps.line_numbers,
+                        "name": propertiesData.name.replace(/['"]+/g, ""),
+                        "old_assigned_properties_to_lines_values": {
+                            "line_numbers": selectedAssignedPropertiesLineNumbers,
                         },
-                        "new_assigned_properties_values": {
+                        "new_assigned_properties_to_lines_values": {
                             "line_numbers": assignToLines,
                         }
                     }
@@ -948,18 +940,19 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
             }
         } else {
             if (assignToLines.length > 0) {
-                for (let i = 0; i < this.props.assignedProperties.length; i++) {
+                for (let i = 0; i < this.props.assignedPropertiesToLines.length; i++) {
                     for (let j = 0; j < assignToLines.length; j++) {
                         const numberInArray = (number) => number === assignToLines[j] && 
-                            this.props.assignedProperties[i].name !== `"${selectedPropertiesNameField.value}"`;
-                        if (this.props.assignedProperties[i].line_numbers.some(numberInArray) === true) {
+                            this.props.assignedPropertiesToLines[i].name !== `"${selectedPropertiesNameField.value}"`;
+                        const currentAssignedPropertiesLineNumbers = Array.from(Object.keys(this.props.assignedProperties[i].related_lines_data));
+                        if (currentAssignedPropertiesLineNumbers.some(numberInArray) === true) {
                             if (assignToLinesField.classList.contains("highlighted") === false) {
                                 assignToLinesField.classList.add("highlighted");
                             }
                             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
                                     `Note: At least one number from assign to lines field is already used in 
-                                    assigned properties ${this.props.assignedProperties[i].name}!`;
+                                    assigned properties ${this.props.assignedPropertiesToLines[i].name}!`;
                             }
                             return;
                         }
@@ -967,9 +960,9 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
                 }
                 this.getActionId();
                 const message = { 
-                    "add_assigned_properties": { 
+                    "add_assigned_properties_to_lines": { 
                         "actionId": this.props.actionId,
-                        "name": assignPropertiesData.name.replace(/['"]+/g, ""),
+                        "name": propertiesData.name.replace(/['"]+/g, ""),
                         "line_numbers": assignToLines
                     } 
                 };

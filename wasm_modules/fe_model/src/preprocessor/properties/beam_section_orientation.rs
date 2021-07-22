@@ -65,3 +65,7 @@ impl BeamSectionOrientation
         }
     }
 }
+
+
+#[derive(Debug, Clone, Serialize)]
+pub struct LocalAxis1Direction(FEFloat, FEFloat, FEFloat);

@@ -121,6 +121,7 @@ class FeaApp extends HTMLElement {
         this.addEventListener("getBeamSections", (event) => this.getBeamSections(event));
         this.addEventListener("getProperties", (event) => this.getProperties(event));
         this.addEventListener("getAssignedProperties", (event) => this.getAssignedProperties(event));
+        this.addEventListener("getAssignedPropertiesToLines", (event) => this.getAssignedPropertiesToLines(event));
         this.addEventListener("getBeamSectionsOrientations", (event) => this.getBeamSectionsOrientations(event))
 
         this.addEventListener("selected_points", (event) => this.handleSelectedPointsMessage(event));
@@ -325,6 +326,26 @@ class FeaApp extends HTMLElement {
                         "name": key, "line_numbers": value.line_numbers,
                     }));
                 this.querySelector(event.target.tagName.toLowerCase()).assignedProperties = assignedProperties; 
+            }
+        );
+        event.stopPropagation();
+    }
+
+    getAssignedPropertiesToLines(event) {
+        this.state.actionsRouter.extract_assigned_properties_to_lines(
+            (extractedAssignedPropertiesToLinesData) => { 
+                let assignedPropertiesToLines = new Array();
+                const extractedAssignedPropertiesToLines = 
+                    Object.entries(extractedAssignedPropertiesToLinesData.extracted_assigned_properties_to_lines);
+                for (let i = 0; i < extractedAssignedPropertiesToLines.length; i++) {
+                    const relatedLinesData = extractedAssignedPropertiesToLines[i][1].related_lines_data;
+                    const assignedPropertyToLines = { 
+                        "name": extractedAssignedPropertiesToLines[i][0], 
+                        "related_lines_data": relatedLinesData,
+                    }
+                    assignedPropertiesToLines.push(assignedPropertyToLines)
+                }
+                this.querySelector(event.target.tagName.toLowerCase()).assignedPropertiesToLines = assignedPropertiesToLines; 
             }
         );
         event.stopPropagation();

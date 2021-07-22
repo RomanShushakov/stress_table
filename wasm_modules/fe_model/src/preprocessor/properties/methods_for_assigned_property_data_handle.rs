@@ -2,7 +2,10 @@ use wasm_bindgen::prelude::*;
 use serde_json::json;
 
 use crate::preprocessor::properties::properties::Properties;
-use crate::preprocessor::properties::assigned_property::{AssignedProperty, DeletedAssignedProperty};
+use crate::preprocessor::properties::assigned_property::
+{
+    AssignedProperty, DeletedAssignedProperty, AssignedPropertyToLine,
+};
 use crate::preprocessor::properties::consts::
 {
     ADD_ASSIGNED_PROPERTIES_EVENT_NAME, UPDATE_ASSIGNED_PROPERTIES_EVENT_NAME,
@@ -18,7 +21,7 @@ use crate::functions::{dispatch_custom_event};
 
 impl Properties
 {
-    pub fn add_assigned_properties(&mut self, action_id: FEUInt, name: &str,
+    pub fn add_assigned_properties_to_lines(&mut self, action_id: FEUInt, name: &str,
         line_numbers: &[FEUInt], is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_properties_module_by_action_id(action_id);
@@ -61,12 +64,17 @@ impl Properties
             "is_action_id_should_be_increased": is_action_id_should_be_increased });
         dispatch_custom_event(detail, ADD_ASSIGNED_PROPERTIES_EVENT_NAME,
             EVENT_TARGET)?;
+
+        let assigned_property_to_line = AssignedPropertyToLine::create_initial(
+            line_numbers);
+        self.assigned_properties_to_lines.insert(name.to_owned(), assigned_property_to_line);
+
         self.logging();
         Ok(())
     }
 
 
-    pub fn update_assigned_properties(&mut self, action_id: FEUInt, name: &str,
+    pub fn update_assigned_properties_to_lines(&mut self, action_id: FEUInt, name: &str,
         line_numbers: &[FEUInt], is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_properties_module_by_action_id(action_id);
@@ -122,7 +130,7 @@ impl Properties
     }
 
 
-    pub fn delete_assigned_properties(&mut self, action_id: FEUInt, name: &str,
+    pub fn delete_assigned_properties_to_lines(&mut self, action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_properties_module_by_action_id(action_id);
@@ -186,7 +194,7 @@ impl Properties
     }
 
 
-    pub fn restore_assigned_properties(&mut self, action_id: FEUInt, name: &str,
+    pub fn restore_assigned_properties_to_lines(&mut self, action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         if let Some(deleted_assigned_properties) =
@@ -268,6 +276,20 @@ impl Properties
                     Assigned properties could not be composed for extraction!")))?;
         let this = JsValue::null();
         let _ = handler.call1(&this, &composed_extracted_assigned_properties);
+        Ok(())
+    }
+
+
+    pub fn extract_assigned_properties_to_lines(&self, handler: js_sys::Function) -> Result<(), JsValue>
+    {
+        let extracted_assigned_properties_to_lines = json!(
+            { "extracted_assigned_properties_to_lines": self.assigned_properties_to_lines });
+        let composed_extracted_assigned_properties_to_lines =
+            JsValue::from_serde(&extracted_assigned_properties_to_lines)
+                .or(Err(JsValue::from("Properties: Extract assigned properties to lines: \
+                    Assigned properties to lines could not be composed for extraction!")))?;
+        let this = JsValue::null();
+        let _ = handler.call1(&this, &composed_extracted_assigned_properties_to_lines);
         Ok(())
     }
 }

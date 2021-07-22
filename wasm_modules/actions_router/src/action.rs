@@ -125,16 +125,16 @@ pub enum PropertiesActionType
     RestoreProperties(String, bool),
 
     // ( name, line_numbers, is_action_id_should_be_increased )
-    AddAssignedProperties(String, Vec<FEUInt>, bool),
+    AddAssignedPropertiesToLines(String, Vec<FEUInt>, bool),
 
     // ( name, old_line_numbers, new_line_numbers, is_action_id_should_be_increased )
-    UpdateAssignedProperties(String, Vec<FEUInt>, Vec<FEUInt>,  bool),
+    UpdateAssignedPropertiesToLines(String, Vec<FEUInt>, Vec<FEUInt>, bool),
 
     // ( name, is_action_id_should_be_increased )
-    DeleteAssignedProperties(String, bool),
+    DeleteAssignedPropertiesToLines(String, bool),
 
     // ( name, is_action_id_should_be_increased )
-    RestoreAssignedProperties(String, bool),
+    RestoreAssignedPropertiesToLines(String, bool),
 
     // ( local_axis_1_direction, is_action_id_should_be_increased )
     AddBeamSectionLocalAxis1Direction(Vec<FEFloat>, bool),

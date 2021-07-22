@@ -457,23 +457,23 @@ impl ActionsRouter
     }
 
 
-    pub(super) fn handle_add_assigned_properties_message(&mut self,
-        assigned_properties_data: &Value) -> Result<(), JsValue>
+    pub(super) fn handle_add_assigned_properties_to_lines_message(&mut self,
+        assigned_properties_to_lines_data: &Value) -> Result<(), JsValue>
     {
-        let action_id = assigned_properties_data["actionId"].to_string()
+        let action_id = assigned_properties_to_lines_data["actionId"].to_string()
             .parse::<FEUInt>()
-            .or(Err(JsValue::from("Actions router: Add assigned properties action: \
+            .or(Err(JsValue::from("Actions router: Add assigned properties to lines action: \
                 Action id could not be converted to FEUInt!")))?;
-        let name = assigned_properties_data["name"].to_string();
+        let name = assigned_properties_to_lines_data["name"].to_string();
         let line_numbers = serde_json::from_value::<Vec<FEUInt>>(
-            assigned_properties_data["line_numbers"].clone())
-            .or(Err(JsValue::from("Actions router: Add assigned properties action: \
+            assigned_properties_to_lines_data["line_numbers"].clone())
+            .or(Err(JsValue::from("Actions router: Add assigned properties to lines action: \
                 Line numbers could not be converted to FEUInt!")))?;
         self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
         let action_type = ActionType::from(
-            PropertiesActionType::AddAssignedProperties(name, line_numbers,
-                is_action_id_should_be_increased));
+            PropertiesActionType::AddAssignedPropertiesToLines(name,
+            line_numbers, is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
         let add_to_active_actions = true;
         self.current_action = Some((action, add_to_active_actions));
@@ -481,28 +481,31 @@ impl ActionsRouter
     }
 
 
-    pub(super) fn handle_update_assigned_properties_message(&mut self,
-        assigned_properties_data: &Value) -> Result<(), JsValue>
+    pub(super) fn handle_update_assigned_properties_to_lines_message(&mut self,
+        assigned_properties_to_lines_data: &Value) -> Result<(), JsValue>
     {
-        let action_id = assigned_properties_data["actionId"].to_string()
+        let action_id = assigned_properties_to_lines_data["actionId"].to_string()
             .parse::<FEUInt>()
-            .or(Err(JsValue::from("Actions router: Update assigned properties action: \
+            .or(Err(JsValue::from("Actions router: Update assigned properties to lines action: \
                 Action id could not be converted to FEUInt!")))?;
-        let name = assigned_properties_data["name"].to_string();
+        let name = assigned_properties_to_lines_data["name"].to_string();
 
         let old_line_numbers = serde_json::from_value::<Vec<FEUInt>>(
-            assigned_properties_data["old_assigned_properties_values"]["line_numbers"].clone())
-            .or(Err(JsValue::from("Actions router: Update assigned properties action: \
+            assigned_properties_to_lines_data["old_assigned_properties_to_lines_values"]
+                ["line_numbers"].clone())
+            .or(Err(JsValue::from("Actions router: Update assigned properties to lines action: \
                 Old line numbers could not be converted to FEUInt!")))?;
         let new_line_numbers = serde_json::from_value::<Vec<FEUInt>>(
-            assigned_properties_data["new_assigned_properties_values"]["line_numbers"].clone())
-            .or(Err(JsValue::from("Actions router: Update assigned properties action: \
+            assigned_properties_to_lines_data["new_assigned_properties_to_lines_values"]
+                ["line_numbers"].clone())
+            .or(Err(JsValue::from("Actions router: Update assigned properties to lines action: \
                 New line numbers could not be converted to FEUInt!")))?;
         self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
         let action_type = ActionType::from(
-            PropertiesActionType::UpdateAssignedProperties(name, old_line_numbers,
-                new_line_numbers, is_action_id_should_be_increased));
+            PropertiesActionType::UpdateAssignedPropertiesToLines(name,
+            old_line_numbers, new_line_numbers,
+            is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
         let add_to_active_actions = true;
         self.current_action = Some((action, add_to_active_actions));
@@ -510,18 +513,19 @@ impl ActionsRouter
     }
 
 
-    pub(super) fn handle_delete_assigned_properties_message(&mut self,
-        assigned_properties_data: &Value) -> Result<(), JsValue>
+    pub(super) fn handle_delete_assigned_properties_to_lines_message(&mut self,
+        assigned_properties_to_lines_data: &Value) -> Result<(), JsValue>
     {
-        let action_id = assigned_properties_data["actionId"].to_string()
+        let action_id = assigned_properties_to_lines_data["actionId"].to_string()
             .parse::<FEUInt>()
-            .or(Err(JsValue::from("Actions router: Delete assigned properties action: \
+            .or(Err(JsValue::from("Actions router: Delete assigned properties to lines action: \
                 Action id could not be converted to FEUInt!")))?;
-        let name = assigned_properties_data["name"].to_string();
+        let name = assigned_properties_to_lines_data["name"].to_string();
         self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
         let action_type = ActionType::from(
-            PropertiesActionType::DeleteAssignedProperties(name, is_action_id_should_be_increased));
+            PropertiesActionType::DeleteAssignedPropertiesToLines(name,
+            is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
         let add_to_active_actions = true;
         self.current_action = Some((action, add_to_active_actions));

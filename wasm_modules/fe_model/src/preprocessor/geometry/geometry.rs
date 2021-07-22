@@ -64,6 +64,19 @@ impl Geometry
     }
 
 
+    pub fn check_for_line_numbers_existence(&self, line_numbers: &[FEUInt]) -> bool
+    {
+        for line_number in line_numbers
+        {
+            if !self.lines.contains_key(line_number)
+            {
+                return false;
+            }
+        }
+        true
+    }
+
+
     pub fn logging(&self)
     {
         log(&format!("Geometry: \n

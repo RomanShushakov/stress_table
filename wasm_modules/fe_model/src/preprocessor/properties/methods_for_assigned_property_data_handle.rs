@@ -4,12 +4,12 @@ use serde_json::json;
 use crate::preprocessor::properties::properties::Properties;
 use crate::preprocessor::properties::assigned_property::
 {
-    AssignedProperty, DeletedAssignedProperty, AssignedPropertyToLine,
+    AssignedProperty, DeletedAssignedProperty, AssignedPropertyToLines,
 };
 use crate::preprocessor::properties::consts::
 {
-    ADD_ASSIGNED_PROPERTIES_EVENT_NAME, UPDATE_ASSIGNED_PROPERTIES_EVENT_NAME,
-    DELETE_ASSIGNED_PROPERTIES_EVENT_NAME, UPDATE_BEAM_SECTION_ORIENTATION_DATA_EVENT_NAME,
+    ADD_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME, UPDATE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
+    DELETE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME, UPDATE_BEAM_SECTION_ORIENTATION_DATA_EVENT_NAME,
 };
 
 use crate::types::{FEUInt};
@@ -26,48 +26,58 @@ impl Properties
     {
         self.clear_properties_module_by_action_id(action_id);
 
-        if self.assigned_properties.contains_key(&name.to_owned())
+        if !self.properties.contains_key(name)
         {
-            let error_message = &format!("Properties: Add assigned properties action: \
-                Assigned properties with name {} does already exist!", name);
+            let error_message = &format!("Properties: Add assigned properties to lines \
+                action: Properties with name {} does not exist!", name);
             return Err(JsValue::from(error_message));
         }
 
-        if self.assigned_properties.values().position(|assigned_property|
-            assigned_property.data_same(line_numbers)).is_some()
+        if self.assigned_properties_to_lines.contains_key(name)
         {
-            let error_message = &format!("Properties: Add assigned properties action: \
-                Assigned properties with Line numbers {:?} does already exist!", line_numbers);
+            let error_message = &format!("Properties: Add assigned properties to lines \
+                action: Assigned properties to lines with name {} does already exist!", name);
             return Err(JsValue::from(error_message));
         }
 
-        if self.assigned_properties.iter()
-            .position(|(assigned_property_name, assigned_property)|
-                assigned_property_name != name &&
-                assigned_property.is_contain_any_provided_line_number(line_numbers)).is_some()
+        if self.assigned_properties_to_lines.values()
+            .position(|assigned_property_to_lines|
+                assigned_property_to_lines.line_numbers_same(line_numbers)).is_some()
         {
-            let error_message = &format!("Properties: Add assigned properties action: \
-                At least one line number from {:?} is already used in assigned properties!",
+            let error_message = &format!("Properties: Add assigned properties to lines \
+                action: Assigned properties to lines with line numbers {:?} does already exist!",
                 line_numbers);
             return Err(JsValue::from(error_message));
         }
-        let assigned_property = AssignedProperty::create(line_numbers);
-        self.assigned_properties.insert(name.to_owned(), assigned_property);
+
+        if self.assigned_properties_to_lines.iter()
+            .position(|(assigned_property_to_lines_name, assigned_property_to_lines)|
+                assigned_property_to_lines_name != name &&
+                assigned_property_to_lines.check_for_line_numbers_intersection(line_numbers))
+            .is_some()
+        {
+            let error_message = &format!("Properties: Add assigned properties to lines \
+                action: At least one line number from {:?} is already used in another assigned \
+                properties to lines!", line_numbers);
+            return Err(JsValue::from(error_message));
+        }
+        let assigned_property_to_lines =
+            AssignedPropertyToLines::create_initial(line_numbers);
+        let related_lines_data =
+            assigned_property_to_lines.extract_related_lines_data();
+        self.assigned_properties_to_lines.insert(name.to_owned(), assigned_property_to_lines);
         let (_, _, cross_section_type) =
             self.properties.get(name).unwrap().extract_data();
-        let detail = json!({ "assigned_properties_data":
+        let detail = json!({ "assigned_properties_to_lines_data":
             {
                 "name": name,
+                "related_lines_data": related_lines_data,
                 "line_numbers": line_numbers,
                 "cross_section_type": cross_section_type.as_str().to_lowercase(),
             },
             "is_action_id_should_be_increased": is_action_id_should_be_increased });
-        dispatch_custom_event(detail, ADD_ASSIGNED_PROPERTIES_EVENT_NAME,
+        dispatch_custom_event(detail, ADD_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
             EVENT_TARGET)?;
-
-        let assigned_property_to_line = AssignedPropertyToLine::create_initial(
-            line_numbers);
-        self.assigned_properties_to_lines.insert(name.to_owned(), assigned_property_to_line);
 
         self.logging();
         Ok(())
@@ -115,8 +125,8 @@ impl Properties
                     "cross_section_type": cross_section_type.as_str().to_lowercase(),
                 },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
-            dispatch_custom_event(detail, UPDATE_ASSIGNED_PROPERTIES_EVENT_NAME,
-                EVENT_TARGET)?;
+            dispatch_custom_event(detail, UPDATE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
+                                  EVENT_TARGET)?;
             self.logging();
             Ok(())
         }
@@ -180,8 +190,8 @@ impl Properties
                     "line_numbers": assigned_property.extract_data(),
                 },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
-            dispatch_custom_event(detail, DELETE_ASSIGNED_PROPERTIES_EVENT_NAME,
-                EVENT_TARGET)?;
+            dispatch_custom_event(detail, DELETE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
+                                  EVENT_TARGET)?;
             self.logging();
             Ok(())
         }
@@ -225,8 +235,8 @@ impl Properties
                     "cross_section_type": cross_section_type.as_str().to_lowercase(),
                 },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
-            dispatch_custom_event(detail, ADD_ASSIGNED_PROPERTIES_EVENT_NAME,
-                EVENT_TARGET)?;
+            dispatch_custom_event(detail, ADD_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
+                                  EVENT_TARGET)?;
 
             if let Some(beam_sections_orientations) =
                 self.changed_beam_sections_orientations.remove(&action_id)
@@ -263,20 +273,6 @@ impl Properties
                 Assigned properties with name {} do not exist!", name);
             return Err(JsValue::from(error_message));
         }
-    }
-
-
-    pub fn extract_assigned_properties(&self, handler: js_sys::Function) -> Result<(), JsValue>
-    {
-        let extracted_assigned_properties = json!(
-            { "extracted_assigned_properties": self.assigned_properties });
-        let composed_extracted_assigned_properties =
-            JsValue::from_serde(&extracted_assigned_properties)
-                .or(Err(JsValue::from("Properties: Extract assigned properties: \
-                    Assigned properties could not be composed for extraction!")))?;
-        let this = JsValue::null();
-        let _ = handler.call1(&this, &composed_extracted_assigned_properties);
-        Ok(())
     }
 
 

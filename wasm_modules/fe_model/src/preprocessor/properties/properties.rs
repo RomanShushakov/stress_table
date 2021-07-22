@@ -11,7 +11,7 @@ use crate::preprocessor::properties::beam_section::{BeamSection, DeletedBeamSect
 use crate::preprocessor::properties::property::{Property, DeletedProperty};
 use crate::preprocessor::properties::assigned_property::
 {
-    AssignedProperty, ChangedAssignedProperty, DeletedAssignedProperty, AssignedPropertyToLine,
+    AssignedProperty, ChangedAssignedProperty, DeletedAssignedProperty, AssignedPropertyToLines,
 };
 use crate::preprocessor::properties::beam_section_orientation::
 {
@@ -36,7 +36,7 @@ pub struct Properties
     pub assigned_properties: HashMap<String, AssignedProperty>, // { property_name: AssignedProperties }
     pub changed_assigned_properties: HashMap<FEUInt, Vec<ChangedAssignedProperty>>,   // { action_id: Vec<ChangedAssignedProperty> }
     pub deleted_assigned_properties: HashMap<FEUInt, Vec<DeletedAssignedProperty>>,   // { action_id: Vec<DeletedAssignedProperty> }
-    pub assigned_properties_to_lines: HashMap<String, AssignedPropertyToLine>, // { property_name: AssignedProperties }
+    pub assigned_properties_to_lines: HashMap<String, AssignedPropertyToLines>, // { property_name: AssignedProperties }
     pub beam_sections_orientations: Vec<BeamSectionOrientation>,
     pub changed_beam_sections_orientations: HashMap<FEUInt, Vec<BeamSectionOrientation>>,    // { action_id: Vec<BeamSectionOrientation> }
     pub deleted_beam_sections_orientations: HashMap<FEUInt, Vec<BeamSectionOrientation>>,   // { action_id: Vec<BeamSectionOrientation> }

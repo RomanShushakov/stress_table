@@ -125,9 +125,6 @@ extern "C"
     #[wasm_bindgen(js_name = extractProperties)]
     pub fn extract_properties(handler: js_sys::Function);
 
-    #[wasm_bindgen(js_name = extractAssignedProperties)]
-    pub fn extract_assigned_properties(handler: js_sys::Function);
-
     #[wasm_bindgen(js_name = extractAssignedPropertiesToLines)]
     pub fn extract_assigned_properties_to_lines(handler: js_sys::Function);
 

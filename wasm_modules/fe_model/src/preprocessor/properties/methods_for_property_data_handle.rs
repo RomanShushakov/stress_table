@@ -8,8 +8,8 @@ use crate::preprocessor::properties::assigned_property::{AssignedProperty, Delet
 use crate::preprocessor::properties::consts::
 {
     ADD_PROPERTIES_EVENT_NAME, UPDATE_PROPERTIES_EVENT_NAME,
-    DELETE_PROPERTIES_EVENT_NAME, ADD_ASSIGNED_PROPERTIES_EVENT_NAME,
-    DELETE_ASSIGNED_PROPERTIES_EVENT_NAME, UPDATE_LINES_COLOR_EVENT_NAME,
+    DELETE_PROPERTIES_EVENT_NAME, ADD_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
+    DELETE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME, UPDATE_LINES_COLOR_EVENT_NAME,
     UPDATE_BEAM_SECTION_ORIENTATION_DATA_EVENT_NAME,
 };
 
@@ -232,8 +232,8 @@ impl Properties
                     "line_numbers": assigned_property.extract_data(),
                 },
                 "is_action_id_should_be_increased": false });
-            dispatch_custom_event(detail, DELETE_ASSIGNED_PROPERTIES_EVENT_NAME,
-                EVENT_TARGET)?;
+            dispatch_custom_event(detail, DELETE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
+                                  EVENT_TARGET)?;
         }
         if !deleted_assigned_properties.is_empty()
         {
@@ -311,8 +311,8 @@ impl Properties
                             "cross_section_type": cross_section_type.as_str().to_lowercase(),
                         },
                         "is_action_id_should_be_increased": is_action_id_should_be_increased });
-                    dispatch_custom_event(detail, ADD_ASSIGNED_PROPERTIES_EVENT_NAME,
-                        EVENT_TARGET)?;
+                    dispatch_custom_event(detail, ADD_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
+                                          EVENT_TARGET)?;
                 }
             }
             if let Some(beam_sections_orientations) =

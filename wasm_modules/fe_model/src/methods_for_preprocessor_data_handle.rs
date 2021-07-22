@@ -310,12 +310,6 @@ impl FEModel
     }
 
 
-    pub fn extract_assigned_properties(&self, handler: js_sys::Function) -> Result<(), JsValue>
-    {
-        self.preprocessor.extract_assigned_properties(handler)
-    }
-
-
     pub fn extract_assigned_properties_to_lines(&self, handler: js_sys::Function) -> Result<(), JsValue>
     {
         self.preprocessor.extract_assigned_properties_to_lines(handler)

@@ -99,13 +99,13 @@ impl DeletedAssignedProperty
 
 
 #[derive(Debug, Clone, Serialize)]
-pub struct AssignedPropertyToLine
+pub struct AssignedPropertyToLines
 {
     related_lines_data: HashMap<FEUInt, Option<LocalAxis1Direction>>,
 }
 
 
-impl AssignedPropertyToLine
+impl AssignedPropertyToLines
 {
     pub fn create_initial(line_numbers: &[FEUInt]) -> Self
     {
@@ -114,6 +114,42 @@ impl AssignedPropertyToLine
         {
             related_lines_data.insert(*line_number, None);
         }
-        AssignedPropertyToLine { related_lines_data }
+        AssignedPropertyToLines { related_lines_data }
+    }
+
+
+    pub fn line_numbers_same(&self, line_numbers: &[FEUInt]) -> bool
+    {
+        for line_number in line_numbers
+        {
+            if !self.related_lines_data.contains_key(line_number)
+            {
+                return false;
+            }
+        }
+        if self.related_lines_data.keys().len() != line_numbers.len()
+        {
+            return false;
+        }
+        true
+    }
+
+
+    pub fn check_for_line_numbers_intersection(&self, line_numbers: &[FEUInt]) -> bool
+    {
+        for line_number in line_numbers
+        {
+            if self.related_lines_data.contains_key(line_number)
+            {
+                return true;
+            }
+        }
+        false
+    }
+
+
+    pub fn extract_related_lines_data(&self) -> HashMap<FEUInt, Option<LocalAxis1Direction>>
+    {
+        self.related_lines_data.clone()
     }
 }

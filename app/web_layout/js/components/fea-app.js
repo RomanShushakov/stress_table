@@ -58,7 +58,7 @@ class FeaApp extends HTMLElement {
                 "fea-properties-assign-properties-menu",
                 "fea-properties-beam-section-orientation-menu",
             ],
-            assignedPropertiesDataDependentMenus: [
+            assignedPropertiesToLinesDataDependentMenus: [
                 "fea-properties-assign-properties-menu",
                 "fea-properties-beam-section-orientation-menu",
             ],
@@ -120,7 +120,6 @@ class FeaApp extends HTMLElement {
         this.addEventListener("getTrussSections", (event) => this.getTrussSections(event));
         this.addEventListener("getBeamSections", (event) => this.getBeamSections(event));
         this.addEventListener("getProperties", (event) => this.getProperties(event));
-        this.addEventListener("getAssignedProperties", (event) => this.getAssignedProperties(event));
         this.addEventListener("getAssignedPropertiesToLines", (event) => this.getAssignedPropertiesToLines(event));
         this.addEventListener("getBeamSectionsOrientations", (event) => this.getBeamSectionsOrientations(event))
 
@@ -160,9 +159,12 @@ class FeaApp extends HTMLElement {
         this.addEventListener("update_properties_server_message", (event) => this.handleUpdatePropertiesServerMessage(event));
         this.addEventListener("delete_properties_server_message", (event) => this.handleDeletePropertiesServerMessage(event));
 
-        this.addEventListener("add_assigned_properties_server_message", (event) => this.handleAddAssignedPropertiesServerMessage(event));
-        this.addEventListener("update_assigned_properties_server_message", (event) => this.handleUpdateAssignedPropertiesServerMessage(event));
-        this.addEventListener("delete_assigned_properties_server_message", (event) => this.handleDeleteAssignedPropertiesServerMessage(event));
+        this.addEventListener("add_assigned_properties_to_lines_server_message", 
+            (event) => this.handleAddAssignedPropertiesToLinesServerMessage(event));
+        this.addEventListener("update_assigned_properties_to_lines_server_message", 
+            (event) => this.handleUpdateAssignedPropertiesToLinesServerMessage(event));
+        this.addEventListener("delete_assigned_properties_to_lines_server_message", 
+            (event) => this.handleDeleteAssignedPropertiesToLinesServerMessage(event));
 
         this.addEventListener("add_beam_section_local_axis_1_direction_server_message", 
             (event) => this.handleAddBeamSectionLocalAxis1DirectionServerMessage(event));
@@ -312,20 +314,6 @@ class FeaApp extends HTMLElement {
                         "cross_section_type": `"${value.cross_section_type.toLowerCase()}"`,
                     }));
                 this.querySelector(event.target.tagName.toLowerCase()).properties = properties; 
-            }
-        );
-        event.stopPropagation();
-    }
-
-    getAssignedProperties(event) {
-        this.state.actionsRouter.extract_assigned_properties(
-            (extractedAssignedPropertiesData) => { 
-                const assignedProperties = Array.from(
-                    Object.entries(extractedAssignedPropertiesData.extracted_assigned_properties),
-                    ([key, value]) => ({
-                        "name": key, "line_numbers": value.line_numbers,
-                    }));
-                this.querySelector(event.target.tagName.toLowerCase()).assignedProperties = assignedProperties; 
             }
         );
         event.stopPropagation();
@@ -591,6 +579,7 @@ class FeaApp extends HTMLElement {
             } else {
                 this.querySelector(event.target.tagName.toLowerCase()).feModelError = error;
             }
+            throw error;
         }
         event.stopPropagation();
     }
@@ -879,67 +868,67 @@ class FeaApp extends HTMLElement {
         event.stopPropagation();
     }
 
-    handleAddAssignedPropertiesServerMessage(event) {
+    handleAddAssignedPropertiesToLinesServerMessage(event) {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;   
         }
-        const assignedProperties = { 
-            name: event.detail.assigned_properties_data.name,
-            line_numbers: event.detail.assigned_properties_data.line_numbers,
+        const assignedPropertiesToLines = { 
+            name: event.detail.assigned_properties_to_lines_data.name,
+            related_lines_data: event.detail.assigned_properties_to_lines_data.related_lines_data,
         };
-        for (let i = 0; i < this.state.assignedPropertiesDataDependentMenus.length; i++) {
-            if (this.querySelector(this.state.assignedPropertiesDataDependentMenus[i]) !== null) {
-                this.querySelector(this.state.assignedPropertiesDataDependentMenus[i])
-                    .addAssignedPropertiesToClient = assignedProperties;
+        for (let i = 0; i < this.state.assignedPropertiesToLinesDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.assignedPropertiesToLinesDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.assignedPropertiesToLinesDataDependentMenus[i])
+                    .addAssignedPropertiesToLinesToClient = assignedPropertiesToLines;
             }
         } 
         const linesColorSchemeData = {
-            line_numbers: event.detail.assigned_properties_data.line_numbers,
-            old_line_numbers: event.detail.assigned_properties_data.old_line_numbers,
-            cross_section_type: event.detail.assigned_properties_data.cross_section_type,
+            line_numbers: event.detail.assigned_properties_to_lines_data.line_numbers,
+            old_line_numbers: event.detail.assigned_properties_to_lines_data.old_line_numbers,
+            cross_section_type: event.detail.assigned_properties_to_lines_data.cross_section_type,
         }
         this.shadowRoot.querySelector("fea-renderer").updateLinesColorScheme = linesColorSchemeData;
         event.stopPropagation();
     }
 
-    handleUpdateAssignedPropertiesServerMessage(event) {
+    handleUpdateAssignedPropertiesToLinesServerMessage(event) {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;   
         }
-        const assignedProperties = { 
-            name: event.detail.assigned_properties_data.name,
-            line_numbers: event.detail.assigned_properties_data.line_numbers,
+        const assignedPropertiesToLines = { 
+            name: event.detail.assigned_properties_to_lines_data.name,
+            related_lines_data: event.detail.assigned_properties_to_lines_data.related_lines_data,
         };
-        for (let i = 0; i < this.state.assignedPropertiesDataDependentMenus.length; i++) {
-            if (this.querySelector(this.state.assignedPropertiesDataDependentMenus[i]) !== null) {
-                this.querySelector(this.state.assignedPropertiesDataDependentMenus[i])
-                    .updateAssignedPropertiesInClient = assignedProperties;
+        for (let i = 0; i < this.state.assignedPropertiesToLinesDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.assignedPropertiesToLinesDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.assignedPropertiesToLinesDataDependentMenus[i])
+                    .updateAssignedPropertiesToLinesInClient = assignedPropertiesToLines;
             }
         } 
         const linesColorSchemeData = {
-            line_numbers: event.detail.assigned_properties_data.line_numbers,
-            old_line_numbers: event.detail.assigned_properties_data.old_line_numbers,
-            cross_section_type: event.detail.assigned_properties_data.cross_section_type,
+            line_numbers: event.detail.assigned_properties_to_lines_data.line_numbers,
+            old_line_numbers: event.detail.assigned_properties_to_lines_data.old_line_numbers,
+            cross_section_type: event.detail.assigned_properties_to_lines_data.cross_section_type,
         }
         this.shadowRoot.querySelector("fea-renderer").updateLinesColorScheme = linesColorSchemeData;
         event.stopPropagation();
     }
 
-    handleDeleteAssignedPropertiesServerMessage(event) {
+    handleDeleteAssignedPropertiesToLinesServerMessage(event) {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;           
         }
-        const assignedProperties = { name: event.detail.assigned_properties_data.name };
-        for (let i = 0; i < this.state.assignedPropertiesDataDependentMenus.length; i++) {
-            if (this.querySelector(this.state.assignedPropertiesDataDependentMenus[i]) !== null) {
-                this.querySelector(this.state.assignedPropertiesDataDependentMenus[i])
-                    .deleteAssignedPropertiesFromClient = assignedProperties;
+        const assignedPropertiesToLines = { name: event.detail.assigned_properties_to_lines_data.name };
+        for (let i = 0; i < this.state.assignedPropertiesToLinesDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.assignedPropertiesToLinesDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.assignedPropertiesToLinesDataDependentMenus[i])
+                    .deleteAssignedPropertiesToLinesFromClient = assignedPropertiesToLines;
             }
         } 
         const linesColorSchemeData = {
-            line_numbers: event.detail.assigned_properties_data.line_numbers,
-            old_line_numbers: event.detail.assigned_properties_data.old_line_numbers,
-            cross_section_type: event.detail.assigned_properties_data.cross_section_type,
+            line_numbers: event.detail.assigned_properties_to_lines_data.line_numbers,
+            old_line_numbers: event.detail.assigned_properties_to_lines_data.old_line_numbers,
+            cross_section_type: event.detail.assigned_properties_to_lines_data.cross_section_type,
         }
         this.shadowRoot.querySelector("fea-renderer").updateLinesColorScheme = linesColorSchemeData;
         event.stopPropagation();

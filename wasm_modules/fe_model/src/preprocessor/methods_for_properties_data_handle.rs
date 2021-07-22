@@ -144,6 +144,12 @@ impl Preprocessor
     pub fn add_assigned_properties_to_lines(&mut self, action_id: FEUInt, name: &str,
         line_numbers: &[FEUInt], is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
+        if !self.geometry.check_for_line_numbers_existence(line_numbers)
+        {
+            let error_message = "Properties: Add assigned properties to lines \
+                action: At least one line number from selected line numbers does not exist!";
+            return Err(JsValue::from(error_message));
+        }
         self.properties.add_assigned_properties_to_lines(action_id, name, line_numbers,
             is_action_id_should_be_increased)
     }
@@ -232,12 +238,6 @@ impl Preprocessor
     pub fn extract_properties(&self, handler: js_sys::Function) -> Result<(), JsValue>
     {
         self.properties.extract_properties(handler)
-    }
-
-
-    pub fn extract_assigned_properties(&self, handler: js_sys::Function) -> Result<(), JsValue>
-    {
-        self.properties.extract_assigned_properties(handler)
     }
 
 

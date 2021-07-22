@@ -8,8 +8,8 @@ use crate::preprocessor::properties::assigned_property::
 };
 use crate::preprocessor::properties::consts::
 {
-    ADD_ASSIGNED_PROPERTIES_EVENT_NAME, UPDATE_ASSIGNED_PROPERTIES_EVENT_NAME,
-    DELETE_ASSIGNED_PROPERTIES_EVENT_NAME,
+    ADD_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME, UPDATE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
+    DELETE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
 };
 
 use crate::types::{FEUInt};
@@ -79,8 +79,8 @@ impl Properties
                         "cross_section_type": cross_section_type.as_str().to_lowercase(),
                     },
                     "is_action_id_should_be_increased": false });
-                dispatch_custom_event(detail, UPDATE_ASSIGNED_PROPERTIES_EVENT_NAME,
-                    EVENT_TARGET)?;
+                dispatch_custom_event(detail, UPDATE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
+                                      EVENT_TARGET)?;
             }
             else
             {
@@ -97,8 +97,8 @@ impl Properties
                     },
                     "is_action_id_should_be_increased": false });
                 dispatch_custom_event(detail,
-                    DELETE_ASSIGNED_PROPERTIES_EVENT_NAME,
-                    EVENT_TARGET)?;
+                                      DELETE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
+                                      EVENT_TARGET)?;
             }
         }
         if !changed_assigned_properties.is_empty()
@@ -151,8 +151,8 @@ impl Properties
                         },
                         "is_action_id_should_be_increased": false });
                     dispatch_custom_event(detail,
-                        UPDATE_ASSIGNED_PROPERTIES_EVENT_NAME,
-                        EVENT_TARGET)?;
+                                          UPDATE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
+                                          EVENT_TARGET)?;
                 }
                 else
                 {
@@ -189,8 +189,8 @@ impl Properties
                     },
                     "is_action_id_should_be_increased": false });
                 dispatch_custom_event(detail,
-                    ADD_ASSIGNED_PROPERTIES_EVENT_NAME,
-                    EVENT_TARGET)?;
+                                      ADD_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
+                                      EVENT_TARGET)?;
             }
         }
         self.logging();

@@ -89,44 +89,57 @@ impl Properties
     {
         self.clear_properties_module_by_action_id(action_id);
 
-        if self.assigned_properties.values().position(|assigned_property|
-            assigned_property.data_same(line_numbers)).is_some()
+        if !self.properties.contains_key(name)
         {
-            let error_message = &format!("Properties: Update assigned properties action: \
-                Assigned properties with line numbers {:?} does already exist!",
-                    line_numbers);
+            let error_message = &format!("Properties: Update assigned properties to lines \
+                action: Properties with name {} does not exist!", name);
             return Err(JsValue::from(error_message));
         }
 
-        if self.assigned_properties.iter()
-            .position(|(assigned_property_name, assigned_property)|
-                assigned_property_name != name &&
-                assigned_property.is_contain_any_provided_line_number(line_numbers)).is_some()
+        if self.assigned_properties_to_lines.values()
+            .position(|assigned_property_to_lines|
+                assigned_property_to_lines.line_numbers_same(line_numbers)).is_some()
         {
-            let error_message = &format!("Properties: Update assigned properties action: \
-                At least one line number from {:?} is already used in assigned properties!",
+            let error_message = &format!("Properties: Update assigned properties to lines \
+                action: Assigned properties to lines with line numbers {:?} does already exist!",
                 line_numbers);
             return Err(JsValue::from(error_message));
         }
 
-        if let Some(assigned_property) =
-            self.assigned_properties.get_mut(name)
+        if self.assigned_properties_to_lines.iter()
+            .position(|(assigned_property_to_lines_name, assigned_property_to_lines)|
+                assigned_property_to_lines_name != name &&
+                assigned_property_to_lines.check_for_line_numbers_intersection(line_numbers))
+            .is_some()
         {
-            let old_assigned_property = assigned_property.clone();
-            let old_line_numbers = old_assigned_property.extract_data();
-            assigned_property.update(line_numbers);
+            let error_message = &format!("Properties: Update assigned properties to lines \
+                action: At least one line number from {:?} is already used in another assigned \
+                properties to lines!", line_numbers);
+            return Err(JsValue::from(error_message));
+        }
+
+        if let Some(assigned_property_to_lines) =
+            self.assigned_properties_to_lines.get_mut(name)
+        {
+            let old_assigned_property_to_lines = assigned_property_to_lines.clone();
+            let old_related_lines_numbers =
+                old_assigned_property_to_lines.extract_related_lines_numbers();
+            assigned_property_to_lines.replace_related_lines_data(line_numbers);
             let (_, _, cross_section_type) =
                 self.properties.get(name).unwrap().extract_data();
-            let detail = json!({ "assigned_properties_data":
+            let related_lines_data =
+                self.assigned_properties_to_lines.get(name).unwrap().extract_related_lines_data();
+            let detail = json!({ "assigned_properties_to_lines_data":
                 {
                     "name": name,
+                    "related_lines_data": related_lines_data,
                     "line_numbers": line_numbers,
-                    "old_line_numbers": old_line_numbers,
+                    "old_line_numbers": old_related_lines_numbers,
                     "cross_section_type": cross_section_type.as_str().to_lowercase(),
                 },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, UPDATE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
-                                  EVENT_TARGET)?;
+                EVENT_TARGET)?;
             self.logging();
             Ok(())
         }

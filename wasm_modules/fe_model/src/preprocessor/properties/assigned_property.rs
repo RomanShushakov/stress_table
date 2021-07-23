@@ -148,8 +148,30 @@ impl AssignedPropertyToLines
     }
 
 
+    pub fn extract_related_lines_numbers(&self) -> Vec<FEUInt>
+    {
+        let mut related_lines_numbers = Vec::new();
+        for line_number in self.related_lines_data.keys()
+        {
+            related_lines_numbers.push(*line_number);
+        }
+        related_lines_numbers
+    }
+
+
     pub fn extract_related_lines_data(&self) -> HashMap<FEUInt, Option<LocalAxis1Direction>>
     {
         self.related_lines_data.clone()
+    }
+
+
+    pub fn replace_related_lines_data(&mut self, line_numbers: &[FEUInt])
+    {
+        let mut new_related_lines_data = HashMap::new();
+        for line_number in line_numbers
+        {
+            new_related_lines_data.insert(*line_number, None);
+        }
+        self.related_lines_data = new_related_lines_data;
     }
 }

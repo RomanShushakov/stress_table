@@ -514,7 +514,12 @@ class FeaApp extends HTMLElement {
 
     handlePreviewSelectedLineNumbersMessage(event) {
         const selectedLineNumbersObject = event.detail;
-        this.shadowRoot.querySelector("fea-renderer").previewSelectedLineNumbers = selectedLineNumbersObject;
+        try {
+            this.shadowRoot.querySelector("fea-renderer").previewSelectedLineNumbers = selectedLineNumbersObject;
+        } catch (error) {
+            this.querySelector(event.target.tagName.toLowerCase()).rendererError = error;
+            throw error;
+        }
         event.stopPropagation();
     }
 

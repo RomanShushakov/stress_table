@@ -553,7 +553,21 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
         this.definePropertiesNameOptions();
     }
 
+    set rendererError(error) {
+        const assignToLinesField = this.shadowRoot.querySelector(".assign-to-lines");
+        if (assignToLinesField.classList.contains("highlighted") === false) {
+            assignToLinesField.classList.add("highlighted");
+        }
+        if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = error;
+        }
+    }
+
     set feModelError(error) {
+        const assignToLinesField = this.shadowRoot.querySelector(".assign-to-lines");
+        if (assignToLinesField.classList.contains("highlighted") === false) {
+            assignToLinesField.classList.add("highlighted");
+        }
         if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
             this.shadowRoot.querySelector(".analysis-info-message").innerHTML = error;
         }
@@ -655,13 +669,13 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
             .map((item) => item.replace(/\s/g,'', ""))
             .filter((item) => item !== "");
         for (let i = 0; i < selectedLines.length; i++) {
-            if (this.isNumeric(selectedLines[i]) === false) {
+            if (this.isNumeric(selectedLines[i]) === false || this.isInt(selectedLines[i]) === false) {
                 if (selectedLinesField.classList.contains("highlighted") === false) {
                     selectedLinesField.classList.add("highlighted");
                 }
                 if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                     this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                        "Note: Only numbers could be used as selected lines values!";
+                        "Note: Only integer numbers could be used as selected lines values!";
                 }
                 return;
             }
@@ -692,13 +706,13 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
             .map((item) => item.replace(/\s/g,'', ""))
             .filter((item) => item !== "");
         for (let i = 0; i < selectedLines.length; i++) {
-            if (this.isNumeric(selectedLines[i]) === false) {
+            if (this.isNumeric(selectedLines[i]) === false || this.isInt(selectedLines[i]) === false) {
                 if (selectedLinesField.classList.contains("highlighted") === false) {
                     selectedLinesField.classList.add("highlighted");
                 }
                 if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                     this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                        "Note: Only numbers could be used as selected lines values!";
+                        "Note: Only integer numbers could be used as selected lines values!";
                 }
                 return;
             }
@@ -793,23 +807,13 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
             .map((item) => item.replace(/\s/g,'', ""))
             .filter((item) => item !== "");
         for (let i = 0; i < assignToLines.length; i++) {
-            if (this.isNumeric(assignToLines[i]) === false) {
+            if (this.isNumeric(assignToLines[i]) === false || this.isInt(assignToLines[i]) === false) {
                 if (assignToLinesField.classList.contains("highlighted") === false) {
                     assignToLinesField.classList.add("highlighted");
                 }
                 if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                     this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                        "Note: Only numbers could be used as assign to lines values!";
-                }
-                return;
-            }
-            if (this.props.lines.has(parseInt(assignToLines[i])) === false) {
-                if (assignToLinesField.classList.contains("highlighted") === false) {
-                    assignToLinesField.classList.add("highlighted");
-                }
-                if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                    this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                        "Note: Only existed lines numbers could be used as assign to lines values!";
+                        "Note: Only integer numbers could be used as assign to lines values!";
                 }
                 return;
             }
@@ -879,40 +883,9 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
                     },
                 }));
             } else {
-                for (let i = 0; i < this.props.assignedPropertiesToLines.length; i++) {
-                    for (let j = 0; j < assignToLines.length; j++) {
-                        const numberInArray = (number) => number === assignToLines[j] && 
-                            this.props.assignedPropertiesToLines[i].name !== `"${selectedPropertiesNameField.value}"`;
-                        const currentAssignedPropertyLineNumbers = Array.from(
-                            Object.keys(this.props.assignedPropertiesToLines[i].related_lines_data));
-                        if (currentAssignedPropertyLineNumbers.some(numberInArray) === true) {
-                            if (assignToLinesField.classList.contains("highlighted") === false) {
-                                assignToLinesField.classList.add("highlighted");
-                            }
-                            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                                    `Note: At least one number from assign to lines field is already used in 
-                                    assigned properties ${this.props.assignedPropertiesToLines[i].name}!`;
-                            }
-                            return;
-                        }
-                    }
-                }
-
                 let selectedAssignedPropertiesLineNumbers = Array.from(
                     Object.keys(selectedAssignedPropertiesToLinesInProps.related_lines_data));
                 selectedAssignedPropertiesLineNumbers = selectedAssignedPropertiesLineNumbers.map((item) => parseInt(item));
-
-                if (equals(selectedAssignedPropertiesLineNumbers, assignToLines) === true) {
-                    if (assignToLinesField.classList.contains("highlighted") === false) {
-                        assignToLinesField.classList.add("highlighted");
-                    }
-                    if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                        this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                            `Note: Assigned properties with the same name and line numbers does already exist!`;
-                    }
-                    return;
-                }
 
                 this.getActionId();
                 const message = {

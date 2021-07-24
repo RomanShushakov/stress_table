@@ -8,7 +8,8 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
             lines: new Map(),               // map: { number: u32, start_point_number: u32, end_point_number: u32 }, ...};
             properties: [],                 // array of: [{ name: String, material_name: String, cross_section_name: String,
                                             //              cross_section_type: String }];
-            assignedPropertiesToLines: [],  // array of: [{ name: String, related_lines_data: object { number: [f64; 3] or null } }];
+            assignedPropertiesToLines: [],  // array of: [{ name: String, related_lines_data: object { number: [f64; 3] or null },
+                                            //              related_line_element_numbers: [u32 ...] }];
         };
 
         this.state = {

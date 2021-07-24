@@ -1,5 +1,5 @@
 use serde::Serialize;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use crate::preprocessor::properties::beam_section_orientation::LocalAxis1Direction;
 use crate::types::FEUInt;
@@ -102,6 +102,7 @@ impl DeletedAssignedProperty
 pub struct AssignedPropertyToLines
 {
     related_lines_data: HashMap<FEUInt, Option<LocalAxis1Direction>>,
+    related_line_element_numbers: HashSet<FEUInt>,
 }
 
 
@@ -110,11 +111,12 @@ impl AssignedPropertyToLines
     pub fn create_initial(line_numbers: &[FEUInt]) -> Self
     {
         let mut related_lines_data = HashMap::new();
+        let related_line_element_numbers = HashSet::new();
         for line_number in line_numbers
         {
             related_lines_data.insert(*line_number, None);
         }
-        AssignedPropertyToLines { related_lines_data }
+        AssignedPropertyToLines { related_lines_data, related_line_element_numbers }
     }
 
 
@@ -173,5 +175,29 @@ impl AssignedPropertyToLines
             new_related_lines_data.insert(*line_number, None);
         }
         self.related_lines_data = new_related_lines_data;
+    }
+}
+
+
+#[derive(Debug, Clone)]
+pub struct DeletedAssignedPropertyToLines
+{
+    name: String,
+    assigned_property_to_lines: AssignedPropertyToLines,
+}
+
+
+impl DeletedAssignedPropertyToLines
+{
+    pub fn create(name: &str, assigned_property_to_lines: AssignedPropertyToLines) -> Self
+    {
+        DeletedAssignedPropertyToLines { name: String::from(name), assigned_property_to_lines }
+    }
+
+
+    pub fn extract_name_and_related_lines_numbers(&self) -> (&str, Vec<FEUInt>)
+    {
+        let line_numbers = self.assigned_property_to_lines.extract_related_lines_numbers();
+        (&self.name, line_numbers)
     }
 }

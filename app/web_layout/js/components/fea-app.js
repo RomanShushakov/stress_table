@@ -581,6 +581,7 @@ class FeaApp extends HTMLElement {
         try {
             this.state.actionsRouter.handle_message(message, toCache);
         } catch (error) {
+            console.log(this.querySelector(event.target.tagName.toLowerCase()), error);
             if (event.target.tagName.toLowerCase() === "fea-properties-beam-section-orientation-menu") {
                 this.querySelector(event.target.tagName.toLowerCase()).beamSectionOrientationError = error;
             } else {

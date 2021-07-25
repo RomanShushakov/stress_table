@@ -29,7 +29,7 @@ impl Properties
         for (assigned_property_to_lines_name, assigned_property_to_lines) in
             self.assigned_properties_to_lines.iter()
         {
-            if assigned_property_to_lines.check_for_any_line_number_contains(line_numbers)
+            if assigned_property_to_lines.any_of_provided_line_numbers_contains(line_numbers)
             {
                 assigned_properties_to_lines_names_for_change_or_delete.push(
                     assigned_property_to_lines_name.to_owned())

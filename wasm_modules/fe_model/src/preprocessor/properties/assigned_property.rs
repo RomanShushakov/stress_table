@@ -180,7 +180,7 @@ impl AssignedPropertyToLines
     }
 
 
-    pub fn check_for_any_line_number_contains(&self, line_numbers: &[FEUInt]) -> bool
+    pub fn any_of_provided_line_numbers_contains(&self, line_numbers: &[FEUInt]) -> bool
     {
         if self.related_lines_data.iter().position(|(related_line_number, _)|
             line_numbers.contains(related_line_number)).is_some()

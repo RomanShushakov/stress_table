@@ -1,10 +1,10 @@
+use wasm_bindgen::prelude::*;
 use std::collections::HashMap;
 
 use crate::preprocessor::geometry::point::{Point, DeletedPoint};
 use crate::preprocessor::geometry::line::{Line, DeletedLine};
 
 use crate::functions::log;
-
 
 use crate::types::FEUInt;
 
@@ -64,16 +64,20 @@ impl Geometry
     }
 
 
-    pub fn check_for_line_numbers_existence(&self, line_numbers: &[FEUInt]) -> bool
+    pub fn check_for_line_numbers_existence(&self, line_numbers: &[FEUInt],
+        error_message_header: &str) -> Result<(), JsValue>
     {
         for line_number in line_numbers
         {
             if !self.lines.contains_key(line_number)
             {
-                return false;
+                let error_message = format!("{}: At least one line number from selected \
+                    line numbers does not exist!", error_message_header);
+                return Err(JsValue::from(error_message));
             }
         }
-        true
+        Ok(())
+
     }
 
 

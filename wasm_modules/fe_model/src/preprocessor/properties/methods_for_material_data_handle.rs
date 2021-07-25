@@ -28,20 +28,22 @@ impl Properties
     pub fn add_material(&mut self, action_id: FEUInt, name: &str, young_modulus: FEFloat,
         poisson_ratio: FEFloat, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
+        let error_message_header = "Properties: Add material action";
+
         self.clear_properties_module_by_action_id(action_id);
 
         if self.materials.contains_key(&name.to_owned())
         {
-            let error_message = &format!("Properties: Add material action: Material with \
-                name {} does already exist!", name);
+            let error_message = &format!("{}: Material with name {} does already exist!",
+                error_message_header, name);
             return Err(JsValue::from(error_message));
         }
         if self.materials.values().position(|material|
             material.data_same(young_modulus, poisson_ratio)).is_some()
         {
-            let error_message = &format!("Properties: Add material action: Material with \
-                Young's modulus {} and Poisson's ratio {} does already exist!",
-                    young_modulus, poisson_ratio);
+            let error_message = &format!("{}: Material with Young's modulus {} and \
+                Poisson's ratio {} does already exist!", error_message_header,
+                young_modulus, poisson_ratio);
             return Err(JsValue::from(error_message));
         }
         let material = Material::create(young_modulus, poisson_ratio);
@@ -58,14 +60,16 @@ impl Properties
     pub fn update_material(&mut self, action_id: FEUInt, name: &str, young_modulus: FEFloat,
         poisson_ratio: FEFloat, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
+        let error_message_header = "Properties: Update material action";
+
         self.clear_properties_module_by_action_id(action_id);
 
         if self.materials.values().position(|material|
             material.data_same(young_modulus, poisson_ratio)).is_some()
         {
-            let error_message = &format!("Properties: Update material action: Material with \
-                Young's modulus {} and Poisson's ratio {} does already exist!",
-                    young_modulus, poisson_ratio);
+            let error_message = &format!("{}: Material with Young's modulus {} and \
+                Poisson's ratio {} does already exist!", error_message_header, young_modulus,
+                poisson_ratio);
             return Err(JsValue::from(error_message));
         }
         if let Some(material) = self.materials.get_mut(name)
@@ -80,8 +84,8 @@ impl Properties
         }
         else
         {
-            let error_message = format!("Properties: Update material action: \
-                The material with name {} does not exist!", name);
+            let error_message = format!("{}: The material with name {} does not exist!",
+                error_message_header, name);
             Err(JsValue::from(&error_message))
         }
     }
@@ -111,51 +115,9 @@ impl Properties
         let property_names_for_delete =
             self.extract_property_names_for_delete_by_material_name(name);
 
-        let mut properties_for_delete = Vec::new();
+        self.delete_assigned_properties_to_lines_by_names(action_id, &property_names_for_delete)?;
 
-        let mut assigned_properties_to_lines_for_delete = Vec::new();
-
-        for property_name in property_names_for_delete.iter()
-        {
-            if let Some(assigned_property_to_lines) =
-                self.assigned_properties_to_lines.remove(property_name)
-            {
-                let related_lines_numbers =
-                    assigned_property_to_lines.extract_related_lines_numbers();
-                let deleted_assigned_property_to_lines =
-                    DeletedAssignedPropertyToLines::create(property_name,
-                        assigned_property_to_lines);
-                assigned_properties_to_lines_for_delete.push(
-                    deleted_assigned_property_to_lines);
-                let detail = json!({ "assigned_properties_to_lines_data":
-                    {
-                        "name": property_name,
-                        "line_numbers": related_lines_numbers,
-                    },
-                    "is_action_id_should_be_increased": false });
-                dispatch_custom_event(detail,
-                    DELETE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
-                    EVENT_TARGET)?;
-            }
-
-            let property = self.properties.remove(property_name).unwrap();
-            let deleted_property = DeletedProperty::create(property_name, property);
-            properties_for_delete.push(deleted_property);
-            let detail = json!({ "properties_data": { "name": property_name },
-                "is_action_id_should_be_increased": false });
-            dispatch_custom_event(detail, DELETE_PROPERTIES_EVENT_NAME,
-                EVENT_TARGET)?;
-        }
-        if !assigned_properties_to_lines_for_delete.is_empty()
-        {
-            self.deleted_assigned_properties_to_lines.insert(action_id,
-                assigned_properties_to_lines_for_delete);
-        }
-
-        if !properties_for_delete.is_empty()
-        {
-            self.deleted_properties.insert(action_id, properties_for_delete);
-        }
+        self.delete_properties_by_names(action_id, &property_names_for_delete)?;
 
         if let Some((material_name, material)) =
             self.materials.remove_entry(&name.to_owned())
@@ -200,60 +162,11 @@ impl Properties
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, ADD_MATERIAL_EVENT_NAME,
                 EVENT_TARGET)?;
-            if let Some(deleted_properties) =
-                self.deleted_properties.remove(&action_id)
-            {
-                for deleted_property in &deleted_properties
-                {
-                    let (name, material_name, cross_section_name,
-                        cross_section_type) = deleted_property.extract_name_and_data();
-                    self.properties.insert(name.to_owned(),
-                        Property::create(material_name, cross_section_name,
-                            cross_section_type.clone()));
-                    let transformed_cross_section_type = r#"""#.to_owned() +
-                        &cross_section_type.as_str().to_lowercase() + r#"""#;
-                    let detail = json!({ "properties_data": { "name": name,
-                        "material_name": material_name, "cross_section_name": cross_section_name,
-                        "cross_section_type": transformed_cross_section_type },
-                        "is_action_id_should_be_increased": is_action_id_should_be_increased });
-                    dispatch_custom_event(detail, ADD_PROPERTIES_EVENT_NAME,
-                        EVENT_TARGET)?;
-                }
-            }
-            if let Some(deleted_assigned_properties_to_lines) =
-                self.deleted_assigned_properties_to_lines.remove(&action_id)
-            {
-                for deleted_assigned_property_to_lines in
-                    deleted_assigned_properties_to_lines.into_iter()
-                {
-                    let (assigned_property_to_lines_name, assigned_property_to_lines) =
-                        deleted_assigned_property_to_lines.extract_and_drop();
 
-                    let related_lines_data =
-                        assigned_property_to_lines.extract_related_lines_data();
+            self.restore_properties_by_action_id(action_id)?;
 
-                    let line_numbers =
-                        assigned_property_to_lines.extract_related_lines_numbers();
+            self.restore_assigned_properties_to_lines_by_action_id(action_id)?;
 
-                    self.assigned_properties_to_lines.insert(
-                        assigned_property_to_lines_name.clone(), assigned_property_to_lines);
-
-                    let (_, _, cross_section_type) = self.properties.get(
-                        &assigned_property_to_lines_name).unwrap().extract_data();
-
-                    let detail = json!({ "assigned_properties_to_lines_data":
-                        {
-                            "name": &assigned_property_to_lines_name,
-                            "related_lines_data": related_lines_data,
-                            "line_numbers": line_numbers,
-                            "cross_section_type": cross_section_type.as_str().to_lowercase(),
-                        },
-                        "is_action_id_should_be_increased": is_action_id_should_be_increased });
-                    dispatch_custom_event(detail,
-                        ADD_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
-                        EVENT_TARGET)?;
-                }
-            }
             self.logging();
             Ok(())
         }

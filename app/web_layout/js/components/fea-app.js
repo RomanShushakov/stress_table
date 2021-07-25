@@ -184,6 +184,10 @@ class FeaApp extends HTMLElement {
         this.addEventListener("update_lines_color_server_message", (event) => this.handleUpdateLinesColorServerMessage(event));
     }
 
+    set feModelError(error) {
+        throw error;
+    }
+
     async connectedCallback() {
         this.state.actionsRouter = await initializeActionsRouter();
         this.activatePreprocessorMenu();
@@ -581,7 +585,6 @@ class FeaApp extends HTMLElement {
         try {
             this.state.actionsRouter.handle_message(message, toCache);
         } catch (error) {
-            console.log(this.querySelector(event.target.tagName.toLowerCase()), error);
             if (event.target.tagName.toLowerCase() === "fea-properties-beam-section-orientation-menu") {
                 this.querySelector(event.target.tagName.toLowerCase()).beamSectionOrientationError = error;
             } else {

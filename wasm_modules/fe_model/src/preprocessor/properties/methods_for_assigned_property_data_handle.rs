@@ -265,6 +265,45 @@ impl Properties
     }
 
 
+    pub fn delete_assigned_properties_to_lines_by_names(&mut self, action_id: FEUInt,
+        property_names_for_delete: &[String]) -> Result<(), JsValue>
+    {
+        let mut assigned_properties_to_lines_for_delete = Vec::new();
+
+        for property_name in property_names_for_delete.iter()
+        {
+            if let Some(assigned_property_to_lines) =
+            self.assigned_properties_to_lines.remove(property_name)
+            {
+                let related_lines_numbers =
+                    assigned_property_to_lines.extract_related_lines_numbers();
+                let deleted_assigned_property_to_lines =
+                    DeletedAssignedPropertyToLines::create(property_name,
+                                                           assigned_property_to_lines);
+                assigned_properties_to_lines_for_delete.push(
+                    deleted_assigned_property_to_lines);
+                let detail = json!({ "assigned_properties_to_lines_data":
+                    {
+                        "name": property_name,
+                        "line_numbers": related_lines_numbers,
+                    },
+                    "is_action_id_should_be_increased": false });
+                dispatch_custom_event(detail,
+                    DELETE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
+                    EVENT_TARGET)?;
+            }
+        }
+
+        if !assigned_properties_to_lines_for_delete.is_empty()
+        {
+            self.deleted_assigned_properties_to_lines.insert(action_id,
+                assigned_properties_to_lines_for_delete);
+        }
+
+        Ok(())
+    }
+
+
     pub fn restore_assigned_properties_to_lines(&mut self, action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
@@ -324,6 +363,47 @@ impl Properties
                 does not exist!", error_message_header, name);
             return Err(JsValue::from(error_message));
         }
+    }
+
+
+    pub fn restore_assigned_properties_to_lines_by_action_id(&mut self, action_id: FEUInt)
+        -> Result<(), JsValue>
+    {
+        if let Some(deleted_assigned_properties_to_lines) =
+            self.deleted_assigned_properties_to_lines.remove(&action_id)
+        {
+            for deleted_assigned_property_to_lines in
+                deleted_assigned_properties_to_lines.into_iter()
+            {
+                let (assigned_property_to_lines_name, assigned_property_to_lines) =
+                    deleted_assigned_property_to_lines.extract_and_drop();
+
+                let related_lines_data =
+                    assigned_property_to_lines.extract_related_lines_data();
+
+                let line_numbers =
+                    assigned_property_to_lines.extract_related_lines_numbers();
+
+                self.assigned_properties_to_lines.insert(
+                    assigned_property_to_lines_name.clone(), assigned_property_to_lines);
+
+                let (_, _, cross_section_type) = self.properties.get(
+                    &assigned_property_to_lines_name).unwrap().extract_data();
+
+                let detail = json!({ "assigned_properties_to_lines_data":
+                    {
+                        "name": &assigned_property_to_lines_name,
+                        "related_lines_data": related_lines_data,
+                        "line_numbers": line_numbers,
+                        "cross_section_type": cross_section_type.as_str().to_lowercase(),
+                    },
+                    "is_action_id_should_be_increased": false });
+                dispatch_custom_event(detail,
+                    ADD_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
+                    EVENT_TARGET)?;
+            }
+        }
+        Ok(())
     }
 
 

@@ -434,10 +434,6 @@ class FeaAppToolBar extends HTMLElement {
         this.props.actionId = value;
     }
 
-    set feModelError(error) {
-        throw error;
-    }
-
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {

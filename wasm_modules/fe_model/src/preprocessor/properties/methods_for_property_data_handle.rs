@@ -182,63 +182,9 @@ impl Properties
     {
         self.clear_properties_module_by_action_id(action_id);
 
-        let deleted_assigned_property_names =
-            self.extract_assigned_property_names_for_delete_by_property_names(
-                &vec![name.to_string()]);
-        let changed_beam_sections_orientations =
-            self.extract_beam_section_orientations_for_change_by_assigned_property_names(
-                &deleted_assigned_property_names
-            );
+        let property_names_for_delete = vec![name.to_string()];
 
-        let mut deleted_assigned_properties = Vec::new();
-
-        for changed_beam_section_orientation in &changed_beam_sections_orientations
-        {
-            let local_axis_1_direction =
-                changed_beam_section_orientation.extract_local_axis_1_direction();
-            if let Some(position) = self.beam_sections_orientations
-                .iter()
-                .position(|beam_section_orientation|
-                    beam_section_orientation
-                        .is_local_axis_1_direction_same(&local_axis_1_direction))
-            {
-                let line_numbers = self.beam_sections_orientations[position]
-                    .extract_line_numbers();
-                let detail = json!({ "beam_section_orientation_data":
-                    {
-                        "local_axis_1_direction": local_axis_1_direction,
-                        "line_numbers": line_numbers,
-                    },
-                    "is_action_id_should_be_increased": false });
-                dispatch_custom_event(detail,
-                    UPDATE_BEAM_SECTION_ORIENTATION_DATA_EVENT_NAME,
-                    EVENT_TARGET)?;
-            }
-        }
-        self.changed_beam_sections_orientations.insert(action_id,
-            changed_beam_sections_orientations);
-
-        for assigned_property_name in deleted_assigned_property_names.iter()
-        {
-            let assigned_property =
-                self.assigned_properties.remove(assigned_property_name).unwrap();
-            let deleted_assigned_property = DeletedAssignedProperty::create(
-                assigned_property_name, assigned_property.clone());
-            deleted_assigned_properties.push(deleted_assigned_property);
-
-            let detail = json!({ "assigned_properties_data":
-                {
-                    "name": assigned_property_name,
-                    "line_numbers": assigned_property.extract_data(),
-                },
-                "is_action_id_should_be_increased": false });
-            dispatch_custom_event(detail, DELETE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
-                                  EVENT_TARGET)?;
-        }
-        if !deleted_assigned_properties.is_empty()
-        {
-            self.deleted_assigned_properties.insert(action_id, deleted_assigned_properties);
-        }
+        self.delete_assigned_properties_to_lines_by_names(action_id, &property_names_for_delete)?;
 
         if let Some((property_name, property)) =
             self.properties.remove_entry(&name.to_owned())
@@ -259,6 +205,30 @@ impl Properties
                 Properties with name {} do not exist!", name);
             return Err(JsValue::from(error_message));
         }
+    }
+
+
+    pub fn delete_properties_by_names(&mut self, action_id: FEUInt,
+        property_names_for_delete: &[String]) -> Result<(), JsValue>
+    {
+        let mut properties_for_delete = Vec::new();
+
+        for property_name in property_names_for_delete.iter()
+        {
+            let property = self.properties.remove(property_name).unwrap();
+            let deleted_property = DeletedProperty::create(property_name, property);
+            properties_for_delete.push(deleted_property);
+            let detail = json!({ "properties_data": { "name": property_name },
+                "is_action_id_should_be_increased": false });
+            dispatch_custom_event(detail, DELETE_PROPERTIES_EVENT_NAME,
+                EVENT_TARGET)?;
+        }
+
+        if !properties_for_delete.is_empty()
+        {
+            self.deleted_properties.insert(action_id, properties_for_delete);
+        }
+        Ok(())
     }
 
 
@@ -293,54 +263,9 @@ impl Properties
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, ADD_PROPERTIES_EVENT_NAME,
                 EVENT_TARGET)?;
-            if let Some(deleted_assigned_properties) =
-                self.deleted_assigned_properties.remove(&action_id)
-            {
-                for deleted_assigned_property in &deleted_assigned_properties
-                {
-                    let (name, line_numbers) =
-                        deleted_assigned_property.extract_name_and_data();
-                    self.assigned_properties.insert(name.to_owned(),
-                        AssignedProperty::create(line_numbers));
-                    let (_, _, cross_section_type) =
-                        self.properties.get(name).unwrap().extract_data();
-                    let detail = json!({ "assigned_properties_data":
-                        {
-                            "name": name,
-                            "line_numbers": line_numbers,
-                            "cross_section_type": cross_section_type.as_str().to_lowercase(),
-                        },
-                        "is_action_id_should_be_increased": is_action_id_should_be_increased });
-                    dispatch_custom_event(detail, ADD_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
-                                          EVENT_TARGET)?;
-                }
-            }
-            if let Some(beam_sections_orientations) =
-                self.changed_beam_sections_orientations.remove(&action_id)
-            {
-                for beam_section_orientation in &beam_sections_orientations
-                {
-                    let (local_axis_1_direction, line_numbers) =
-                        beam_section_orientation.extract_direction_and_line_numbers();
-                    if let Some(position) = self.beam_sections_orientations
-                        .iter()
-                        .position(|beam_section_orientation|
-                            beam_section_orientation.is_local_axis_1_direction_same(
-                                &local_axis_1_direction))
-                    {
-                        self.beam_sections_orientations[position].update(line_numbers);
-                        let detail = json!({ "beam_section_orientation_data":
-                            {
-                                "local_axis_1_direction": local_axis_1_direction,
-                                "line_numbers": line_numbers,
-                            },
-                            "is_action_id_should_be_increased": is_action_id_should_be_increased });
-                        dispatch_custom_event(detail,
-                            UPDATE_BEAM_SECTION_ORIENTATION_DATA_EVENT_NAME,
-                            EVENT_TARGET)?;
-                    }
-                }
-            }
+
+            self.restore_assigned_properties_to_lines_by_action_id(action_id)?;
+
             self.logging();
             Ok(())
         }
@@ -350,6 +275,33 @@ impl Properties
                 Properties with name {} do not exist!", name);
             return Err(JsValue::from(error_message));
         }
+    }
+
+
+    pub fn restore_properties_by_action_id(&mut self, action_id: FEUInt)
+        -> Result<(), JsValue>
+    {
+        if let Some(deleted_properties) =
+            self.deleted_properties.remove(&action_id)
+        {
+            for deleted_property in &deleted_properties
+            {
+                let (name, material_name, cross_section_name,
+                    cross_section_type) = deleted_property.extract_name_and_data();
+                self.properties.insert(name.to_owned(),
+                    Property::create(material_name, cross_section_name,
+                        cross_section_type.clone()));
+                let transformed_cross_section_type = r#"""#.to_owned() +
+                    &cross_section_type.as_str().to_lowercase() + r#"""#;
+                let detail = json!({ "properties_data": { "name": name,
+                    "material_name": material_name, "cross_section_name": cross_section_name,
+                    "cross_section_type": transformed_cross_section_type },
+                    "is_action_id_should_be_increased": false });
+                dispatch_custom_event(detail, ADD_PROPERTIES_EVENT_NAME,
+                    EVENT_TARGET)?;
+            }
+        }
+        Ok(())
     }
 
 

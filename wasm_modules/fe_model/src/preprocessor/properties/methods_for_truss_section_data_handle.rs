@@ -25,20 +25,21 @@ impl Properties
     pub fn add_truss_section(&mut self, action_id: FEUInt, name: &str, area: FEFloat,
         area2: Option<FEFloat>, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
+        let error_message_header = "Properties: Add truss section action";
+
         self.clear_properties_module_by_action_id(action_id);
 
         if self.truss_sections.contains_key(&name.to_owned())
         {
-            let error_message = &format!("Properties: Add truss section action: \
-                Truss section with name {} does already exist!", name);
+            let error_message = &format!("{}: Truss section with name {} does already \
+                exist!", error_message_header, name);
             return Err(JsValue::from(error_message));
         }
         if self.truss_sections.values().position(|truss_section|
             truss_section.data_same(area, area2)).is_some()
         {
-            let error_message = &format!("Properties: Add truss section action: \
-                Truss section with Area {} and Area 2 {:?} does already exist!",
-                    area, area2);
+            let error_message = &format!("{}: Truss section with Area {} and Area 2 {:?} \
+                does already exist!", error_message_header, area, area2);
             return Err(JsValue::from(error_message));
         }
         let truss_section = TrussSection::create(area, area2);
@@ -56,14 +57,15 @@ impl Properties
     pub fn update_truss_section(&mut self, action_id: FEUInt, name: &str, area: FEFloat,
         area2: Option<FEFloat>, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
+        let error_message_header = "Properties: Update truss section action";
+
         self.clear_properties_module_by_action_id(action_id);
 
         if self.truss_sections.values().position(|truss_section|
             truss_section.data_same(area, area2)).is_some()
         {
-            let error_message = &format!("Properties: Update truss section action: \
-                Truss section with Area {} and Area 2 {:?} does already exist!",
-                    area, area2);
+            let error_message = &format!("{}:  Truss section with Area {} and Area 2 {:?} \
+                does already exist!", error_message_header, area, area2);
             return Err(JsValue::from(error_message));
         }
         if let Some(truss_section) = self.truss_sections.get_mut(name)
@@ -79,9 +81,8 @@ impl Properties
         }
         else
         {
-             let error_message = format!("Properties: Update truss section action: \
-                The truss section with name {} does not exist!",
-                name);
+             let error_message = format!("{}: The truss section with name {} does not exist!",
+                error_message_header, name);
             Err(JsValue::from(&error_message))
         }
     }
@@ -110,49 +111,12 @@ impl Properties
     {
         self.clear_properties_module_by_action_id(action_id);
 
-        let deleted_property_names =
+        let property_names_for_delete =
             self.extract_property_names_for_delete_by_truss_section_name(name);
-        let deleted_assigned_property_names =
-            self.extract_assigned_property_names_for_delete_by_property_names(
-                &deleted_property_names);
-        let mut deleted_properties = Vec::new();
-        let mut deleted_assigned_properties = Vec::new();
 
-        for assigned_property_name in deleted_assigned_property_names.iter()
-        {
-            let assigned_property =
-                self.assigned_properties.remove(assigned_property_name).unwrap();
-            let deleted_assigned_property = DeletedAssignedProperty::create(
-                assigned_property_name, assigned_property.clone());
-            deleted_assigned_properties.push(deleted_assigned_property);
-            let detail = json!({ "assigned_properties_data":
-                {
-                    "name": assigned_property_name,
-                    "line_numbers": assigned_property.extract_data(),
-                },
-                "is_action_id_should_be_increased": false });
-            dispatch_custom_event(detail, DELETE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
-                                  EVENT_TARGET)?;
-        }
-        if !deleted_assigned_properties.is_empty()
-        {
-            self.deleted_assigned_properties.insert(action_id, deleted_assigned_properties);
-        }
+        self.delete_assigned_properties_to_lines_by_names(action_id, &property_names_for_delete)?;
 
-        for property_name in deleted_property_names.iter()
-        {
-            let property = self.properties.remove(property_name).unwrap();
-            let deleted_property = DeletedProperty::create(property_name, property);
-            deleted_properties.push(deleted_property);
-            let detail = json!({ "properties_data": { "name": property_name },
-                "is_action_id_should_be_increased": false });
-            dispatch_custom_event(detail, DELETE_PROPERTIES_EVENT_NAME,
-                EVENT_TARGET)?;
-        }
-        if !deleted_properties.is_empty()
-        {
-            self.deleted_properties.insert(action_id, deleted_properties);
-        }
+        self.delete_properties_by_names(action_id, &property_names_for_delete)?;
 
         if let Some((truss_section_name, truss_section)) =
             self.truss_sections.remove_entry(&name.to_owned())
@@ -197,48 +161,11 @@ impl Properties
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, ADD_TRUSS_SECTION_EVENT_NAME,
                 EVENT_TARGET)?;
-            if let Some(deleted_properties) =
-                self.deleted_properties.remove(&action_id)
-            {
-                for deleted_property in &deleted_properties
-                {
-                    let (name, material_name, cross_section_name,
-                        cross_section_type) = deleted_property.extract_name_and_data();
-                    self.properties.insert(name.to_owned(),
-                        Property::create(material_name, cross_section_name,
-                            cross_section_type.clone()));
-                    let transformed_cross_section_type = r#"""#.to_owned() +
-                        &cross_section_type.as_str().to_lowercase() + r#"""#;
-                    let detail = json!({ "properties_data": { "name": name,
-                        "material_name": material_name, "cross_section_name": cross_section_name,
-                        "cross_section_type": transformed_cross_section_type },
-                        "is_action_id_should_be_increased": is_action_id_should_be_increased });
-                    dispatch_custom_event(detail, ADD_PROPERTIES_EVENT_NAME,
-                        EVENT_TARGET)?;
-                }
-            }
-            if let Some(deleted_assigned_properties) =
-                self.deleted_assigned_properties.remove(&action_id)
-            {
-                for deleted_assigned_property in &deleted_assigned_properties
-                {
-                    let (name, line_numbers) =
-                        deleted_assigned_property.extract_name_and_data();
-                    self.assigned_properties.insert(name.to_owned(),
-                        AssignedProperty::create(line_numbers));
-                    let (_, _, cross_section_type) =
-                        self.properties.get(name).unwrap().extract_data();
-                    let detail = json!({ "assigned_properties_data":
-                        {
-                            "name": name,
-                            "line_numbers": line_numbers,
-                            "cross_section_type": cross_section_type.as_str().to_lowercase(),
-                        },
-                        "is_action_id_should_be_increased": is_action_id_should_be_increased });
-                    dispatch_custom_event(detail, ADD_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
-                                          EVENT_TARGET)?;
-                }
-            }
+
+            self.restore_properties_by_action_id(action_id)?;
+
+            self.restore_assigned_properties_to_lines_by_action_id(action_id)?;
+
             self.logging();
             Ok(())
         }

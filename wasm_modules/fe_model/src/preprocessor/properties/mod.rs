@@ -6,6 +6,7 @@ pub mod property;
 pub mod assigned_property;
 pub mod beam_section_orientation;
 pub mod consts;
+pub mod functions;
 pub mod methods_for_material_data_handle;
 pub mod methods_for_truss_section_data_handle;
 pub mod methods_for_beam_section_data_handle;

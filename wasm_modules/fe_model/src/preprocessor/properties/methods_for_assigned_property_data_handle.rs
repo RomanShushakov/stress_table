@@ -5,13 +5,15 @@ use crate::preprocessor::properties::properties::Properties;
 use crate::preprocessor::properties::assigned_property::
 {
     AssignedProperty, DeletedAssignedProperty, AssignedPropertyToLines,
-    DeletedAssignedPropertyToLines,
+    DeletedAssignedPropertyToLines, ChangedAssignedPropertyToLines
 };
 use crate::preprocessor::properties::consts::
 {
     ADD_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME, UPDATE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
     DELETE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME, UPDATE_BEAM_SECTION_ORIENTATION_DATA_EVENT_NAME,
 };
+
+use crate::preprocessor::properties::functions::line_numbers_same;
 
 use crate::types::{FEUInt};
 
@@ -25,50 +27,36 @@ impl Properties
     pub fn add_assigned_properties_to_lines(&mut self, action_id: FEUInt, name: &str,
         line_numbers: &[FEUInt], is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
+        let error_message_header = "Properties: Add assigned properties to lines action";
+
         self.clear_properties_module_by_action_id(action_id);
 
-        if !self.properties.contains_key(name)
-        {
-            let error_message = &format!("Properties: Add assigned properties to lines \
-                action: Property with name {} does not exist!", name);
-            return Err(JsValue::from(error_message));
-        }
+        self.check_for_property_existence_by_name(name, error_message_header)?;
 
         if self.assigned_properties_to_lines.contains_key(name)
         {
-            let error_message = &format!("Properties: Add assigned properties to lines \
-                action: Assigned property to lines with name {} does already exist!", name);
+            let error_message = &format!("{}: Assigned property to lines with name {} \
+                does already exist!", error_message_header, name);
             return Err(JsValue::from(error_message));
         }
 
-        if self.assigned_properties_to_lines.values()
-            .position(|assigned_property_to_lines|
-                assigned_property_to_lines.line_numbers_same(line_numbers)).is_some()
-        {
-            let error_message = &format!("Properties: Add assigned properties to lines \
-                action: Assigned property to lines with line numbers {:?} does already exist!",
-                line_numbers);
-            return Err(JsValue::from(error_message));
-        }
+        self.check_for_the_similar_line_numbers_in_assigned_properties_to_lines_existence(
+            line_numbers, error_message_header)?;
 
-        if self.assigned_properties_to_lines.iter()
-            .position(|(assigned_property_to_lines_name, assigned_property_to_lines)|
-                assigned_property_to_lines_name != name &&
-                assigned_property_to_lines.check_for_line_numbers_intersection(line_numbers))
-            .is_some()
-        {
-            let error_message = &format!("Properties: Add assigned properties to lines \
-                action: At least one line number from {:?} is already used in another assigned \
-                property to lines!", line_numbers);
-            return Err(JsValue::from(error_message));
-        }
+        self.check_for_line_numbers_intersection_in_assigned_properties_to_lines(
+            name, line_numbers, error_message_header)?;
+
         let assigned_property_to_lines =
             AssignedPropertyToLines::create_initial(line_numbers);
+
         let related_lines_data =
             assigned_property_to_lines.extract_related_lines_data();
+
         self.assigned_properties_to_lines.insert(name.to_owned(), assigned_property_to_lines);
+
         let (_, _, cross_section_type) =
             self.properties.get(name).unwrap().extract_data();
+
         let detail = json!({ "assigned_properties_to_lines_data":
             {
                 "name": name,
@@ -88,67 +76,154 @@ impl Properties
     pub fn update_assigned_properties_to_lines(&mut self, action_id: FEUInt, name: &str,
         line_numbers: &[FEUInt], is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.clear_properties_module_by_action_id(action_id);
+        let error_message_header = "Properties: Update assigned properties \
+            to lines action";
 
-        if !self.properties.contains_key(name)
+        if let Some(mut previously_changed_assigned_properties_to_lines) =
+            self.changed_assigned_properties_to_lines.remove(&action_id)
         {
-            let error_message = &format!("Properties: Update assigned properties to lines \
-                action: Property with name {} does not exist!", name);
-            return Err(JsValue::from(error_message));
-        }
+            self.clear_properties_module_by_action_id(action_id);
 
-        if self.assigned_properties_to_lines.values()
-            .position(|assigned_property_to_lines|
-                assigned_property_to_lines.line_numbers_same(line_numbers)).is_some()
-        {
-            let error_message = &format!("Properties: Update assigned properties to lines \
-                action: Assigned property to lines with line numbers {:?} does already exist!",
-                line_numbers);
-            return Err(JsValue::from(error_message));
-        }
+            if previously_changed_assigned_properties_to_lines.len() != 1
+            {
+                let error_message = &format!("{}: Incorrect number of assigned properties!",
+                    error_message_header);
+                return Err(JsValue::from(error_message));
+            }
 
-        if self.assigned_properties_to_lines.iter()
-            .position(|(assigned_property_to_lines_name, assigned_property_to_lines)|
-                assigned_property_to_lines_name != name &&
-                assigned_property_to_lines.check_for_line_numbers_intersection(line_numbers))
-            .is_some()
-        {
-            let error_message = &format!("Properties: Update assigned properties to lines \
-                action: At least one line number from {:?} is already used in another assigned \
-                property to lines!", line_numbers);
-            return Err(JsValue::from(error_message));
-        }
+            let (assigned_property_to_lines_name, assigned_property_to_lines) =
+                previously_changed_assigned_properties_to_lines.remove(0).extract_and_drop();
 
-        if let Some(assigned_property_to_lines) =
-            self.assigned_properties_to_lines.get_mut(name)
-        {
-            let old_assigned_property_to_lines = assigned_property_to_lines.clone();
-            let old_related_lines_numbers =
-                old_assigned_property_to_lines.extract_related_lines_numbers();
-            assigned_property_to_lines.replace_related_lines_data(line_numbers);
-            let (_, _, cross_section_type) =
-                self.properties.get(name).unwrap().extract_data();
-            let related_lines_data =
-                self.assigned_properties_to_lines.get(name).unwrap().extract_related_lines_data();
-            let detail = json!({ "assigned_properties_to_lines_data":
-                {
-                    "name": name,
-                    "related_lines_data": related_lines_data,
-                    "line_numbers": line_numbers,
-                    "old_line_numbers": old_related_lines_numbers,
-                    "cross_section_type": cross_section_type.as_str().to_lowercase(),
-                },
-                "is_action_id_should_be_increased": is_action_id_should_be_increased });
-            dispatch_custom_event(detail, UPDATE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
-                EVENT_TARGET)?;
-            self.logging();
-            Ok(())
+            if assigned_property_to_lines_name != name
+            {
+                let error_message = format!("{}: The changed assigned property to lines \
+                    name {} does not match with {}!", error_message_header,
+                    assigned_property_to_lines_name, name);
+                return Err(JsValue::from(&error_message));
+            }
+
+            let related_lines_numbers = assigned_property_to_lines
+                .extract_related_lines_numbers();
+
+            if !line_numbers_same(related_lines_numbers.as_slice(),
+                line_numbers)
+            {
+                let error_message = format!("{}: The line numbers {:?} in changed assigned \
+                    property to lines do not match with {:?}!", error_message_header,
+                    related_lines_numbers.as_slice(), line_numbers);
+                return Err(JsValue::from(&error_message));
+            }
+
+            self.check_for_property_existence_by_name(&assigned_property_to_lines_name,
+                error_message_header)?;
+
+            self.check_for_the_similar_line_numbers_in_assigned_properties_to_lines_existence(
+                related_lines_numbers.as_slice(),
+                error_message_header)?;
+
+            self.check_for_line_numbers_intersection_in_assigned_properties_to_lines(
+                &assigned_property_to_lines_name, related_lines_numbers.as_slice(),
+                error_message_header)?;
+
+            if let Some(old_assigned_property_to_lines) =
+                self.assigned_properties_to_lines.remove(name)
+            {
+                let old_related_lines_numbers =
+                    old_assigned_property_to_lines.extract_related_lines_numbers();
+
+                let changed_assigned_property_to_lines =
+                    ChangedAssignedPropertyToLines::create(name, old_assigned_property_to_lines);
+
+                self.assigned_properties_to_lines.insert(assigned_property_to_lines_name.clone(),
+                    assigned_property_to_lines);
+
+                self.changed_assigned_properties_to_lines.insert(action_id,
+                    vec![changed_assigned_property_to_lines]);
+
+                let (_, _, cross_section_type) =
+                    self.properties.get(&assigned_property_to_lines_name).unwrap().extract_data();
+
+                let related_lines_data =
+                    self.assigned_properties_to_lines.get(&assigned_property_to_lines_name)
+                        .unwrap().extract_related_lines_data();
+                let detail = json!({ "assigned_properties_to_lines_data":
+                    {
+                        "name": &assigned_property_to_lines_name,
+                        "related_lines_data": related_lines_data,
+                        "line_numbers": related_lines_numbers,
+                        "old_line_numbers": old_related_lines_numbers,
+                        "cross_section_type": cross_section_type.as_str().to_lowercase(),
+                    },
+                    "is_action_id_should_be_increased": is_action_id_should_be_increased });
+                dispatch_custom_event(detail, UPDATE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
+                    EVENT_TARGET)?;
+                self.logging();
+                Ok(())
+            }
+            else
+            {
+                 let error_message = format!("{}: The assigned property to lines with \
+                    name {} does not exist!", error_message_header, assigned_property_to_lines_name);
+                Err(JsValue::from(&error_message))
+            }
         }
         else
         {
-             let error_message = format!("Properties: Update assigned properties action: \
-                The assigned property with name {} does not exist!", name);
-            Err(JsValue::from(&error_message))
+            self.clear_properties_module_by_action_id(action_id);
+
+            self.check_for_property_existence_by_name(name, error_message_header)?;
+
+            self.check_for_the_similar_line_numbers_in_assigned_properties_to_lines_existence(
+                line_numbers, error_message_header)?;
+
+            self.check_for_line_numbers_intersection_in_assigned_properties_to_lines(
+                name, line_numbers, error_message_header)?;
+
+            if let Some(assigned_property_to_lines) =
+                self.assigned_properties_to_lines.get_mut(name)
+            {
+                let old_assigned_property_to_lines =
+                    assigned_property_to_lines.clone();
+
+                let old_related_lines_numbers =
+                    old_assigned_property_to_lines.extract_related_lines_numbers();
+
+                assigned_property_to_lines.fit_related_lines_data_by_line_numbers(
+                    line_numbers);
+
+                let changed_assigned_property_to_lines =
+                    ChangedAssignedPropertyToLines::create(name, old_assigned_property_to_lines);
+
+                self.changed_assigned_properties_to_lines.insert(action_id,
+                    vec![changed_assigned_property_to_lines]);
+
+                let (_, _, cross_section_type) =
+                    self.properties.get(name).unwrap().extract_data();
+
+                let related_lines_data =
+                    self.assigned_properties_to_lines.get(name).unwrap()
+                        .extract_related_lines_data();
+                let detail = json!({ "assigned_properties_to_lines_data":
+                    {
+                        "name": name,
+                        "related_lines_data": related_lines_data,
+                        "line_numbers": line_numbers,
+                        "old_line_numbers": old_related_lines_numbers,
+                        "cross_section_type": cross_section_type.as_str().to_lowercase(),
+                    },
+                    "is_action_id_should_be_increased": is_action_id_should_be_increased });
+                dispatch_custom_event(detail,
+                    UPDATE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
+                    EVENT_TARGET)?;
+                self.logging();
+                Ok(())
+            }
+            else
+            {
+                 let error_message = format!("{}: The assigned property to lines with \
+                    name {} does not exist!", error_message_header, name);
+                Err(JsValue::from(&error_message))
+            }
         }
     }
 
@@ -156,14 +231,11 @@ impl Properties
     pub fn delete_assigned_properties_to_lines(&mut self, action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
+        let error_message_header = "Properties: Delete assigned properties to lines action";
+
         self.clear_properties_module_by_action_id(action_id);
 
-        if !self.properties.contains_key(name)
-        {
-            let error_message = &format!("Properties: Delete assigned properties to lines \
-                action: Property with name {} does not exist!", name);
-            return Err(JsValue::from(error_message));
-        }
+        self.check_for_property_existence_by_name(name, error_message_header)?;
 
         if let Some((assigned_property_to_lines_name, assigned_property_to_lines)) =
             self.assigned_properties_to_lines.remove_entry(&name.to_owned())
@@ -186,8 +258,8 @@ impl Properties
         }
         else
         {
-            let error_message = &format!("Properties: Delete assigned properties to lines \
-                action: Assigned property to lines with name {} do not exist!", name);
+            let error_message = &format!("{}: Assigned property to lines with name {} does \
+                not exist!", error_message_header, name);
             return Err(JsValue::from(error_message));
         }
     }
@@ -196,41 +268,42 @@ impl Properties
     pub fn restore_assigned_properties_to_lines(&mut self, action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        if let Some(deleted_assigned_property_to_lines) =
+        let error_message_header = "Properties: Restore assigned properties to lines action";
+
+        if let Some(mut deleted_assigned_property_to_lines) =
             self.deleted_assigned_properties_to_lines.remove(&action_id)
         {
-            if deleted_assigned_property_to_lines.is_empty() ||
-                deleted_assigned_property_to_lines.len() > 1
+            if deleted_assigned_property_to_lines.len() != 1
             {
-                let error_message = &format!("Properties: Restore assigned properties \
-                    to lines action: Incorrect number of assigned properties!");
+                let error_message = &format!("{}: Incorrect number of assigned properties!",
+                    error_message_header);
                 return Err(JsValue::from(error_message));
             }
-            let (deleted_assigned_property_to_lines_name, related_lines_numbers) =
-                deleted_assigned_property_to_lines[0].extract_name_and_related_lines_numbers();
+            let (deleted_assigned_property_to_lines_name, deleted_assigned_property_to_lines) =
+                deleted_assigned_property_to_lines.remove(0).extract_and_drop();
 
-            if !self.properties.contains_key(deleted_assigned_property_to_lines_name)
-            {
-                let error_message = &format!("Properties: Restore assigned properties to \
-                    lines action: Property with name {} does not exist!",
-                    deleted_assigned_property_to_lines_name);
-                return Err(JsValue::from(error_message));
-            }
+            self.check_for_property_existence_by_name(
+                &deleted_assigned_property_to_lines_name, error_message_header)?;
 
             if deleted_assigned_property_to_lines_name != name
             {
-                let error_message = &format!("Properties: Restore assigned properties \
-                    to lines action: Assigned property to lines with name {} does not exist!", name);
+                let error_message = &format!("{}: Assigned property to lines with name {} \
+                    does not exist!", error_message_header, name);
                 return Err(JsValue::from(error_message));
             }
 
-            self.assigned_properties_to_lines.insert(
-                deleted_assigned_property_to_lines_name.to_owned(),
-                AssignedPropertyToLines::create_initial(related_lines_numbers.as_slice()));
+            self.assigned_properties_to_lines.insert(deleted_assigned_property_to_lines_name,
+                deleted_assigned_property_to_lines);
+
             let (_, _, cross_section_type) =
                 self.properties.get(name).unwrap().extract_data();
+
             let related_lines_data =
                 self.assigned_properties_to_lines.get(name).unwrap().extract_related_lines_data();
+
+            let related_lines_numbers = self.assigned_properties_to_lines.get(name)
+                .unwrap().extract_related_lines_numbers();
+
             let detail = json!({ "assigned_properties_to_lines_data":
                 {
                     "name": name,
@@ -247,8 +320,8 @@ impl Properties
         }
         else
         {
-            let error_message = &format!("Properties: Restore assigned properties to lines \
-                action: Assigned property to lines with name {} does not exist!", name);
+            let error_message = &format!("{}: Assigned property to lines with name {} \
+                does not exist!", error_message_header, name);
             return Err(JsValue::from(error_message));
         }
     }

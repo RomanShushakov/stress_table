@@ -2,6 +2,9 @@ use serde::Serialize;
 use std::collections::{HashMap, HashSet};
 
 use crate::preprocessor::properties::beam_section_orientation::LocalAxis1Direction;
+
+use crate::preprocessor::properties::functions::line_numbers_same;
+
 use crate::types::FEUInt;
 
 
@@ -102,7 +105,7 @@ impl DeletedAssignedProperty
 pub struct AssignedPropertyToLines
 {
     related_lines_data: HashMap<FEUInt, Option<LocalAxis1Direction>>,
-    related_line_element_numbers: HashSet<FEUInt>,
+    related_line_elements_numbers: HashSet<FEUInt>,
 }
 
 
@@ -111,29 +114,19 @@ impl AssignedPropertyToLines
     pub fn create_initial(line_numbers: &[FEUInt]) -> Self
     {
         let mut related_lines_data = HashMap::new();
-        let related_line_element_numbers = HashSet::new();
+        let related_line_elements_numbers = HashSet::new();
         for line_number in line_numbers
         {
             related_lines_data.insert(*line_number, None);
         }
-        AssignedPropertyToLines { related_lines_data, related_line_element_numbers }
+        AssignedPropertyToLines { related_lines_data, related_line_elements_numbers }
     }
 
 
     pub fn line_numbers_same(&self, line_numbers: &[FEUInt]) -> bool
     {
-        for line_number in line_numbers
-        {
-            if !self.related_lines_data.contains_key(line_number)
-            {
-                return false;
-            }
-        }
-        if self.related_lines_data.keys().len() != line_numbers.len()
-        {
-            return false;
-        }
-        true
+        let related_lines_numbers = self.extract_related_lines_numbers();
+        line_numbers_same(&related_lines_numbers, line_numbers)
     }
 
 
@@ -167,14 +160,34 @@ impl AssignedPropertyToLines
     }
 
 
-    pub fn replace_related_lines_data(&mut self, line_numbers: &[FEUInt])
+    pub fn fit_related_lines_data_by_line_numbers(&mut self, line_numbers: &[FEUInt])
     {
-        let mut new_related_lines_data = HashMap::new();
+        let related_lines_numbers = self.extract_related_lines_numbers();
+        for line_number in related_lines_numbers.iter()
+        {
+            if !line_numbers.contains(line_number)
+            {
+                let _ = self.related_lines_data.remove(line_number);
+            }
+        }
         for line_number in line_numbers
         {
-            new_related_lines_data.insert(*line_number, None);
+            if !self.related_lines_data.contains_key(line_number)
+            {
+                self.related_lines_data.insert(*line_number, None);
+            }
         }
-        self.related_lines_data = new_related_lines_data;
+    }
+
+
+    pub fn check_for_any_line_number_contains(&self, line_numbers: &[FEUInt]) -> bool
+    {
+        if self.related_lines_data.iter().position(|(related_line_number, _)|
+            line_numbers.contains(related_line_number)).is_some()
+        {
+            return true;
+        }
+        false
     }
 }
 
@@ -199,5 +212,40 @@ impl DeletedAssignedPropertyToLines
     {
         let line_numbers = self.assigned_property_to_lines.extract_related_lines_numbers();
         (&self.name, line_numbers)
+    }
+
+    pub fn extract_and_drop(self) -> (String, AssignedPropertyToLines)
+    {
+        (self.name, self.assigned_property_to_lines)
+    }
+}
+
+
+#[derive(Debug, Clone)]
+pub struct ChangedAssignedPropertyToLines
+{
+    name: String,
+    assigned_property_to_lines: AssignedPropertyToLines,
+}
+
+
+impl ChangedAssignedPropertyToLines
+{
+    pub fn create(name: &str, assigned_property_to_lines: AssignedPropertyToLines) -> Self
+    {
+        ChangedAssignedPropertyToLines { name: String::from(name), assigned_property_to_lines }
+    }
+
+
+    pub fn extract_name_and_related_lines_numbers(&self) -> (&str, Vec<FEUInt>)
+    {
+        let line_numbers = self.assigned_property_to_lines.extract_related_lines_numbers();
+        (&self.name, line_numbers)
+    }
+
+
+    pub fn extract_and_drop(self) -> (String, AssignedPropertyToLines)
+    {
+        (self.name, self.assigned_property_to_lines)
     }
 }

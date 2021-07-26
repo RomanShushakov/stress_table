@@ -86,8 +86,13 @@ impl Geometry
     pub fn logging(&self)
     {
         log(&format!("Geometry: \n
-            Points: {:?}, Deleted points: {:?}, \n
-            Lines: {:?}, Deleted lines {:?} \n", self.points, self.deleted_points, self.lines,
+            Points: {:?}, \n
+            Deleted points: {:?}, \n
+            Lines: {:?}, \n
+            Deleted lines {:?} \n",
+            self.points,
+            self.deleted_points,
+            self.lines,
             self.deleted_lines));
     }
 }

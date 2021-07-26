@@ -147,10 +147,11 @@ impl Properties
                 converted_cross_section_type.clone());
             if previous_cross_section_type != converted_cross_section_type
             {
-                if let Some(assigned_property) = self.assigned_properties.get(name)
+                if let Some(assigned_property_to_lines) =
+                    self.assigned_properties_to_lines.get(name)
                 {
-
-                    let line_numbers = assigned_property.extract_data();
+                    let line_numbers =
+                        assigned_property_to_lines.extract_related_lines_numbers();
                     let detail = json!({ "lines_color_scheme_data":
                         {
                             "line_numbers": line_numbers,

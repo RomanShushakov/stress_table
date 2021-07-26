@@ -215,6 +215,8 @@ impl Preprocessor
         local_axis_1_direction: &[FEFloat], is_action_id_should_be_increased: bool)
         -> Result<(), JsValue>
     {
+        self.geometry.clear_by_action_id(action_id);
+
         self.properties.add_beam_section_local_axis_1_direction(action_id, local_axis_1_direction,
             is_action_id_should_be_increased)
     }
@@ -224,9 +226,10 @@ impl Preprocessor
         local_axis_1_direction: &[FEFloat], is_action_id_should_be_increased: bool)
         -> Result<(), JsValue>
     {
+        self.geometry.clear_by_action_id(action_id);
+
         self.properties.remove_beam_section_local_axis_1_direction(action_id,
-            local_axis_1_direction,
-            is_action_id_should_be_increased)
+            local_axis_1_direction, is_action_id_should_be_increased)
     }
 
 
@@ -235,18 +238,18 @@ impl Preprocessor
         -> Result<(), JsValue>
     {
         self.properties.restore_beam_section_local_axis_1_direction(action_id,
-            local_axis_1_direction,
-            is_action_id_should_be_increased)
+            local_axis_1_direction, is_action_id_should_be_increased)
     }
 
-    pub fn update_beam_section_orientation_data(&mut self, action_id: FEUInt,
-        local_axis_1_direction: &[FEFloat], line_numbers: &[FEUInt],
-        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
-    {
-        self.properties.update_beam_section_orientation_data(action_id, local_axis_1_direction,
-            line_numbers, is_action_id_should_be_increased, &self.geometry,
-            get_line_points_coordinates)
-    }
+
+    // pub fn update_beam_section_orientation_data(&mut self, action_id: FEUInt,
+    //     local_axis_1_direction: &[FEFloat], line_numbers: &[FEUInt],
+    //     is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    // {
+    //     self.properties.update_beam_section_orientation_data(action_id, local_axis_1_direction,
+    //         line_numbers, is_action_id_should_be_increased, &self.geometry,
+    //         get_line_points_coordinates)
+    // }
 
 
     pub fn extract_materials(&self, handler: js_sys::Function) -> Result<(), JsValue>

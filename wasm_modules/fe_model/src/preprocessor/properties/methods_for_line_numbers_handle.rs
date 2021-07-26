@@ -47,11 +47,14 @@ impl Properties
         self.clear_by_action_id(action_id);
 
         let mut changed_assigned_properties_to_lines = Vec::new();
+
         let mut deleted_assigned_properties_to_lines = Vec::new();
+
         let assigned_properties_to_lines_names_for_change_or_delete =
             self.extract_assigned_properties_to_lines_names_for_change_or_delete_by_line_numbers(
                 line_numbers
             );
+
         for assigned_property_to_lines_name in
             assigned_properties_to_lines_names_for_change_or_delete.iter()
         {
@@ -60,12 +63,16 @@ impl Properties
                     .unwrap();
             let old_assigned_property_to_lines =
                 assigned_property_to_lines.clone();
+
             let obsolete_assigned_property_to_lines =
                 assigned_property_to_lines.clone();
+
             let old_line_numbers = obsolete_assigned_property_to_lines
                 .extract_related_lines_numbers();
+
             let mut new_assigned_property_to_lines_line_numbers =
                 assigned_property_to_lines.extract_related_lines_numbers();
+
             while let Some(position) = new_assigned_property_to_lines_line_numbers.iter()
                 .position(|number| line_numbers.contains(number))
             {

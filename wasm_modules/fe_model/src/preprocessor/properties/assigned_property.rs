@@ -117,7 +117,7 @@ impl AssignedPropertyToLines
         let related_line_elements_numbers = HashSet::new();
         for line_number in line_numbers
         {
-            related_lines_data.insert(*line_number, None);
+            related_lines_data.insert(*line_number, Some(LocalAxis1Direction::create(&[0.0, 0.0, 1.0]).unwrap()));
         }
         AssignedPropertyToLines { related_lines_data, related_line_elements_numbers }
     }
@@ -189,6 +189,13 @@ impl AssignedPropertyToLines
         }
         false
     }
+
+
+    pub fn update_related_lines_data(&mut self, line_number: FEUInt,
+        local_axis_1_direction: Option<LocalAxis1Direction>)
+    {
+        self.related_lines_data.insert(line_number, local_axis_1_direction);
+    }
 }
 
 
@@ -247,5 +254,11 @@ impl ChangedAssignedPropertyToLines
     pub fn extract_and_drop(self) -> (String, AssignedPropertyToLines)
     {
         (self.name, self.assigned_property_to_lines)
+    }
+
+
+    pub fn name_same(&self, name: &str) -> bool
+    {
+        self.name == name
     }
 }

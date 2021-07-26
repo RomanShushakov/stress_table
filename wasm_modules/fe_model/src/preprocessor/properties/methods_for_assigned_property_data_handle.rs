@@ -281,7 +281,7 @@ impl Properties
                     assigned_property_to_lines.extract_related_lines_numbers();
                 let deleted_assigned_property_to_lines =
                     DeletedAssignedPropertyToLines::create(property_name,
-                                                           assigned_property_to_lines);
+                        assigned_property_to_lines);
                 assigned_properties_to_lines_for_delete.push(
                     deleted_assigned_property_to_lines);
                 let detail = json!({ "assigned_properties_to_lines_data":

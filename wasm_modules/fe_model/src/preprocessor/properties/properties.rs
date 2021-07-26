@@ -16,10 +16,7 @@ use crate::preprocessor::properties::assigned_property::
     AssignedProperty, ChangedAssignedProperty, DeletedAssignedProperty, AssignedPropertyToLines,
     DeletedAssignedPropertyToLines, ChangedAssignedPropertyToLines,
 };
-use crate::preprocessor::properties::beam_section_orientation::
-{
-    BeamSectionOrientation,
-};
+use crate::preprocessor::properties::beam_section_orientation::{BeamSectionOrientation, LocalAxis1Direction};
 
 use crate::types::{FEUInt, FEFloat};
 
@@ -36,18 +33,13 @@ pub struct Properties
     pub deleted_beam_sections: HashMap<FEUInt, DeletedBeamSection>,  // { action_id: DeletedBeamSection }
     pub properties: HashMap<String, Property>,  // { property_name: Property }
     pub deleted_properties: HashMap<FEUInt, Vec<DeletedProperty>>,  // { action_id: Vec<DeletedProperty> }
-
-    pub assigned_properties: HashMap<String, AssignedProperty>, // { property_name: AssignedProperties }
-    pub changed_assigned_properties: HashMap<FEUInt, Vec<ChangedAssignedProperty>>,   // { action_id: Vec<ChangedAssignedProperty> }
-    pub deleted_assigned_properties: HashMap<FEUInt, Vec<DeletedAssignedProperty>>,   // { action_id: Vec<DeletedAssignedProperty> }
-
     pub assigned_properties_to_lines: HashMap<String, AssignedPropertyToLines>, // { property_name: AssignedProperties }
     pub deleted_assigned_properties_to_lines: HashMap<FEUInt, Vec<DeletedAssignedPropertyToLines>>,    // { action_id: Vec<DeletedAssignedPropertyToLines> }
     pub changed_assigned_properties_to_lines: HashMap<FEUInt, Vec<ChangedAssignedPropertyToLines>>,    // { action_id: Vec<ChangedAssignedPropertyToLines> }
 
-    pub beam_sections_local_axis_1_directions: Vec<BeamSectionOrientation>,
+    pub beam_sections_local_axis_1_directions: Vec<LocalAxis1Direction>,
     pub changed_beam_sections_orientations: HashMap<FEUInt, Vec<BeamSectionOrientation>>,    // { action_id: Vec<BeamSectionOrientation> }
-    pub deleted_beam_sections_orientations: HashMap<FEUInt, Vec<BeamSectionOrientation>>,   // { action_id: Vec<BeamSectionOrientation> }
+    pub deleted_beam_sections_local_axis_1_directions: HashMap<FEUInt, LocalAxis1Direction>,   // { action_id: LocalAxis1Direction }
 }
 
 
@@ -63,13 +55,10 @@ impl Properties
         let deleted_beam_sections = HashMap::new();
         let properties = HashMap::new();
         let deleted_properties = HashMap::new();
-        let assigned_properties = HashMap::new();
-        let changed_assigned_properties = HashMap::new();
-        let deleted_assigned_properties = HashMap::new();
         let assigned_properties_to_lines = HashMap::new();
         let deleted_assigned_properties_to_lines = HashMap::new();
         let changed_assigned_properties_to_lines = HashMap::new();
-        let beam_sections_orientations = Vec::new();
+        let beam_sections_local_axis_1_directions = Vec::new();
         let changed_beam_sections_orientations = HashMap::new();
         let deleted_beam_sections_orientations = HashMap::new();
         Properties {
@@ -77,12 +66,10 @@ impl Properties
             truss_sections, deleted_truss_sections,
             beam_sections, deleted_beam_sections,
             properties, deleted_properties,
-            assigned_properties, changed_assigned_properties,
-            deleted_assigned_properties,
             assigned_properties_to_lines, deleted_assigned_properties_to_lines,
             changed_assigned_properties_to_lines,
-            beam_sections_local_axis_1_directions: beam_sections_orientations, changed_beam_sections_orientations,
-            deleted_beam_sections_orientations,
+            beam_sections_local_axis_1_directions, changed_beam_sections_orientations,
+            deleted_beam_sections_local_axis_1_directions: deleted_beam_sections_orientations,
         }
     }
 
@@ -167,13 +154,13 @@ impl Properties
 
     pub fn clear_deleted_beam_sections_orientations_by_action_id(&mut self, action_id: FEUInt)
     {
-        for action_id in self.deleted_beam_sections_orientations.clone()
+        for action_id in self.deleted_beam_sections_local_axis_1_directions.clone()
             .keys()
             .filter(|deleted_action_id| **deleted_action_id >= action_id)
             .collect::<Vec<&FEUInt>>()
             .iter()
         {
-            let _ = self.deleted_beam_sections_orientations.remove(&action_id);
+            let _ = self.deleted_beam_sections_local_axis_1_directions.remove(&action_id);
         }
     }
 
@@ -276,24 +263,33 @@ impl Properties
     pub fn logging(&self)
     {
         log(&format!("Properties: \n
-            materials: {:?}, deleted materials: {:?}, \n
-            truss sections: {:?}, deleted truss sections: {:?}, \n
-            beam sections: {:?}, deleted beam sections: {:?}, \n
-            properties: {:?}, deleted properties: {:?}, \n
-            assigned_properties: {:?}, changed_assigned_properties: {:?}, \n
-            deleted_assigned_properties: {:?}, assigned_properties_to_lines: {:?}, \n
-            deleted_assigned_properties_to_lines: {:?}, changed_assigned_properties_to_lines: {:?}, \n
-            beam_sections_orientations: {:?}, \n
+            materials: {:?}, \n
+            deleted materials: {:?}, \n
+            truss sections: {:?}, \n
+            deleted truss sections: {:?}, \n
+            beam sections: {:?}, \n
+            deleted beam sections: {:?}, \n
+            properties: {:?}, \n
+            deleted properties: {:?}, \n
+            assigned_properties_to_lines: {:?}, \n
+            deleted_assigned_properties_to_lines: {:?}, \n
+            changed_assigned_properties_to_lines: {:?}, \n
+            beam_sections_local_axis_1_directions: {:?}, \n
             changed_beam_sections_orientations: {:?}, deleted_beam_sections_orientations: {:?} \n",
-                     self.materials, self.deleted_materials,
-                     self.truss_sections, self.deleted_truss_sections,
-                     self.beam_sections, self.deleted_beam_sections,
-                     self.properties, self.deleted_properties,
-                     self.assigned_properties, self.changed_assigned_properties,
-                     self.deleted_assigned_properties, self.assigned_properties_to_lines,
-                     self.deleted_assigned_properties_to_lines, self.changed_assigned_properties_to_lines,
-                     self.beam_sections_local_axis_1_directions,
-                     self.changed_beam_sections_orientations, self.deleted_beam_sections_orientations)
+            self.materials,
+            self.deleted_materials,
+            self.truss_sections,
+            self.deleted_truss_sections,
+            self.beam_sections,
+            self.deleted_beam_sections,
+            self.properties,
+            self.deleted_properties,
+            self.assigned_properties_to_lines,
+            self.deleted_assigned_properties_to_lines,
+            self.changed_assigned_properties_to_lines,
+            self.beam_sections_local_axis_1_directions,
+            self.changed_beam_sections_orientations,
+            self.deleted_beam_sections_local_axis_1_directions)
         );
     }
 }

@@ -582,7 +582,12 @@ class FeaApp extends HTMLElement {
         try {
             this.state.actionsRouter.handle_message(message, toCache);
         } catch (error) {
-            this.querySelector(event.target.tagName.toLowerCase()).feModelError = error;
+            if (event.target.tagName.toLowerCase() == "fea-properties-beam-section-orientation-menu") {
+                const errorData = { "message": message, "error": error };
+                this.querySelector(event.target.tagName.toLowerCase()).feModelError = errorData;
+            } else {
+                this.querySelector(event.target.tagName.toLowerCase()).feModelError = error;
+            }
             throw error;
         }
         event.stopPropagation();
@@ -942,9 +947,7 @@ class FeaApp extends HTMLElement {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;           
         }
-        const beamSectionLocalAxis1DirectionData = { 
-            local_axis_1_direction: event.detail.local_axis_1_direction_data.local_axis_1_direction,
-            line_numbers: event.detail.local_axis_1_direction_data.line_numbers };
+        const beamSectionLocalAxis1DirectionData = event.detail.local_axis_1_direction_data.local_axis_1_direction;
         for (let i = 0; i < this.state.beamSectionsOrientationsDependentMenus.length; i++) {
             if (this.querySelector(this.state.beamSectionsOrientationsDependentMenus[i]) !== null) {
                 this.querySelector(this.state.beamSectionsOrientationsDependentMenus[i])
@@ -958,8 +961,7 @@ class FeaApp extends HTMLElement {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;           
         }
-        const beamSectionLocalAxis1DirectionData = { 
-            local_axis_1_direction: event.detail.local_axis_1_direction_data.local_axis_1_direction };
+        const beamSectionLocalAxis1DirectionData = event.detail.local_axis_1_direction_data.local_axis_1_direction;
         for (let i = 0; i < this.state.beamSectionsOrientationsDependentMenus.length; i++) {
             if (this.querySelector(this.state.beamSectionsOrientationsDependentMenus[i]) !== null) {
                 this.querySelector(this.state.beamSectionsOrientationsDependentMenus[i])

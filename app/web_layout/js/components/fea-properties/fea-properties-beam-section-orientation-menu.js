@@ -639,8 +639,8 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
         this.props.properties = value;
     }
 
-    set assignedProperties(value) {
-        this.props.assignedProperties = value;
+    set assignedPropertiesToLines(value) {
+        this.props.assignedPropertiesToLines = value;
     }
 
     set beamSectionsLocalAxis1Directions(value) {
@@ -681,6 +681,7 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
     set addAssignedPropertiesToLinesToClient(assignedPropertiesToLines) {
         this.props.assignedPropertiesToLines.push(assignedPropertiesToLines);
         this.props.assignedPropertiesToLines.sort((a, b) => a.name - b.name);
+        this.defineLocalAxis1DirectionOptions();
     }
 
     set updateAssignedPropertiesToLinesInClient(assignedPropertiesToLines) {
@@ -688,6 +689,7 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
             .find(existedAssignedPropertiesToLines => 
                 existedAssignedPropertiesToLines.name == assignedPropertiesToLines.name);
         assignedPropertiesToLinesInProps.related_lines_data = assignedPropertiesToLines.related_lines_data;
+        this.defineLocalAxis1DirectionOptions();
     }
 
     set deleteAssignedPropertiesToLinesFromClient(assignedPropertiesToLines) {
@@ -696,21 +698,22 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
                 existedAssignedPropertiesToLines.name == assignedPropertiesToLines.name);
         this.props.assignedPropertiesToLines.splice(assignedPropertiesToLinesIndexInProps, 1);
         this.props.assignedPropertiesToLines.sort((a, b) => a.name - b.name);
+        this.defineLocalAxis1DirectionOptions();
     }
 
     set addBeamSectionLocalAxis1DirectionToClient(beamSectionLocalAxis1DirectionData) {
         this.props.beamSectionsLocalAxis1Directions.push(beamSectionLocalAxis1DirectionData);
-        this.props.beamSectionsLocalAxis1Directions.sort((a, b) => a.local_axis_1_direction - b.local_axis_1_direction);
+        this.props.beamSectionsLocalAxis1Directions.sort((a, b) => a - b);
         this.defineLocalAxis1DirectionOptions();
     }
 
     set removeBeamSectionLocalAxis1DirectionFromClient(beamSectionLocalAxis1DirectionData) {
         const equals = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
         let beamSectionLocalAxis1DirectionIndexInProps = this.props.beamSectionsLocalAxis1Directions
-            .findIndex(existedbeamSectionOrientation => equals(existedbeamSectionOrientation.local_axis_1_direction,
-                beamSectionLocalAxis1DirectionData.local_axis_1_direction));
+            .findIndex(existedbeamSectionLocalAxis1Direction => equals(existedbeamSectionLocalAxis1Direction,
+                beamSectionLocalAxis1DirectionData));
         this.props.beamSectionsLocalAxis1Directions.splice(beamSectionLocalAxis1DirectionIndexInProps, 1);
-        this.props.beamSectionsLocalAxis1Directions.sort((a, b) => a.local_axis_1_direction - b.local_axis_1_direction);
+        this.props.beamSectionsLocalAxis1Directions.sort((a, b) => a - b);
         this.defineLocalAxis1DirectionOptions();
     }
 
@@ -734,13 +737,23 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
         }
     }
 
-    set feModelError(error) {
-        const assignToLinesField = this.shadowRoot.querySelector(".assign-to-lines");
-        if (assignToLinesField.classList.contains("highlighted") === false) {
-            assignToLinesField.classList.add("highlighted");
-        }
-        if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = error;
+    set feModelError(errorData) {
+        if (errorData.message.update_beam_section_orientation_data !== undefined) {
+            const assignToLinesField = this.shadowRoot.querySelector(".assign-to-lines");
+            if (assignToLinesField.classList.contains("highlighted") === false) {
+                assignToLinesField.classList.add("highlighted");
+            }
+            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = errorData.error;
+            }
+        } else {
+            const localAxis1DirectionInputField = this.shadowRoot.querySelector(".local-axis-1-direction-input");
+            if (localAxis1DirectionInputField.classList.contains("highlighted") === false) {
+                localAxis1DirectionInputField.classList.add("highlighted");
+            }
+            if (this.shadowRoot.querySelector(".local-axis-1-direction-input-info-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".local-axis-1-direction-input-info-message").innerHTML = errorData.error;
+            }
         }
     }
 
@@ -759,7 +772,7 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
                 clearInterval(id);
                 this.getLines();
                 this.getProperties();
-                this.getAssignedProperties();
+                this.getAssignedPropertiesToLines();
                 this.getBeamSectionsLocalAxis1Directions();
                 this.defineLocalAxis1DirectionOptions();
             }
@@ -809,8 +822,8 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
         }));
     }
 
-    getAssignedProperties() {
-        this.dispatchEvent(new CustomEvent("getAssignedProperties", {
+    getAssignedPropertiesToLines() {
+        this.dispatchEvent(new CustomEvent("getAssignedPropertiesToLines", {
             bubbles: true,
             composed: true,
         }));
@@ -842,28 +855,6 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
             }
         }
         localAxis1Direction = localAxis1Direction.map((item) => parseFloat(item));
-        if (localAxis1Direction.length !== 3) {
-            if (localAxis1DirectionInputField.classList.contains("highlighted") === false) {
-                localAxis1DirectionInputField.classList.add("highlighted");
-            }
-            if (this.shadowRoot.querySelector(".local-axis-1-direction-input-info-message").innerHTML === "") {
-                this.shadowRoot.querySelector(".local-axis-1-direction-input-info-message").innerHTML = 
-                    "Note: Incorrect number of coordinates for local axis 1 direction!";
-            }
-            return;
-        }
-        const equals = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
-        if (this.props.beamSectionsLocalAxis1Directions.find((item) => 
-            equals(item.local_axis_1_direction, localAxis1Direction)) !== undefined) {
-            if (localAxis1DirectionInputField.classList.contains("highlighted") === false) {
-                localAxis1DirectionInputField.classList.add("highlighted");
-            }
-            if (this.shadowRoot.querySelector(".local-axis-1-direction-input-info-message").innerHTML === "") {
-                this.shadowRoot.querySelector(".local-axis-1-direction-input-info-message").innerHTML = 
-                    "Note: The same value of beam section local axis 1 direction does already exist!";
-            }
-            return;
-        }
         this.getActionId();
         const message = { 
             "add_beam_section_local_axis_1_direction": { 
@@ -900,28 +891,6 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
             }
         }
         localAxis1Direction = localAxis1Direction.map((item) => parseFloat(item));
-        if (localAxis1Direction.length !== 3) {
-            if (localAxis1DirectionInputField.classList.contains("highlighted") === false) {
-                localAxis1DirectionInputField.classList.add("highlighted");
-            }
-            if (this.shadowRoot.querySelector(".local-axis-1-direction-input-info-message").innerHTML === "") {
-                this.shadowRoot.querySelector(".local-axis-1-direction-input-info-message").innerHTML = 
-                    "Note: Incorrect number of coordinates for local axis 1 direction!";
-            }
-            return;
-        }
-        const equals = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
-        if (this.props.beamSectionsLocalAxis1Directions.find((item) => 
-            equals(item.local_axis_1_direction, localAxis1Direction)) === undefined) {
-            if (localAxis1DirectionInputField.classList.contains("highlighted") === false) {
-                localAxis1DirectionInputField.classList.add("highlighted");
-            }
-            if (this.shadowRoot.querySelector(".local-axis-1-direction-input-info-message").innerHTML === "") {
-                this.shadowRoot.querySelector(".local-axis-1-direction-input-info-message").innerHTML = 
-                    "Note: The inputted value of beam section local axis 1 direction does not exist!";
-            }
-            return;
-        }
         this.getActionId();
         const message = { 
             "remove_beam_section_local_axis_1_direction": { 
@@ -1070,12 +1039,15 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
         }
         for (let i = 0; i < this.props.beamSectionsLocalAxis1Directions.length; i++) {
             let localAxis1DirectionOption = document.createElement("option");
-            localAxis1DirectionOption.value = this.props.beamSectionsLocalAxis1Directions[i].local_axis_1_direction;
-            localAxis1DirectionOption.innerHTML = this.props.beamSectionsLocalAxis1Directions[i].local_axis_1_direction;
+            localAxis1DirectionOption.value = this.props.beamSectionsLocalAxis1Directions[i];
+            localAxis1DirectionOption.innerHTML = this.props.beamSectionsLocalAxis1Directions[i];
             localAxis1DirectionSelect.appendChild(localAxis1DirectionOption);
         }
         if (localAxis1DirectionSelect.value !== "") {
             this.updateSelectedBeamSectionOrientationData(localAxis1DirectionSelect.value);
+        } else {
+            this.state.assignToLines.clear();
+            this.shadowRoot.querySelector(".assign-to-lines").value = "";
         }
     }
 
@@ -1085,14 +1057,22 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
             .map((item) => parseFloat(item))
             .filter((item) => item !== "");
         const equals = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
-        const selectedBeamSectionOrientationInProps = this.props.beamSectionsLocalAxis1Directions
-            .find(existedBeamSectionOrientation => 
-                equals(existedBeamSectionOrientation.local_axis_1_direction, localAxis1Direction) === true);
+        let assignedToLines = [];
+        for (let i = 0; i < this.props.assignedPropertiesToLines.length; i++) {
+            const linesNumbers = Array.from(
+                Object.entries(this.props.assignedPropertiesToLines[i].related_lines_data)
+                    .filter(([_key, value]) => value !== null)
+                    .filter(([_key, value]) => equals(value, localAxis1Direction) === true), 
+                ([key, _value]) => parseInt(key)
+            );
+            for (let j = 0; j < linesNumbers.length; j++) {
+                assignedToLines.push(linesNumbers[j]);
+            }
+        }
         let assignToLinesFieldValue = "";
-        let assignedToLines = selectedBeamSectionOrientationInProps.line_numbers;
         this.state.assignToLines = new Set(assignedToLines);
-        for (let i = 0; i < assignedToLines.length; i++) {
-            assignToLinesFieldValue += `${assignedToLines[i]}, `
+        for (let k = 0; k < assignedToLines.length; k++) {
+            assignToLinesFieldValue += `${assignedToLines[k]}, `
         }
         this.shadowRoot.querySelector(".assign-to-lines").value = assignToLinesFieldValue;
         this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
@@ -1351,6 +1331,11 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
             return false;
         }
         return !isNaN(str) && !isNaN(parseFloat(str));
+    }
+
+    isInt(str) {
+        const n = parseFloat(str);
+        return n % 1 === 0;
     }
 }
 

@@ -1,6 +1,8 @@
 use wasm_bindgen::prelude::*;
 use serde_json::json;
 
+use crate::preprocessor::traits::ClearByActionIdTrait;
+
 use crate::preprocessor::geometry::geometry::Geometry;
 use crate::preprocessor::geometry::point::{Point, DeletedPoint};
 use crate::preprocessor::geometry::line::{Line, DeletedLine};
@@ -13,6 +15,7 @@ use crate::preprocessor::geometry::consts::
 use crate::types::{FEUInt, FEFloat};
 
 use crate::functions::{dispatch_custom_event};
+
 use crate::consts::EVENT_TARGET;
 
 
@@ -21,7 +24,7 @@ impl Geometry
     pub fn add_point(&mut self, action_id: FEUInt, number: FEUInt, x: FEFloat, y: FEFloat,
         z: FEFloat, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.clear_geometry_module_by_action_id(action_id);
+        self.clear_by_action_id(action_id);
 
         if self.points.contains_key(&number)
         {
@@ -49,7 +52,7 @@ impl Geometry
     pub fn update_point(&mut self, action_id: FEUInt, number: FEUInt, x: FEFloat, y: FEFloat,
         z: FEFloat, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.clear_geometry_module_by_action_id(action_id);
+        self.clear_by_action_id(action_id);
 
         if self.points.values().position(|point| point.coordinates_same(x, y, z)).is_some()
         {
@@ -95,7 +98,7 @@ impl Geometry
         line_numbers_for_delete: &[FEUInt], is_action_id_should_be_increased: bool)
         -> Result<(), JsValue>
     {
-        self.clear_geometry_module_by_action_id(action_id);
+        self.clear_by_action_id(action_id);
 
         let mut deleted_lines = Vec::new();
 

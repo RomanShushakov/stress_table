@@ -1,5 +1,7 @@
 use wasm_bindgen::prelude::*;
 
+use crate::preprocessor::traits::ClearByActionIdTrait;
+
 use crate::Preprocessor;
 
 use crate::types::{FEUInt, FEFloat};
@@ -16,14 +18,17 @@ impl Preprocessor
     pub fn add_point(&mut self, action_id: FEUInt, number: FEUInt, x: FEFloat, y: FEFloat,
         z: FEFloat, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.geometry.add_point(action_id, number, x, y, z,
-            is_action_id_should_be_increased)
+        self.properties.clear_by_action_id(action_id);
+
+        self.geometry.add_point(action_id, number, x, y, z, is_action_id_should_be_increased)
     }
 
 
     pub fn update_point(&mut self, action_id: FEUInt, number: FEUInt, x: FEFloat, y: FEFloat,
         z: FEFloat, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
+        self.properties.clear_by_action_id(action_id);
+
         self.geometry.update_point(action_id, number, x, y, z,
             is_action_id_should_be_increased)
     }
@@ -32,16 +37,20 @@ impl Preprocessor
     pub fn add_line(&mut self, action_id: FEUInt, number: FEUInt, start_point_number: FEUInt,
         end_point_number: FEUInt, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.geometry.add_line(action_id, number, start_point_number,
-            end_point_number, is_action_id_should_be_increased)
+        self.properties.clear_by_action_id(action_id);
+
+        self.geometry.add_line(action_id, number, start_point_number, end_point_number,
+            is_action_id_should_be_increased)
     }
 
 
     pub fn update_line(&mut self, action_id: FEUInt, number: FEUInt, start_point_number: FEUInt,
         end_point_number: FEUInt, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.geometry.update_line(action_id, number, start_point_number,
-            end_point_number, is_action_id_should_be_increased)
+        self.properties.clear_by_action_id(action_id);
+
+        self.geometry.update_line(action_id, number, start_point_number, end_point_number,
+            is_action_id_should_be_increased)
     }
 
 

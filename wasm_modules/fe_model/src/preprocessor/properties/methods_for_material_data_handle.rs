@@ -1,6 +1,8 @@
 use wasm_bindgen::prelude::*;
 use serde_json::json;
 
+use crate::preprocessor::traits::ClearByActionIdTrait;
+
 use crate::preprocessor::properties::properties::Properties;
 use crate::preprocessor::properties::material::{Material, DeletedMaterial};
 use crate::preprocessor::properties::property::{Property, DeletedProperty};
@@ -22,7 +24,6 @@ use crate::consts::EVENT_TARGET;
 use crate::functions::{dispatch_custom_event};
 
 
-
 impl Properties
 {
     pub fn add_material(&mut self, action_id: FEUInt, name: &str, young_modulus: FEFloat,
@@ -30,7 +31,7 @@ impl Properties
     {
         let error_message_header = "Properties: Add material action";
 
-        self.clear_properties_module_by_action_id(action_id);
+        self.clear_by_action_id(action_id);
 
         if self.materials.contains_key(&name.to_owned())
         {
@@ -38,6 +39,7 @@ impl Properties
                 error_message_header, name);
             return Err(JsValue::from(error_message));
         }
+
         if self.materials.values().position(|material|
             material.data_same(young_modulus, poisson_ratio)).is_some()
         {
@@ -46,6 +48,7 @@ impl Properties
                 young_modulus, poisson_ratio);
             return Err(JsValue::from(error_message));
         }
+
         let material = Material::create(young_modulus, poisson_ratio);
         self.materials.insert(name.to_owned(), material);
         let detail = json!({ "material_data": { "name": name, "young_modulus": young_modulus,
@@ -62,7 +65,7 @@ impl Properties
     {
         let error_message_header = "Properties: Update material action";
 
-        self.clear_properties_module_by_action_id(action_id);
+        self.clear_by_action_id(action_id);
 
         if self.materials.values().position(|material|
             material.data_same(young_modulus, poisson_ratio)).is_some()
@@ -72,6 +75,7 @@ impl Properties
                 poisson_ratio);
             return Err(JsValue::from(error_message));
         }
+
         if let Some(material) = self.materials.get_mut(name)
         {
             material.update(young_modulus, poisson_ratio);
@@ -110,7 +114,8 @@ impl Properties
     pub fn delete_material(&mut self, action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.clear_properties_module_by_action_id(action_id);
+
+        self.clear_by_action_id(action_id);
 
         let property_names_for_delete =
             self.extract_property_names_for_delete_by_material_name(name);

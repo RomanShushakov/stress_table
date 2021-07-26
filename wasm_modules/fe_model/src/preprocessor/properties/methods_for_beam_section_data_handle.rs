@@ -1,6 +1,8 @@
 use wasm_bindgen::prelude::*;
 use serde_json::json;
 
+use crate::preprocessor::traits::ClearByActionIdTrait;
+
 use crate::preprocessor::properties::properties::Properties;
 use crate::preprocessor::properties::beam_section::{BeamSection, DeletedBeamSection};
 use crate::preprocessor::properties::property::{Property, DeletedProperty};
@@ -24,10 +26,10 @@ use crate::functions::{dispatch_custom_event};
 impl Properties
 {
     pub fn add_beam_section(&mut self, action_id: FEUInt, name: &str, area: FEFloat,
-        i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat, is_action_id_should_be_increased: bool)
-        -> Result<(), JsValue>
+        i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.clear_properties_module_by_action_id(action_id);
+        self.clear_by_action_id(action_id);
 
         if self.beam_sections.contains_key(&name.to_owned())
         {
@@ -56,10 +58,10 @@ impl Properties
 
 
     pub fn update_beam_section(&mut self, action_id: FEUInt, name: &str, area: FEFloat,
-        i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat, is_action_id_should_be_increased: bool)
-        -> Result<(), JsValue>
+        i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.clear_properties_module_by_action_id(action_id);
+        self.clear_by_action_id(action_id);
 
         if self.beam_sections.values().position(|beam_section|
             beam_section.data_same(area, i11, i22, i12, it)).is_some()
@@ -111,7 +113,7 @@ impl Properties
     pub fn delete_beam_section(&mut self, action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.clear_properties_module_by_action_id(action_id);
+        self.clear_by_action_id(action_id);
 
         let property_names_for_delete =
             self.extract_property_names_for_delete_by_beam_section_name(name);

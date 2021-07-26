@@ -1,6 +1,8 @@
 use wasm_bindgen::prelude::*;
 use serde_json::json;
 
+use crate::preprocessor::traits::ClearByActionIdTrait;
+
 use crate::preprocessor::geometry::geometry::Geometry;
 use crate::preprocessor::geometry::line::{Line, DeletedLine};
 use crate::preprocessor::geometry::consts::
@@ -20,7 +22,7 @@ impl Geometry
     pub fn add_line(&mut self, action_id: FEUInt, number: FEUInt, start_point_number: FEUInt,
         end_point_number: FEUInt, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.clear_geometry_module_by_action_id(action_id);
+        self.clear_by_action_id(action_id);
 
         if self.lines.contains_key(&number)
         {
@@ -72,7 +74,7 @@ impl Geometry
     pub fn update_line(&mut self, action_id: FEUInt, number: FEUInt, start_point_number: FEUInt,
         end_point_number: FEUInt, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.clear_geometry_module_by_action_id(action_id);
+        self.clear_by_action_id(action_id);
 
         if start_point_number == end_point_number
         {
@@ -122,7 +124,7 @@ impl Geometry
     pub fn delete_line(&mut self, action_id: FEUInt, number: FEUInt,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.clear_geometry_module_by_action_id(action_id);
+        self.clear_by_action_id(action_id);
 
         if let Some((line_number, line)) = self.lines.remove_entry(&number)
         {

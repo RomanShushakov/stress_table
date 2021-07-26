@@ -1,5 +1,7 @@
 use wasm_bindgen::prelude::*;
 
+use crate::preprocessor::traits::ClearByActionIdTrait;
+
 use crate::Preprocessor;
 
 use crate::preprocessor::functions::get_line_points_coordinates;
@@ -18,6 +20,8 @@ impl Preprocessor
     pub fn add_material(&mut self, action_id: FEUInt, name: &str, young_modulus: FEFloat,
         poisson_ratio: FEFloat, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
+        self.geometry.clear_by_action_id(action_id);
+
         self.properties.add_material(action_id, name, young_modulus, poisson_ratio,
             is_action_id_should_be_increased)
     }
@@ -26,6 +30,8 @@ impl Preprocessor
     pub fn update_material(&mut self, action_id: FEUInt, name: &str, young_modulus: FEFloat,
         poisson_ratio: FEFloat, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
+        self.geometry.clear_by_action_id(action_id);
+
         self.properties.update_material(action_id, name, young_modulus, poisson_ratio,
             is_action_id_should_be_increased)
     }
@@ -34,6 +40,8 @@ impl Preprocessor
     pub fn delete_material(&mut self, action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
+        self.geometry.clear_by_action_id(action_id);
+
         self.properties.delete_material(action_id, name, is_action_id_should_be_increased)
     }
 
@@ -48,6 +56,8 @@ impl Preprocessor
     pub fn add_truss_section(&mut self, action_id: FEUInt, name: &str, area: FEFloat,
         area2: Option<FEFloat>, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
+        self.geometry.clear_by_action_id(action_id);
+
         self.properties.add_truss_section(action_id, name, area, area2,
             is_action_id_should_be_increased)
     }
@@ -56,6 +66,8 @@ impl Preprocessor
     pub fn update_truss_section(&mut self, action_id: FEUInt, name: &str, area: FEFloat,
         area2: Option<FEFloat>, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
+        self.geometry.clear_by_action_id(action_id);
+
         self.properties.update_truss_section(action_id, name, area, area2,
             is_action_id_should_be_increased)
     }
@@ -64,6 +76,8 @@ impl Preprocessor
     pub fn delete_truss_section(&mut self, action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
+        self.geometry.clear_by_action_id(action_id);
+
         self.properties.delete_truss_section(action_id, name,
             is_action_id_should_be_increased)
     }
@@ -78,18 +92,22 @@ impl Preprocessor
 
 
     pub fn add_beam_section(&mut self, action_id: FEUInt, name: &str, area: FEFloat,
-        i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat, is_action_id_should_be_increased: bool)
-        -> Result<(), JsValue>
+        i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
+        self.geometry.clear_by_action_id(action_id);
+
         self.properties.add_beam_section(action_id, name, area, i11, i22, i12, it,
             is_action_id_should_be_increased)
     }
 
 
     pub fn update_beam_section(&mut self, action_id: FEUInt, name: &str, area: FEFloat,
-        i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat, is_action_id_should_be_increased: bool)
-        -> Result<(), JsValue>
+        i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
+        self.geometry.clear_by_action_id(action_id);
+
         self.properties.update_beam_section(action_id, name, area, i11, i22, i12, it,
             is_action_id_should_be_increased)
     }
@@ -98,6 +116,8 @@ impl Preprocessor
     pub fn delete_beam_section(&mut self, action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
+        self.geometry.clear_by_action_id(action_id);
+
         self.properties.delete_beam_section(action_id, name, is_action_id_should_be_increased)
     }
 
@@ -113,6 +133,8 @@ impl Preprocessor
         cross_section_name: &str, cross_section_type: &str, is_action_id_should_be_increased: bool)
         -> Result<(), JsValue>
     {
+        self.geometry.clear_by_action_id(action_id);
+
         self.properties.add_properties(action_id, name, material_name, cross_section_name,
             cross_section_type, is_action_id_should_be_increased)
     }
@@ -122,6 +144,8 @@ impl Preprocessor
         cross_section_name: &str, cross_section_type: &str, is_action_id_should_be_increased: bool)
         -> Result<(), JsValue>
     {
+        self.geometry.clear_by_action_id(action_id);
+
         self.properties.update_properties(action_id, name, material_name, cross_section_name,
             cross_section_type, is_action_id_should_be_increased)
     }
@@ -130,6 +154,8 @@ impl Preprocessor
     pub fn delete_properties(&mut self, action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
+        self.geometry.clear_by_action_id(action_id);
+
         self.properties.delete_properties(action_id, name, is_action_id_should_be_increased)
     }
 
@@ -146,6 +172,9 @@ impl Preprocessor
     {
         let error_message_header = "Properties: Add assigned properties to lines action";
         self.geometry.check_for_line_numbers_existence(line_numbers, error_message_header)?;
+
+        self.geometry.clear_by_action_id(action_id);
+
         self.properties.add_assigned_properties_to_lines(action_id, name, line_numbers,
             is_action_id_should_be_increased)
     }
@@ -156,6 +185,9 @@ impl Preprocessor
     {
         let error_message_header = "Properties: Update assigned properties to lines action";
         self.geometry.check_for_line_numbers_existence(line_numbers, error_message_header)?;
+
+        self.geometry.clear_by_action_id(action_id);
+
         self.properties.update_assigned_properties_to_lines(action_id, name, line_numbers,
             is_action_id_should_be_increased)
     }
@@ -164,6 +196,8 @@ impl Preprocessor
     pub fn delete_assigned_properties_to_lines(&mut self, action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
+        self.geometry.clear_by_action_id(action_id);
+
         self.properties.delete_assigned_properties_to_lines(action_id, name,
             is_action_id_should_be_increased)
     }
@@ -245,9 +279,9 @@ impl Preprocessor
     }
 
 
-    pub fn extract_beam_sections_orientations(&self, handler: js_sys::Function)
+    pub fn extract_beam_sections_local_axis_1_directions(&self, handler: js_sys::Function)
         -> Result<(), JsValue>
     {
-        self.properties.extract_beam_sections_orientations(handler)
+        self.properties.extract_beam_sections_local_axis_1_directions(handler)
     }
 }

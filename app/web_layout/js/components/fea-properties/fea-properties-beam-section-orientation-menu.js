@@ -3,13 +3,14 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
         super();
 
         this.props = {
-            actionId: null,                 // u32;
-            isFEModelLoaded: false,         // load status of wasm module "fe_model";
-            lines: new Map(),               // map: { number: u32, start_point_number: u32, end_point_number: u32 }, ...};
-            properties: [],                 // array of: [{ name: String, material_name: String, cross_section_name: String,
-                                            //              cross_section_type: String }];
-            assignedProperties: [],         // array of: [{ name: String, line_numbers: [u32...] }];
-            beamSectionsOrientations: [],   // array of: [{ local_axis_1_direction: [f64; 3], line_numbers: [u32...] }];    
+            actionId: null,                         // u32;
+            isFEModelLoaded: false,                 // load status of wasm module "fe_model";
+            lines: new Map(),                       // map: { number: u32, start_point_number: u32, end_point_number: u32 }, ...};
+            properties: [],                         // array of: [{ name: String, material_name: String, cross_section_name: String,
+                                                    //              cross_section_type: String }];
+            assignedPropertiesToLines: [],          // array of: [{ name: String, related_lines_data: object { number: [f64; 3] or null },
+                                                    //              related_line_elements_numbers: [u32 ...] }];
+            beamSectionsLocalAxis1Directions: [],   // array of: [[f64; 3]...];    
         };
 
         this.state = {
@@ -642,8 +643,8 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
         this.props.assignedProperties = value;
     }
 
-    set beamSectionsOrientations(value) {
-        this.props.beamSectionsOrientations = value;
+    set beamSectionsLocalAxis1Directions(value) {
+        this.props.beamSectionsLocalAxis1Directions = value;
     }
 
     set addLineToClient(line) {
@@ -677,51 +678,63 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
         this.props.properties.sort((a, b) => a.name - b.name);
     }
 
-    set addAssignedPropertiesToClient(assignedProperties) {
-        this.props.assignedProperties.push(assignedProperties);
-        this.props.assignedProperties.sort((a, b) => a.name - b.name);
+    set addAssignedPropertiesToLinesToClient(assignedPropertiesToLines) {
+        this.props.assignedPropertiesToLines.push(assignedPropertiesToLines);
+        this.props.assignedPropertiesToLines.sort((a, b) => a.name - b.name);
     }
 
-    set updateAssignedPropertiesInClient(assignedProperties) {
-        let assignedPropertiesInProps = this.props.assignedProperties
-            .find(existedAssignedProperties => existedAssignedProperties.name == assignedProperties.name);
-        assignedPropertiesInProps.line_numbers = assignedProperties.line_numbers;
+    set updateAssignedPropertiesToLinesInClient(assignedPropertiesToLines) {
+        let assignedPropertiesToLinesInProps = this.props.assignedPropertiesToLines
+            .find(existedAssignedPropertiesToLines => 
+                existedAssignedPropertiesToLines.name == assignedPropertiesToLines.name);
+        assignedPropertiesToLinesInProps.related_lines_data = assignedPropertiesToLines.related_lines_data;
     }
 
-    set deleteAssignedPropertiesFromClient(assignedProperties) {
-        let assignedPropertiesIndexInProps = this.props.assignedProperties
-            .findIndex(existedAssignedProperties => existedAssignedProperties.name == assignedProperties.name);
-        this.props.assignedProperties.splice(assignedPropertiesIndexInProps, 1);
-        this.props.assignedProperties.sort((a, b) => a.name - b.name);
+    set deleteAssignedPropertiesToLinesFromClient(assignedPropertiesToLines) {
+        let assignedPropertiesToLinesIndexInProps = this.props.assignedPropertiesToLines
+            .findIndex(existedAssignedPropertiesToLines => 
+                existedAssignedPropertiesToLines.name == assignedPropertiesToLines.name);
+        this.props.assignedPropertiesToLines.splice(assignedPropertiesToLinesIndexInProps, 1);
+        this.props.assignedPropertiesToLines.sort((a, b) => a.name - b.name);
     }
 
     set addBeamSectionLocalAxis1DirectionToClient(beamSectionLocalAxis1DirectionData) {
-        this.props.beamSectionsOrientations.push(beamSectionLocalAxis1DirectionData);
-        this.props.beamSectionsOrientations.sort((a, b) => a.local_axis_1_direction - b.local_axis_1_direction);
+        this.props.beamSectionsLocalAxis1Directions.push(beamSectionLocalAxis1DirectionData);
+        this.props.beamSectionsLocalAxis1Directions.sort((a, b) => a.local_axis_1_direction - b.local_axis_1_direction);
         this.defineLocalAxis1DirectionOptions();
     }
 
     set removeBeamSectionLocalAxis1DirectionFromClient(beamSectionLocalAxis1DirectionData) {
         const equals = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
-        let beamSectionLocalAxis1DirectionIndexInProps = this.props.beamSectionsOrientations
+        let beamSectionLocalAxis1DirectionIndexInProps = this.props.beamSectionsLocalAxis1Directions
             .findIndex(existedbeamSectionOrientation => equals(existedbeamSectionOrientation.local_axis_1_direction,
                 beamSectionLocalAxis1DirectionData.local_axis_1_direction));
-        this.props.beamSectionsOrientations.splice(beamSectionLocalAxis1DirectionIndexInProps, 1);
-        this.props.beamSectionsOrientations.sort((a, b) => a.local_axis_1_direction - b.local_axis_1_direction);
+        this.props.beamSectionsLocalAxis1Directions.splice(beamSectionLocalAxis1DirectionIndexInProps, 1);
+        this.props.beamSectionsLocalAxis1Directions.sort((a, b) => a.local_axis_1_direction - b.local_axis_1_direction);
         this.defineLocalAxis1DirectionOptions();
     }
 
     set updateBeamSectionOrientationDataInClient(beamSectionOrientationData) {
         const equals = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
-        let beamSectionOrientationDataIndexInProps = this.props.beamSectionsOrientations
+        let beamSectionOrientationDataIndexInProps = this.props.beamSectionsLocalAxis1Directions
             .find(existedbeamSectionOrientation => equals(existedbeamSectionOrientation.local_axis_1_direction,
                 beamSectionOrientationData.local_axis_1_direction));
         beamSectionOrientationDataIndexInProps.line_numbers = beamSectionOrientationData.line_numbers;
-        this.props.beamSectionsOrientations.sort((a, b) => a.local_axis_1_direction - b.local_axis_1_direction);
+        this.props.beamSectionsLocalAxis1Directions.sort((a, b) => a.local_axis_1_direction - b.local_axis_1_direction);
         this.defineLocalAxis1DirectionOptions();
     }
 
-    set beamSectionOrientationError(error) {
+    set rendererError(error) {
+        const assignToLinesField = this.shadowRoot.querySelector(".assign-to-lines");
+        if (assignToLinesField.classList.contains("highlighted") === false) {
+            assignToLinesField.classList.add("highlighted");
+        }
+        if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = error;
+        }
+    }
+
+    set feModelError(error) {
         const assignToLinesField = this.shadowRoot.querySelector(".assign-to-lines");
         if (assignToLinesField.classList.contains("highlighted") === false) {
             assignToLinesField.classList.add("highlighted");
@@ -747,7 +760,7 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
                 this.getLines();
                 this.getProperties();
                 this.getAssignedProperties();
-                this.getBeamSectionsOrientations();
+                this.getBeamSectionsLocalAxis1Directions();
                 this.defineLocalAxis1DirectionOptions();
             }
         }
@@ -803,8 +816,8 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
         }));
     }
 
-    getBeamSectionsOrientations() {
-        this.dispatchEvent(new CustomEvent("getBeamSectionsOrientations", {
+    getBeamSectionsLocalAxis1Directions() {
+        this.dispatchEvent(new CustomEvent("getBeamSectionsLocalAxis1Directions", {
             bubbles: true,
             composed: true,
         }));
@@ -840,7 +853,7 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
             return;
         }
         const equals = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
-        if (this.props.beamSectionsOrientations.find((item) => 
+        if (this.props.beamSectionsLocalAxis1Directions.find((item) => 
             equals(item.local_axis_1_direction, localAxis1Direction)) !== undefined) {
             if (localAxis1DirectionInputField.classList.contains("highlighted") === false) {
                 localAxis1DirectionInputField.classList.add("highlighted");
@@ -898,7 +911,7 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
             return;
         }
         const equals = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
-        if (this.props.beamSectionsOrientations.find((item) => 
+        if (this.props.beamSectionsLocalAxis1Directions.find((item) => 
             equals(item.local_axis_1_direction, localAxis1Direction)) === undefined) {
             if (localAxis1DirectionInputField.classList.contains("highlighted") === false) {
                 localAxis1DirectionInputField.classList.add("highlighted");
@@ -1055,10 +1068,10 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
         for (let i = localAxis1DirectionSelect.length - 1; i >= 0; i--) {
             localAxis1DirectionSelect.options[i] = null;
         }
-        for (let i = 0; i < this.props.beamSectionsOrientations.length; i++) {
+        for (let i = 0; i < this.props.beamSectionsLocalAxis1Directions.length; i++) {
             let localAxis1DirectionOption = document.createElement("option");
-            localAxis1DirectionOption.value = this.props.beamSectionsOrientations[i].local_axis_1_direction;
-            localAxis1DirectionOption.innerHTML = this.props.beamSectionsOrientations[i].local_axis_1_direction;
+            localAxis1DirectionOption.value = this.props.beamSectionsLocalAxis1Directions[i].local_axis_1_direction;
+            localAxis1DirectionOption.innerHTML = this.props.beamSectionsLocalAxis1Directions[i].local_axis_1_direction;
             localAxis1DirectionSelect.appendChild(localAxis1DirectionOption);
         }
         if (localAxis1DirectionSelect.value !== "") {
@@ -1072,7 +1085,7 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
             .map((item) => parseFloat(item))
             .filter((item) => item !== "");
         const equals = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
-        const selectedBeamSectionOrientationInProps = this.props.beamSectionsOrientations
+        const selectedBeamSectionOrientationInProps = this.props.beamSectionsLocalAxis1Directions
             .find(existedBeamSectionOrientation => 
                 equals(existedBeamSectionOrientation.local_axis_1_direction, localAxis1Direction) === true);
         let assignToLinesFieldValue = "";
@@ -1254,17 +1267,17 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
                 return;
             }
 
-            for (let k = 0; k < this.props.beamSectionsOrientations.length; k++) {
+            for (let k = 0; k < this.props.beamSectionsLocalAxis1Directions.length; k++) {
                 const numberInArray = (number) => number === parseInt(assignToLines[i]) && 
-                    equals(this.props.beamSectionsOrientations[k].local_axis_1_direction, selectedLocalAxis1Direction) === false;
-                if (this.props.beamSectionsOrientations[k].line_numbers.some(numberInArray) === true) {
+                    equals(this.props.beamSectionsLocalAxis1Directions[k].local_axis_1_direction, selectedLocalAxis1Direction) === false;
+                if (this.props.beamSectionsLocalAxis1Directions[k].line_numbers.some(numberInArray) === true) {
                     if (assignToLinesField.classList.contains("highlighted") === false) {
                         assignToLinesField.classList.add("highlighted");
                     }
                     if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                         this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
                             `Note: At least one number from assign to lines field is already used in 
-                            beam section orientation ${this.props.beamSectionsOrientations[k].local_axis_1_direction}!`;
+                            beam section orientation ${this.props.beamSectionsLocalAxis1Directions[k].local_axis_1_direction}!`;
                     }
                     return;
                 }
@@ -1272,7 +1285,7 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
 
         }
 
-        const selectedBeamSectionOrientationInProps = this.props.beamSectionsOrientations
+        const selectedBeamSectionOrientationInProps = this.props.beamSectionsLocalAxis1Directions
             .find(existedBeamSectionOrientation => 
                 equals(existedBeamSectionOrientation.local_axis_1_direction, selectedLocalAxis1Direction) === true);
         const oldLineNumbers = selectedBeamSectionOrientationInProps.line_numbers;
@@ -1315,7 +1328,7 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
 
     cancelBeamSectionOrientationDataUpdate() {
         this.shadowRoot.querySelector(".local-axis-1-direction-filter").value = null;
-        if (this.props.beamSectionsOrientations.length > 0) {
+        if (this.props.beamSectionsLocalAxis1Directions.length > 0) {
             this.defineLocalAxis1DirectionOptions();
         }
         const selectedLocalAxis1DirectionForAssignField = this.shadowRoot.querySelector(".local-axis-1-direction");

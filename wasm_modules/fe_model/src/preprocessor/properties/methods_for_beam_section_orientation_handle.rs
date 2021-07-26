@@ -3,6 +3,8 @@ use serde_json::json;
 use std::collections::HashMap;
 use std::convert::TryFrom;
 
+use crate::preprocessor::traits::ClearByActionIdTrait;
+
 use crate::preprocessor::geometry::geometry::Geometry;
 
 use crate::preprocessor::properties::properties::Properties;
@@ -31,11 +33,11 @@ impl Properties
         local_axis_1_direction: &[FEFloat], is_action_id_should_be_increased: bool)
         -> Result<(), JsValue>
     {
-        self.clear_properties_module_by_action_id(action_id);
+        self.clear_by_action_id(action_id);
 
         let converted_local_axis_1_direction = <[FEFloat; 3]>::try_from(local_axis_1_direction)
             .unwrap();
-        if self.beam_sections_orientations.iter()
+        if self.beam_sections_local_axis_1_directions.iter()
             .position(|beam_section_orientation|
                 beam_section_orientation.is_local_axis_1_direction_same(&
                     converted_local_axis_1_direction))
@@ -49,7 +51,7 @@ impl Properties
         let line_numbers = Vec::new();
         let beam_section_orientation = BeamSectionOrientation::create(
             converted_local_axis_1_direction, line_numbers.clone());
-        self.beam_sections_orientations.push(beam_section_orientation);
+        self.beam_sections_local_axis_1_directions.push(beam_section_orientation);
         let detail = json!({ "local_axis_1_direction_data":
             {
                 "local_axis_1_direction": converted_local_axis_1_direction,
@@ -71,13 +73,13 @@ impl Properties
 
         let converted_local_axis_1_direction = <[FEFloat; 3]>::try_from(local_axis_1_direction)
             .unwrap();
-        if let Some(position) = self.beam_sections_orientations.iter()
+        if let Some(position) = self.beam_sections_local_axis_1_directions.iter()
             .position(|beam_section_orientation|
                 beam_section_orientation.is_local_axis_1_direction_same(&
                     converted_local_axis_1_direction))
         {
             let deleted_beam_section_orientation =
-                self.beam_sections_orientations.remove(position);
+                self.beam_sections_local_axis_1_directions.remove(position);
             self.deleted_beam_sections_orientations.insert(action_id,
                 vec![deleted_beam_section_orientation]);
             let detail = json!({ "local_axis_1_direction_data":
@@ -126,7 +128,7 @@ impl Properties
             }
             let converted_local_axis_1_direction = <[FEFloat; 3]>::try_from(local_axis_1_direction)
                 .unwrap();
-            self.beam_sections_orientations.push(deleted_beam_sections_orientations[0].clone());
+            self.beam_sections_local_axis_1_directions.push(deleted_beam_sections_orientations[0].clone());
             let detail = json!({ "local_axis_1_direction_data":
                 {
                     "local_axis_1_direction": converted_local_axis_1_direction,
@@ -213,7 +215,7 @@ impl Properties
                 return Err(JsValue::from(error_message));
             }
         }
-        if self.beam_sections_orientations
+        if self.beam_sections_local_axis_1_directions
             .iter()
             .position(|beam_section_orientation|
                 beam_section_orientation
@@ -226,7 +228,7 @@ impl Properties
                 numbers does already exist!");
             return Err(JsValue::from(error_message));
         }
-        if self.beam_sections_orientations
+        if self.beam_sections_local_axis_1_directions
             .iter()
             .position(|beam_section_orientation|
                 {
@@ -258,13 +260,13 @@ impl Properties
             return Err(JsValue::from(error_message));
         }
 
-        if let Some(position) = self.beam_sections_orientations
+        if let Some(position) = self.beam_sections_local_axis_1_directions
             .iter()
             .position(|beam_section_orientation|
                 beam_section_orientation.is_local_axis_1_direction_same(
                     &converted_local_axis_1_direction))
         {
-            self.beam_sections_orientations[position].update(line_numbers);
+            self.beam_sections_local_axis_1_directions[position].update(line_numbers);
             let detail = json!({ "beam_section_orientation_data":
                 {
                     "local_axis_1_direction": converted_local_axis_1_direction,
@@ -286,17 +288,21 @@ impl Properties
     }
 
 
-    pub fn extract_beam_sections_orientations(&self, handler: js_sys::Function)
+    pub fn extract_beam_sections_local_axis_1_directions(&self, handler: js_sys::Function)
         -> Result<(), JsValue>
     {
-        let extracted_beam_sections_orientations = json!(
-            { "extracted_beam_sections_orientations": self.beam_sections_orientations });
-        let composed_extracted_beam_sections_orientations =
-            JsValue::from_serde(&extracted_beam_sections_orientations)
-                .or(Err(JsValue::from("Properties: Extract beam sections orientations: \
-                    Beam sections orientations could not be composed for extraction!")))?;
+        let extracted_beam_sections_local_axis_1_directions = json!(
+            {
+                "extracted_beam_sections_local_axis_1_directions":
+                    self.beam_sections_local_axis_1_directions
+            });
+        let composed_extracted_beam_sections_local_axis_1_directions =
+            JsValue::from_serde(&extracted_beam_sections_local_axis_1_directions)
+                .or(Err(JsValue::from("Properties: Extract beam sections local axis 1 \
+                    directions: Beam sections local axis 1 directions could not be composed for \
+                    extraction!")))?;
         let this = JsValue::null();
-        let _ = handler.call1(&this, &composed_extracted_beam_sections_orientations);
+        let _ = handler.call1(&this, &composed_extracted_beam_sections_local_axis_1_directions);
         Ok(())
     }
 }

@@ -1,6 +1,8 @@
 use wasm_bindgen::prelude::*;
 use std::collections::HashMap;
 
+use crate::preprocessor::traits::ClearByActionIdTrait;
+
 use crate::preprocessor::geometry::point::{Point, DeletedPoint};
 use crate::preprocessor::geometry::line::{Line, DeletedLine};
 
@@ -87,5 +89,15 @@ impl Geometry
             Points: {:?}, Deleted points: {:?}, \n
             Lines: {:?}, Deleted lines {:?} \n", self.points, self.deleted_points, self.lines,
             self.deleted_lines));
+    }
+}
+
+
+impl ClearByActionIdTrait for Geometry
+{
+    fn clear_by_action_id(&mut self, action_id: FEUInt)
+    {
+        self.clear_deleted_lines_by_action_id(action_id);
+        self.clear_deleted_points_by_action_id(action_id);
     }
 }

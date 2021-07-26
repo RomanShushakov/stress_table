@@ -108,10 +108,6 @@ export function showLineInfo(number, handler)
     }
 }
 
-export function clearGeometryModuleByActionId(action_id) {
-    communicatorWithFEModel.clearGeometryModuleByActionId = action_id;
-}
-
 export function extractPoints(handler) 
 {
     communicatorWithFEModel.extractPoints = handler;
@@ -391,10 +387,6 @@ export function updateBeamSectionOrientationDataInProperties(action_id, local_ax
     }
 }
 
-export function clearPropertiesModuleByActionId(action_id) {
-    communicatorWithFEModel.clearPropertiesModuleByActionId = action_id;
-}
-
 export function extractMaterials(handler) 
 {
     communicatorWithFEModel.extractMaterials = handler;
@@ -425,7 +417,7 @@ export function extractAssignedPropertiesToLines(handler)
     communicatorWithFEModel.extractAssignedPropertiesToLines = handler;
 }
 
-export function extractBeamSectionsOrientations(handler) 
+export function extractBeamSectionsLocalAxis1Directions(handler) 
 {
-    communicatorWithFEModel.extractBeamSectionsOrientations = handler;
+    communicatorWithFEModel.extractBeamSectionsLocalAxis1Directions = handler;
 }

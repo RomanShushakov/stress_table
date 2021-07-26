@@ -316,10 +316,10 @@ impl FEModel
     }
 
 
-    pub fn extract_beam_sections_orientations(&self, handler: js_sys::Function)
+    pub fn extract_beam_sections_local_axis_1_directions(&self, handler: js_sys::Function)
         -> Result<(), JsValue>
     {
-        self.preprocessor.extract_beam_sections_orientations(handler)
+        self.preprocessor.extract_beam_sections_local_axis_1_directions(handler)
     }
 
 

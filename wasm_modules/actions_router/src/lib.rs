@@ -14,7 +14,7 @@ use external_functions::communication_with_geometry::
     add_line_to_geometry, update_line_in_geometry,
     delete_line_from_geometry, restore_line_in_geometry,
     show_point_info, show_line_info,
-    clear_geometry_module_by_action_id, extract_points, extract_lines,
+    extract_points, extract_lines,
 };
 use external_functions::communication_with_properties::
 {
@@ -32,10 +32,9 @@ use external_functions::communication_with_properties::
     remove_beam_section_local_axis_1_direction_from_properties,
     restore_beam_section_local_axis_1_direction_in_properties,
     update_beam_section_orientation_data_in_properties,
-    clear_properties_module_by_action_id,
     extract_materials, extract_truss_sections, extract_beam_sections,
-    extract_properties, extract_assigned_properties, extract_assigned_properties_to_lines,
-    extract_beam_sections_orientations,
+    extract_properties, extract_assigned_properties_to_lines,
+    extract_beam_sections_local_axis_1_directions,
 };
 
 mod action;
@@ -571,7 +570,6 @@ impl ActionsRouter
                                 coordinates,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    clear_properties_module_by_action_id(action_id);
                                     let x = coordinates.get_x();
                                     let y = coordinates.get_y();
                                     let z = coordinates.get_z();
@@ -588,7 +586,6 @@ impl ActionsRouter
                                 new_coordinates,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    clear_properties_module_by_action_id(action_id);
                                     let x = new_coordinates.get_x();
                                     let y = new_coordinates.get_y();
                                     let z = new_coordinates.get_z();
@@ -603,7 +600,6 @@ impl ActionsRouter
                                 point_number,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    clear_properties_module_by_action_id(action_id);
                                     delete_point_from_geometry(action_id, *point_number,
                                         *is_action_id_should_be_increased)?;
                                     if *add_to_active_actions
@@ -628,7 +624,6 @@ impl ActionsRouter
                                 end_point_number,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    clear_properties_module_by_action_id(action_id);
                                     add_line_to_geometry(action_id, *line_number,
                                         *start_point_number, *end_point_number,
                                         *is_action_id_should_be_increased)?;
@@ -645,7 +640,6 @@ impl ActionsRouter
                                 new_end_point_number,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    clear_properties_module_by_action_id(action_id);
                                     update_line_in_geometry(action_id, *line_number,
                                         *new_start_point_number, *new_end_point_number,
                                         *is_action_id_should_be_increased)?;
@@ -658,7 +652,6 @@ impl ActionsRouter
                                 line_number,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    clear_properties_module_by_action_id(action_id);
                                     delete_line_from_geometry(action_id, *line_number,
                                         *is_action_id_should_be_increased)?;
                                     if *add_to_active_actions == true
@@ -689,7 +682,6 @@ impl ActionsRouter
                                 poisson_ratio,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    clear_geometry_module_by_action_id(action_id);
                                     add_material_to_properties(action_id,
                                         material_name,
                                         *young_modulus, *poisson_ratio,
@@ -707,7 +699,6 @@ impl ActionsRouter
                                 new_poisson_ratio,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    clear_geometry_module_by_action_id(action_id);
                                     update_material_in_properties(action_id,
                                         material_name,
                                         *new_young_modulus, *new_poisson_ratio,
@@ -721,7 +712,6 @@ impl ActionsRouter
                                 material_name,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    clear_geometry_module_by_action_id(action_id);
                                     delete_material_from_properties(action_id,
                                         material_name,
                                         *is_action_id_should_be_increased)?;
@@ -748,7 +738,6 @@ impl ActionsRouter
                                 area2,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    clear_geometry_module_by_action_id(action_id);
                                     add_truss_section_to_properties(action_id,
                                         truss_section_name,
                                         *area, *area2,
@@ -766,7 +755,6 @@ impl ActionsRouter
                                 new_area2,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    clear_geometry_module_by_action_id(action_id);
                                     update_truss_section_in_properties(action_id,
                                         truss_section_name,
                                         *new_area, *new_area2,
@@ -780,7 +768,6 @@ impl ActionsRouter
                                 truss_section_name,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    clear_geometry_module_by_action_id(action_id);
                                     delete_truss_section_from_properties(action_id,
                                         truss_section_name,
                                         *is_action_id_should_be_increased)?;
@@ -810,7 +797,6 @@ impl ActionsRouter
                                 it,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    clear_geometry_module_by_action_id(action_id);
                                     add_beam_section_to_properties(action_id,
                                         beam_section_name,
                                         *area, *i11, *i22, *i12, *it,
@@ -834,7 +820,6 @@ impl ActionsRouter
                                 new_it,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    clear_geometry_module_by_action_id(action_id);
                                     update_beam_section_in_properties(action_id,
                                         beam_section_name,
                                         *new_area, *new_i11, *new_i22, *new_i12, *new_it,
@@ -848,7 +833,6 @@ impl ActionsRouter
                                 beam_section_name,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    clear_geometry_module_by_action_id(action_id);
                                     delete_beam_section_from_properties(action_id,
                                         beam_section_name,
                                         *is_action_id_should_be_increased)?;
@@ -895,7 +879,6 @@ impl ActionsRouter
                                 new_cross_section_type,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    clear_geometry_module_by_action_id(action_id);
                                     update_properties_in_properties(action_id,
                                         properties_name,
                                         new_material_name, new_cross_section_name,
@@ -909,7 +892,6 @@ impl ActionsRouter
                                 properties_name,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    clear_geometry_module_by_action_id(action_id);
                                     delete_properties_from_properties(action_id,
                                         properties_name,
                                         *is_action_id_should_be_increased)?;
@@ -935,7 +917,6 @@ impl ActionsRouter
                                 line_numbers,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    clear_geometry_module_by_action_id(action_id);
                                     add_assigned_properties_to_lines_to_properties(action_id,
                                         properties_name, line_numbers.as_slice(),
                                         *is_action_id_should_be_increased)?;
@@ -950,7 +931,6 @@ impl ActionsRouter
                                 new_line_numbers,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    clear_geometry_module_by_action_id(action_id);
                                     update_assigned_properties_to_lines_in_properties(action_id,
                                         properties_name, new_line_numbers,
                                         *is_action_id_should_be_increased)?;
@@ -963,7 +943,6 @@ impl ActionsRouter
                                 properties_name,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    clear_geometry_module_by_action_id(action_id);
                                     delete_assigned_properties_to_lines_from_properties(action_id,
                                         properties_name, *is_action_id_should_be_increased)?;
                                     if *add_to_active_actions == true
@@ -987,7 +966,6 @@ impl ActionsRouter
                                 local_axis_1_direction,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    clear_geometry_module_by_action_id(action_id);
                                     add_beam_section_local_axis_1_direction_to_properties(action_id,
                                         local_axis_1_direction,
                                         *is_action_id_should_be_increased)?;
@@ -1000,7 +978,6 @@ impl ActionsRouter
                                 local_axis_1_direction,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    clear_geometry_module_by_action_id(action_id);
                                     remove_beam_section_local_axis_1_direction_from_properties(
                                         action_id,
                                         local_axis_1_direction,
@@ -1029,7 +1006,6 @@ impl ActionsRouter
                                 new_line_numbers,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    clear_geometry_module_by_action_id(action_id);
                                     update_beam_section_orientation_data_in_properties(action_id,
                                         local_axis_1_direction, new_line_numbers,
                                         *is_action_id_should_be_increased)?;
@@ -1263,9 +1239,9 @@ impl ActionsRouter
     }
 
 
-    pub fn extract_beam_sections_orientations(&self, handler: js_sys::Function)
+    pub fn extract_beam_sections_local_axis_1_directions(&self, handler: js_sys::Function)
     {
-        extract_beam_sections_orientations(handler);
+        extract_beam_sections_local_axis_1_directions(handler);
     }
 
 

@@ -110,9 +110,6 @@ extern "C"
         local_axis_1_direction: &[FEFloat], line_numbers: &[FEUInt],
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
-    #[wasm_bindgen(js_name = clearPropertiesModuleByActionId)]
-    pub fn clear_properties_module_by_action_id(action_id: FEUInt);
-
     #[wasm_bindgen(js_name = extractMaterials)]
     pub fn extract_materials(handler: js_sys::Function);
 
@@ -128,6 +125,6 @@ extern "C"
     #[wasm_bindgen(js_name = extractAssignedPropertiesToLines)]
     pub fn extract_assigned_properties_to_lines(handler: js_sys::Function);
 
-    #[wasm_bindgen(js_name = extractBeamSectionsOrientations)]
-    pub fn extract_beam_sections_orientations(handler: js_sys::Function);
+    #[wasm_bindgen(js_name = extractBeamSectionsLocalAxis1Directions)]
+    pub fn extract_beam_sections_local_axis_1_directions(handler: js_sys::Function);
 }

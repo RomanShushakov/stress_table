@@ -1,6 +1,8 @@
 use wasm_bindgen::prelude::*;
 use serde_json::json;
 
+use crate::preprocessor::traits::ClearByActionIdTrait;
+
 use crate::preprocessor::properties::properties::Properties;
 use crate::preprocessor::properties::truss_section::{TrussSection, DeletedTrussSection};
 use crate::preprocessor::properties::property::{Property, DeletedProperty};
@@ -27,7 +29,7 @@ impl Properties
     {
         let error_message_header = "Properties: Add truss section action";
 
-        self.clear_properties_module_by_action_id(action_id);
+        self.clear_by_action_id(action_id);
 
         if self.truss_sections.contains_key(&name.to_owned())
         {
@@ -35,6 +37,7 @@ impl Properties
                 exist!", error_message_header, name);
             return Err(JsValue::from(error_message));
         }
+
         if self.truss_sections.values().position(|truss_section|
             truss_section.data_same(area, area2)).is_some()
         {
@@ -42,6 +45,7 @@ impl Properties
                 does already exist!", error_message_header, area, area2);
             return Err(JsValue::from(error_message));
         }
+
         let truss_section = TrussSection::create(area, area2);
         self.truss_sections.insert(name.to_owned(), truss_section);
         let detail = json!({ "truss_section_data": { "name": name, "area": area,
@@ -59,7 +63,7 @@ impl Properties
     {
         let error_message_header = "Properties: Update truss section action";
 
-        self.clear_properties_module_by_action_id(action_id);
+        self.clear_by_action_id(action_id);
 
         if self.truss_sections.values().position(|truss_section|
             truss_section.data_same(area, area2)).is_some()
@@ -68,6 +72,7 @@ impl Properties
                 does already exist!", error_message_header, area, area2);
             return Err(JsValue::from(error_message));
         }
+
         if let Some(truss_section) = self.truss_sections.get_mut(name)
         {
             truss_section.update(area, area2);
@@ -109,7 +114,7 @@ impl Properties
     pub fn delete_truss_section(&mut self, action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.clear_properties_module_by_action_id(action_id);
+        self.clear_by_action_id(action_id);
 
         let property_names_for_delete =
             self.extract_property_names_for_delete_by_truss_section_name(name);

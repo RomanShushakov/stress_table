@@ -1,6 +1,8 @@
 use wasm_bindgen::prelude::*;
 use serde_json::json;
 
+use crate::preprocessor::traits::ClearByActionIdTrait;
+
 use crate::preprocessor::properties::properties::Properties;
 use crate::preprocessor::properties::property::{Property, DeletedProperty};
 use crate::preprocessor::properties::property::{CrossSectionType};
@@ -26,7 +28,7 @@ impl Properties
         cross_section_name: &str, cross_section_type: &str, is_action_id_should_be_increased: bool)
         -> Result<(), JsValue>
     {
-        self.clear_properties_module_by_action_id(action_id);
+        self.clear_by_action_id(action_id);
 
         if self.properties.contains_key(&name.to_owned())
         {
@@ -94,7 +96,7 @@ impl Properties
         cross_section_name: &str, cross_section_type: &str, is_action_id_should_be_increased: bool)
         -> Result<(), JsValue>
     {
-        self.clear_properties_module_by_action_id(action_id);
+        self.clear_by_action_id(action_id);
 
         if !self.materials.contains_key(material_name)
         {
@@ -180,7 +182,7 @@ impl Properties
     pub fn delete_properties(&mut self, action_id: FEUInt, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.clear_properties_module_by_action_id(action_id);
+        self.clear_by_action_id(action_id);
 
         let property_names_for_delete = vec![name.to_string()];
 

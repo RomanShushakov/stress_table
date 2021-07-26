@@ -1,6 +1,8 @@
 use wasm_bindgen::prelude::*;
 use serde_json::json;
 
+use crate::preprocessor::traits::ClearByActionIdTrait;
+
 use crate::preprocessor::properties::properties::Properties;
 use crate::preprocessor::properties::assigned_property::
 {
@@ -42,7 +44,7 @@ impl Properties
     pub fn delete_line_numbers_from_properties(&mut self, action_id: FEUInt,
         line_numbers: &[FEUInt]) -> Result<(), JsValue>
     {
-        self.clear_properties_module_by_action_id(action_id);
+        self.clear_by_action_id(action_id);
 
         let mut changed_assigned_properties_to_lines = Vec::new();
         let mut deleted_assigned_properties_to_lines = Vec::new();

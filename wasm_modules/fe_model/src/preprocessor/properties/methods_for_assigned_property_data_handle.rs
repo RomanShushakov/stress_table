@@ -1,6 +1,8 @@
 use wasm_bindgen::prelude::*;
 use serde_json::json;
 
+use crate::preprocessor::traits::ClearByActionIdTrait;
+
 use crate::preprocessor::properties::properties::Properties;
 use crate::preprocessor::properties::assigned_property::
 {
@@ -29,7 +31,7 @@ impl Properties
     {
         let error_message_header = "Properties: Add assigned properties to lines action";
 
-        self.clear_properties_module_by_action_id(action_id);
+        self.clear_by_action_id(action_id);
 
         self.check_for_property_existence_by_name(name, error_message_header)?;
 
@@ -82,7 +84,7 @@ impl Properties
         if let Some(mut previously_changed_assigned_properties_to_lines) =
             self.changed_assigned_properties_to_lines.remove(&action_id)
         {
-            self.clear_properties_module_by_action_id(action_id);
+            self.clear_by_action_id(action_id);
 
             if previously_changed_assigned_properties_to_lines.len() != 1
             {
@@ -169,7 +171,7 @@ impl Properties
         }
         else
         {
-            self.clear_properties_module_by_action_id(action_id);
+            self.clear_by_action_id(action_id);
 
             self.check_for_property_existence_by_name(name, error_message_header)?;
 
@@ -233,7 +235,7 @@ impl Properties
     {
         let error_message_header = "Properties: Delete assigned properties to lines action";
 
-        self.clear_properties_module_by_action_id(action_id);
+        self.clear_by_action_id(action_id);
 
         self.check_for_property_existence_by_name(name, error_message_header)?;
 

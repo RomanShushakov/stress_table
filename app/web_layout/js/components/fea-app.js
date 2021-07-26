@@ -121,7 +121,7 @@ class FeaApp extends HTMLElement {
         this.addEventListener("getBeamSections", (event) => this.getBeamSections(event));
         this.addEventListener("getProperties", (event) => this.getProperties(event));
         this.addEventListener("getAssignedPropertiesToLines", (event) => this.getAssignedPropertiesToLines(event));
-        this.addEventListener("getBeamSectionsOrientations", (event) => this.getBeamSectionsOrientations(event))
+        this.addEventListener("getBeamSectionsLocalAxis1Directions", (event) => this.getBeamSectionsLocalAxis1Directionsions(event))
 
         this.addEventListener("selected_points", (event) => this.handleSelectedPointsMessage(event));
         this.addEventListener("selected_nodes", (event) => this.handleSelectedNodesMessage(event));
@@ -345,11 +345,11 @@ class FeaApp extends HTMLElement {
         event.stopPropagation();
     }
 
-    getBeamSectionsOrientations(event) {
-        this.state.actionsRouter.extract_beam_sections_orientations(
-            (extractedBeamSectionsOrientationsData) => {
-                this.querySelector(event.target.tagName.toLowerCase()).beamSectionsOrientations = 
-                    extractedBeamSectionsOrientationsData.extracted_beam_sections_orientations; 
+    getBeamSectionsLocalAxis1Directionsions(event) {
+        this.state.actionsRouter.extract_beam_sections_local_axis_1_directions(
+            (extractedBeamSectionsLocalAxis1DirectionsData) => {
+                this.querySelector(event.target.tagName.toLowerCase()).beamSectionsLocalAxis1Directions = 
+                    extractedBeamSectionsLocalAxis1DirectionsData.extracted_beam_sections_local_axis_1_directions; 
             }
         );
         event.stopPropagation();
@@ -534,11 +534,8 @@ class FeaApp extends HTMLElement {
         try {
             this.shadowRoot.querySelector("fea-renderer").previewBeamSectionOrientation = beamSectionOrientationObject;
         } catch (error) {
-            if (event.target.tagName.toLowerCase() === "fea-properties-beam-section-orientation-menu") {
-                this.querySelector(event.target.tagName.toLowerCase()).beamSectionOrientationError = error;
-            } else {
-                throw error;
-            }
+            this.querySelector(event.target.tagName.toLowerCase()).rendererError = error;
+            throw error;
         }
         event.stopPropagation();
     }
@@ -585,11 +582,7 @@ class FeaApp extends HTMLElement {
         try {
             this.state.actionsRouter.handle_message(message, toCache);
         } catch (error) {
-            if (event.target.tagName.toLowerCase() === "fea-properties-beam-section-orientation-menu") {
-                this.querySelector(event.target.tagName.toLowerCase()).beamSectionOrientationError = error;
-            } else {
-                this.querySelector(event.target.tagName.toLowerCase()).feModelError = error;
-            }
+            this.querySelector(event.target.tagName.toLowerCase()).feModelError = error;
             throw error;
         }
         event.stopPropagation();

@@ -38,9 +38,6 @@ extern "C"
     pub fn restore_line_in_geometry(action_id: FEUInt, number: FEUInt,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
-    #[wasm_bindgen(js_name = clearGeometryModuleByActionId)]
-    pub fn clear_geometry_module_by_action_id(action_id: FEUInt);
-
     #[wasm_bindgen(js_name = showPointInfo, catch)]
     pub fn show_point_info(number: FEUInt, handler: js_sys::Function) -> Result<(), JsValue>;
 

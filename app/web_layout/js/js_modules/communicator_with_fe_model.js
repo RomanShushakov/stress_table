@@ -106,10 +106,6 @@ class CommunicatorWithFEModel {
         }
     }
 
-    set clearGeometryModuleByActionId(action_id) {
-        this.state.feModel.clear_geometry_module_by_action_id(action_id);
-    }
-
     set extractPoints(handler) {
         this.state.feModel.extract_points(handler);
     }
@@ -345,10 +341,6 @@ class CommunicatorWithFEModel {
         }
     }
 
-    set clearPropertiesModuleByActionId(action_id) {
-        this.state.feModel.clear_properties_module_by_action_id(action_id);
-    }
-
     set extractMaterials(handler) {
         this.state.feModel.extract_materials(handler);
     }
@@ -373,8 +365,8 @@ class CommunicatorWithFEModel {
         this.state.feModel.extract_assigned_properties_to_lines(handler);
     }
 
-    set extractBeamSectionsOrientations(handler) {
-        this.state.feModel.extract_beam_sections_orientations(handler);
+    set extractBeamSectionsLocalAxis1Directions(handler) {
+        this.state.feModel.extract_beam_sections_local_axis_1_directions(handler);
     }
 }
 

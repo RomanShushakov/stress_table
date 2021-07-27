@@ -11,12 +11,6 @@ use crate::types::{FEUInt, FEFloat};
 
 impl Preprocessor
 {
-    pub fn clear_properties_module_by_action_id(&mut self, action_id: FEUInt)
-    {
-        self.properties.clear_properties_module_by_action_id(action_id)
-    }
-
-
     pub fn add_material(&mut self, action_id: FEUInt, name: &str, young_modulus: FEFloat,
         poisson_ratio: FEFloat, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {

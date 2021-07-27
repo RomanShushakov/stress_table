@@ -10,7 +10,7 @@ use crate::preprocessor::geometry::geometry::Geometry;
 use crate::preprocessor::properties::properties::Properties;
 use crate::preprocessor::properties::beam_section_orientation::
 {
-    BeamSectionOrientation, LocalAxis1Direction
+    LocalAxis1Direction
 };
 use crate::preprocessor::properties::property::CrossSectionType;
 use crate::preprocessor::properties::consts::

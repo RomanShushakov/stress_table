@@ -8,97 +8,97 @@ use crate::preprocessor::properties::functions::line_numbers_same;
 use crate::types::FEUInt;
 
 
-#[derive(Debug, Clone, Serialize)]
-pub struct AssignedProperty
-{
-    line_numbers: Vec<FEUInt>,
-}
-
-
-impl AssignedProperty
-{
-    pub fn create(line_numbers: &[FEUInt]) -> Self
-    {
-        AssignedProperty { line_numbers: line_numbers.to_vec() }
-    }
-
-
-    pub fn data_same(&self, line_numbers: &[FEUInt]) -> bool
-    {
-        self.line_numbers == line_numbers
-    }
-
-
-    pub fn update(&mut self, line_numbers: &[FEUInt])
-    {
-        self.line_numbers = line_numbers.to_vec()
-    }
-
-
-    pub fn is_contain_any_provided_line_number(&self, line_numbers: &[FEUInt]) -> bool
-    {
-        if self.line_numbers.iter().position(|existed_line_number|
-            line_numbers.contains(existed_line_number)).is_some()
-        {
-            return true;
-        }
-        false
-    }
-
-
-    pub fn extract_data(&self) -> &[FEUInt]
-    {
-        self.line_numbers.as_slice()
-    }
-}
-
-
-#[derive(Debug, Clone)]
-pub struct ChangedAssignedProperty
-{
-    name: String,
-    assigned_property: AssignedProperty,
-}
-
-
-impl ChangedAssignedProperty
-{
-    pub fn create(name: &str, assigned_property: AssignedProperty) -> Self
-    {
-        ChangedAssignedProperty { name: String::from(name), assigned_property }
-    }
-
-
-    pub fn extract_name_and_data(&self) -> (&str, &[FEUInt])
-    {
-        let line_numbers = self.assigned_property.extract_data();
-        (&self.name, line_numbers)
-    }
-}
-
-
-#[derive(Debug, Clone)]
-pub struct DeletedAssignedProperty
-{
-    name: String,
-    assigned_property: AssignedProperty,
-}
-
-
-impl DeletedAssignedProperty
-{
-    pub fn create(name: &str, assigned_property: AssignedProperty) -> Self
-    {
-        DeletedAssignedProperty { name: String::from(name), assigned_property }
-    }
-
-
-    pub fn extract_name_and_data(&self) -> (&str, &[FEUInt])
-    {
-        let line_numbers = self.assigned_property.extract_data();
-        (&self.name, line_numbers)
-    }
-}
+// #[derive(Debug, Clone, Serialize)]
+// pub struct AssignedProperty
+// {
+//     line_numbers: Vec<FEUInt>,
+// }
+//
+//
+// impl AssignedProperty
+// {
+//     pub fn create(line_numbers: &[FEUInt]) -> Self
+//     {
+//         AssignedProperty { line_numbers: line_numbers.to_vec() }
+//     }
+//
+//
+//     pub fn data_same(&self, line_numbers: &[FEUInt]) -> bool
+//     {
+//         self.line_numbers == line_numbers
+//     }
+//
+//
+//     pub fn update(&mut self, line_numbers: &[FEUInt])
+//     {
+//         self.line_numbers = line_numbers.to_vec()
+//     }
+//
+//
+//     pub fn is_contain_any_provided_line_number(&self, line_numbers: &[FEUInt]) -> bool
+//     {
+//         if self.line_numbers.iter().position(|existed_line_number|
+//             line_numbers.contains(existed_line_number)).is_some()
+//         {
+//             return true;
+//         }
+//         false
+//     }
+//
+//
+//     pub fn extract_data(&self) -> &[FEUInt]
+//     {
+//         self.line_numbers.as_slice()
+//     }
+// }
+//
+//
+// #[derive(Debug, Clone)]
+// pub struct ChangedAssignedProperty
+// {
+//     name: String,
+//     assigned_property: AssignedProperty,
+// }
+//
+//
+// impl ChangedAssignedProperty
+// {
+//     pub fn create(name: &str, assigned_property: AssignedProperty) -> Self
+//     {
+//         ChangedAssignedProperty { name: String::from(name), assigned_property }
+//     }
+//
+//
+//     pub fn extract_name_and_data(&self) -> (&str, &[FEUInt])
+//     {
+//         let line_numbers = self.assigned_property.extract_data();
+//         (&self.name, line_numbers)
+//     }
+// }
+//
+//
+// #[derive(Debug, Clone)]
+// pub struct DeletedAssignedProperty
+// {
+//     name: String,
+//     assigned_property: AssignedProperty,
+// }
+//
+//
+// impl DeletedAssignedProperty
+// {
+//     pub fn create(name: &str, assigned_property: AssignedProperty) -> Self
+//     {
+//         DeletedAssignedProperty { name: String::from(name), assigned_property }
+//     }
+//
+//
+//     pub fn extract_name_and_data(&self) -> (&str, &[FEUInt])
+//     {
+//         let line_numbers = self.assigned_property.extract_data();
+//         (&self.name, line_numbers)
+//     }
+// }
 
 
 #[derive(Debug, Clone, Serialize)]
@@ -180,21 +180,34 @@ impl AssignedPropertyToLines
     }
 
 
-    pub fn any_of_provided_line_numbers_contains(&self, line_numbers: &[FEUInt]) -> bool
-    {
-        if self.related_lines_data.iter().position(|(related_line_number, _)|
-            line_numbers.contains(related_line_number)).is_some()
-        {
-            return true;
-        }
-        false
-    }
+    // pub fn any_of_provided_line_numbers_contains(&self, line_numbers: &[FEUInt]) -> bool
+    // {
+    //     if self.related_lines_data.iter().position(|(related_line_number, _)|
+    //         line_numbers.contains(related_line_number)).is_some()
+    //     {
+    //         return true;
+    //     }
+    //     false
+    // }
 
 
     pub fn update_related_lines_data(&mut self, line_number: FEUInt,
         local_axis_1_direction: Option<LocalAxis1Direction>)
     {
         self.related_lines_data.insert(line_number, local_axis_1_direction);
+    }
+
+
+    pub fn length_of_related_lines_data(&self) -> usize
+    {
+        self.related_lines_data.len()
+    }
+
+
+    pub fn remove_line_number_from_related_lines_data(&mut self, line_number: &FEUInt)
+        -> Option<Option<LocalAxis1Direction>>
+    {
+        self.related_lines_data.remove(line_number)
     }
 }
 
@@ -215,11 +228,18 @@ impl DeletedAssignedPropertyToLines
     }
 
 
+    pub fn extract_name(&self) -> &str
+    {
+        &self.name
+    }
+
+
     pub fn extract_name_and_related_lines_numbers(&self) -> (&str, Vec<FEUInt>)
     {
         let line_numbers = self.assigned_property_to_lines.extract_related_lines_numbers();
         (&self.name, line_numbers)
     }
+
 
     pub fn extract_and_drop(self) -> (String, AssignedPropertyToLines)
     {

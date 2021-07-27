@@ -59,13 +59,6 @@ impl Geometry
     }
 
 
-    pub fn clear_geometry_module_by_action_id(&mut self, action_id: FEUInt)
-    {
-        self.clear_deleted_lines_by_action_id(action_id);
-        self.clear_deleted_points_by_action_id(action_id);
-    }
-
-
     pub fn check_for_line_numbers_existence(&self, line_numbers: &[FEUInt],
         error_message_header: &str) -> Result<(), JsValue>
     {

@@ -6,8 +6,7 @@ use crate::preprocessor::traits::ClearByActionIdTrait;
 use crate::preprocessor::properties::properties::Properties;
 use crate::preprocessor::properties::assigned_property::
 {
-    AssignedProperty, DeletedAssignedProperty, AssignedPropertyToLines,
-    DeletedAssignedPropertyToLines, ChangedAssignedPropertyToLines
+    AssignedPropertyToLines, DeletedAssignedPropertyToLines, ChangedAssignedPropertyToLines
 };
 use crate::preprocessor::properties::consts::
 {

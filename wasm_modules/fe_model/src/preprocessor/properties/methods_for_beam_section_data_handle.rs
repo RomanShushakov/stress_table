@@ -5,15 +5,11 @@ use crate::preprocessor::traits::ClearByActionIdTrait;
 
 use crate::preprocessor::properties::properties::Properties;
 use crate::preprocessor::properties::beam_section::{BeamSection, DeletedBeamSection};
-use crate::preprocessor::properties::property::{Property, DeletedProperty};
 use crate::preprocessor::properties::property::{CrossSectionType};
-use crate::preprocessor::properties::assigned_property::{AssignedProperty, DeletedAssignedProperty};
 use crate::preprocessor::properties::consts::
 {
     ADD_BEAM_SECTION_EVENT_NAME, UPDATE_BEAM_SECTION_EVENT_NAME,
-    DELETE_BEAM_SECTION_EVENT_NAME, DELETE_PROPERTIES_EVENT_NAME, ADD_PROPERTIES_EVENT_NAME,
-    ADD_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME, DELETE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
-    UPDATE_BEAM_SECTION_ORIENTATION_DATA_EVENT_NAME,
+    DELETE_BEAM_SECTION_EVENT_NAME,
 };
 
 use crate::types::{FEUInt, FEFloat};

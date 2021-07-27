@@ -9,12 +9,6 @@ use crate::types::{FEUInt, FEFloat};
 
 impl Preprocessor
 {
-    pub fn clear_geometry_module_by_action_id(&mut self, action_id: FEUInt)
-    {
-        self.geometry.clear_geometry_module_by_action_id(action_id);
-    }
-
-
     pub fn add_point(&mut self, action_id: FEUInt, number: FEUInt, x: FEFloat, y: FEFloat,
         z: FEFloat, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {

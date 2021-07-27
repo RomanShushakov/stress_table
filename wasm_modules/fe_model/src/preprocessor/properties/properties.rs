@@ -7,10 +7,10 @@ use crate::preprocessor::traits::ClearByActionIdTrait;
 use crate::preprocessor::geometry::geometry::Geometry;
 
 use crate::preprocessor::properties::material::{Material, DeletedMaterial};
-use crate::preprocessor::properties::property::CrossSectionType;
 use crate::preprocessor::properties::truss_section::{TrussSection, DeletedTrussSection};
 use crate::preprocessor::properties::beam_section::{BeamSection, DeletedBeamSection};
 use crate::preprocessor::properties::property::{Property, DeletedProperty};
+use crate::preprocessor::properties::property::CrossSectionType;
 use crate::preprocessor::properties::assigned_property::
 {
     AssignedPropertyToLines, DeletedAssignedPropertyToLines, ChangedAssignedPropertyToLines,
@@ -194,6 +194,24 @@ impl Properties
     }
 
 
+    pub fn check_for_property_with_similar_data_existence(&self, material_name: &str,
+        cross_section_name: &str, cross_section_type: &CrossSectionType, error_message_header: &str)
+        -> Result<(), JsValue>
+    {
+        if self.properties.values().position(|property|
+            property.data_same(material_name, cross_section_name, cross_section_type))
+                .is_some()
+        {
+            let error_message = &format!("{}: Property with Material name {}, \
+                Cross section name {}, Cross section type {} does already exist!",
+                error_message_header, material_name, cross_section_name, cross_section_type.as_str());
+            return Err(JsValue::from(error_message));
+        }
+        Ok(())
+    }
+
+
+
     pub fn check_for_the_similar_line_numbers_in_assigned_properties_to_lines_existence(&self,
         line_numbers: &[FEUInt], error_message_header: &str) -> Result<(), JsValue>
     {
@@ -226,6 +244,47 @@ impl Properties
                 already used in another assigned property to lines!", error_message_header,
                 line_numbers);
             return Err(JsValue::from(error_message));
+        }
+        Ok(())
+    }
+
+
+    pub fn check_for_material_existence_by_name(&self, material_name: &str,
+        error_message_header: &str) -> Result<(), JsValue>
+    {
+        if !self.materials.contains_key(material_name)
+        {
+            let error_message = &format!("{}: Material with name {} does not exist!",
+                error_message_header, material_name);
+            return Err(JsValue::from(error_message));
+        }
+        Ok(())
+    }
+
+
+    pub fn check_for_cross_section_existence(&self, cross_section_name: &str,
+        cross_section_type: &CrossSectionType, error_message_header: &str) -> Result<(), JsValue>
+    {
+        match cross_section_type
+        {
+            CrossSectionType::Truss =>
+                {
+                    if !self.truss_sections.contains_key(cross_section_name)
+                    {
+                        let error_message = &format!("{}: Truss section with name {} \
+                            does not exist!", error_message_header, cross_section_name);
+                        return Err(JsValue::from(error_message));
+                    }
+                },
+            CrossSectionType::Beam =>
+                {
+                    if !self.beam_sections.contains_key(cross_section_name)
+                    {
+                        let error_message = &format!("{}: Beam section with name {} \
+                            does not exist!", error_message_header, cross_section_name);
+                        return Err(JsValue::from(error_message));
+                    }
+                },
         }
         Ok(())
     }

@@ -80,12 +80,12 @@ impl Properties
         let error_message_header = "Properties: Update assigned properties \
             to lines action";
 
-        if let Some(mut previously_changed_assigned_properties_to_lines) =
+        if let Some(mut changed_assigned_properties_to_lines) =
             self.changed_assigned_properties_to_lines.remove(&action_id)
         {
             self.clear_by_action_id(action_id);
 
-            if previously_changed_assigned_properties_to_lines.len() != 1
+            if changed_assigned_properties_to_lines.len() != 1
             {
                 let error_message = &format!("{}: Incorrect number of assigned properties!",
                     error_message_header);
@@ -93,7 +93,7 @@ impl Properties
             }
 
             let (assigned_property_to_lines_name, assigned_property_to_lines) =
-                previously_changed_assigned_properties_to_lines.remove(0).extract_and_drop();
+                changed_assigned_properties_to_lines.remove(0).extract_and_drop();
 
             if assigned_property_to_lines_name != name
             {
@@ -126,27 +126,23 @@ impl Properties
                 &assigned_property_to_lines_name, related_lines_numbers.as_slice(),
                 error_message_header)?;
 
-            if let Some(old_assigned_property_to_lines) =
-                self.assigned_properties_to_lines.remove(name)
+            if self.assigned_properties_to_lines.contains_key(&assigned_property_to_lines_name)
             {
                 let old_related_lines_numbers =
-                    old_assigned_property_to_lines.extract_related_lines_numbers();
-
-                let changed_assigned_property_to_lines =
-                    ChangedAssignedPropertyToLines::create(name, old_assigned_property_to_lines);
+                    self.assigned_properties_to_lines.get(&assigned_property_to_lines_name)
+                        .unwrap().extract_related_lines_numbers();
 
                 self.assigned_properties_to_lines.insert(assigned_property_to_lines_name.clone(),
                     assigned_property_to_lines);
 
-                self.changed_assigned_properties_to_lines.insert(action_id,
-                    vec![changed_assigned_property_to_lines]);
-
                 let (_, _, cross_section_type) =
-                    self.properties.get(&assigned_property_to_lines_name).unwrap().extract_data();
+                    self.properties.get(&assigned_property_to_lines_name)
+                        .unwrap().extract_data();
 
                 let related_lines_data =
                     self.assigned_properties_to_lines.get(&assigned_property_to_lines_name)
                         .unwrap().extract_related_lines_data();
+
                 let detail = json!({ "assigned_properties_to_lines_data":
                     {
                         "name": &assigned_property_to_lines_name,
@@ -156,7 +152,8 @@ impl Properties
                         "cross_section_type": cross_section_type.as_str().to_lowercase(),
                     },
                     "is_action_id_should_be_increased": is_action_id_should_be_increased });
-                dispatch_custom_event(detail, UPDATE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
+                dispatch_custom_event(detail,
+                    UPDATE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
                     EVENT_TARGET)?;
                 self.logging();
                 Ok(())
@@ -189,14 +186,14 @@ impl Properties
                 let old_related_lines_numbers =
                     old_assigned_property_to_lines.extract_related_lines_numbers();
 
-                assigned_property_to_lines.fit_related_lines_data_by_line_numbers(
-                    line_numbers);
-
                 let changed_assigned_property_to_lines =
                     ChangedAssignedPropertyToLines::create(name, old_assigned_property_to_lines);
 
                 self.changed_assigned_properties_to_lines.insert(action_id,
                     vec![changed_assigned_property_to_lines]);
+
+                assigned_property_to_lines.fit_related_lines_data_by_line_numbers(
+                    line_numbers);
 
                 let (_, _, cross_section_type) =
                     self.properties.get(name).unwrap().extract_data();

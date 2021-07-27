@@ -180,17 +180,6 @@ impl AssignedPropertyToLines
     }
 
 
-    // pub fn any_of_provided_line_numbers_contains(&self, line_numbers: &[FEUInt]) -> bool
-    // {
-    //     if self.related_lines_data.iter().position(|(related_line_number, _)|
-    //         line_numbers.contains(related_line_number)).is_some()
-    //     {
-    //         return true;
-    //     }
-    //     false
-    // }
-
-
     pub fn update_related_lines_data(&mut self, line_number: FEUInt,
         local_axis_1_direction: Option<LocalAxis1Direction>)
     {

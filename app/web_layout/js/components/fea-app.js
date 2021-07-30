@@ -189,7 +189,7 @@ class FeaApp extends HTMLElement {
     async connectedCallback() {
         this.state.actionsRouter = await initializeActionsRouter();
         this.activatePreprocessorMenu();
-        // this.handleLoadCache();
+        this.handleLoadCache();
     }
 
     disconnectedCallback() {

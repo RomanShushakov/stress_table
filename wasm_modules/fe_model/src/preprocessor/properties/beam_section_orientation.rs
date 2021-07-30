@@ -26,4 +26,10 @@ impl LocalAxis1Direction
             local_axis_1_direction[2])
         )
     }
+
+
+    pub fn extract(&self) -> [FEFloat; 3]
+    {
+        [self.0, self.1, self.2]
+    }
 }

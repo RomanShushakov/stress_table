@@ -717,14 +717,7 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
         this.defineLocalAxis1DirectionOptions();
     }
 
-    set updateBeamSectionOrientationDataInClient(beamSectionOrientationData) {
-        const equals = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
-        let beamSectionOrientationDataIndexInProps = this.props.beamSectionsLocalAxis1Directions
-            .find(existedbeamSectionOrientation => equals(existedbeamSectionOrientation.local_axis_1_direction,
-                beamSectionOrientationData.local_axis_1_direction));
-        beamSectionOrientationDataIndexInProps.line_numbers = beamSectionOrientationData.line_numbers;
-        this.props.beamSectionsLocalAxis1Directions.sort((a, b) => a.local_axis_1_direction - b.local_axis_1_direction);
-        this.defineLocalAxis1DirectionOptions();
+    set updateBeamSectionOrientationDataInClient(_beamSectionOrientationData) {
     }
 
     set rendererError(error) {
@@ -915,13 +908,13 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
             .map((item) => item.replace(/\s/g,'', ""))
             .filter((item) => item !== "");
         for (let i = 0; i < selectedLines.length; i++) {
-            if (this.isNumeric(selectedLines[i]) === false) {
+            if (this.isNumeric(selectedLines[i]) === false || this.isInt(selectedLines[i]) === false) {
                 if (selectedLinesField.classList.contains("highlighted") === false) {
                     selectedLinesField.classList.add("highlighted");
                 }
                 if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                     this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                        "Note: Only numbers could be used as selected lines values!";
+                        "Note: Only integer numbers could be used as selected lines values!";
                 }
                 return;
             }
@@ -949,13 +942,13 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
             .map((item) => item.replace(/\s/g,'', ""))
             .filter((item) => item !== "");
         for (let i = 0; i < selectedLines.length; i++) {
-            if (this.isNumeric(selectedLines[i]) === false) {
+            if (this.isNumeric(selectedLines[i]) === false || this.isInt(selectedLines[i]) === false) {
                 if (selectedLinesField.classList.contains("highlighted") === false) {
                     selectedLinesField.classList.add("highlighted");
                 }
                 if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                     this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                        "Note: Only numbers could be used as selected lines values!";
+                        "Note: Only integer numbers could be used as selected lines values!";
                 }
                 return;
             }
@@ -1148,7 +1141,6 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
 
     updateBeamSectionOrientationData() {
         const selectedLocalAxis1DirectionField = this.shadowRoot.querySelector(".local-axis-1-direction");
-        const equals = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
         if (selectedLocalAxis1DirectionField.value === "") {
             if (selectedLocalAxis1DirectionField.classList.contains("highlighted") === false) {
                 selectedLocalAxis1DirectionField.classList.add("highlighted");
@@ -1171,14 +1163,15 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
             .split(",")
             .map((item) => item.replace(/\s/g,'', ""))
             .filter((item) => item !== "");
+
         for (let i = 0; i < assignToLines.length; i++) {
-            if (this.isNumeric(assignToLines[i]) === false) {
+            if (this.isNumeric(assignToLines[i]) === false || this.isInt(assignToLines[i]) === false) {
                 if (assignToLinesField.classList.contains("highlighted") === false) {
                     assignToLinesField.classList.add("highlighted");
                 }
                 if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                     this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                        "Note: Only numbers could be used as assign to lines values!";
+                        "Note: Only integer numbers could be used as assign to lines values!";
                 }
                 return;
             }
@@ -1193,95 +1186,23 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
                 }
                 return;
             }
-
-            if (this.props.assignedProperties.length === 0) {
-                if (assignToLinesField.classList.contains("highlighted") === false) {
-                    assignToLinesField.classList.add("highlighted");
-                }
-                if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                    this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                        "Note: There are no assigned properties were found!";
-                }
-                return;
-            }
-
-            let isLineInAssignedProperties = false;
-            for (let j = 0; j < this.props.assignedProperties.length; j++) {
-                const currentAssignedProperties = this.props.assignedProperties[j];
-                if (currentAssignedProperties.line_numbers.includes(parseInt(assignToLines[i])) === true) {
-                    isLineInAssignedProperties = true;
-                    const currentProperties = this.props.properties.find((properties) => 
-                        properties.name === currentAssignedProperties.name);
-                    if (currentProperties != undefined) {
-                        if (currentProperties.cross_section_type !== '"beam"') {
-                            if (assignToLinesField.classList.contains("highlighted") === false) {
-                                assignToLinesField.classList.add("highlighted");
-                            }
-                            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                                    "Note: Beam section orientation could be applied to 'Beam' cross section type only!";
-                            }
-                            return;
-                        }
-                    } else {
-                        if (assignToLinesField.classList.contains("highlighted") === false) {
-                            assignToLinesField.classList.add("highlighted");
-                        }
-                        if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                                `Note: Properties with name ${currentAssignedProperties.name} does not exist!`;
-                        }
-                        return;
-                    }
-                }
-            }
-
-            if (isLineInAssignedProperties === false) {
-                if (assignToLinesField.classList.contains("highlighted") === false) {
-                    assignToLinesField.classList.add("highlighted");
-                }
-                if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                    this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                        `Note: There are no properties were assigned to line with number ${assignToLines[i]}!`;
-                }
-                return;
-            }
-
-            for (let k = 0; k < this.props.beamSectionsLocalAxis1Directions.length; k++) {
-                const numberInArray = (number) => number === parseInt(assignToLines[i]) && 
-                    equals(this.props.beamSectionsLocalAxis1Directions[k].local_axis_1_direction, selectedLocalAxis1Direction) === false;
-                if (this.props.beamSectionsLocalAxis1Directions[k].line_numbers.some(numberInArray) === true) {
-                    if (assignToLinesField.classList.contains("highlighted") === false) {
-                        assignToLinesField.classList.add("highlighted");
-                    }
-                    if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                        this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                            `Note: At least one number from assign to lines field is already used in 
-                            beam section orientation ${this.props.beamSectionsLocalAxis1Directions[k].local_axis_1_direction}!`;
-                    }
-                    return;
-                }
-            }
-
         }
 
-        const selectedBeamSectionOrientationInProps = this.props.beamSectionsLocalAxis1Directions
-            .find(existedBeamSectionOrientation => 
-                equals(existedBeamSectionOrientation.local_axis_1_direction, selectedLocalAxis1Direction) === true);
-        const oldLineNumbers = selectedBeamSectionOrientationInProps.line_numbers;
+        const equals = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
+        let oldLineNumbers = [];
+        for (let i = 0; i < this.props.assignedPropertiesToLines.length; i++) {
+            const linesNumbers = Array.from(
+                Object.entries(this.props.assignedPropertiesToLines[i].related_lines_data)
+                    .filter(([_key, value]) => value !== null)
+                    .filter(([_key, value]) => equals(value, selectedLocalAxis1Direction) === true), 
+                ([key, _value]) => parseInt(key)
+            );
+            for (let j = 0; j < linesNumbers.length; j++) {
+                oldLineNumbers.push(linesNumbers[j]);
+            }
+        }
+
         const lineNumbers = assignToLines.map((item) => parseInt(item));
-
-        if (equals(oldLineNumbers, lineNumbers) === true) {
-            if (assignToLinesField.classList.contains("highlighted") === false) {
-                assignToLinesField.classList.add("highlighted");
-            }
-            if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                    `Note: Beam section orientation with the same local axis 1 direction and line numbers
-                    does already exist!`;
-            }
-            return;
-        }
 
         this.getActionId();
         const message = { 

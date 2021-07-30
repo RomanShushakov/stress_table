@@ -18,7 +18,7 @@ use crate::types::{FEUInt};
 
 use crate::consts::EVENT_TARGET;
 
-use crate::functions::{log, dispatch_custom_event};
+use crate::functions::{dispatch_custom_event};
 
 
 impl Properties

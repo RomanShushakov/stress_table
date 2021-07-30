@@ -180,8 +180,6 @@ class FeaApp extends HTMLElement {
 
         this.addEventListener("disableLinesSelectionMode", 
             (event) => this.handleDisableLinesSelectionModeMessage(event));
-
-        this.addEventListener("update_lines_color_server_message", (event) => this.handleUpdateLinesColorServerMessage(event));
     }
 
     set feModelError(error) {
@@ -1006,11 +1004,6 @@ class FeaApp extends HTMLElement {
         } else {
             this.shadowRoot.querySelector("fea-renderer").canvasSize = { "width":  window.innerWidth, "height": window.innerHeight };
         }
-    }
-
-    handleUpdateLinesColorServerMessage(event) {
-        this.shadowRoot.querySelector("fea-renderer").updateLinesColorScheme = event.detail.lines_color_scheme_data;
-        event.stopPropagation();
     }
 }
 

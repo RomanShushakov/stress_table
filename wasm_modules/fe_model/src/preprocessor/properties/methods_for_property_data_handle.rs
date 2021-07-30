@@ -9,7 +9,7 @@ use crate::preprocessor::properties::property::{CrossSectionType};
 use crate::preprocessor::properties::consts::
 {
     ADD_PROPERTIES_EVENT_NAME, UPDATE_PROPERTIES_EVENT_NAME, DELETE_PROPERTIES_EVENT_NAME,
-    UPDATE_LINES_COLOR_EVENT_NAME, UPDATE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
+    UPDATE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
 };
 
 use crate::preprocessor::properties::functions::line_numbers_same;

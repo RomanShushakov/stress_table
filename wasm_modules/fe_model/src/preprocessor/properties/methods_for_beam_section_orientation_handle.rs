@@ -27,7 +27,7 @@ use crate::consts::EVENT_TARGET;
 
 use crate::functions::
 {
-    dispatch_custom_event, find_components_of_line_a_perpendicular_to_line_b
+    dispatch_custom_event, find_components_of_line_a_perpendicular_to_line_b,
 };
 use crate::preprocessor::properties::assigned_property::ChangedAssignedPropertyToLines;
 
@@ -267,142 +267,147 @@ impl Properties
     }
 
 
-    // pub fn update_beam_section_orientation_data(&mut self, action_id: FEUInt,
-    //     local_axis_1_direction: &[FEFloat], line_numbers: &[FEUInt],
-    //     is_action_id_should_be_increased: bool, geometry: &Geometry,
-    //     get_line_points_coordinates: fn(FEUInt, &Geometry) -> Option<((FEFloat, FEFloat, FEFloat),
-    //         (FEFloat, FEFloat, FEFloat))>) -> Result<(), JsValue>
-    // {
-    //     self.clear_properties_module_by_action_id(action_id);
-    //     let converted_local_axis_1_direction = <[FEFloat; 3]>::try_from(local_axis_1_direction)
-    //         .unwrap();
-    //     for line_number in line_numbers
-    //     {
-    //         for (assigned_property_name, assigned_property) in
-    //             self.assigned_properties.iter()
-    //         {
-    //             if assigned_property.extract_data().contains(line_number)
-    //             {
-    //                 let (_, _, cross_section_type) = self.properties
-    //                     .get(assigned_property_name)
-    //                     .unwrap()
-    //                     .extract_data();
-    //                 match cross_section_type
-    //                 {
-    //                     CrossSectionType::Truss =>
-    //                         {
-    //                             let error_message = &format!("Properties: Update beam \
-    //                                 section orientation data action: Beam section orientation \
-    //                                 could be applied to 'Beam' cross section type only!");
-    //                             return Err(JsValue::from(error_message));
-    //                         },
-    //                     CrossSectionType::Beam => (),
-    //                 }
-    //             }
-    //         }
-    //         if let Some((start_point_coordinates, end_point_coordinates)) =
-    //             get_line_points_coordinates(*line_number, geometry)
-    //         {
-    //             let transformed_line = [
-    //                 end_point_coordinates.0 - start_point_coordinates.0,
-    //                 end_point_coordinates.1 - start_point_coordinates.1,
-    //                 end_point_coordinates.2 - start_point_coordinates.2
-    //             ];
-    //             let projection_of_beam_section_orientation_vector =
-    //                 find_components_of_line_a_perpendicular_to_line_b(
-    //                     &converted_local_axis_1_direction, &transformed_line
-    //                 )?;
-    //             let projection_of_beam_section_orientation_length = FEFloat::sqrt(
-    //                 projection_of_beam_section_orientation_vector[0].powi(2) +
-    //                     projection_of_beam_section_orientation_vector[1].powi(2) +
-    //                     projection_of_beam_section_orientation_vector[2].powi(2));
-    //             if projection_of_beam_section_orientation_length == 0 as FEFloat
-    //             {
-    //                 let error_message = format!("Properties: Update beam section orientation \
-    //                     data action: Projection of local axis 1 direction on line number {} \
-    //                     equals to zero!", line_number);
-    //                 return Err(JsValue::from(error_message));
-    //             }
-    //         }
-    //         else
-    //         {
-    //             let error_message = &format!("Properties: Update beam section orientation \
-    //                 data action: Line points coordinates could not be extracted for line {:?}",
-    //                 line_number);
-    //             return Err(JsValue::from(error_message));
-    //         }
-    //     }
-    //     if self.beam_sections_local_axis_1_directions
-    //         .iter()
-    //         .position(|beam_section_orientation|
-    //             beam_section_orientation
-    //                 .is_local_axis_1_direction_same(&converted_local_axis_1_direction) &&
-    //             beam_section_orientation.is_line_numbers_same(line_numbers))
-    //         .is_some()
-    //     {
-    //         let error_message = &format!("Properties: Update beam section orientation data \
-    //             action: Beam section orientation with the same local axis 1 direction and line \
-    //             numbers does already exist!");
-    //         return Err(JsValue::from(error_message));
-    //     }
-    //     if self.beam_sections_local_axis_1_directions
-    //         .iter()
-    //         .position(|beam_section_orientation|
-    //             {
-    //                 let mut is_any_number_in_slice = false;
-    //                 for line_number in line_numbers
-    //                 {
-    //                     if beam_section_orientation.extract_line_numbers().contains(line_number)
-    //                     {
-    //                         is_any_number_in_slice = true;
-    //                         break;
-    //                     }
-    //                 }
-    //                 if is_any_number_in_slice && !beam_section_orientation
-    //                     .is_local_axis_1_direction_same(&converted_local_axis_1_direction)
-    //                 {
-    //                     true
-    //                 }
-    //                 else
-    //                 {
-    //                     false
-    //                 }
-    //
-    //             })
-    //         .is_some()
-    //     {
-    //         let error_message = &format!("Properties: Update beam section orientation data \
-    //             action: At least one line number is already used in another beam section \
-    //             orientation data!");
-    //         return Err(JsValue::from(error_message));
-    //     }
-    //
-    //     if let Some(position) = self.beam_sections_local_axis_1_directions
-    //         .iter()
-    //         .position(|beam_section_orientation|
-    //             beam_section_orientation.is_local_axis_1_direction_same(
-    //                 &converted_local_axis_1_direction))
-    //     {
-    //         self.beam_sections_local_axis_1_directions[position].update(line_numbers);
-    //         let detail = json!({ "beam_section_orientation_data":
-    //             {
-    //                 "local_axis_1_direction": converted_local_axis_1_direction,
-    //                 "line_numbers": line_numbers,
-    //             },
-    //             "is_action_id_should_be_increased": is_action_id_should_be_increased });
-    //         dispatch_custom_event(detail, UPDATE_BEAM_SECTION_ORIENTATION_DATA_EVENT_NAME,
-    //             EVENT_TARGET)?;
-    //         self.logging();
-    //         Ok(())
-    //     }
-    //     else
-    //     {
-    //         let error_message = &format!("Properties: Update beam section orientation data \
-    //             action: Beam section orientation for local axis 1 direction {:?} does not exist!",
-    //                 converted_local_axis_1_direction);
-    //         return Err(JsValue::from(error_message));
-    //     }
-    // }
+    pub fn update_beam_section_orientation_data(&mut self, action_id: FEUInt,
+        local_axis_1_direction: &[FEFloat], line_numbers: &[FEUInt],
+        is_action_id_should_be_increased: bool, geometry: &Geometry,
+        get_line_points_coordinates: fn(FEUInt, &Geometry) -> Option<((FEFloat, FEFloat, FEFloat),
+            (FEFloat, FEFloat, FEFloat))>) -> Result<(), JsValue>
+    {
+        let error_message_header = "Properties: Update beam section orientation data action";
+
+        self.clear_by_action_id(action_id);
+
+        let current_local_axis_1_direction =
+            LocalAxis1Direction::create(local_axis_1_direction)?;
+
+        if self.beam_sections_local_axis_1_directions
+            .iter()
+            .position(|existed_local_axis_1_direction|
+                *existed_local_axis_1_direction == current_local_axis_1_direction)
+            .is_none()
+        {
+            let error_message = &format!("{}: Beam section orientation for local axis 1 \
+                direction {:?} does not exist!", error_message_header,
+                local_axis_1_direction);
+            return Err(JsValue::from(error_message));
+        }
+
+        for line_number in line_numbers
+        {
+            self.check_the_correspondence_of_cross_section_type_to_beam(
+                line_number, error_message_header)?;
+
+            if let Some((start_point_coordinates, end_point_coordinates)) =
+                get_line_points_coordinates(*line_number, geometry)
+            {
+                let transformed_line = [
+                    end_point_coordinates.0 - start_point_coordinates.0,
+                    end_point_coordinates.1 - start_point_coordinates.1,
+                    end_point_coordinates.2 - start_point_coordinates.2
+                ];
+                let projection_of_beam_section_orientation_vector =
+                    find_components_of_line_a_perpendicular_to_line_b(
+                        &current_local_axis_1_direction.extract(), &transformed_line
+                    )?;
+                let projection_of_beam_section_orientation_length = FEFloat::sqrt(
+                    projection_of_beam_section_orientation_vector[0].powi(2) +
+                        projection_of_beam_section_orientation_vector[1].powi(2) +
+                        projection_of_beam_section_orientation_vector[2].powi(2));
+                if projection_of_beam_section_orientation_length == 0 as FEFloat
+                {
+                    let error_message = format!("{}: Projection of local axis 1 direction \
+                        on line number {} equals to zero!", error_message_header, line_number);
+                    return Err(JsValue::from(error_message));
+                }
+            }
+            else
+            {
+                let error_message = &format!("{}: Line points coordinates could not be \
+                    extracted for line {:?}", error_message_header, line_number);
+                return Err(JsValue::from(error_message));
+            }
+        }
+
+        for (assigned_property_to_lines_name, assigned_property_lo_lines) in
+            self.assigned_properties_to_lines.iter_mut()
+        {
+            let mut is_assigned_property_to_lines_updated = false;
+
+            for (line_number, local_axis_1_direction) in
+                assigned_property_lo_lines.extract_related_lines_data().iter()
+            {
+                if line_numbers.contains(line_number)
+                {
+                    if local_axis_1_direction.is_some()
+                    {
+                        if local_axis_1_direction.as_ref().unwrap() !=
+                            &current_local_axis_1_direction
+                        {
+                            let error_message = &format!("{}: The line number {} has been \
+                                already used in local_axis_1_direction {:?}!",
+                                error_message_header, line_number,
+                                local_axis_1_direction.as_ref().unwrap().extract());
+                            return Err(JsValue::from(error_message));
+                        }
+                    }
+                    else
+                    {
+                        assigned_property_lo_lines.update_related_lines_data(*line_number,
+                            Some(current_local_axis_1_direction.clone()));
+                        is_assigned_property_to_lines_updated = true;
+                    }
+                }
+                else
+                {
+                    if local_axis_1_direction.is_some()
+                    {
+                        if local_axis_1_direction.as_ref().unwrap() == &current_local_axis_1_direction
+                        {
+                            assigned_property_lo_lines.update_related_lines_data(*line_number,
+                                None);
+                            is_assigned_property_to_lines_updated = true;
+                        }
+                    }
+                }
+            }
+
+            if is_assigned_property_to_lines_updated
+            {
+                let related_lines_data =
+                    assigned_property_lo_lines.extract_related_lines_data();
+
+                let related_lines_numbers =
+                    assigned_property_lo_lines.extract_related_lines_numbers();
+
+                let (_, _, cross_section_type) = self.properties
+                        .get(assigned_property_to_lines_name).unwrap().extract_data();
+
+                let detail = json!({ "assigned_properties_to_lines_data":
+                    {
+                        "name": assigned_property_to_lines_name,
+                        "related_lines_data": related_lines_data,
+                        "line_numbers": related_lines_numbers,
+                        "cross_section_type": cross_section_type.as_str().to_lowercase(),
+                    },
+                    "is_action_id_should_be_increased": false });
+                dispatch_custom_event(detail,
+                    UPDATE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
+                    EVENT_TARGET)?;
+            }
+        }
+
+        let detail = json!({ "beam_section_orientation_data":
+            {
+                "local_axis_1_direction": local_axis_1_direction,
+                "line_numbers": line_numbers,
+            },
+            "is_action_id_should_be_increased": is_action_id_should_be_increased });
+        dispatch_custom_event(detail, UPDATE_BEAM_SECTION_ORIENTATION_DATA_EVENT_NAME,
+            EVENT_TARGET)?;
+
+        self.logging();
+        Ok(())
+    }
 
 
     pub fn extract_beam_sections_local_axis_1_directions(&self, handler: js_sys::Function)

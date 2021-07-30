@@ -27,5 +27,3 @@ pub const REMOVE_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_EVENT_NAME: &str =
     "remove_beam_section_local_axis_1_direction_server_message";
 pub const UPDATE_BEAM_SECTION_ORIENTATION_DATA_EVENT_NAME: &str =
     "update_beam_section_orientation_data_server_message";
-
-pub const UPDATE_LINES_COLOR_EVENT_NAME: &str = "update_lines_color_server_message";

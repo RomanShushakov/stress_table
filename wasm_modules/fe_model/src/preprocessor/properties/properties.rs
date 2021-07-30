@@ -290,6 +290,38 @@ impl Properties
     }
 
 
+    pub fn check_the_correspondence_of_cross_section_type_to_beam(&self, line_number: &FEUInt,
+        error_message_header: &str) -> Result<(), JsValue>
+    {
+        for (assigned_property_to_lines_name, assigned_property_to_lines) in
+            self.assigned_properties_to_lines.iter()
+        {
+            if assigned_property_to_lines.extract_related_lines_numbers()
+                .contains(line_number)
+            {
+                let (_, _, cross_section_type) = self.properties
+                    .get(assigned_property_to_lines_name)
+                    .unwrap()
+                    .extract_data();
+                return match cross_section_type
+                {
+                    CrossSectionType::Truss =>
+                        {
+                            let error_message = &format!("{}: Beam section orientation \
+                                should be applied to 'Beam' cross section type only!",
+                                error_message_header);
+                            Err(JsValue::from(error_message))
+                        },
+                    CrossSectionType::Beam => Ok(()),
+                }
+            }
+        }
+        let error_message = &format!("{}: There are no assigned property which \
+            contains line number {}!", error_message_header, line_number);
+        Err(JsValue::from(error_message))
+    }
+
+
     pub fn logging(&self)
     {
         log(&format!("Properties: \n

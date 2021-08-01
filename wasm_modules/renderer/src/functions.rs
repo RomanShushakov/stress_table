@@ -6,11 +6,11 @@ use std::collections::{HashMap, HashSet};
 use std::convert::TryInto;
 use rand;
 
+use extended_matrix::extended_matrix::ExtendedMatrix;
+
 use crate::point_object::{PointObject, PointObjectKey, Coordinates};
 
 use crate::line_object::{LineObject, LineObjectKey};
-
-use crate::extended_matrix::ExtendedMatrix;
 
 use crate::drawn_object::drawn_object::{GLMode};
 use crate::drawn_object::drawn_object::
@@ -377,6 +377,7 @@ pub fn compose_rotation_matrix_for_vector(vector_start_point_coordinates: [f32; 
     let q_32 = compare_with_tolerance(t * y_n * z_n + x_n * s);
     let q_33 = compare_with_tolerance(t * z_n * z_n + c);
     let mut rotation_matrix = ExtendedMatrix::create(3,
-        3, vec![q_11, q_12, q_13, q_21, q_22, q_23, q_31, q_32, q_33]);
+        3, vec![q_11, q_12, q_13, q_21, q_22, q_23, q_31, q_32, q_33],
+        TOLERANCE);
     rotation_matrix
 }

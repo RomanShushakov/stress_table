@@ -4,8 +4,10 @@ use web_sys::{WebGlRenderingContext as GL};
 use std::f32::consts::PI;
 use std::collections::HashMap;
 
-use crate::extended_matrix::{ExtendedMatrix, MatrixElementPosition};
-use crate::extended_matrix::extract_element_value;
+use extended_matrix::extended_matrix::ExtendedMatrix;
+use extended_matrix::basic_matrix::basic_matrix::MatrixElementPosition;
+use extended_matrix::functions::extract_element_value;
+
 
 use crate::{PointObjectKey, PointObject};
 

@@ -47,8 +47,6 @@ use crate::buffer_objects::BufferObjects;
 mod shader_programs;
 use crate::shader_programs::ShaderPrograms;
 
-mod extended_matrix;
-
 mod methods_for_canvas_manipulation;
 
 mod types;

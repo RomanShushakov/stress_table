@@ -3,14 +3,15 @@ use web_sys::{WebGlRenderingContext as GL};
 use std::f32::consts::PI;
 use std::collections::{HashMap, HashSet};
 
+use extended_matrix::extended_matrix::ExtendedMatrix;
+use extended_matrix::basic_matrix::basic_matrix::MatrixElementPosition;
+use extended_matrix::functions::extract_element_value;
+
 use crate::point_object::{PointObjectKey, PointObject};
 use crate::point_object::{PointObjectType};
 
 use crate::line_object::{LineObject, LineObjectKey, BeamSectionOrientation};
 use crate::line_object::{LineObjectType, LineObjectColorScheme};
-
-use crate::extended_matrix::{ExtendedMatrix, MatrixElementPosition};
-use crate::extended_matrix::extract_element_value;
 
 use crate::drawn_object::consts::
 {
@@ -278,7 +279,7 @@ impl DrawnObject
                         rotation_matrix.transpose();
                         let point_object_coordinates_shift =
                             ExtendedMatrix::create(3u32, 1u32,
-                            vec![base_radius * 2.0, 0.0, 0.0]);
+                            vec![base_radius * 2.0, 0.0, 0.0], TOLERANCE);
                         let mut directional_vectors = Vec::new();
                         let angle = 2.0 * PI / base_points_number as f32;
                         for point_number in 0..base_points_number
@@ -295,7 +296,8 @@ impl DrawnObject
                                 };
                             let directional_vector =
                                 ExtendedMatrix::create(3u32,
-                                1u32, vec![0.0, local_y, local_x]);
+                                1u32, vec![0.0, local_y, local_x],
+                                TOLERANCE);
                             directional_vectors.push(directional_vector);
                         }
                         for directional_vector in &directional_vectors
@@ -407,13 +409,13 @@ impl DrawnObject
                 let b_y = line_end_point_coordinates[1] - line_start_point_coordinates[1];
                 let b_z = line_end_point_coordinates[2] - line_start_point_coordinates[2];
                 let a = ExtendedMatrix::create(3u32,
-                    1u32, vec![a_x, a_y, a_z]);
+                    1u32, vec![a_x, a_y, a_z], TOLERANCE);
                 let coeff_matrix = ExtendedMatrix::create(3u32,
                     3u32, vec![
                         - b_z * b_z - b_y * b_y, b_x * b_y, b_x * b_z,
                         b_y * b_x, - b_x * b_x - b_z * b_z,	b_y * b_z,
                         b_z * b_x,	b_z * b_y, - b_y * b_y - b_x * b_x,
-                    ]);
+                    ], TOLERANCE);
                 let local_axis_1_direction_projection_matrix =
                     coeff_matrix
                         .multiply_by_matrix(&a)
@@ -502,7 +504,7 @@ impl DrawnObject
                             - height,
                             *local_y,
                             *local_x,
-                        ]);
+                        ], TOLERANCE);
                     let transformed_local_coordinates = rotation_matrix_for_cap
                         .multiply_by_matrix(&local_coordinates)
                         .map_err(|e| JsValue::from(e))?;

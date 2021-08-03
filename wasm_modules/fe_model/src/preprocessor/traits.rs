@@ -1,7 +1,4 @@
-use crate::types::FEUInt;
-
-
-pub trait ClearByActionIdTrait
+pub trait ClearByActionIdTrait<T>
 {
-    fn clear_by_action_id(&mut self, action_id: FEUInt);
+    fn clear_by_action_id(&mut self, action_id: T);
 }

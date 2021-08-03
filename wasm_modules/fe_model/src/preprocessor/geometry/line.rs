@@ -1,26 +1,24 @@
 use serde::Serialize;
 
-use crate::types::{FEUInt};
-
 
 #[derive(Debug, Copy, Clone, Serialize)]
-pub struct Line
+pub struct Line<T>
 {
-    start_point_number: FEUInt,
-    end_point_number: FEUInt,
+    start_point_number: T,
+    end_point_number: T,
 }
 
 
-impl Line
+impl<T> Line<T>
+    where T: Copy + PartialEq
 {
-    pub fn create(start_point_number: FEUInt, end_point_number: FEUInt) -> Self
+    pub fn create(start_point_number: T, end_point_number: T) -> Self
     {
         Line { start_point_number, end_point_number, }
     }
 
 
-    pub fn start_and_end_points_same(&self, start_point_number: FEUInt, end_point_number: FEUInt)
-        -> bool
+    pub fn start_and_end_points_same(&self, start_point_number: T, end_point_number: T) -> bool
     {
         (self.start_point_number == start_point_number &&
         self.end_point_number == end_point_number) ||
@@ -29,14 +27,14 @@ impl Line
     }
 
 
-    pub fn update(&mut self, start_point_number: FEUInt, end_point_number: FEUInt)
+    pub fn update(&mut self, start_point_number: T, end_point_number: T)
     {
         self.start_point_number = start_point_number;
         self.end_point_number = end_point_number;
     }
 
 
-    pub fn extract_points_numbers(&self) -> (FEUInt, FEUInt)
+    pub fn extract_points_numbers(&self) -> (T, T)
     {
         (self.start_point_number, self.end_point_number)
     }
@@ -44,35 +42,36 @@ impl Line
 
 
 #[derive(Debug, Copy, Clone)]
-pub struct DeletedLine
+pub struct DeletedLine<T>
 {
-    number: FEUInt,
-    line: Line,
+    number: T,
+    line: Line<T>,
 }
 
 
-impl DeletedLine
+impl<T> DeletedLine<T>
+    where T: Copy + PartialEq
 {
-    pub fn create(number: FEUInt, line: Line) -> Self
+    pub fn create(number: T, line: Line<T>) -> Self
     {
         DeletedLine { number, line }
     }
 
 
-    pub fn extract_number_and_points_numbers(&self) -> (FEUInt, FEUInt, FEUInt)
+    pub fn extract_number_and_points_numbers(&self) -> (T, T, T)
     {
         let (start_point_number, end_point_number) = self.line.extract_points_numbers();
         (self.number, start_point_number, end_point_number)
     }
 
 
-    pub fn extract_number(&self) -> FEUInt
+    pub fn extract_number(&self) -> T
     {
         self.number
     }
 
 
-    pub fn number_same(&self, number: FEUInt) -> bool
+    pub fn number_same(&self, number: T) -> bool
     {
         self.number == number
     }

@@ -356,7 +356,7 @@ impl Properties
 }
 
 
-impl ClearByActionIdTrait for Properties
+impl ClearByActionIdTrait<FEUInt> for Properties
 {
     fn clear_by_action_id(&mut self, action_id: FEUInt)
     {

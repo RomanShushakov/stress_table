@@ -1,5 +1,8 @@
 use wasm_bindgen::prelude::*;
 use serde_json::json;
+use serde::Serialize;
+use std::fmt::Debug;
+use std::hash::Hash;
 
 use crate::preprocessor::traits::ClearByActionIdTrait;
 
@@ -12,31 +15,31 @@ use crate::preprocessor::geometry::consts::
     ADD_LINE_EVENT_NAME, DELETE_LINE_EVENT_NAME,
 };
 
-use crate::types::{FEUInt, FEFloat};
-
 use crate::functions::{dispatch_custom_event};
 
 use crate::consts::EVENT_TARGET;
 
 
-impl Geometry
+impl<T, V> Geometry<T, V>
+    where T: Debug + Copy + Hash + Eq + Serialize + PartialEq + PartialOrd,
+          V: Debug + Copy + Serialize + PartialEq,
 {
-    pub fn add_point(&mut self, action_id: FEUInt, number: FEUInt, x: FEFloat, y: FEFloat,
-        z: FEFloat, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    pub fn add_point(&mut self, action_id: T, number: T, x: V, y: V, z: V,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_by_action_id(action_id);
 
         if self.points.contains_key(&number)
         {
             let error_message = &format!("Geometry: Add point action: Point with \
-                number {} does already exist!", number);
+                number {:?} does already exist!", number);
             return Err(JsValue::from(error_message));
         }
         if self.points.values().position(|point|
             point.coordinates_same(x, y, z)).is_some()
         {
             let error_message = &format!("Geometry: Add point action: Point with \
-                coordinates {}, {}, {} does already exist!", x, y, z);
+                coordinates {:?}, {:?}, {:?} does already exist!", x, y, z);
             return Err(JsValue::from(error_message));
         }
         let point = Point::create(x, y, z);
@@ -49,15 +52,15 @@ impl Geometry
     }
 
 
-    pub fn update_point(&mut self, action_id: FEUInt, number: FEUInt, x: FEFloat, y: FEFloat,
-        z: FEFloat, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    pub fn update_point(&mut self, action_id: T, number: T, x: V, y: V, z: V,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_by_action_id(action_id);
 
         if self.points.values().position(|point| point.coordinates_same(x, y, z)).is_some()
         {
             let error_message = &format!("Geometry: Update point action: Point with \
-                coordinates {}, {}, {} does already exist!", x, y, z);
+                coordinates {:?}, {:?}, {:?} does already exist!", x, y, z);
             return Err(JsValue::from(error_message));
         }
 
@@ -73,13 +76,13 @@ impl Geometry
         else
         {
             let error_message = format!("Geometry: Update point action: \
-                The point with number {} does not exist!", number);
+                The point with number {:?} does not exist!", number);
             Err(JsValue::from(&error_message))
         }
     }
 
 
-    pub fn extract_line_numbers_for_delete(&self, point_number: FEUInt) -> Vec<FEUInt>
+    pub fn extract_line_numbers_for_delete(&self, point_number: T) -> Vec<T>
     {
         let mut line_numbers_for_delete = Vec::new();
         for (line_number, line) in self.lines.iter()
@@ -94,9 +97,8 @@ impl Geometry
     }
 
 
-    pub fn delete_point(&mut self, action_id: FEUInt, number: FEUInt,
-        line_numbers_for_delete: &[FEUInt], is_action_id_should_be_increased: bool)
-        -> Result<(), JsValue>
+    pub fn delete_point(&mut self, action_id: T, number: T, line_numbers_for_delete: &[T],
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_by_action_id(action_id);
 
@@ -129,14 +131,14 @@ impl Geometry
         else
         {
             let error_message = &format!("Geometry: Delete point action: Point with \
-                number {} does not exist!", number);
+                number {:?} does not exist!", number);
             return Err(JsValue::from(error_message));
         }
     }
 
 
-    pub fn restore_point(&mut self, action_id: FEUInt, number: FEUInt,
-        is_action_id_should_be_increased: bool) -> Result<Vec<FEUInt>, JsValue>
+    pub fn restore_point(&mut self, action_id: T, number: T, is_action_id_should_be_increased: bool)
+        -> Result<Vec<T>, JsValue>
     {
         if let Some(deleted_point) = self.deleted_points.remove(&action_id)
         {
@@ -145,7 +147,7 @@ impl Geometry
             if deleted_point_number != number
             {
                 let error_message = &format!("Geometry: Restore point action: Point with \
-                    number {} does not exist!", number);
+                    number {:?} does not exist!", number);
                 return Err(JsValue::from(error_message));
             }
             let detail = json!({ "point_data": { "number": deleted_point_number,
@@ -177,13 +179,13 @@ impl Geometry
         else
         {
             let error_message = &format!("Geometry: Restore point action: Point with \
-                number {} does not exist!", number);
+                number {:?} does not exist!", number);
             return Err(JsValue::from(error_message));
         }
     }
 
 
-    pub fn show_point_info(&mut self, number: FEUInt, handler: js_sys::Function) -> Result<(), JsValue>
+    pub fn show_point_info(&mut self, number: T, handler: js_sys::Function) -> Result<(), JsValue>
     {
         return if let Some(point) = self.points.get(&number)
         {
@@ -200,7 +202,7 @@ impl Geometry
         else
         {
             let error_message = &format!("Geometry: Show point info action: Point with \
-                number {} does not exist!", number);
+                number {:?} does not exist!", number);
             Err(JsValue::from(error_message))
         }
     }

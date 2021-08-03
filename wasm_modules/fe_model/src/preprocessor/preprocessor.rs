@@ -4,12 +4,12 @@ use serde_json::json;
 use crate::preprocessor::geometry::geometry::Geometry;
 use crate::preprocessor::properties::properties::Properties;
 
-use crate::types::FEUInt;
+use crate::types::{FEUInt, FEFloat};
 
 
 pub struct Preprocessor
 {
-    pub geometry: Geometry,
+    pub geometry: Geometry<FEUInt, FEFloat>,
     pub properties: Properties,
 }
 

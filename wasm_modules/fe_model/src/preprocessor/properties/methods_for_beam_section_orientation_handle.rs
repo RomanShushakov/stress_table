@@ -269,8 +269,8 @@ impl Properties
 
     pub fn update_beam_section_orientation_data(&mut self, action_id: FEUInt,
         local_axis_1_direction: &[FEFloat], line_numbers: &[FEUInt],
-        is_action_id_should_be_increased: bool, geometry: &Geometry,
-        get_line_points_coordinates: fn(FEUInt, &Geometry) -> Option<((FEFloat, FEFloat, FEFloat),
+        is_action_id_should_be_increased: bool, geometry: &Geometry<FEUInt, FEFloat>,
+        get_line_points_coordinates: fn(FEUInt, &Geometry<FEUInt, FEFloat>) -> Option<((FEFloat, FEFloat, FEFloat),
             (FEFloat, FEFloat, FEFloat))>) -> Result<(), JsValue>
     {
         let error_message_header = "Properties: Update beam section orientation data action";

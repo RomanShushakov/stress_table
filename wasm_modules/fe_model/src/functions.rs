@@ -1,10 +1,12 @@
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 
+use extended_matrix::extended_matrix::ExtendedMatrix;
+use extended_matrix::functions::extract_element_value;
 
-use crate::extended_matrix::extended_matrix::ExtendedMatrix;
-use crate::extended_matrix::functions::extract_element_value;
-use crate::types::FEFloat;
+use crate::types::{FEFloat, FEUInt};
+
+use crate::consts::TOLERANCE;
 
 
 #[wasm_bindgen]
@@ -44,17 +46,17 @@ pub fn find_components_of_line_a_perpendicular_to_line_b(line_a: &[FEFloat; 3],
     let a_x = - line_a[0];
     let a_y = - line_a[1];
     let a_z = - line_a[2];
-    let a = ExtendedMatrix::create(3u32,
-        1u32, vec![a_x, a_y, a_z]);
+    let a = ExtendedMatrix::create(3 as FEUInt,
+        1 as FEUInt, vec![a_x, a_y, a_z], TOLERANCE);
     let b_x = line_b[0];
     let b_y = line_b[1];
     let b_z = line_b[2];
-    let coeff_matrix = ExtendedMatrix::create(3u32,
-        3u32, vec![
+    let coeff_matrix = ExtendedMatrix::create(3 as FEUInt,
+        3 as FEUInt, vec![
             - b_z * b_z - b_y * b_y, b_x * b_y, b_x * b_z,
             b_y * b_x, - b_x * b_x - b_z * b_z,	b_y * b_z,
             b_z * b_x,	b_z * b_y, - b_y * b_y - b_x * b_x,
-        ]);
+        ], TOLERANCE);
     let components_of_line_a_perpendicular_to_line_b_matrix = coeff_matrix
         .multiply_by_matrix(&a)
         .map_err(|e| JsValue::from(e))?;

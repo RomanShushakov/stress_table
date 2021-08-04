@@ -8,7 +8,9 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
             lines: new Map(),                       // map: { number: u32, start_point_number: u32, end_point_number: u32 }, ...};
             properties: [],                         // array of: [{ name: String, material_name: String, cross_section_name: String,
                                                     //              cross_section_type: String }];
-            assignedPropertiesToLines: [],          // array of: [{ name: String, related_lines_data: object { number: [f64; 3] or null },
+            assignedPropertiesToLines: [],          // array of: [{ name: String, 
+                                                    //              related_lines_data: 
+                                                    //                  array of [ { line_number: u32, local_axis_1_direction: [f64; 3] or null }, ...],
                                                     //              related_line_elements_numbers: [u32 ...] }];
             beamSectionsLocalAxis1Directions: [],   // array of: [[f64; 3]...];    
         };
@@ -1050,20 +1052,24 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
             .map((item) => parseFloat(item))
             .filter((item) => item !== "");
         const equals = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
-        let assignedToLines = [];
+        let assignedToLines = new Array();
         for (let i = 0; i < this.props.assignedPropertiesToLines.length; i++) {
-            const linesNumbers = Array.from(
-                Object.entries(this.props.assignedPropertiesToLines[i].related_lines_data)
-                    .filter(([_key, value]) => value !== null)
-                    .filter(([_key, value]) => equals(value, localAxis1Direction) === true), 
-                ([key, _value]) => parseInt(key)
-            );
+            let linesNumbers = new Array();
+            this.props.assignedPropertiesToLines[i].related_lines_data.forEach(
+                relatedLineData => {
+                        if (relatedLineData.local_axis_1_direction !== null) {
+                            if (equals(relatedLineData.local_axis_1_direction, localAxis1Direction)) {
+                                linesNumbers.push(parseInt(relatedLineData.line_number));
+                            }
+                        }
+                    });
             for (let j = 0; j < linesNumbers.length; j++) {
                 assignedToLines.push(linesNumbers[j]);
             }
         }
-        let assignToLinesFieldValue = "";
+        assignedToLines.sort();
         this.state.assignToLines = new Set(assignedToLines);
+        let assignToLinesFieldValue = "";
         for (let k = 0; k < assignedToLines.length; k++) {
             assignToLinesFieldValue += `${assignedToLines[k]}, `
         }

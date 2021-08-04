@@ -10,7 +10,6 @@ use crate::preprocessor::geometry::geometry::Geometry;
 
 use crate::preprocessor::properties::properties::Properties;
 use crate::preprocessor::properties::beam_section_orientation::LocalAxis1Direction;
-use crate::preprocessor::properties::assigned_property::RelatedLineData;
 use crate::preprocessor::properties::consts::
 {
     ADD_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_EVENT_NAME,

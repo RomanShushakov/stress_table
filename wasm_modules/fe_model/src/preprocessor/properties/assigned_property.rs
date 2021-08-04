@@ -1,5 +1,4 @@
 use serde::Serialize;
-use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 
 use crate::preprocessor::properties::beam_section_orientation::LocalAxis1Direction;
@@ -103,10 +102,6 @@ impl<T, V> AssignedPropertyToLines<T, V>
             {
                 return true;
             }
-            // if self.related_lines_data.contains_key(line_number)
-            // {
-            //     return true;
-            // }
         }
         false
     }
@@ -154,10 +149,6 @@ impl<T, V> AssignedPropertyToLines<T, V>
                     RelatedLineData::create_initial(*line_number);
                 self.related_lines_data.push(related_line_data);
             }
-            // if !self.related_lines_data.contains_key(line_number)
-            // {
-            //     self.related_lines_data.insert(*line_number, None);
-            // }
         }
     }
 
@@ -176,7 +167,6 @@ impl<T, V> AssignedPropertyToLines<T, V>
                 line_number, local_axis_1_direction);
             self.related_lines_data.push(related_line_data);
         }
-        // self.related_lines_data.insert(line_number, local_axis_1_direction);
     }
 
 
@@ -200,7 +190,6 @@ impl<T, V> AssignedPropertyToLines<T, V>
         {
             None
         }
-        // self.related_lines_data.remove(line_number)
     }
 }
 

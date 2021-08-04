@@ -8,7 +8,9 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
             lines: new Map(),               // map: { number: u32, start_point_number: u32, end_point_number: u32 }, ...};
             properties: [],                 // array of: [{ name: String, material_name: String, cross_section_name: String,
                                             //              cross_section_type: String }];
-            assignedPropertiesToLines: [],  // array of: [{ name: String, related_lines_data: object { number: [f64; 3] or null },
+            assignedPropertiesToLines: [],  // array of: [{ name: String, 
+                                            //              related_lines_data: 
+                                            //                  array of [ { line_number: u32, local_axis_1_direction: [f64; 3] or null }, ...],
                                             //              related_line_elements_numbers: [u32 ...] }];
         };
 
@@ -788,8 +790,10 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
             .find(existedAssignedPropertiesToLines => existedAssignedPropertiesToLines.name == `"${selectedPropertiesName}"`);
         let assignToLinesFieldValue = "";
         if (selectedAssignedPropertiesToLinesInProps !== undefined) {
-            let assignedToLines = Array.from(Object.keys(selectedAssignedPropertiesToLinesInProps.related_lines_data));
-            assignedToLines = assignedToLines.map((item) => parseInt(item));
+            let assignedToLines = new Array();
+            selectedAssignedPropertiesToLinesInProps.related_lines_data.forEach(
+                relatedLineData => assignedToLines.push(parseInt(relatedLineData.line_number)));
+            assignedToLines.sort();
             this.state.assignToLines = new Set(assignedToLines);
             for (let i = 0; i < assignedToLines.length; i++) {
                 assignToLinesFieldValue += `${assignedToLines[i]}, `

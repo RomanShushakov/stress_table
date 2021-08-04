@@ -9,10 +9,8 @@ use crate::preprocessor::traits::ClearByActionIdTrait;
 use crate::preprocessor::geometry::geometry::Geometry;
 
 use crate::preprocessor::properties::properties::Properties;
-use crate::preprocessor::properties::beam_section_orientation::
-{
-    LocalAxis1Direction
-};
+use crate::preprocessor::properties::beam_section_orientation::LocalAxis1Direction;
+use crate::preprocessor::properties::assigned_property::RelatedLineData;
 use crate::preprocessor::properties::consts::
 {
     ADD_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_EVENT_NAME,
@@ -95,13 +93,12 @@ impl<T, V> Properties<T, V>
                 let old_related_lines_data =
                     assigned_property_to_lines.extract_related_lines_data();
 
-                for (line_number, existed_local_axis_1_direction) in
-                    old_related_lines_data.iter()
+                for old_related_line_data in old_related_lines_data.iter()
                 {
                     if let Some(local_axis_1_direction) =
-                        existed_local_axis_1_direction
+                        old_related_line_data.local_axis_1_direction()
                     {
-                        if *local_axis_1_direction == current_local_axis_1_direction
+                        if local_axis_1_direction == current_local_axis_1_direction
                         {
                             if changed_assigned_properties_to_lines
                                 .iter()
@@ -119,9 +116,9 @@ impl<T, V> Properties<T, V>
                                         assigned_property_to_lines.clone());
                                 changed_assigned_properties_to_lines.push(
                                     changed_assigned_property_to_lines);
-
                             }
-                            assigned_property_to_lines.update_related_lines_data(*line_number,
+                            assigned_property_to_lines.update_related_lines_data(
+                                old_related_line_data.line_number(),
                                 None);
                         }
                     }
@@ -333,38 +330,40 @@ impl<T, V> Properties<T, V>
         {
             let mut is_assigned_property_to_lines_updated = false;
 
-            for (line_number, local_axis_1_direction) in
+            for related_line_data in
                 assigned_property_lo_lines.extract_related_lines_data().iter()
             {
-                if line_numbers.contains(line_number)
+                if line_numbers.contains(&related_line_data.line_number())
                 {
-                    if local_axis_1_direction.is_some()
+                    if related_line_data.local_axis_1_direction().is_some()
                     {
-                        if local_axis_1_direction.as_ref().unwrap() !=
+                        if related_line_data.local_axis_1_direction().as_ref().unwrap() !=
                             &current_local_axis_1_direction
                         {
                             let error_message = &format!("{}: The line number {:?} has been \
                                 already used in local_axis_1_direction {:?}!",
-                                error_message_header, line_number,
-                                local_axis_1_direction.as_ref().unwrap().extract());
+                                error_message_header, related_line_data.line_number(),
+                                related_line_data.local_axis_1_direction().as_ref().unwrap().extract());
                             return Err(JsValue::from(error_message));
                         }
                     }
                     else
                     {
-                        assigned_property_lo_lines.update_related_lines_data(*line_number,
+                        assigned_property_lo_lines.update_related_lines_data(
+                            related_line_data.line_number(),
                             Some(current_local_axis_1_direction.clone()));
                         is_assigned_property_to_lines_updated = true;
                     }
                 }
                 else
                 {
-                    if local_axis_1_direction.is_some()
+                    if related_line_data.local_axis_1_direction().is_some()
                     {
-                        if local_axis_1_direction.as_ref().unwrap() == &current_local_axis_1_direction
+                        if related_line_data.local_axis_1_direction().as_ref().unwrap() ==
+                            &current_local_axis_1_direction
                         {
-                            assigned_property_lo_lines.update_related_lines_data(*line_number,
-                                None);
+                            assigned_property_lo_lines.update_related_lines_data(
+                                related_line_data.line_number(), None);
                             is_assigned_property_to_lines_updated = true;
                         }
                     }

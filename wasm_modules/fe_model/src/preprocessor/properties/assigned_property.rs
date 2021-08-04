@@ -8,10 +8,65 @@ use crate::preprocessor::properties::functions::line_numbers_same;
 
 
 #[derive(Debug, Clone, Serialize)]
+pub struct RelatedLineData<T, V>
+{
+    line_number: T,
+    local_axis_1_direction: Option<LocalAxis1Direction<V>>
+}
+
+
+impl<T, V> RelatedLineData<T, V>
+    where T: Copy + PartialEq,
+          V: Copy,
+{
+    fn create_initial(line_number: T) -> Self
+    {
+        RelatedLineData { line_number, local_axis_1_direction: None }
+    }
+
+
+    fn create(line_number: T, local_axis_1_direction: Option<LocalAxis1Direction<V>>) -> Self
+    {
+        RelatedLineData { line_number, local_axis_1_direction }
+    }
+
+
+    pub fn line_number(&self) -> T
+    {
+        self.line_number
+    }
+
+
+    pub fn local_axis_1_direction(&self) -> Option<LocalAxis1Direction<V>>
+    {
+        self.local_axis_1_direction.clone()
+    }
+
+
+    fn is_line_number_same(&self, line_number: T) -> bool
+    {
+        line_number == self.line_number
+    }
+
+
+    fn update_local_axis_1_direction(&mut self, local_axis_1_direction: Option<LocalAxis1Direction<V>>)
+    {
+        self.local_axis_1_direction = local_axis_1_direction;
+    }
+
+
+    fn extract_local_axis_1_direction_and_drop(self) -> Option<LocalAxis1Direction<V>>
+    {
+        self.local_axis_1_direction
+    }
+}
+
+
+#[derive(Debug, Clone, Serialize)]
 pub struct AssignedPropertyToLines<T, V>
 {
-    related_lines_data: HashMap<T, Option<LocalAxis1Direction<V>>>,
-    related_line_elements_numbers: HashSet<T>,
+    related_lines_data: Vec<RelatedLineData<T, V>>,
+    related_line_elements_numbers: Vec<T>,
 }
 
 
@@ -21,11 +76,12 @@ impl<T, V> AssignedPropertyToLines<T, V>
 {
     pub fn create_initial(line_numbers: &[T]) -> Self
     {
-        let mut related_lines_data = HashMap::new();
-        let related_line_elements_numbers = HashSet::new();
+        let mut related_lines_data = Vec::new();
+        let related_line_elements_numbers = Vec::new();
         for line_number in line_numbers
         {
-            related_lines_data.insert(*line_number, None);
+            let related_line_data = RelatedLineData::create_initial(*line_number);
+            related_lines_data.push(related_line_data);
         }
         AssignedPropertyToLines { related_lines_data, related_line_elements_numbers }
     }
@@ -42,10 +98,15 @@ impl<T, V> AssignedPropertyToLines<T, V>
     {
         for line_number in line_numbers
         {
-            if self.related_lines_data.contains_key(line_number)
+            if self.related_lines_data.iter().position(|related_line_data|
+                related_line_data.is_line_number_same(*line_number)).is_some()
             {
                 return true;
             }
+            // if self.related_lines_data.contains_key(line_number)
+            // {
+            //     return true;
+            // }
         }
         false
     }
@@ -54,15 +115,16 @@ impl<T, V> AssignedPropertyToLines<T, V>
     pub fn extract_related_lines_numbers(&self) -> Vec<T>
     {
         let mut related_lines_numbers = Vec::new();
-        for line_number in self.related_lines_data.keys()
+        for related_line_data in self.related_lines_data.iter()
         {
-            related_lines_numbers.push(*line_number);
+            let line_number = related_line_data.line_number();
+            related_lines_numbers.push(line_number);
         }
         related_lines_numbers
     }
 
 
-    pub fn extract_related_lines_data(&self) -> HashMap<T, Option<LocalAxis1Direction<V>>>
+    pub fn extract_related_lines_data(&self) -> Vec<RelatedLineData<T, V>>
     {
         self.related_lines_data.clone()
     }
@@ -75,15 +137,27 @@ impl<T, V> AssignedPropertyToLines<T, V>
         {
             if !line_numbers.contains(line_number)
             {
-                let _ = self.related_lines_data.remove(line_number);
+                while let Some(position) = self.related_lines_data.iter()
+                    .position(|related_line_data|
+                        related_line_data.is_line_number_same(*line_number))
+                {
+                    self.related_lines_data.remove(position);
+                }
             }
         }
         for line_number in line_numbers
         {
-            if !self.related_lines_data.contains_key(line_number)
+            if self.related_lines_data.iter().position(|related_line_data|
+                related_line_data.is_line_number_same(*line_number)).is_none()
             {
-                self.related_lines_data.insert(*line_number, None);
+                let related_line_data =
+                    RelatedLineData::create_initial(*line_number);
+                self.related_lines_data.push(related_line_data);
             }
+            // if !self.related_lines_data.contains_key(line_number)
+            // {
+            //     self.related_lines_data.insert(*line_number, None);
+            // }
         }
     }
 
@@ -91,7 +165,18 @@ impl<T, V> AssignedPropertyToLines<T, V>
     pub fn update_related_lines_data(&mut self, line_number: T,
         local_axis_1_direction: Option<LocalAxis1Direction<V>>)
     {
-        self.related_lines_data.insert(line_number, local_axis_1_direction);
+        if let Some(position) = self.related_lines_data.iter().position(|related_line_data|
+            related_line_data.is_line_number_same(line_number))
+        {
+            self.related_lines_data[position].update_local_axis_1_direction(local_axis_1_direction);
+        }
+        else
+        {
+            let related_line_data = RelatedLineData::create(
+                line_number, local_axis_1_direction);
+            self.related_lines_data.push(related_line_data);
+        }
+        // self.related_lines_data.insert(line_number, local_axis_1_direction);
     }
 
 
@@ -104,7 +189,18 @@ impl<T, V> AssignedPropertyToLines<T, V>
     pub fn remove_line_number_from_related_lines_data(&mut self, line_number: &T)
         -> Option<Option<LocalAxis1Direction<V>>>
     {
-        self.related_lines_data.remove(line_number)
+        if let Some(position) = self.related_lines_data.iter().position(|related_line_data|
+            related_line_data.is_line_number_same(*line_number))
+        {
+            let local_axis_1_direction =
+                self.related_lines_data.remove(position).extract_local_axis_1_direction_and_drop();
+            Some(local_axis_1_direction)
+        }
+        else
+        {
+            None
+        }
+        // self.related_lines_data.remove(line_number)
     }
 }
 

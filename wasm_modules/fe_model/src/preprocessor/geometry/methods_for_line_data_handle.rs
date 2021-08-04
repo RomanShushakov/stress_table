@@ -13,8 +13,6 @@ use crate::preprocessor::geometry::consts::
     ADD_LINE_EVENT_NAME, UPDATE_LINE_EVENT_NAME, DELETE_LINE_EVENT_NAME,
 };
 
-use crate::types::{FEUInt};
-
 use crate::consts::EVENT_TARGET;
 
 use crate::functions::{dispatch_custom_event};

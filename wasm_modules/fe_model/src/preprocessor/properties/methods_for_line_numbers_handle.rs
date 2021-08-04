@@ -1,12 +1,15 @@
 use wasm_bindgen::prelude::*;
 use serde_json::json;
+use serde::Serialize;
+use std::fmt::Debug;
+use std::hash::Hash;
 
 use crate::preprocessor::traits::ClearByActionIdTrait;
 
 use crate::preprocessor::properties::properties::Properties;
 use crate::preprocessor::properties::assigned_property::
 {
-    ChangedAssignedPropertyToLines, DeletedAssignedPropertyToLines, AssignedPropertyToLines
+    ChangedAssignedPropertyToLines, DeletedAssignedPropertyToLines,
 };
 use crate::preprocessor::properties::consts::
 {
@@ -14,17 +17,17 @@ use crate::preprocessor::properties::consts::
     DELETE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
 };
 
-use crate::types::{FEUInt};
-
 use crate::consts::EVENT_TARGET;
 
 use crate::functions::{dispatch_custom_event};
 
 
-impl Properties
+impl<T, V> Properties<T, V>
+    where T: Copy + Debug + Eq + Hash + Serialize + PartialOrd,
+          V: Copy + Debug + Serialize,
 {
-    pub fn delete_line_numbers_from_properties(&mut self, action_id: FEUInt,
-        line_numbers: &[FEUInt]) -> Result<(), JsValue>
+    pub fn delete_line_numbers_from_properties(&mut self, action_id: T,
+        line_numbers: &[T]) -> Result<(), JsValue>
     {
         self.clear_by_action_id(action_id);
 
@@ -38,7 +41,7 @@ impl Properties
             let current_line_numbers_for_delete = assigned_property_to_lines
                 .extract_related_lines_numbers().into_iter().filter(|line_number|
                     line_numbers.contains(line_number))
-                .collect::<Vec<FEUInt>>();
+                .collect::<Vec<T>>();
 
             if current_line_numbers_for_delete.len() == assigned_property_to_lines
                 .length_of_related_lines_data()
@@ -122,8 +125,8 @@ impl Properties
     }
 
 
-    fn check_for_all_restored_line_numbers_contain(&self, action_id: FEUInt,
-        restored_line_numbers: &[FEUInt]) -> Result<(), JsValue>
+    fn check_for_all_restored_line_numbers_contain(&self, action_id: T,
+        restored_line_numbers: &[T]) -> Result<(), JsValue>
     {
         let mut line_numbers_for_check = restored_line_numbers.to_vec();
 
@@ -139,7 +142,7 @@ impl Properties
                 line_numbers_for_check = line_numbers_for_check
                     .into_iter()
                     .filter(|line_number| !related_lines_numbers.contains(line_number))
-                    .collect::<Vec<FEUInt>>();
+                    .collect::<Vec<T>>();
             }
         }
 
@@ -154,7 +157,7 @@ impl Properties
                 line_numbers_for_check = line_numbers_for_check
                     .into_iter()
                     .filter(|line_number| !related_lines_numbers.contains(line_number))
-                    .collect::<Vec<FEUInt>>();
+                    .collect::<Vec<T>>();
             }
         }
 
@@ -162,7 +165,7 @@ impl Properties
         {
             let error_message = &format!("Properties: Restore line numbers action: \
                 The line numbers {:?} do not contain neither in changed assigned properties \
-                nor in deleted assigned properties for action id {}", line_numbers_for_check,
+                nor in deleted assigned properties for action id {:?}", line_numbers_for_check,
                 action_id);
             return Err(JsValue::from(error_message));
         }
@@ -170,8 +173,8 @@ impl Properties
     }
 
 
-    pub fn restore_line_numbers_in_properties(&mut self, action_id: FEUInt,
-        restored_line_numbers: &[FEUInt]) -> Result<(), JsValue>
+    pub fn restore_line_numbers_in_properties(&mut self, action_id: T,
+        restored_line_numbers: &[T]) -> Result<(), JsValue>
     {
         self.check_for_all_restored_line_numbers_contain(action_id, restored_line_numbers)?;
 

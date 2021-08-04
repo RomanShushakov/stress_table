@@ -1,5 +1,8 @@
 use wasm_bindgen::prelude::*;
 use serde_json::json;
+use serde::Serialize;
+use std::fmt::Debug;
+use std::hash::Hash;
 
 use crate::preprocessor::traits::ClearByActionIdTrait;
 
@@ -12,17 +15,17 @@ use crate::preprocessor::properties::consts::
     DELETE_BEAM_SECTION_EVENT_NAME,
 };
 
-use crate::types::{FEUInt, FEFloat};
-
 use crate::consts::EVENT_TARGET;
 
 use crate::functions::{dispatch_custom_event};
 
 
-impl Properties
+impl<T, V> Properties<T, V>
+    where T: Copy + Debug + Eq + Hash + Serialize + PartialOrd,
+          V: Copy + Debug + Serialize + PartialEq,
 {
-    pub fn add_beam_section(&mut self, action_id: FEUInt, name: &str, area: FEFloat,
-        i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat,
+    pub fn add_beam_section(&mut self, action_id: T, name: &str, area: V,
+        i11: V, i22: V, i12: V, it: V,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_by_action_id(action_id);
@@ -37,8 +40,8 @@ impl Properties
             beam_section.data_same(area, i11, i22, i12, it)).is_some()
         {
             let error_message = &format!("Properties: Add cross section action: \
-                Cross section with Area {}, I11 {}, I22 {}, I12 {}, It {} does already exist!",
-                area, i11, i22, i12, it);
+                Cross section with Area {:?}, I11 {:?}, I22 {:?}, I12 {:?}, It {:?} does \
+                already exist!", area, i11, i22, i12, it);
             return Err(JsValue::from(error_message));
         }
         let beam_section = BeamSection::create(area, i11, i22, i12, it);
@@ -53,8 +56,8 @@ impl Properties
     }
 
 
-    pub fn update_beam_section(&mut self, action_id: FEUInt, name: &str, area: FEFloat,
-        i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat,
+    pub fn update_beam_section(&mut self, action_id: T, name: &str, area: V,
+        i11: V, i22: V, i12: V, it: V,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_by_action_id(action_id);
@@ -63,8 +66,8 @@ impl Properties
             beam_section.data_same(area, i11, i22, i12, it)).is_some()
         {
             let error_message = &format!("Properties: Update beam section action: \
-                Beam section with Area {}, I11 {}, I22 {}, I12 {} and It {} does already exist!",
-                    area, i11, i22, i12, it);
+                Beam section with Area {:?}, I11 {:?}, I22 {:?}, I12 {:?} and It {:?} does \
+                already exist!", area, i11, i22, i12, it);
             return Err(JsValue::from(error_message));
         }
         if let Some(beam_section) = self.beam_sections.get_mut(name)
@@ -106,7 +109,7 @@ impl Properties
     }
 
 
-    pub fn delete_beam_section(&mut self, action_id: FEUInt, name: &str,
+    pub fn delete_beam_section(&mut self, action_id: T, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_by_action_id(action_id);
@@ -140,7 +143,7 @@ impl Properties
     }
 
 
-    pub fn restore_beam_section(&mut self, action_id: FEUInt, name: &str,
+    pub fn restore_beam_section(&mut self, action_id: T, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         if let Some(deleted_beam_section) =

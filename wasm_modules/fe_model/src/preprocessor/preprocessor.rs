@@ -10,7 +10,7 @@ use crate::types::{FEUInt, FEFloat};
 pub struct Preprocessor
 {
     pub geometry: Geometry<FEUInt, FEFloat>,
-    pub properties: Properties,
+    pub properties: Properties<FEUInt, FEFloat>,
 }
 
 

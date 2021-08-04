@@ -324,6 +324,7 @@ class FeaApp extends HTMLElement {
     getAssignedPropertiesToLines(event) {
         this.state.actionsRouter.extract_assigned_properties_to_lines(
             (extractedAssignedPropertiesToLinesData) => { 
+                console.log(extractedAssignedPropertiesToLinesData.extracted_assigned_properties_to_lines);
                 let assignedPropertiesToLines = new Array();
                 const extractedAssignedPropertiesToLines = 
                     Object.entries(extractedAssignedPropertiesToLinesData.extracted_assigned_properties_to_lines);

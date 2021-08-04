@@ -1,5 +1,8 @@
 use wasm_bindgen::prelude::*;
 use serde_json::json;
+use std::fmt::Debug;
+use std::hash::Hash;
+use serde::Serialize;
 
 use crate::preprocessor::traits::ClearByActionIdTrait;
 
@@ -11,22 +14,22 @@ use crate::preprocessor::properties::assigned_property::
 use crate::preprocessor::properties::consts::
 {
     ADD_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME, UPDATE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
-    DELETE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME, UPDATE_BEAM_SECTION_ORIENTATION_DATA_EVENT_NAME,
+    DELETE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
 };
 
 use crate::preprocessor::properties::functions::line_numbers_same;
-
-use crate::types::{FEUInt};
 
 use crate::consts::EVENT_TARGET;
 
 use crate::functions::{dispatch_custom_event};
 
 
-impl Properties
+impl<T, V> Properties<T, V>
+    where T: Copy + Debug + Eq + Hash + Serialize + PartialOrd,
+          V: Copy + Debug + Serialize,
 {
-    pub fn add_assigned_properties_to_lines(&mut self, action_id: FEUInt, name: &str,
-        line_numbers: &[FEUInt], is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    pub fn add_assigned_properties_to_lines(&mut self, action_id: T, name: &str,
+        line_numbers: &[T], is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         let error_message_header = "Properties: Add assigned properties to lines action";
 
@@ -74,8 +77,8 @@ impl Properties
     }
 
 
-    pub fn update_assigned_properties_to_lines(&mut self, action_id: FEUInt, name: &str,
-        line_numbers: &[FEUInt], is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    pub fn update_assigned_properties_to_lines(&mut self, action_id: T, name: &str,
+        line_numbers: &[T], is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         let error_message_header = "Properties: Update assigned properties \
             to lines action";
@@ -226,7 +229,7 @@ impl Properties
     }
 
 
-    pub fn delete_assigned_properties_to_lines(&mut self, action_id: FEUInt, name: &str,
+    pub fn delete_assigned_properties_to_lines(&mut self, action_id: T, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         let error_message_header = "Properties: Delete assigned properties to lines action";
@@ -263,7 +266,7 @@ impl Properties
     }
 
 
-    pub fn delete_assigned_properties_to_lines_by_names(&mut self, action_id: FEUInt,
+    pub fn delete_assigned_properties_to_lines_by_names(&mut self, action_id: T,
         property_names_for_delete: &[String]) -> Result<(), JsValue>
     {
         let mut assigned_properties_to_lines_for_delete = Vec::new();
@@ -302,7 +305,7 @@ impl Properties
     }
 
 
-    pub fn restore_assigned_properties_to_lines(&mut self, action_id: FEUInt, name: &str,
+    pub fn restore_assigned_properties_to_lines(&mut self, action_id: T, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         let error_message_header = "Properties: Restore assigned properties to lines action";
@@ -364,7 +367,7 @@ impl Properties
     }
 
 
-    pub fn restore_assigned_properties_to_lines_by_action_id(&mut self, action_id: FEUInt)
+    pub fn restore_assigned_properties_to_lines_by_action_id(&mut self, action_id: T)
         -> Result<(), JsValue>
     {
         if let Some(deleted_assigned_properties_to_lines) =

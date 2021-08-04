@@ -4,7 +4,7 @@ use wasm_bindgen::JsCast;
 use extended_matrix::extended_matrix::ExtendedMatrix;
 use extended_matrix::functions::extract_element_value;
 
-use crate::types::{FEFloat, FEUInt};
+use crate::types::{FEUInt};
 
 use crate::consts::TOLERANCE;
 
@@ -40,8 +40,8 @@ pub fn dispatch_custom_event(detail: serde_json::Value, event_type: &str, query_
 }
 
 
-pub fn find_components_of_line_a_perpendicular_to_line_b(line_a: &[FEFloat; 3],
-    line_b: &[FEFloat; 3]) -> Result<[FEFloat; 3], JsValue>
+pub fn find_components_of_line_a_perpendicular_to_line_b(line_a: &[f64; 3],
+    line_b: &[f64; 3]) -> Result<[f64; 3], JsValue>
 {
     let a_x = - line_a[0];
     let a_y = - line_a[1];

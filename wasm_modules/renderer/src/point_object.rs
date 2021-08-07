@@ -204,7 +204,7 @@ impl PointObject
     }
 
 
-    pub fn uid_same(&self, uid: u32) -> bool
+    pub fn is_uid_same(&self, uid: u32) -> bool
     {
         if let Some(current_uid) = &self.uid
         {

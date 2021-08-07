@@ -345,9 +345,9 @@ impl Renderer
             {
                 let mut current_uid = rand::random::<u32>();
                 while self.props.point_objects.values().position(|point_object|
-                        point_object.uid_same(current_uid)).is_some() ||
+                        point_object.is_uid_same(current_uid)).is_some() ||
                     self.state.line_objects.values().position(|line_object|
-                        line_object.uid_same(current_uid)).is_some() || current_uid == 255
+                        line_object.is_uid_same(current_uid)).is_some() || current_uid == 255
                 {
                     current_uid = rand::random::<u32>();
                 }
@@ -468,7 +468,7 @@ impl Renderer
             for (point_object_key, point_object) in
                 self.props.point_objects.iter()
             {
-                if point_object.uid_same(u32::from_be_bytes(*selected_color))
+                if point_object.is_uid_same(u32::from_be_bytes(*selected_color))
                 {
                     let selected_point_object_number = point_object_key.get_number();
                     let selected_point_object_type =
@@ -485,7 +485,7 @@ impl Renderer
             for (line_object_key, line_object) in
                 self.state.line_objects.iter()
             {
-                if line_object.uid_same(u32::from_be_bytes(*selected_color))
+                if line_object.is_uid_same(u32::from_be_bytes(*selected_color))
                 {
                     let selected_line_object_number = line_object_key.get_number();
                     let selected_line_object_type = line_object_key.get_object_type();

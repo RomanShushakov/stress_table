@@ -109,7 +109,7 @@ impl LineObject
     }
 
 
-    pub fn uid_same(&self, uid: u32) -> bool
+    pub fn is_uid_same(&self, uid: u32) -> bool
     {
         self.uid == uid
     }

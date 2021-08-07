@@ -19,7 +19,7 @@ impl<V> Point<V>
     }
 
 
-    pub fn coordinates_same(&self, x: V, y: V, z: V) -> bool
+    pub fn are_coordinates_same(&self, x: V, y: V, z: V) -> bool
     {
         self.x == x && self.y == y && self.z == z
     }

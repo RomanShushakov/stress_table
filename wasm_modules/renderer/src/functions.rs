@@ -192,9 +192,9 @@ pub fn normalize_point_objects_coordinates(point_objects: &mut HashMap<PointObje
             {
                 let mut current_uid = rand::random::<u32>();
                 while point_objects_for_uid.values().position(|point_object|
-                        point_object.uid_same(current_uid)).is_some() ||
+                        point_object.is_uid_same(current_uid)).is_some() ||
                     line_objects.values().position(|line_object|
-                        line_object.uid_same(current_uid)).is_some() || current_uid == 255
+                        line_object.is_uid_same(current_uid)).is_some() || current_uid == 255
                 {
                     current_uid = rand::random::<u32>();
                 }

@@ -47,7 +47,7 @@ pub fn find_components_of_line_a_perpendicular_to_line_b(line_a: &[f64; 3],
     let a_y = - line_a[1];
     let a_z = - line_a[2];
     let a = ExtendedMatrix::create(3 as FEUInt,
-        1 as FEUInt, vec![a_x, a_y, a_z], TOLERANCE);
+        1 as FEUInt, vec![a_x, a_y, a_z], TOLERANCE as f64);
     let b_x = line_b[0];
     let b_y = line_b[1];
     let b_z = line_b[2];
@@ -56,7 +56,7 @@ pub fn find_components_of_line_a_perpendicular_to_line_b(line_a: &[f64; 3],
             - b_z * b_z - b_y * b_y, b_x * b_y, b_x * b_z,
             b_y * b_x, - b_x * b_x - b_z * b_z,	b_y * b_z,
             b_z * b_x,	b_z * b_y, - b_y * b_y - b_x * b_x,
-        ], TOLERANCE);
+        ], TOLERANCE as f64);
     let components_of_line_a_perpendicular_to_line_b_matrix = coeff_matrix
         .multiply_by_matrix(&a)
         .map_err(|e| JsValue::from(e))?;

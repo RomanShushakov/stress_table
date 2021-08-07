@@ -37,7 +37,7 @@ impl<T, V> Properties<T, V>
         }
 
         if self.materials.values().position(|material|
-            material.data_same(young_modulus, poisson_ratio)).is_some()
+            material.is_data_same(young_modulus, poisson_ratio)).is_some()
         {
             let error_message = &format!("{}: Material with Young's modulus {:?} and \
                 Poisson's ratio {:?} does already exist!", error_message_header,
@@ -64,7 +64,7 @@ impl<T, V> Properties<T, V>
         self.clear_by_action_id(action_id);
 
         if self.materials.values().position(|material|
-            material.data_same(young_modulus, poisson_ratio)).is_some()
+            material.is_data_same(young_modulus, poisson_ratio)).is_some()
         {
             let error_message = &format!("{}: Material with Young's modulus {:?} and \
                 Poisson's ratio {:?} does already exist!", error_message_header, young_modulus,

@@ -193,19 +193,19 @@ impl Action
     }
 
 
-    pub fn action_id_same(&self, action_id: FEUInt) -> bool
+    pub fn is_action_id_same(&self, action_id: FEUInt) -> bool
     {
         self.action_id == action_id
     }
 
 
-    pub fn get_action_id(&self) -> FEUInt
+    pub fn action_id(&self) -> FEUInt
     {
         self.action_id
     }
 
 
-    pub fn get_action_type(&self) -> ActionType
+    pub fn action_type(&self) -> ActionType
     {
         self.action_type.clone()
     }

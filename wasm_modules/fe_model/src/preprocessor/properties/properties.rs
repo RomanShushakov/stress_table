@@ -197,7 +197,7 @@ impl<T, V> Properties<T, V>
         -> Result<(), JsValue>
     {
         if self.properties.values().position(|property|
-            property.data_same(material_name, cross_section_name, cross_section_type))
+            property.is_data_same(material_name, cross_section_name, cross_section_type))
                 .is_some()
         {
             let error_message = &format!("{}: Property with Material name {}, \
@@ -215,7 +215,7 @@ impl<T, V> Properties<T, V>
     {
         if self.assigned_properties_to_lines.values()
             .position(|existed_assigned_property_to_lines|
-                existed_assigned_property_to_lines.line_numbers_same(line_numbers))
+                existed_assigned_property_to_lines.are_line_numbers_same(line_numbers))
             .is_some()
         {
             let error_message = &format!("{}: Assigned property to lines with line \

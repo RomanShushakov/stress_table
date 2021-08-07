@@ -18,7 +18,7 @@ impl<T> Line<T>
     }
 
 
-    pub fn start_and_end_points_same(&self, start_point_number: T, end_point_number: T) -> bool
+    pub fn are_start_and_end_points_same(&self, start_point_number: T, end_point_number: T) -> bool
     {
         (self.start_point_number == start_point_number &&
         self.end_point_number == end_point_number) ||
@@ -71,7 +71,7 @@ impl<T> DeletedLine<T>
     }
 
 
-    pub fn number_same(&self, number: T) -> bool
+    pub fn is_number_same(&self, number: T) -> bool
     {
         self.number == number
     }

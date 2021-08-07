@@ -1195,14 +1195,18 @@ class FeaPropertiesBeamSectionOrientationMenu extends HTMLElement {
         }
 
         const equals = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
-        let oldLineNumbers = [];
+
+        let oldLineNumbers = new Array();
         for (let i = 0; i < this.props.assignedPropertiesToLines.length; i++) {
-            const linesNumbers = Array.from(
-                Object.entries(this.props.assignedPropertiesToLines[i].related_lines_data)
-                    .filter(([_key, value]) => value !== null)
-                    .filter(([_key, value]) => equals(value, selectedLocalAxis1Direction) === true), 
-                ([key, _value]) => parseInt(key)
-            );
+            let linesNumbers = new Array();
+            this.props.assignedPropertiesToLines[i].related_lines_data.forEach(
+                relatedLineData => {
+                        if (relatedLineData.local_axis_1_direction !== null) {
+                            if (equals(relatedLineData.local_axis_1_direction, selectedLocalAxis1Direction)) {
+                                linesNumbers.push(parseInt(relatedLineData.line_number));
+                            }
+                        }
+                    });
             for (let j = 0; j < linesNumbers.length; j++) {
                 oldLineNumbers.push(linesNumbers[j]);
             }

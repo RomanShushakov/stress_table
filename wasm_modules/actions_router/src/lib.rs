@@ -126,10 +126,10 @@ impl ActionsRouter
             .or(Err(JsValue::from("Actions router: Redo action: \
                 Action id could not be converted to FEUInt!")))?;
         if let Some(position) = self.active_actions.iter().rposition(|action|
-            action.action_id_same(action_id))
+            action.is_action_id_same(action_id))
         {
             let undo_action = self.active_actions.remove(position);
-            match &undo_action.get_action_type()
+            match &undo_action.action_type()
             {
                 ActionType::GeometryActionType(geometry_action_type) =>
                     {
@@ -543,7 +543,7 @@ impl ActionsRouter
             .or(Err(JsValue::from("Actions router: Redo action: \
                 Action id could not be converted to FEUInt!")))?;
         if let Some(position) = self.undo_actions.iter().position(|action|
-            action.action_id_same(action_id))
+            action.is_action_id_same(action_id))
         {
             let redo_action = self.undo_actions.remove(position);
             let add_to_active_actions = true;
@@ -557,8 +557,8 @@ impl ActionsRouter
         if let Some((action, add_to_active_actions)) =
             &self.current_action
         {
-            let action_id = action.get_action_id();
-            let action_type = &action.get_action_type();
+            let action_id = action.action_id();
+            let action_type = &action.action_type();
             match action_type
             {
                 ActionType::GeometryActionType(geometry_action_type) =>
@@ -1173,8 +1173,8 @@ impl ActionsRouter
 
         for action in &self.active_actions
         {
-            let action_id = &action.get_action_id();
-            let action_type = &action.get_action_type();
+            let action_id = &action.action_id();
+            let action_type = &action.action_type();
             log(&format!("Actions router active actions: \n
                 Action id: {:?}, action type: {:?} \n",
                 action_id, action_type));
@@ -1184,8 +1184,8 @@ impl ActionsRouter
 
         for action in &self.undo_actions
         {
-            let action_id = &action.get_action_id();
-            let action_type = &action.get_action_type();
+            let action_id = &action.action_id();
+            let action_type = &action.action_type();
             log(&format!("Actions router undo actions: \n
                 Action id: {:?}, action type: {:?} \n",
                 action_id, action_type));

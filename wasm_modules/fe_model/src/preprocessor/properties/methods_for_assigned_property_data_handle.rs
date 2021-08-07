@@ -17,7 +17,7 @@ use crate::preprocessor::properties::consts::
     DELETE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
 };
 
-use crate::preprocessor::properties::functions::line_numbers_same;
+use crate::preprocessor::properties::functions::are_line_numbers_same;
 
 use crate::consts::EVENT_TARGET;
 
@@ -109,8 +109,8 @@ impl<T, V> Properties<T, V>
             let related_lines_numbers = assigned_property_to_lines
                 .extract_related_lines_numbers();
 
-            if !line_numbers_same(related_lines_numbers.as_slice(),
-                line_numbers)
+            if !are_line_numbers_same(related_lines_numbers.as_slice(),
+                                      line_numbers)
             {
                 let error_message = format!("{}: The line numbers {:?} in changed assigned \
                     property to lines do not match with {:?}!", error_message_header,

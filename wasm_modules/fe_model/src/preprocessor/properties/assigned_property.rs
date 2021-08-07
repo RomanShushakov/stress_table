@@ -3,7 +3,7 @@ use std::hash::Hash;
 
 use crate::preprocessor::properties::beam_section_orientation::LocalAxis1Direction;
 
-use crate::preprocessor::properties::functions::line_numbers_same;
+use crate::preprocessor::properties::functions::are_line_numbers_same;
 
 
 #[derive(Debug, Clone, Serialize)]
@@ -86,10 +86,10 @@ impl<T, V> AssignedPropertyToLines<T, V>
     }
 
 
-    pub fn line_numbers_same(&self, line_numbers: &[T]) -> bool
+    pub fn are_line_numbers_same(&self, line_numbers: &[T]) -> bool
     {
         let related_lines_numbers = self.extract_related_lines_numbers();
-        line_numbers_same(&related_lines_numbers, line_numbers)
+        are_line_numbers_same(&related_lines_numbers, line_numbers)
     }
 
 
@@ -263,7 +263,7 @@ impl<T, V> ChangedAssignedPropertyToLines<T, V>
     }
 
 
-    pub fn name_same(&self, name: &str) -> bool
+    pub fn is_name_same(&self, name: &str) -> bool
     {
         self.name == name
     }

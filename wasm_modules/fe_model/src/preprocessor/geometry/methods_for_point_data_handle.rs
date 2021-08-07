@@ -36,7 +36,7 @@ impl<T, V> Geometry<T, V>
             return Err(JsValue::from(error_message));
         }
         if self.points.values().position(|point|
-            point.coordinates_same(x, y, z)).is_some()
+            point.are_coordinates_same(x, y, z)).is_some()
         {
             let error_message = &format!("Geometry: Add point action: Point with \
                 coordinates {:?}, {:?}, {:?} does already exist!", x, y, z);
@@ -57,7 +57,8 @@ impl<T, V> Geometry<T, V>
     {
         self.clear_by_action_id(action_id);
 
-        if self.points.values().position(|point| point.coordinates_same(x, y, z)).is_some()
+        if self.points.values().position(|point|
+            point.are_coordinates_same(x, y, z)).is_some()
         {
             let error_message = &format!("Geometry: Update point action: Point with \
                 coordinates {:?}, {:?}, {:?} does already exist!", x, y, z);

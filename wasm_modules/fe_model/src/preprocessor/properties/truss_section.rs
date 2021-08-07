@@ -18,7 +18,7 @@ impl<V> TrussSection<V>
     }
 
 
-    pub fn data_same(&self, area: V, area2: Option<V>) -> bool
+    pub fn is_data_same(&self, area: V, area2: Option<V>) -> bool
     {
         self.area == area && self.area2 == area2
     }

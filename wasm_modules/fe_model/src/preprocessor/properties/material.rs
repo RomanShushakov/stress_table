@@ -18,7 +18,7 @@ impl<V> Material<V>
     }
 
 
-    pub fn data_same(&self, young_modulus: V, poisson_ration: V) -> bool
+    pub fn is_data_same(&self, young_modulus: V, poisson_ration: V) -> bool
     {
         self.young_modulus == young_modulus && self.poisson_ratio == poisson_ration
     }

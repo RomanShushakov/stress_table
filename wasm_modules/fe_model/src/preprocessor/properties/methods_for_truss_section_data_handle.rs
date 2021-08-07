@@ -39,7 +39,7 @@ impl<T, V> Properties<T, V>
         }
 
         if self.truss_sections.values().position(|truss_section|
-            truss_section.data_same(area, area2)).is_some()
+            truss_section.is_data_same(area, area2)).is_some()
         {
             let error_message = &format!("{}: Truss section with Area {:?} and Area 2 {:?} \
                 does already exist!", error_message_header, area, area2);
@@ -66,7 +66,7 @@ impl<T, V> Properties<T, V>
         self.clear_by_action_id(action_id);
 
         if self.truss_sections.values().position(|truss_section|
-            truss_section.data_same(area, area2)).is_some()
+            truss_section.is_data_same(area, area2)).is_some()
         {
             let error_message = &format!("{}:  Truss section with Area {:?} and Area 2 {:?} \
                 does already exist!", error_message_header, area, area2);

@@ -15,7 +15,7 @@ use crate::preprocessor::properties::consts::
     UPDATE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
 };
 
-use crate::preprocessor::properties::functions::line_numbers_same;
+use crate::preprocessor::properties::functions::are_line_numbers_same;
 
 use crate::consts::EVENT_TARGET;
 
@@ -129,7 +129,7 @@ impl<T, V> Properties<T, V>
                         self.assigned_properties_to_lines.get(name).unwrap()
                             .extract_related_lines_numbers();
 
-                    if !line_numbers_same(
+                    if !are_line_numbers_same(
                         changed_assigned_property_to_lines_line_numbers.as_slice(),
                         assigned_property_to_lines_line_numbers.as_slice())
                     {

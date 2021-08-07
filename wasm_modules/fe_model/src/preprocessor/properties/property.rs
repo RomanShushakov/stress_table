@@ -70,7 +70,7 @@ impl Property
     }
 
 
-    pub fn data_same(&self, material_name: &str, cross_section_name: &str,
+    pub fn is_data_same(&self, material_name: &str, cross_section_name: &str,
         cross_section_type: &CrossSectionType) -> bool
     {
         self.material_name == material_name &&

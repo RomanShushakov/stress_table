@@ -41,7 +41,7 @@ impl<T, V> Geometry<T, V>
             return Err(JsValue::from(error_message));
         }
 
-        if self.lines.values().position(|line|  line.start_and_end_points_same(
+        if self.lines.values().position(|line|  line.are_start_and_end_points_same(
             start_point_number, end_point_number)).is_some()
         {
             let error_message = &format!("Geometry: Add line action: Line with \
@@ -87,7 +87,7 @@ impl<T, V> Geometry<T, V>
             return Err(JsValue::from(error_message));
         }
 
-        if self.lines.values().position(|line| line.start_and_end_points_same(
+        if self.lines.values().position(|line| line.are_start_and_end_points_same(
             start_point_number, end_point_number)).is_some()
         {
             let error_message = &format!("Geometry: Update line action: Line with \
@@ -161,7 +161,7 @@ impl<T, V> Geometry<T, V>
                     number of lines");
                 return Err(JsValue::from(error_message));
             }
-            if !deleted_lines[0].number_same(number) || self.lines.contains_key(&number)
+            if !deleted_lines[0].is_number_same(number) || self.lines.contains_key(&number)
             {
                 let error_message = &format!("Geometry: Restore line action: Incorrect \
                     line number");

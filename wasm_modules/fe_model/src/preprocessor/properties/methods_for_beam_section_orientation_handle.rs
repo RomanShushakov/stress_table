@@ -102,7 +102,7 @@ impl<T, V> Properties<T, V>
                             if changed_assigned_properties_to_lines
                                 .iter()
                                 .position(|changed_assigned_property_to_lines|
-                                    changed_assigned_property_to_lines.name_same(
+                                    changed_assigned_property_to_lines.is_name_same(
                                         assigned_property_to_lines_name))
                                 .is_none()
                             {

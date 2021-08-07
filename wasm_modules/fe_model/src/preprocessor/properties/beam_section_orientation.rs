@@ -28,8 +28,8 @@ impl<V> LocalAxis1Direction<V>
     }
 
 
-    pub fn extract(&self) -> [f64; 3]
+    pub fn extract(&self) -> [V; 3]
     {
-        [self.0.into(), self.1.into(), self.2.into()]
+        [self.0, self.1, self.2]
     }
 }

@@ -1,5 +1,10 @@
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
+use std::hash::Hash;
+use std::ops::{Add, Mul, Sub, Div, Rem, AddAssign, SubAssign, MulAssign};
+use std::fmt::Debug;
+
+use crate::my_float::MyFloatTrait;
 
 use extended_matrix::extended_matrix::ExtendedMatrix;
 use extended_matrix::functions::extract_element_value;
@@ -40,33 +45,52 @@ pub fn dispatch_custom_event(detail: serde_json::Value, event_type: &str, query_
 }
 
 
-pub fn find_components_of_line_a_perpendicular_to_line_b(line_a: &[f64; 3],
-    line_b: &[f64; 3]) -> Result<[f64; 3], JsValue>
+pub fn find_components_of_line_a_perpendicular_to_line_b<T, V>(line_a: &[V; 3],
+    line_b: &[V; 3], tolerance: V) -> Result<[V; 3], JsValue>
+    where T: Copy + Debug + From<u8> + Eq + Hash + Add<Output = T> + Mul<Output = T> +
+             Sub<Output = T> + Div<Output = T> + Rem<Output = T> + AddAssign + SubAssign +
+             PartialOrd + 'static,
+          V: Copy + Debug + From<f32> + Into<f64> + Add<Output = V> + Sub<Output = V> +
+             Mul<Output = V> + Div<Output = V> + AddAssign + SubAssign + MulAssign + PartialEq +
+             MyFloatTrait + 'static,
 {
-    let a_x = - line_a[0];
-    let a_y = - line_a[1];
-    let a_z = - line_a[2];
-    let a = ExtendedMatrix::create(3 as FEUInt,
-        1 as FEUInt, vec![a_x, a_y, a_z], TOLERANCE as f64);
+    let a_x = V::from(-1f32) * line_a[0];
+    let a_y = V::from(-1f32) * line_a[1];
+    let a_z = V::from(-1f32) * line_a[2];
+
+    let a = ExtendedMatrix::create(T::from(3u8),
+        T::from(1u8), vec![a_x, a_y, a_z], tolerance);
+
     let b_x = line_b[0];
     let b_y = line_b[1];
     let b_z = line_b[2];
-    let coeff_matrix = ExtendedMatrix::create(3 as FEUInt,
-        3 as FEUInt, vec![
-            - b_z * b_z - b_y * b_y, b_x * b_y, b_x * b_z,
-            b_y * b_x, - b_x * b_x - b_z * b_z,	b_y * b_z,
-            b_z * b_x,	b_z * b_y, - b_y * b_y - b_x * b_x,
-        ], TOLERANCE as f64);
+
+    let norm = V::from(1f32) / (b_x.my_powi(2) + b_y.my_powi(2) + b_z.my_powi(2));
+
+    let mut coeff_matrix = ExtendedMatrix::create(T::from(3u8),
+        T::from(3u8), vec![
+            V::from(-1f32) * b_z * b_z - b_y * b_y, b_x * b_y, b_x * b_z,
+            b_y * b_x, V::from(-1f32) * b_x * b_x - b_z * b_z,	b_y * b_z,
+            b_z * b_x,	b_z * b_y, V::from(-1f32) * b_y * b_y - b_x * b_x,
+        ], tolerance);
+
+    coeff_matrix.multiply_by_number(norm);
+
     let components_of_line_a_perpendicular_to_line_b_matrix = coeff_matrix
         .multiply_by_matrix(&a)
         .map_err(|e| JsValue::from(e))?;
+
     let components_of_line_a_perpendicular_to_line_b_all_values =
         components_of_line_a_perpendicular_to_line_b_matrix.extract_all_elements_values();
-    let a_perpendicular_to_b_x = extract_element_value(
-        0, 0, &components_of_line_a_perpendicular_to_line_b_all_values);
-    let a_perpendicular_to_b_y = extract_element_value(
-        1, 0, &components_of_line_a_perpendicular_to_line_b_all_values);
-    let a_perpendicular_to_b_z = extract_element_value(
-        2, 0, &components_of_line_a_perpendicular_to_line_b_all_values);
+
+    let a_perpendicular_to_b_x = extract_element_value(T::from(0u8), T::from(0u8),
+        &components_of_line_a_perpendicular_to_line_b_all_values);
+
+    let a_perpendicular_to_b_y = extract_element_value(T::from(1u8), T::from(0u8),
+        &components_of_line_a_perpendicular_to_line_b_all_values);
+
+    let a_perpendicular_to_b_z = extract_element_value(T::from(2u8), T::from(0u8),
+        &components_of_line_a_perpendicular_to_line_b_all_values);
+
     Ok([a_perpendicular_to_b_x, a_perpendicular_to_b_y, a_perpendicular_to_b_z])
 }

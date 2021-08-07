@@ -242,7 +242,7 @@ impl Preprocessor
     {
         self.properties.update_beam_section_orientation_data(action_id, local_axis_1_direction,
             line_numbers, is_action_id_should_be_increased, &self.geometry,
-            get_line_points_coordinates)
+            get_line_points_coordinates, self.tolerance)
     }
 
 

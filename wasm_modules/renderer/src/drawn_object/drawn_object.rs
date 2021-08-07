@@ -410,12 +410,14 @@ impl DrawnObject
                 let b_z = line_end_point_coordinates[2] - line_start_point_coordinates[2];
                 let a = ExtendedMatrix::create(3u32,
                     1u32, vec![a_x, a_y, a_z], TOLERANCE);
-                let coeff_matrix = ExtendedMatrix::create(3u32,
+                let norm = 1f32 / (b_x.powi(2) + b_y.powi(2) + b_z.powi(2));
+                let mut coeff_matrix = ExtendedMatrix::create(3u32,
                     3u32, vec![
                         - b_z * b_z - b_y * b_y, b_x * b_y, b_x * b_z,
                         b_y * b_x, - b_x * b_x - b_z * b_z,	b_y * b_z,
                         b_z * b_x,	b_z * b_y, - b_y * b_y - b_x * b_x,
                     ], TOLERANCE);
+                coeff_matrix.multiply_by_number(norm);
                 let local_axis_1_direction_projection_matrix =
                     coeff_matrix
                         .multiply_by_matrix(&a)
@@ -446,14 +448,11 @@ impl DrawnObject
                 ];
                 let updated_local_axis_1_end_point_coordinates = [
                     (line_mid_point_coordinates[0] +
-                    local_axis_1_direction_projection_x_coord_value /
-                        local_axis_1_direction_projection_length * line_length),
+                    local_axis_1_direction_projection_x_coord_value * line_length),
                     (line_mid_point_coordinates[1] +
-                    local_axis_1_direction_projection_y_coord_value /
-                        local_axis_1_direction_projection_length * line_length),
+                    local_axis_1_direction_projection_y_coord_value * line_length),
                     (line_mid_point_coordinates[2] +
-                     local_axis_1_direction_projection_z_coord_value /
-                        local_axis_1_direction_projection_length * line_length),
+                     local_axis_1_direction_projection_z_coord_value * line_length),
                 ];
                 let updated_local_axis_1_color = DRAWN_BEAM_SECTION_ORIENTATION_COLOR;
                 self.vertices_coordinates.extend(&line_mid_point_coordinates);

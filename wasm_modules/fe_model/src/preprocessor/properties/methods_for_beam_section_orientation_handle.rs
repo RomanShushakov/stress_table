@@ -3,6 +3,7 @@ use serde_json::json;
 use serde::Serialize;
 use std::fmt::Debug;
 use std::hash::Hash;
+use std::ops::{Add, Sub, Mul, Div, MulAssign, SubAssign, AddAssign, Rem};
 
 use crate::preprocessor::traits::ClearByActionIdTrait;
 
@@ -18,18 +19,23 @@ use crate::preprocessor::properties::consts::
     UPDATE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
 };
 
+use crate::my_float::MyFloatTrait;
+use crate::preprocessor::functions::compare_with_tolerance;
+
 use crate::consts::EVENT_TARGET;
 
-use crate::functions::
-{
-    dispatch_custom_event, find_components_of_line_a_perpendicular_to_line_b,
-};
+use crate::functions::{dispatch_custom_event, find_components_of_line_a_perpendicular_to_line_b, log};
 use crate::preprocessor::properties::assigned_property::ChangedAssignedPropertyToLines;
+use extended_matrix::extended_matrix::ExtendedMatrix;
 
 
 impl<T, V> Properties<T, V>
-    where T: Copy + Debug + Serialize + Hash + Eq + PartialOrd,
-          V: Copy + Debug + Serialize + PartialEq + Into<f64>,
+    where T: Copy + Debug + Serialize + Hash + Eq + PartialOrd + SubAssign + AddAssign +
+             Add<Output = T> + Rem<Output = T> + Div<Output = T> + Sub<Output = T> +
+             Mul<Output = T> + From<u8> + 'static,
+          V: Copy + Debug + Serialize + PartialEq + Into<f64> + From<f32> + Sub<Output = V> +
+             Mul<Output = V> + Add<Output = V> + MyFloatTrait + Div<Output = V> + PartialOrd +
+             MulAssign + SubAssign + AddAssign + 'static,
 {
     pub fn add_beam_section_local_axis_1_direction(&mut self, action_id: T,
         local_axis_1_direction: &[V], is_action_id_should_be_increased: bool)
@@ -267,7 +273,7 @@ impl<T, V> Properties<T, V>
         local_axis_1_direction: &[V], line_numbers: &[T],
         is_action_id_should_be_increased: bool, geometry: &Geometry<T, V>,
         get_line_points_coordinates: fn(T, &Geometry<T, V>) -> Option<((V, V, V),
-            (V, V, V))>) -> Result<(), JsValue>
+            (V, V, V))>, tolerance: V) -> Result<(), JsValue>
     {
         let error_message_header = "Properties: Update beam section orientation data action";
 
@@ -296,24 +302,80 @@ impl<T, V> Properties<T, V>
             if let Some((start_point_coordinates, end_point_coordinates)) =
                 get_line_points_coordinates(*line_number, geometry)
             {
-                let transformed_line = [
-                    end_point_coordinates.0.into() - start_point_coordinates.0.into(),
-                    end_point_coordinates.1.into() - start_point_coordinates.1.into(),
-                    end_point_coordinates.2.into() - start_point_coordinates.2.into()
-                ];
+                let x = end_point_coordinates.0 - start_point_coordinates.0;
+                let y = end_point_coordinates.1 - start_point_coordinates.1;
+                let z = end_point_coordinates.2 - start_point_coordinates.2;
+
+                let transformed_line = [x, y, z];
+
                 let projection_of_beam_section_orientation_vector =
-                    find_components_of_line_a_perpendicular_to_line_b(
-                        &current_local_axis_1_direction.extract(), &transformed_line
+                    find_components_of_line_a_perpendicular_to_line_b::<T, V>(
+                        &current_local_axis_1_direction.extract(), &transformed_line,
+                        tolerance
                     )?;
+
                 let projection_of_beam_section_orientation_length = (
-                    projection_of_beam_section_orientation_vector[0].powi(2) +
-                        projection_of_beam_section_orientation_vector[1].powi(2) +
-                        projection_of_beam_section_orientation_vector[2].powi(2)).sqrt();
-                if projection_of_beam_section_orientation_length == 0f64
+                    projection_of_beam_section_orientation_vector[0].my_powi(2) +
+                        projection_of_beam_section_orientation_vector[1].my_powi(2) +
+                        projection_of_beam_section_orientation_vector[2].my_powi(2)).my_sqrt();
+
+                if projection_of_beam_section_orientation_length == V::from(0f32)
                 {
                     let error_message = format!("{}: Projection of local axis 1 direction \
                         on line number {:?} equals to zero!", error_message_header, line_number);
                     return Err(JsValue::from(error_message));
+                }
+                else
+                {
+                    let length = (x.my_powi(2) + y.my_powi(2) + z.my_powi(2)).my_sqrt();
+
+                    let (u, v, w) = (length, V::from(0f32), V::from(0f32));
+                    let alpha = ((x * u + y * v + z * w) / (length * length)).my_acos();
+                    let (rotation_axis_coord_x, mut rotation_axis_coord_y,
+                        mut rotation_axis_coord_z) = (V::from(0f32), V::from(0f32), V::from(0f32));
+                    if x != V::from(0f32) && y == V::from(0f32) && z == V::from(0f32)
+                    {
+                        rotation_axis_coord_z = x;
+                    }
+                    else
+                    {
+                        rotation_axis_coord_y = z * length;
+                        rotation_axis_coord_z = y * V::from(-1f32) * length;
+                    }
+                    let norm = V::from(1f32) / (rotation_axis_coord_x.my_powi(2) +
+                        rotation_axis_coord_y.my_powi(2) + rotation_axis_coord_z.my_powi(2))
+                        .my_sqrt();
+                    let (x_n, y_n, z_n) = (rotation_axis_coord_x * norm,
+                        rotation_axis_coord_y * norm, rotation_axis_coord_z * norm);
+                    let (c, s) = (alpha.my_cos(), alpha.my_sin());
+                    let t = V::from(1f32) - c;
+                    let q_11 = compare_with_tolerance(t * x_n * x_n + c, tolerance);
+                    let q_12 = compare_with_tolerance(t * x_n * y_n - z_n * s, tolerance);
+                    let q_13 = compare_with_tolerance(t * x_n * z_n + y_n * s, tolerance);
+                    let q_21 = compare_with_tolerance(t * x_n * y_n + z_n * s, tolerance);
+                    let q_22 = compare_with_tolerance(t * y_n * y_n + c, tolerance);
+                    let q_23 = compare_with_tolerance(t * y_n * z_n - x_n * s, tolerance);
+                    let q_31 = compare_with_tolerance(t * x_n * z_n - y_n * s, tolerance);
+                    let q_32 = compare_with_tolerance(t * y_n * z_n + x_n * s, tolerance);
+                    let q_33 = compare_with_tolerance(t * z_n * z_n + c, tolerance);
+
+                    let mut rotation_matrix = ExtendedMatrix::create(3,
+                        3, vec![q_11, q_12, q_13, q_21, q_22, q_23, q_31,
+                        q_32, q_33], tolerance);
+
+                    // rotation_matrix.transpose();
+
+                    let projection_of_vector = ExtendedMatrix::create(
+                        3, 1,
+                        projection_of_beam_section_orientation_vector.to_vec(),
+                        tolerance);
+
+                    let transformed_projection_of_vector =
+                        rotation_matrix.multiply_by_matrix(&projection_of_vector)
+                            .map_err(|e|JsValue::from(e))?;
+
+                    let f = |data: &str| log(data);
+                    transformed_projection_of_vector.show_matrix(f);
                 }
             }
             else

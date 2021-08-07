@@ -5,12 +5,14 @@ use crate::preprocessor::geometry::geometry::Geometry;
 use crate::preprocessor::properties::properties::Properties;
 
 use crate::types::{FEUInt, FEFloat};
+use crate::consts::TOLERANCE;
 
 
 pub struct Preprocessor
 {
     pub geometry: Geometry<FEUInt, FEFloat>,
     pub properties: Properties<FEUInt, FEFloat>,
+    pub tolerance: FEFloat,
 }
 
 
@@ -20,7 +22,7 @@ impl Preprocessor
     {
         let geometry = Geometry::create();
         let properties = Properties::create();
-        Preprocessor { geometry, properties }
+        Preprocessor { geometry, properties, tolerance: TOLERANCE }
     }
 
 

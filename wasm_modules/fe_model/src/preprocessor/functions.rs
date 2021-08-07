@@ -1,5 +1,7 @@
 use crate::preprocessor::geometry::geometry::Geometry;
 
+use crate::my_float::MyFloatTrait;
+
 use crate::types::{FEUInt, FEFloat};
 
 
@@ -35,5 +37,19 @@ pub fn get_line_points_coordinates(line_number: FEUInt, geometry: &Geometry<FEUI
     else
     {
         None
+    }
+}
+
+
+pub fn compare_with_tolerance<V>(value: V, tolerance: V) -> V
+    where V: MyFloatTrait + PartialOrd + From<f32>
+{
+    if value.my_abs() < tolerance
+    {
+        V::from(0f32)
+    }
+    else
+    {
+        value
     }
 }

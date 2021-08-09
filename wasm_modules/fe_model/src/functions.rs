@@ -9,10 +9,6 @@ use crate::my_float::MyFloatTrait;
 use extended_matrix::extended_matrix::ExtendedMatrix;
 use extended_matrix::functions::extract_element_value;
 
-use crate::types::{FEUInt};
-
-use crate::consts::TOLERANCE;
-
 
 #[wasm_bindgen]
 extern "C"

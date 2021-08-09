@@ -83,18 +83,18 @@ impl<T, V> Geometry<T, V>
     }
 
 
-    pub fn extract_line_numbers_for_delete(&self, point_number: T) -> Vec<T>
+    pub fn extract_line_numbers_for_update_or_delete(&self, point_number: T) -> Vec<T>
     {
-        let mut line_numbers_for_delete = Vec::new();
+        let mut line_numbers_for_update_or_delete = Vec::new();
         for (line_number, line) in self.lines.iter()
         {
             let (start_point_number, end_point_number) = line.extract_points_numbers();
             if start_point_number == point_number || end_point_number == point_number
             {
-                line_numbers_for_delete.push(*line_number);
+                line_numbers_for_update_or_delete.push(*line_number);
             }
         }
-        line_numbers_for_delete
+        line_numbers_for_update_or_delete
     }
 
 

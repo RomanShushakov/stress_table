@@ -24,9 +24,8 @@ use crate::preprocessor::functions::compare_with_tolerance;
 
 use crate::consts::EVENT_TARGET;
 
-use crate::functions::{dispatch_custom_event, find_components_of_line_a_perpendicular_to_line_b, log};
+use crate::functions::{dispatch_custom_event, find_components_of_line_a_perpendicular_to_line_b};
 use crate::preprocessor::properties::assigned_property::ChangedAssignedPropertyToLines;
-use extended_matrix::extended_matrix::ExtendedMatrix;
 
 
 impl<T, V> Properties<T, V>
@@ -324,58 +323,6 @@ impl<T, V> Properties<T, V>
                     let error_message = format!("{}: Projection of local axis 1 direction \
                         on line number {:?} equals to zero!", error_message_header, line_number);
                     return Err(JsValue::from(error_message));
-                }
-                else
-                {
-                    let length = (x.my_powi(2) + y.my_powi(2) + z.my_powi(2)).my_sqrt();
-
-                    let (u, v, w) = (length, V::from(0f32), V::from(0f32));
-                    let alpha = ((x * u + y * v + z * w) / (length * length)).my_acos();
-                    let (rotation_axis_coord_x, mut rotation_axis_coord_y,
-                        mut rotation_axis_coord_z) = (V::from(0f32), V::from(0f32), V::from(0f32));
-                    if x != V::from(0f32) && y == V::from(0f32) && z == V::from(0f32)
-                    {
-                        rotation_axis_coord_z = x;
-                    }
-                    else
-                    {
-                        rotation_axis_coord_y = z * length;
-                        rotation_axis_coord_z = y * V::from(-1f32) * length;
-                    }
-                    let norm = V::from(1f32) / (rotation_axis_coord_x.my_powi(2) +
-                        rotation_axis_coord_y.my_powi(2) + rotation_axis_coord_z.my_powi(2))
-                        .my_sqrt();
-                    let (x_n, y_n, z_n) = (rotation_axis_coord_x * norm,
-                        rotation_axis_coord_y * norm, rotation_axis_coord_z * norm);
-                    let (c, s) = (alpha.my_cos(), alpha.my_sin());
-                    let t = V::from(1f32) - c;
-                    let q_11 = compare_with_tolerance(t * x_n * x_n + c, tolerance);
-                    let q_12 = compare_with_tolerance(t * x_n * y_n - z_n * s, tolerance);
-                    let q_13 = compare_with_tolerance(t * x_n * z_n + y_n * s, tolerance);
-                    let q_21 = compare_with_tolerance(t * x_n * y_n + z_n * s, tolerance);
-                    let q_22 = compare_with_tolerance(t * y_n * y_n + c, tolerance);
-                    let q_23 = compare_with_tolerance(t * y_n * z_n - x_n * s, tolerance);
-                    let q_31 = compare_with_tolerance(t * x_n * z_n - y_n * s, tolerance);
-                    let q_32 = compare_with_tolerance(t * y_n * z_n + x_n * s, tolerance);
-                    let q_33 = compare_with_tolerance(t * z_n * z_n + c, tolerance);
-
-                    let mut rotation_matrix = ExtendedMatrix::create(3,
-                        3, vec![q_11, q_12, q_13, q_21, q_22, q_23, q_31,
-                        q_32, q_33], tolerance);
-
-                    // rotation_matrix.transpose();
-
-                    let projection_of_vector = ExtendedMatrix::create(
-                        3, 1,
-                        projection_of_beam_section_orientation_vector.to_vec(),
-                        tolerance);
-
-                    let transformed_projection_of_vector =
-                        rotation_matrix.multiply_by_matrix(&projection_of_vector)
-                            .map_err(|e|JsValue::from(e))?;
-
-                    let f = |data: &str| log(data);
-                    transformed_projection_of_vector.show_matrix(f);
                 }
             }
             else

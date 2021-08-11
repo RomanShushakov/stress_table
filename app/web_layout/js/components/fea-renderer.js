@@ -142,6 +142,20 @@ class FeaRenderer extends HTMLElement {
         this.updateCanvasSize();
     }
 
+    set toggleGeometryVisibility(_data) {
+        this.state.renderer.toggle_geometry_visibility();
+        if (this.state.isPaused === true) {
+            this.state.renderer.tick();
+        }
+    }
+
+    set toggleMeshVisibility(_data) {
+        this.state.renderer.toggle_mesh_visibility();
+        if (this.state.isPaused === true) {
+            this.state.renderer.tick();
+        }
+    }
+
     set selectedView(view) {
         switch (view) {
             case "planeXY":

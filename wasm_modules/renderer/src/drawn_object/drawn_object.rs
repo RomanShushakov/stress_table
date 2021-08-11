@@ -207,14 +207,33 @@ impl DrawnObject
 
 
     pub fn add_point_object(&mut self, point_objects: &HashMap<PointObjectKey, PointObject>,
-        gl_mode: GLMode, under_selection_box_colors: &Vec<u8>, selected_colors: &HashSet<[u8; 4]>)
-        -> Result<(), JsValue>
+        gl_mode: GLMode, under_selection_box_colors: &Vec<u8>, selected_colors: &HashSet<[u8; 4]>,
+        is_geometry_visible: &bool, is_mesh_visible: &bool) -> Result<(), JsValue>
     {
+        if !*is_geometry_visible && !*is_mesh_visible
+        {
+            return Ok(());
+        }
+
         let start_index =
             if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
+
+        let mut excluded_point_objects = 0i32;
         for (i, (point_object_key, point_object))  in
             point_objects.iter().enumerate()
         {
+            if !*is_geometry_visible && point_object_key.get_object_type() == PointObjectType::Point
+            {
+                excluded_point_objects += 1i32;
+                continue;
+            }
+
+            if !*is_mesh_visible && point_object_key.get_object_type() == PointObjectType::Node
+            {
+                excluded_point_objects += 1i32;
+                continue;
+            }
+
             let initial_color = match point_object_key.get_object_type()
                 {
                     PointObjectType::Point => DRAWN_POINTS_COLOR,
@@ -231,7 +250,7 @@ impl DrawnObject
             self.indexes_numbers.push(start_index + i as u32);
         }
         self.modes.push(GLPrimitiveType::Points);
-        self.elements_numbers.push(point_objects.len() as i32);
+        self.elements_numbers.push(point_objects.len() as i32 - excluded_point_objects);
         let offset = self.define_offset();
         self.offsets.push(offset);
         Ok(())
@@ -243,13 +262,29 @@ impl DrawnObject
         line_objects: &HashMap<LineObjectKey, LineObject>,
         gl_mode: GLMode, under_selection_box_colors: &Vec<u8>,
         selected_colors: &HashSet<[u8; 4]>, base_points_number: u32,
-        base_radius: f32) -> Result<(), JsValue>
+        base_radius: f32, is_geometry_visible: &bool, is_mesh_visible: &bool) -> Result<(), JsValue>
     {
+        if !*is_geometry_visible && !*is_mesh_visible
+        {
+            return Ok(());
+        }
+
         let start_index =
             if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
         let mut count = 0;
+
         for (line_object_key, line_object) in line_objects.iter()
         {
+            if !*is_geometry_visible && line_object_key.get_object_type() == LineObjectType::Line
+            {
+                continue;
+            }
+
+            if !*is_mesh_visible && line_object_key.get_object_type() == LineObjectType::Element
+            {
+                continue;
+            }
+
             let initial_color = match line_object_key.get_object_type()
                 {
                     LineObjectType::Line =>

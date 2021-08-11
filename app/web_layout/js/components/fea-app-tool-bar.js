@@ -424,6 +424,8 @@ class FeaAppToolBar extends HTMLElement {
 
         this.shadowRoot.querySelector(".undo-button").addEventListener("click", () => this.undo());
         this.shadowRoot.querySelector(".redo-button").addEventListener("click", () => this.redo());
+        this.shadowRoot.querySelector(".show-hide-geometry-button").addEventListener("click", () => this.toggleGeometryVisibility());
+        this.shadowRoot.querySelector(".show-hide-mesh-button").addEventListener("click", () => this.toggleMeshVisibility());
         this.shadowRoot.querySelector(".x-y-view-button").addEventListener("click", () => this.changeView("planeXY"));
         this.shadowRoot.querySelector(".z-y-view-button").addEventListener("click", () => this.changeView("planeZY"));
         this.shadowRoot.querySelector(".x-z-view-button").addEventListener("click", () => this.changeView("planeXZ"));
@@ -494,6 +496,20 @@ class FeaAppToolBar extends HTMLElement {
             detail: {
                 message: message,
             },
+        }));   
+    }
+
+    toggleGeometryVisibility() {
+        this.dispatchEvent(new CustomEvent("toggleGeometryVisibility", {
+            bubbles: true,
+            composed: true,
+        }));   
+    }
+
+    toggleMeshVisibility() {
+        this.dispatchEvent(new CustomEvent("toggleMeshVisibility", {
+            bubbles: true,
+            composed: true,
         }));   
     }
 

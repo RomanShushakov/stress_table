@@ -87,6 +87,8 @@ struct Props
     dy: f32,
     d_scale: f32,
     point_objects: HashMap<PointObjectKey, PointObject>,
+    is_geometry_visible: bool,
+    is_mesh_visible: bool,
 }
 
 
@@ -127,7 +129,8 @@ impl Renderer
             canvas_text: canvas_text.clone(), canvas_gl: canvas_gl.clone(),
             cursor_coord_x: -1, cursor_coord_y: -1,
             theta: 0.0, phi: 0.0, dx: 0.0, dy: 0.0, d_scale: 0.0,
-            point_objects: HashMap::new(),
+            point_objects: HashMap::new(), is_geometry_visible: true,
+            is_mesh_visible: true,
         };
 
         let ctx: CTX = canvas_text
@@ -189,7 +192,9 @@ impl Renderer
                 &self.props.point_objects,
                 GLMode::Selection,
                 &self.state.under_selection_box_colors,
-                &self.state.selected_colors)?;
+                &self.state.selected_colors,
+                &self.props.is_geometry_visible,
+                &self.props.is_mesh_visible)?;
             if !self.state.line_objects.is_empty()
             {
                 drawn_object_for_selection.add_line_objects(
@@ -199,7 +204,9 @@ impl Renderer
                     &self.state.under_selection_box_colors,
                     &self.state.selected_colors,
                     DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
-                    DRAWN_LINE_OBJECTS_BASE_RADIUS / (1.0 + self.props.d_scale))?;
+                    DRAWN_LINE_OBJECTS_BASE_RADIUS / (1.0 + self.props.d_scale),
+                    &self.props.is_geometry_visible,
+                    &self.props.is_mesh_visible)?;
             }
             self.state.drawn_object_for_selection = Some(drawn_object_for_selection);
         }
@@ -220,7 +227,9 @@ impl Renderer
                 &self.props.point_objects,
                 GLMode::Visible,
                 &self.state.under_selection_box_colors,
-                &self.state.selected_colors)?;
+                &self.state.selected_colors,
+                &self.props.is_geometry_visible,
+                &self.props.is_mesh_visible)?;
             if !self.state.line_objects.is_empty()
             {
                 drawn_object_visible.add_line_objects(
@@ -230,7 +239,9 @@ impl Renderer
                     &self.state.under_selection_box_colors,
                     &self.state.selected_colors,
                     DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
-                    DRAWN_LINE_OBJECTS_BASE_RADIUS / (1.0 + self.props.d_scale))?;
+                    DRAWN_LINE_OBJECTS_BASE_RADIUS / (1.0 + self.props.d_scale),
+                    &self.props.is_geometry_visible,
+                    &self.props.is_mesh_visible)?;
                 if let Some(beam_section_orientation) =
                     &self.state.beam_section_orientation_for_preview
                 {
@@ -613,6 +624,38 @@ impl Renderer
     }
 
 
+    pub fn toggle_geometry_visibility(&mut self) -> Result<(), JsValue>
+    {
+        if self.props.is_geometry_visible
+        {
+            self.props.is_geometry_visible = false;
+        }
+        else
+        {
+            self.props.is_geometry_visible = true;
+        }
+        self.update_drawn_object_for_selection()?;
+        self.update_drawn_object_visible()?;
+        Ok(())
+    }
+
+
+    pub fn toggle_mesh_visibility(&mut self) -> Result<(), JsValue>
+    {
+        if self.props.is_mesh_visible
+        {
+            self.props.is_mesh_visible = false;
+        }
+        else
+        {
+            self.props.is_mesh_visible = true;
+        }
+        self.update_drawn_object_for_selection()?;
+        self.update_drawn_object_visible()?;
+        Ok(())
+    }
+
+
     pub fn tick(&mut self) -> Result<(), JsValue>
     {
         self.render()?;
@@ -812,8 +855,26 @@ impl Renderer
             let mut matrix = mat4::new_identity();
             mat4::mul(&mut matrix, &projection_matrix, &model_view_matrix);
 
-            for (point_object_key, point_object) in self.props.point_objects.iter()
+            for (point_object_key, point_object) in
+                self.props.point_objects.iter()
             {
+                if !self.props.is_geometry_visible && !self.props.is_mesh_visible
+                {
+                    continue;
+                }
+
+                if !self.props.is_geometry_visible &&
+                    point_object_key.get_object_type() == PointObjectType::Point
+                {
+                    continue;
+                }
+
+                if !self.props.is_mesh_visible &&
+                    point_object_key.get_object_type() == PointObjectType::Node
+                {
+                    continue;
+                }
+
                 let initial_color = match point_object_key.get_object_type()
                     {
                         PointObjectType::Point => CANVAS_DRAWN_POINTS_DENOTATION_COLOR,
@@ -838,8 +899,26 @@ impl Renderer
 
             if !self.state.line_objects.is_empty()
             {
-                for (line_object_key, line_object) in &self.state.line_objects
+                for (line_object_key, line_object) in
+                    self.state.line_objects.iter()
                 {
+                    if !self.props.is_geometry_visible && !self.props.is_mesh_visible
+                    {
+                        continue;
+                    }
+
+                    if !self.props.is_geometry_visible &&
+                        line_object_key.get_object_type() == LineObjectType::Line
+                    {
+                        continue;
+                    }
+
+                    if !self.props.is_mesh_visible &&
+                        line_object_key.get_object_type() == LineObjectType::Element
+                    {
+                        continue;
+                    }
+
                     let initial_color = match line_object_key.get_object_type()
                     {
                         LineObjectType::Line =>

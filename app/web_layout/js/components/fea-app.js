@@ -128,6 +128,8 @@ class FeaApp extends HTMLElement {
         this.addEventListener("selected_lines", (event) => this.handleSelectedLinesMessage(event));
         this.addEventListener("selected_line_elements", (event) => this.handleSelectedLineElementsMessage(event));
 
+        this.addEventListener("toggleGeometryVisibility", (event) => this.handleToggleGeometryVisibilityMessage(event));
+        this.addEventListener("toggleMeshVisibility", (event) => this.handleToggleMeshVisibilityMessage(event));
         this.addEventListener("changeView", (event) => this.handleChangeViewMessage(event));
 
         this.addEventListener("previewSelectedLineNumbers", (event) => this.handlePreviewSelectedLineNumbersMessage(event));
@@ -507,6 +509,18 @@ class FeaApp extends HTMLElement {
         } else {
             console.log("Selected line element number: ", lineElementNumbers[0]);
         }
+        event.stopPropagation();
+    }
+
+    handleToggleGeometryVisibilityMessage(event) {
+        const data = true;
+        this.shadowRoot.querySelector("fea-renderer").toggleGeometryVisibility = data;
+        event.stopPropagation();
+    }
+
+    handleToggleMeshVisibilityMessage(event) {
+        const data = true;
+        this.shadowRoot.querySelector("fea-renderer").toggleMeshVisibility = data;
         event.stopPropagation();
     }
 

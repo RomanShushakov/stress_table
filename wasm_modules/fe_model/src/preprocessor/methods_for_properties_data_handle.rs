@@ -86,23 +86,23 @@ impl Preprocessor
 
 
     pub fn add_beam_section(&mut self, action_id: FEUInt, name: &str, area: FEFloat,
-        i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat,
+        i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat, shear_factor: FEFloat,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.geometry.clear_by_action_id(action_id);
 
-        self.properties.add_beam_section(action_id, name, area, i11, i22, i12, it,
+        self.properties.add_beam_section(action_id, name, area, i11, i22, i12, it, shear_factor,
             is_action_id_should_be_increased)
     }
 
 
     pub fn update_beam_section(&mut self, action_id: FEUInt, name: &str, area: FEFloat,
-        i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat,
+        i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat, shear_factor: FEFloat,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.geometry.clear_by_action_id(action_id);
 
-        self.properties.update_beam_section(action_id, name, area, i11, i22, i12, it,
+        self.properties.update_beam_section(action_id, name, area, i11, i22, i12, it, shear_factor,
             is_action_id_should_be_increased)
     }
 

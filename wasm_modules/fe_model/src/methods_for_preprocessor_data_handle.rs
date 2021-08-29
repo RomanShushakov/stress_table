@@ -141,20 +141,22 @@ impl FEModel
 
 
     pub fn add_beam_section(&mut self, action_id: FEUInt, name: &str, area: FEFloat,
-        i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat, is_action_id_should_be_increased: bool)
+        i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat, shear_factor: FEFloat,
+        is_action_id_should_be_increased: bool)
         -> Result<(), JsValue>
     {
         self.preprocessor.add_beam_section(action_id, name, area, i11, i22, i12, it,
-            is_action_id_should_be_increased)
+            shear_factor, is_action_id_should_be_increased)
     }
 
 
     pub fn update_beam_section(&mut self, action_id: FEUInt, name: &str, area: FEFloat,
-        i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat, is_action_id_should_be_increased: bool)
+        i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat, shear_factor: FEFloat,
+        is_action_id_should_be_increased: bool)
         -> Result<(), JsValue>
     {
         self.preprocessor.update_beam_section(action_id, name, area, i11, i22, i12, it,
-            is_action_id_should_be_increased)
+            shear_factor, is_action_id_should_be_increased)
     }
 
 

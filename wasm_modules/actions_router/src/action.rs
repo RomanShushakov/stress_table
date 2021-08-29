@@ -95,13 +95,13 @@ pub enum PropertiesActionType
     // ( name, is_action_id_should_be_increased )
     RestoreTrussSection(String, bool),
 
-    // ( name, area, I11, I22, I12, It, is_action_id_should_be_increased )
-    AddBeamSection(String, FEFloat, FEFloat, FEFloat, FEFloat, FEFloat, bool),
+    // ( name, area, I11, I22, I12, It, shear_factor, is_action_id_should_be_increased )
+    AddBeamSection(String, FEFloat, FEFloat, FEFloat, FEFloat, FEFloat, FEFloat, bool),
 
-    // ( name, old_area, old_I11, old_I22, old_I12, old_It, new_area,
-    // new_I11, new_I22, new_I12, new_It, is_action_id_should_be_increased )
+    // ( name, old_area, old_I11, old_I22, old_I12, old_It, old_shear_factor, new_area,
+    // new_I11, new_I22, new_I12, new_It, new_shear_factor, is_action_id_should_be_increased )
     UpdateBeamSection(String, FEFloat, FEFloat, FEFloat, FEFloat, FEFloat,
-        FEFloat, FEFloat, FEFloat, FEFloat, FEFloat, bool),
+        FEFloat, FEFloat, FEFloat, FEFloat, FEFloat, FEFloat, FEFloat, bool),
 
     // ( name, is_action_id_should_be_increased )
     DeleteBeamSection(String, bool),

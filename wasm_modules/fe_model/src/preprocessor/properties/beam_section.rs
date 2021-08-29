@@ -9,38 +9,41 @@ pub struct BeamSection<V>
     i22: V,
     i12: V,
     it: V,
+    shear_factor: V,
 }
 
 
 impl<V> BeamSection<V>
     where V: Copy + PartialEq,
 {
-    pub fn create(area: V, i11: V, i22: V, i12: V, it: V) -> Self
+    pub fn create(area: V, i11: V, i22: V, i12: V, it: V, shear_factor: V) -> Self
     {
-        BeamSection { area, i11, i22, i12, it }
+        BeamSection { area, i11, i22, i12, it, shear_factor }
     }
 
 
-    pub fn data_same(&self, area: V, i11: V, i22: V, i12: V, it: V)
+    pub fn data_same(&self, area: V, i11: V, i22: V, i12: V, it: V, shear_factor: V)
         -> bool
     {
-        self.area == area && self.i11 == i11 && self.i22 == i22 && self.i12 == i12 && self.it == it
+        self.area == area && self.i11 == i11 && self.i22 == i22 && self.i12 == i12 &&
+        self.it == it && self.shear_factor == shear_factor
     }
 
 
-    pub fn update(&mut self, area: V, i11: V, i22: V, i12: V, it: V)
+    pub fn update(&mut self, area: V, i11: V, i22: V, i12: V, it: V, shear_factor: V)
     {
         self.area = area;
         self.i11 = i11;
         self.i22 = i22;
         self.i12 = i12;
         self.it = it;
+        self.shear_factor = shear_factor;
     }
 
 
-    pub fn extract_data(&self) -> (V, V, V, V, V)
+    pub fn extract_data(&self) -> (V, V, V, V, V, V)
     {
-        (self.area, self.i11, self.i22, self.i12, self.it)
+        (self.area, self.i11, self.i22, self.i12, self.it, self.shear_factor)
     }
 }
 
@@ -62,9 +65,10 @@ impl<V> DeletedBeamSection<V>
     }
 
 
-    pub fn extract_name_and_data(&self) -> (&str, V, V, V, V, V)
+    pub fn extract_name_and_data(&self) -> (&str, V, V, V, V, V, V)
     {
-        let (area, i11, i22, i12, it) = self.beam_section.extract_data();
-        (&self.name, area, i11, i22, i12, it)
+        let (area, i11, i22, i12, it, shear_factor) =
+            self.beam_section.extract_data();
+        (&self.name, area, i11, i22, i12, it, shear_factor)
     }
 }

@@ -330,6 +330,7 @@ impl ActionsRouter
                                 _i22,
                                 _i12,
                                 _it,
+                                _shear_factor,
                                 _is_action_id_should_be_increased) =>
                                 {
                                     let is_action_id_should_be_increased = false;
@@ -348,19 +349,25 @@ impl ActionsRouter
                                 old_i22,
                                 old_i12,
                                 old_it,
+                                old_shear_factor,
                                 new_area,
                                 new_i11,
                                 new_i22,
                                 new_i12,
                                 new_it,
+                                new_shear_factor,
                                 _is_action_id_should_be_increased) =>
                                 {
                                     let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::from(
                                         PropertiesActionType::UpdateBeamSection(
                                             beam_section_name.clone(),
-                                            *new_area, *new_i11, *new_i22, *new_i12, *new_it,
-                                            *old_area, *old_i11, *old_i22, *old_i12, *old_it,
+                                            *new_area, *new_i11,
+                                            *new_i22, *new_i12,
+                                            *new_it, *new_shear_factor,
+                                            *old_area, *old_i11,
+                                            *old_i22, *old_i12,
+                                            *old_it, *old_shear_factor,
                                             is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
                                     let add_to_active_actions = false;
@@ -795,11 +802,12 @@ impl ActionsRouter
                                 i22,
                                 i12,
                                 it,
+                                shear_factor,
                                 is_action_id_should_be_increased) =>
                                 {
                                     add_beam_section_to_properties(action_id,
                                         beam_section_name,
-                                        *area, *i11, *i22, *i12, *it,
+                                        *area, *i11, *i22, *i12, *it, *shear_factor,
                                         *is_action_id_should_be_increased)?;
                                     if *add_to_active_actions == true
                                     {
@@ -813,16 +821,18 @@ impl ActionsRouter
                                 _old_i22,
                                 _old_i12,
                                 _old_it,
+                                _old_shear_factor,
                                 new_area,
                                 new_i11,
                                 new_i22,
                                 new_i12,
                                 new_it,
+                                new_shear_factor,
                                 is_action_id_should_be_increased) =>
                                 {
                                     update_beam_section_in_properties(action_id,
-                                        beam_section_name,
-                                        *new_area, *new_i11, *new_i22, *new_i12, *new_it,
+                                        beam_section_name, *new_area, *new_i11, *new_i22, *new_i12,
+                                        *new_it, *new_shear_factor,
                                         *is_action_id_should_be_increased)?;
                                     if *add_to_active_actions == true
                                     {

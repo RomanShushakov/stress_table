@@ -190,7 +190,7 @@ class CommunicatorWithFEModel {
         try {
             this.state.feModel.add_beam_section(beamSectionData.action_id, beamSectionData.name, 
                 beamSectionData.area, beamSectionData.i11, beamSectionData.i22, beamSectionData.i12,
-                beamSectionData.it, beamSectionData.is_action_id_should_be_increased);
+                beamSectionData.it, beamSectionData.shear_factor, beamSectionData.is_action_id_should_be_increased);
         } catch (error) {
             throw error;
         }
@@ -200,7 +200,7 @@ class CommunicatorWithFEModel {
         try {
             this.state.feModel.update_beam_section(beamSectionData.action_id, beamSectionData.name, 
                 beamSectionData.area, beamSectionData.i11, beamSectionData.i22, beamSectionData.i12,
-                beamSectionData.it, beamSectionData.is_action_id_should_be_increased);
+                beamSectionData.it, beamSectionData.shear_factor, beamSectionData.is_action_id_should_be_increased);
         } catch (error) {
             throw error;
         }

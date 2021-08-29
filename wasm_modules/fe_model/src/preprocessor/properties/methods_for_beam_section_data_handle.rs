@@ -25,7 +25,7 @@ impl<T, V> Properties<T, V>
           V: Copy + Debug + Serialize + PartialEq,
 {
     pub fn add_beam_section(&mut self, action_id: T, name: &str, area: V,
-        i11: V, i22: V, i12: V, it: V,
+        i11: V, i22: V, i12: V, it: V, shear_factor: V,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_by_action_id(action_id);
@@ -37,17 +37,17 @@ impl<T, V> Properties<T, V>
             return Err(JsValue::from(error_message));
         }
         if self.beam_sections.values().position(|beam_section|
-            beam_section.data_same(area, i11, i22, i12, it)).is_some()
+            beam_section.data_same(area, i11, i22, i12, it, shear_factor)).is_some()
         {
             let error_message = &format!("Properties: Add cross section action: \
-                Cross section with Area {:?}, I11 {:?}, I22 {:?}, I12 {:?}, It {:?} does \
-                already exist!", area, i11, i22, i12, it);
+                Cross section with Area {:?}, I11 {:?}, I22 {:?}, I12 {:?}, It {:?}, \
+                Shear factor {:?} does  already exist!", area, i11, i22, i12, it, shear_factor);
             return Err(JsValue::from(error_message));
         }
-        let beam_section = BeamSection::create(area, i11, i22, i12, it);
+        let beam_section = BeamSection::create(area, i11, i22, i12, it, shear_factor);
         self.beam_sections.insert(name.to_owned(), beam_section);
         let detail = json!({ "beam_section_data": { "name": name, "area": area,
-            "i11": i11, "i22": i22, "i12": i12, "it": it },
+            "i11": i11, "i22": i22, "i12": i12, "it": it, "shear_factor": shear_factor },
             "is_action_id_should_be_increased": is_action_id_should_be_increased });
         dispatch_custom_event(detail, ADD_BEAM_SECTION_EVENT_NAME,
             EVENT_TARGET)?;
@@ -57,24 +57,25 @@ impl<T, V> Properties<T, V>
 
 
     pub fn update_beam_section(&mut self, action_id: T, name: &str, area: V,
-        i11: V, i22: V, i12: V, it: V,
+        i11: V, i22: V, i12: V, it: V, shear_factor: V,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_by_action_id(action_id);
 
         if self.beam_sections.values().position(|beam_section|
-            beam_section.data_same(area, i11, i22, i12, it)).is_some()
+            beam_section.data_same(area, i11, i22, i12, it, shear_factor)).is_some()
         {
             let error_message = &format!("Properties: Update beam section action: \
-                Beam section with Area {:?}, I11 {:?}, I22 {:?}, I12 {:?} and It {:?} does \
-                already exist!", area, i11, i22, i12, it);
+                Beam section with Area {:?}, I11 {:?}, I22 {:?}, I12 {:?}, It {:?}, \
+                Shear factor {:?} does already exist!", area, i11, i22, i12, it, shear_factor);
             return Err(JsValue::from(error_message));
         }
         if let Some(beam_section) = self.beam_sections.get_mut(name)
         {
-            beam_section.update(area, i11, i22, i12, it);
+            beam_section.update(area, i11, i22, i12, it, shear_factor);
             let detail = json!({ "beam_section_data": { "name": name,
-                "area": area, "i11": i11, "i22": i22, "i12": i12, "it": it },
+                "area": area, "i11": i11, "i22": i22, "i12": i12, "it": it,
+                "shear_factor": shear_factor },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, UPDATE_BEAM_SECTION_EVENT_NAME,
                 EVENT_TARGET)?;
@@ -149,8 +150,8 @@ impl<T, V> Properties<T, V>
         if let Some(deleted_beam_section) =
             self.deleted_beam_sections.remove(&action_id)
         {
-            let (deleted_beam_section_name, area, i11, i22, i12, it) =
-                deleted_beam_section.extract_name_and_data();
+            let (deleted_beam_section_name, area, i11, i22, i12, it,
+                shear_factor) = deleted_beam_section.extract_name_and_data();
             if deleted_beam_section_name != name
             {
                 let error_message = &format!("Properties: Restore beam section \
@@ -158,14 +159,15 @@ impl<T, V> Properties<T, V>
                 return Err(JsValue::from(error_message));
             }
             self.beam_sections.insert(deleted_beam_section_name.to_owned(),
-               BeamSection::create(area, i11, i22, i12, it));
+               BeamSection::create(area, i11, i22, i12, it, shear_factor));
             let detail = json!({ "beam_section_data": {
                     "name": deleted_beam_section_name,
                     "area": area,
                     "i11": i11,
                     "i22": i22,
                     "i12": i12,
-                    "it": it },
+                    "it": it,
+                    "shear_factor": shear_factor },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, ADD_BEAM_SECTION_EVENT_NAME,
                 EVENT_TARGET)?;

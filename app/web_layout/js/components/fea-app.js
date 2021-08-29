@@ -298,7 +298,8 @@ class FeaApp extends HTMLElement {
                 const beamSections = Array.from(
                     Object.entries(extractedBeamSectionsData.extracted_beam_sections),
                     ([key, value]) => ({
-                        "name": key, "area": value.area, "i11": value.i11, "i22": value.i22, "i12": value.i12, "it": value.it
+                        "name": key, "area": value.area, "i11": value.i11, "i22": value.i22, "i12": value.i12, "it": value.it,
+                        "shear_factor": value.shear_factor,
                     }));
                 this.querySelector(event.target.tagName.toLowerCase()).beamSections = beamSections; 
             }
@@ -799,7 +800,8 @@ class FeaApp extends HTMLElement {
             i11: event.detail.beam_section_data.i11,
             i22: event.detail.beam_section_data.i22,
             i12: event.detail.beam_section_data.i12,
-            it: event.detail.beam_section_data.it };
+            it: event.detail.beam_section_data.it,
+            shear_factor: event.detail.beam_section_data.shear_factor };
         for (let i = 0; i < this.state.beamSectionsDataDependentMenus.length; i++) {
             if (this.querySelector(this.state.beamSectionsDataDependentMenus[i]) !== null) {
                 this.querySelector(this.state.beamSectionsDataDependentMenus[i]).addBeamSectionToClient = beamSection;
@@ -818,7 +820,8 @@ class FeaApp extends HTMLElement {
             i11: event.detail.beam_section_data.i11,
             i22: event.detail.beam_section_data.i22,
             i12: event.detail.beam_section_data.i12,
-            it: event.detail.beam_section_data.it };
+            it: event.detail.beam_section_data.it,
+            shear_factor: event.detail.beam_section_data.shear_factor };
         for (let i = 0; i < this.state.beamSectionsDataDependentMenus.length; i++) {
             if (this.querySelector(this.state.beamSectionsDataDependentMenus[i]) !== null) {
                 this.querySelector(this.state.beamSectionsDataDependentMenus[i]).updateBeamSectionInClient = beamSection;

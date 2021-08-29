@@ -7,7 +7,7 @@ class FeaPropertiesUpdatePropertiesMenu extends HTMLElement {
             isFEModelLoaded: false,     // load status of wasm module "fe_model";
             materials: [],              // array of: [{ name: String, young_modulus: f64, poisson_ratio: f64 }, ...];
             trussSections: [],          // array of: [{ name: String, area: f64, area2: f64 or null }];
-            beamSections: [],           // array of: [{ name: String, area: f64, i11: f64, i22: f64, i12: f64, it: f64 }];
+            beamSections: [],           // array of: [{ name: String, area: f64, i11: f64, i22: f64, i12: f64, it: f64, shear_factor: f64 }];
             properties: [],             // array of: [{ name: String, material_name: String, cross_section_name: String,
                                         //              cross_section_type: String }];
         };

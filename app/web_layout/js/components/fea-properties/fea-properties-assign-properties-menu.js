@@ -11,7 +11,7 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
             assignedPropertiesToLines: [],  // array of: [{ name: String, 
                                             //              related_lines_data: 
                                             //                  array of [ { line_number: u32, local_axis_1_direction: [f64; 3] or null }, ...],
-                                            //              related_line_elements_numbers: [u32 ...] }];
+                                            //              related_nodes_numbers: [u32 ...] }];
         };
 
         this.state = {

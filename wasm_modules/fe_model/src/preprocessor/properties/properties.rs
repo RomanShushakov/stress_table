@@ -21,19 +21,19 @@ use crate::functions::log;
 
 pub struct Properties<T, V>
 {
-    pub materials: HashMap<String, Material<V>>,   // { material_name: Material }
-    pub deleted_materials: HashMap<T, DeletedMaterial<V>>,   // { action_id: DeletedMaterial }
-    pub truss_sections: HashMap<String, TrussSection<V>>,  // { truss_section_name: TrussSection }
-    pub deleted_truss_sections: HashMap<T, DeletedTrussSection<V>>,  // { action_id: DeletedTrussSection }
-    pub beam_sections: HashMap<String, BeamSection<V>>,    // { beam_section_name: BeamSection }
-    pub deleted_beam_sections: HashMap<T, DeletedBeamSection<V>>,  // { action_id: DeletedBeamSection }
-    pub properties: HashMap<String, Property>,  // { property_name: Property }
-    pub deleted_properties: HashMap<T, Vec<DeletedProperty>>,  // { action_id: Vec<DeletedProperty> }
-    pub assigned_properties_to_lines: HashMap<String, AssignedPropertyToLines<T, V>>, // { property_name: AssignedProperties }
+    pub materials: HashMap<String, Material<V>>,                                                        // { material_name: Material }
+    pub deleted_materials: HashMap<T, DeletedMaterial<V>>,                                              // { action_id: DeletedMaterial }
+    pub truss_sections: HashMap<String, TrussSection<V>>,                                               // { truss_section_name: TrussSection }
+    pub deleted_truss_sections: HashMap<T, DeletedTrussSection<V>>,                                     // { action_id: DeletedTrussSection }
+    pub beam_sections: HashMap<String, BeamSection<V>>,                                                 // { beam_section_name: BeamSection }
+    pub deleted_beam_sections: HashMap<T, DeletedBeamSection<V>>,                                       // { action_id: DeletedBeamSection }
+    pub properties: HashMap<String, Property>,                                                          // { property_name: Property }
+    pub deleted_properties: HashMap<T, Vec<DeletedProperty>>,                                           // { action_id: Vec<DeletedProperty> }
+    pub assigned_properties_to_lines: HashMap<String, AssignedPropertyToLines<T, V>>,                   // { property_name: AssignedProperties }
     pub deleted_assigned_properties_to_lines: HashMap<T, Vec<DeletedAssignedPropertyToLines<T, V>>>,    // { action_id: Vec<DeletedAssignedPropertyToLines> }
     pub changed_assigned_properties_to_lines: HashMap<T, Vec<ChangedAssignedPropertyToLines<T, V>>>,    // { action_id: Vec<ChangedAssignedPropertyToLines> }
     pub beam_sections_local_axis_1_directions: Vec<LocalAxis1Direction<V>>,
-    pub deleted_beam_sections_local_axis_1_directions: HashMap<T, LocalAxis1Direction<V>>,   // { action_id: LocalAxis1Direction }
+    pub deleted_beam_sections_local_axis_1_directions: HashMap<T, LocalAxis1Direction<V>>,              // { action_id: LocalAxis1Direction }
 }
 
 

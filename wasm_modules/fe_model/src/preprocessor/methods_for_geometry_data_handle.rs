@@ -1,16 +1,20 @@
 use wasm_bindgen::prelude::*;
+use std::fmt::Debug;
+use serde::Serialize;
+use std::hash::Hash;
 
 use crate::preprocessor::traits::ClearByActionIdTrait;
 
 use crate::Preprocessor;
 
-use crate::types::{FEUInt, FEFloat};
 
 
-impl Preprocessor
+impl<T, V> Preprocessor<T, V>
+    where T: Copy + Debug + Serialize + Hash + Eq + PartialOrd,
+          V: Copy + Debug + Serialize + PartialEq,
 {
-    pub fn add_point(&mut self, action_id: FEUInt, number: FEUInt, x: FEFloat, y: FEFloat,
-        z: FEFloat, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    pub fn add_point(&mut self, action_id: T, number: T, x: V, y: V,
+        z: V, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.properties.clear_by_action_id(action_id);
 
@@ -18,8 +22,8 @@ impl Preprocessor
     }
 
 
-    pub fn add_line(&mut self, action_id: FEUInt, number: FEUInt, start_point_number: FEUInt,
-        end_point_number: FEUInt, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    pub fn add_line(&mut self, action_id: T, number: T, start_point_number: T,
+        end_point_number: T, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.properties.clear_by_action_id(action_id);
 
@@ -28,7 +32,7 @@ impl Preprocessor
     }
 
 
-    pub fn show_point_info(&mut self, number: FEUInt, handler: js_sys::Function) -> Result<(), JsValue>
+    pub fn show_point_info(&mut self, number: T, handler: js_sys::Function) -> Result<(), JsValue>
     {
         self.geometry.show_point_info(number, handler)
     }

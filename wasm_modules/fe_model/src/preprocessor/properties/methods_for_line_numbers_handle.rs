@@ -20,7 +20,7 @@ use crate::preprocessor::properties::consts::
     DELETE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
 };
 
-use crate::my_float::MyFloatTrait;
+use finite_element_method::my_float::MyFloatTrait;
 
 use crate::consts::EVENT_TARGET;
 

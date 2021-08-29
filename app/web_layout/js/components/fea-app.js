@@ -332,11 +332,11 @@ class FeaApp extends HTMLElement {
                     Object.entries(extractedAssignedPropertiesToLinesData.extracted_assigned_properties_to_lines);
                 for (let i = 0; i < extractedAssignedPropertiesToLines.length; i++) {
                     const relatedLinesData = extractedAssignedPropertiesToLines[i][1].related_lines_data;
-                    const relatedLineElementsNumbers = extractedAssignedPropertiesToLines[i][1].related_line_elements_numbers;
+                    const relatedNodesNumbers = extractedAssignedPropertiesToLines[i][1].related_nodes_numbers;
                     const assignedPropertyToLines = { 
                         "name": extractedAssignedPropertiesToLines[i][0], 
                         "related_lines_data": relatedLinesData,
-                        "related_line_elements_numbers": relatedLineElementsNumbers,
+                        "related_nodes_numbers": relatedNodesNumbers,
                     }
                     assignedPropertiesToLines.push(assignedPropertyToLines)
                 }

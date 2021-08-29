@@ -1,34 +1,42 @@
 use wasm_bindgen::prelude::*;
 use serde_json::json;
+use std::ops::{Add, Sub, Mul, Div, Rem, AddAssign, SubAssign, MulAssign};
+use std::hash::Hash;
+use std::fmt::Debug;
+use serde::Serialize;
 
 use crate::preprocessor::geometry::geometry::Geometry;
 use crate::preprocessor::properties::properties::Properties;
 
 use crate::preprocessor::functions::get_line_points_coordinates;
-
-use crate::types::{FEUInt, FEFloat};
-use crate::consts::TOLERANCE;
+use finite_element_method::my_float::MyFloatTrait;
 
 
-pub struct Preprocessor
+pub struct Preprocessor<T, V>
 {
-    pub geometry: Geometry<FEUInt, FEFloat>,
-    pub properties: Properties<FEUInt, FEFloat>,
-    pub tolerance: FEFloat,
+    pub geometry: Geometry<T, V>,
+    pub properties: Properties<T, V>,
+    pub tolerance: V,
 }
 
 
-impl Preprocessor
+impl<T, V> Preprocessor<T, V>
+    where T: Copy + Add<Output = T> + Sub<Output = T> + Mul<Output = T> + Div<Output = T> +
+             Rem<Output = T> + AddAssign + Eq + From<u8> + Hash + Debug + Serialize + PartialOrd +
+             SubAssign + 'static,
+          V: Copy + Add<Output = V> + Sub<Output = V> + Mul<Output = V> + Div<Output = V> +
+             Debug + Serialize + From<f32> + Into<f64> + MyFloatTrait + PartialEq + MulAssign +
+             AddAssign + SubAssign + 'static,
 {
-    pub fn create() -> Self
+    pub fn create(tolerance: V) -> Self
     {
-        let geometry = Geometry::create();
-        let properties = Properties::create();
-        Preprocessor { geometry, properties, tolerance: TOLERANCE }
+        let geometry = Geometry::<T, V>::create();
+        let properties = Properties::<T, V>::create();
+        Preprocessor { geometry, properties, tolerance }
     }
 
 
-    pub fn show_line_info(&mut self, number: FEUInt, handler: js_sys::Function) -> Result<(), JsValue>
+    pub fn show_line_info(&mut self, number: T, handler: js_sys::Function) -> Result<(), JsValue>
     {
         let (start_point_number, end_point_number) =
             self.geometry.extract_line_info_from_geometry(number)?;
@@ -60,8 +68,8 @@ impl Preprocessor
     }
 
 
-    pub fn update_point(&mut self, action_id: FEUInt, number: FEUInt, x: FEFloat, y: FEFloat,
-        z: FEFloat, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    pub fn update_point(&mut self, action_id: T, number: T, x: V, y: V,
+        z: V, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         let line_numbers_for_update =
             self.geometry.extract_line_numbers_for_update_or_delete(number);
@@ -76,7 +84,7 @@ impl Preprocessor
     }
 
 
-    pub fn delete_point(&mut self, action_id: FEUInt, number: FEUInt,
+    pub fn delete_point(&mut self, action_id: T, number: T,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         let line_numbers_for_delete =
@@ -91,7 +99,7 @@ impl Preprocessor
     }
 
 
-    pub fn restore_point(&mut self, action_id: FEUInt, number: FEUInt,
+    pub fn restore_point(&mut self, action_id: T, number: T,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         let restored_line_numbers =
@@ -102,8 +110,8 @@ impl Preprocessor
     }
 
 
-    pub fn update_line(&mut self, action_id: FEUInt, number: FEUInt, start_point_number: FEUInt,
-        end_point_number: FEUInt, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    pub fn update_line(&mut self, action_id: T, number: T, start_point_number: T,
+        end_point_number: T, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.geometry.update_line(action_id, number, start_point_number, end_point_number,
             is_action_id_should_be_increased)?;
@@ -115,7 +123,7 @@ impl Preprocessor
     }
 
 
-    pub fn delete_line(&mut self, action_id: FEUInt, number: FEUInt,
+    pub fn delete_line(&mut self, action_id: T, number: T,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.properties.delete_line_numbers_from_properties(action_id, &vec![number])?;
@@ -125,7 +133,7 @@ impl Preprocessor
     }
 
 
-    pub fn restore_line(&mut self, action_id: FEUInt, number: FEUInt,
+    pub fn restore_line(&mut self, action_id: T, number: T,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.geometry.restore_line(action_id, number, is_action_id_should_be_increased)?;

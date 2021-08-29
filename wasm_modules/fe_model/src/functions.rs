@@ -4,7 +4,7 @@ use std::hash::Hash;
 use std::ops::{Add, Mul, Sub, Div, Rem, AddAssign, SubAssign, MulAssign};
 use std::fmt::Debug;
 
-use crate::my_float::MyFloatTrait;
+use finite_element_method::my_float::MyFloatTrait;
 
 use extended_matrix::extended_matrix::ExtendedMatrix;
 use extended_matrix::functions::extract_element_value;

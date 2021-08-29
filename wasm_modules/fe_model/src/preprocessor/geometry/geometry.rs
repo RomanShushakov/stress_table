@@ -13,10 +13,10 @@ use crate::functions::log;
 
 pub struct Geometry<T, V>
 {
-    pub points: HashMap<T, Point<V>>,    // { point_number: Point }
-    pub lines: HashMap<T, Line<T>>,  // { line_number: Line }
-    pub deleted_points: HashMap<T, DeletedPoint<T, V>>, // { action_id: DeletedPoint }
-    pub deleted_lines: HashMap<T, Vec<DeletedLine<T>>>,  // { action_id: Vec<DeletedLine> }
+    pub points: HashMap<T, Point<V>>,                       // { point_number: Point }
+    pub lines: HashMap<T, Line<T>>,                         // { line_number: Line }
+    pub deleted_points: HashMap<T, DeletedPoint<T, V>>,     // { action_id: DeletedPoint }
+    pub deleted_lines: HashMap<T, Vec<DeletedLine<T>>>,     // { action_id: Vec<DeletedLine> }
 }
 
 

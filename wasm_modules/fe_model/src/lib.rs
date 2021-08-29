@@ -15,16 +15,17 @@ mod consts;
 
 mod functions;
 
-mod my_float;
-
 mod methods_for_preprocessor_data_handle;
+
+use types::{FEUInt, FEFloat};
+use consts::TOLERANCE;
 
 
 #[wasm_bindgen]
 pub struct FEModel
 {
-    preprocessor: Preprocessor,
-    fe_solver: FESolver,
+    preprocessor: Preprocessor<FEUInt, FEFloat>,
+    fe_solver: FESolver<FEUInt, FEFloat>,
     postprocessor: Postprocessor,
 }
 
@@ -34,8 +35,8 @@ impl FEModel
 {
     pub fn create() -> Self
     {
-        let preprocessor = Preprocessor::create();
-        let fe_solver = FESolver::create();
+        let preprocessor = Preprocessor::create(TOLERANCE);
+        let fe_solver = FESolver::create(TOLERANCE);
         let postprocessor = Postprocessor::create();
         FEModel { preprocessor, fe_solver, postprocessor }
     }

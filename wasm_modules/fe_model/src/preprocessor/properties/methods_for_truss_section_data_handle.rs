@@ -4,7 +4,7 @@ use serde::Serialize;
 use std::fmt::Debug;
 use std::hash::Hash;
 
-use crate::preprocessor::traits::ClearByActionIdTrait;
+use crate::traits::ClearByActionIdTrait;
 
 use crate::preprocessor::properties::properties::Properties;
 use crate::preprocessor::properties::truss_section::{TrussSection, DeletedTrussSection};

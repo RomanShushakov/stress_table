@@ -5,7 +5,7 @@ use std::fmt::Debug;
 use std::hash::Hash;
 use std::ops::{Add, Sub, Mul, Div, MulAssign, SubAssign, AddAssign, Rem};
 
-use crate::preprocessor::traits::ClearByActionIdTrait;
+use crate::traits::ClearByActionIdTrait;
 
 use crate::preprocessor::geometry::geometry::Geometry;
 

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::fmt::Debug;
 use std::hash::Hash;
 
-use crate::preprocessor::traits::ClearByActionIdTrait;
+use crate::traits::ClearByActionIdTrait;
 
 use crate::preprocessor::geometry::point::{Point, DeletedPoint};
 use crate::preprocessor::geometry::line::{Line, DeletedLine};

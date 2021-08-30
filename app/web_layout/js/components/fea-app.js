@@ -175,6 +175,8 @@ class FeaApp extends HTMLElement {
         this.addEventListener("update_beam_section_orientation_data_server_message",
             (event) => this.handleUpdateBeamSectionOrientationDataServerMessage(event));
 
+        this.addEventListener("add_node_server_message", (event) => this.handleAddNodeServerMessage(event));
+
         this.addEventListener("decreaseActionId", (_event) => this.handleDecreaseActionIdMessage());
 
         this.addEventListener("enableLinesSelectionMode", 
@@ -1000,6 +1002,17 @@ class FeaApp extends HTMLElement {
                     .updateBeamSectionOrientationDataInClient = beamSectionOrientationData;
             }
         } 
+        event.stopPropagation();
+    }
+
+    handleAddNodeServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;
+        }
+        const node = { 
+            number: event.detail.node_data.number, x: event.detail.node_data.x,
+            y: event.detail.node_data.y, z: event.detail.node_data.z };
+        this.shadowRoot.querySelector("fea-renderer").addNodeToRenderer = node;
         event.stopPropagation();
     }
 

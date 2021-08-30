@@ -132,6 +132,14 @@ class FeaRenderer extends HTMLElement {
         }
     }
 
+    set addNodeToRenderer(node) {
+        this.state.renderer.add_point_object(node.number, node.x, node.y, node.z, PointObjectType.Node);
+        if (this.state.isPaused === true)
+        {
+            this.state.renderer.tick();
+        }
+    }
+
     set objectInfo(objectInfo) {
         this.shadowRoot.querySelector(".object-info-field").innerHTML = `Object: ${objectInfo}`;
     }

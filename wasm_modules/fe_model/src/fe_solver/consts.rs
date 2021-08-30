@@ -1,0 +1,1 @@
+pub const ADD_NODE_EVENT_NAME: &str = "add_node_server_message";

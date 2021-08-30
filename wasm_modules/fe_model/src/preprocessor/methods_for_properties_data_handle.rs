@@ -4,7 +4,7 @@ use std::fmt::Debug;
 use serde::Serialize;
 use std::hash::Hash;
 
-use crate::preprocessor::traits::ClearByActionIdTrait;
+use crate::traits::ClearByActionIdTrait;
 
 use crate::Preprocessor;
 

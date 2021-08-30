@@ -4,7 +4,7 @@ use serde::Serialize;
 use std::fmt::Debug;
 use std::hash::Hash;
 
-use crate::preprocessor::traits::ClearByActionIdTrait;
+use crate::traits::ClearByActionIdTrait;
 
 use crate::preprocessor::geometry::geometry::Geometry;
 use crate::preprocessor::geometry::line::{Line, DeletedLine};

@@ -154,7 +154,8 @@ impl<T, V> Geometry<T, V>
             let detail = json!({ "point_data": { "number": deleted_point_number,
                     "x": x, "y": y, "z": z },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
-            dispatch_custom_event(detail, ADD_POINT_EVENT_NAME, EVENT_TARGET)?;
+            dispatch_custom_event(detail, ADD_POINT_EVENT_NAME,
+                EVENT_TARGET)?;
             self.points.insert(deleted_point_number, Point::create(x, y, z));
 
             let mut restored_line_numbers = Vec::new();
@@ -168,7 +169,8 @@ impl<T, V> Geometry<T, V>
                             "start_point_number": start_point_number,
                             "end_point_number": end_point_number },
                         "is_action_id_should_be_increased": is_action_id_should_be_increased });
-                    dispatch_custom_event(detail, ADD_LINE_EVENT_NAME, EVENT_TARGET)?;
+                    dispatch_custom_event(detail, ADD_LINE_EVENT_NAME,
+                        EVENT_TARGET)?;
                     self.lines.insert(deleted_line.extract_number(),
                         Line::create(start_point_number, end_point_number));
                     restored_line_numbers.push(number);

@@ -5,11 +5,14 @@ use std::hash::Hash;
 use std::fmt::Debug;
 use serde::Serialize;
 
+use finite_element_method::my_float::MyFloatTrait;
+
 use crate::preprocessor::geometry::geometry::Geometry;
 use crate::preprocessor::properties::properties::Properties;
 
 use crate::preprocessor::functions::get_line_points_coordinates;
-use finite_element_method::my_float::MyFloatTrait;
+
+use crate::PreprocessorMessage;
 
 
 pub struct Preprocessor<T, V>
@@ -69,7 +72,7 @@ impl<T, V> Preprocessor<T, V>
 
 
     pub fn update_point(&mut self, action_id: T, number: T, x: V, y: V,
-        z: V, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+        z: V, is_action_id_should_be_increased: bool) -> Result<PreprocessorMessage<T, V>, JsValue>
     {
         let line_numbers_for_update =
             self.geometry.extract_line_numbers_for_update_or_delete(number);
@@ -77,36 +80,39 @@ impl<T, V> Preprocessor<T, V>
         self.geometry.update_point(action_id, number, x, y, z,
             is_action_id_should_be_increased)?;
 
-        self.properties.update_lines_in_properties(action_id, line_numbers_for_update,
-            &self.geometry, get_line_points_coordinates, self.tolerance)?;
+        let preprocessor_message = self.properties.update_lines_in_properties(
+            action_id, line_numbers_for_update, &self.geometry,
+            get_line_points_coordinates, self.tolerance)?;
 
-        Ok(())
+        Ok(preprocessor_message)
     }
 
 
     pub fn delete_point(&mut self, action_id: T, number: T,
-        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+        is_action_id_should_be_increased: bool) -> Result<PreprocessorMessage<T, V>, JsValue>
     {
         let line_numbers_for_delete =
             self.geometry.extract_line_numbers_for_update_or_delete(number);
 
-        self.properties.delete_line_numbers_from_properties(action_id,
+        let preprocessor_message =
+            self.properties.delete_line_numbers_from_properties(action_id,
             &line_numbers_for_delete)?;
 
         self.geometry.delete_point(action_id, number, &line_numbers_for_delete,
             is_action_id_should_be_increased)?;
-        Ok(())
+        Ok(preprocessor_message)
     }
 
 
     pub fn restore_point(&mut self, action_id: T, number: T,
-        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+        is_action_id_should_be_increased: bool) -> Result<PreprocessorMessage<T, V>, JsValue>
     {
         let restored_line_numbers =
             self.geometry.restore_point(action_id, number, is_action_id_should_be_increased)?;
 
-        self.properties.restore_line_numbers_in_properties(action_id, &restored_line_numbers)?;
-        Ok(())
+        let preprocessor_message =
+            self.properties.restore_line_numbers_in_properties(action_id, &restored_line_numbers)?;
+        Ok(preprocessor_message)
     }
 
 

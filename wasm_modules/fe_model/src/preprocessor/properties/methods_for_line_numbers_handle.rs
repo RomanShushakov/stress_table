@@ -25,6 +25,8 @@ use finite_element_method::my_float::MyFloatTrait;
 use crate::consts::EVENT_TARGET;
 
 use crate::functions::{dispatch_custom_event, find_components_of_line_a_perpendicular_to_line_b};
+use crate::PreprocessorMessage;
+use std::collections::HashMap;
 
 
 impl<T, V> Properties<T, V>
@@ -36,9 +38,11 @@ impl<T, V> Properties<T, V>
              Sub<Output = V> + 'static,
 {
     pub fn delete_line_numbers_from_properties(&mut self, action_id: T,
-        line_numbers: &[T]) -> Result<(), JsValue>
+        line_numbers: &[T]) -> Result<PreprocessorMessage<T, V>, JsValue>
     {
         self.clear_by_action_id(action_id);
+
+        let mut old_assigned_properties_to_lines = HashMap::new();
 
         let mut changed_assigned_properties_to_lines = Vec::new();
 
@@ -60,6 +64,10 @@ impl<T, V> Properties<T, V>
                     assigned_property_to_lines.clone());
                 deleted_assigned_properties_to_lines.push(deleted_assigned_property_to_lines);
 
+                old_assigned_properties_to_lines.insert(
+                    assigned_property_to_lines_name.to_string(),
+                    assigned_property_to_lines.clone());
+
                 let detail = json!({ "assigned_properties_to_lines_data":
                     {
                         "name": assigned_property_to_lines_name,
@@ -77,6 +85,10 @@ impl<T, V> Properties<T, V>
                     ChangedAssignedPropertyToLines::create(assigned_property_to_lines_name,
                     assigned_property_to_lines.clone());
                 changed_assigned_properties_to_lines.push(changed_assigned_property_to_lines);
+
+                old_assigned_properties_to_lines.insert(
+                    assigned_property_to_lines_name.to_string(),
+                    assigned_property_to_lines.clone());
 
                 let old_line_numbers =
                     assigned_property_to_lines.extract_related_lines_numbers();
@@ -129,8 +141,21 @@ impl<T, V> Properties<T, V>
                 deleted_assigned_properties_to_lines);
         }
 
+        let optional_old_assigned_properties_to_lines =
+            {
+                if old_assigned_properties_to_lines.is_empty()
+                {
+                    None
+                }
+                else
+                {
+                    Some(old_assigned_properties_to_lines)
+                }
+            };
+
         self.logging();
-        Ok(())
+        Ok(PreprocessorMessage { optional_old_assigned_properties_to_lines,
+            optional_assigned_properties_names: None })
     }
 
 
@@ -183,9 +208,11 @@ impl<T, V> Properties<T, V>
 
 
     pub fn restore_line_numbers_in_properties(&mut self, action_id: T,
-        restored_line_numbers: &[T]) -> Result<(), JsValue>
+        restored_line_numbers: &[T]) -> Result<PreprocessorMessage<T, V>, JsValue>
     {
-        self.check_for_all_restored_line_numbers_contain(action_id, restored_line_numbers)?;
+        let mut assigned_properties_names = Vec::new();
+
+        // self.check_for_all_restored_line_numbers_contain(action_id, restored_line_numbers)?;
 
         if let Some(changed_assigned_properties_to_lines) =
             self.changed_assigned_properties_to_lines.remove(&action_id)
@@ -212,6 +239,8 @@ impl<T, V> Properties<T, V>
 
                 self.assigned_properties_to_lines.insert(assigned_property_to_lines_name.clone(),
                     assigned_property_to_lines);
+
+                assigned_properties_names.push(assigned_property_to_lines_name.clone());
 
                 let detail = json!({ "assigned_properties_to_lines_data":
                     {
@@ -250,6 +279,8 @@ impl<T, V> Properties<T, V>
                 self.assigned_properties_to_lines.insert(assigned_property_to_lines_name.clone(),
                     assigned_property_to_lines);
 
+                assigned_properties_names.push(assigned_property_to_lines_name.clone());
+
                 let detail = json!({ "assigned_properties_to_lines_data":
                     {
                         "name": assigned_property_to_lines_name,
@@ -263,8 +294,22 @@ impl<T, V> Properties<T, V>
                     EVENT_TARGET)?;
             }
         }
+
+        let optional_assigned_properties_names =
+            {
+                if assigned_properties_names.is_empty()
+                {
+                    None
+                }
+                else
+                {
+                    Some(assigned_properties_names)
+                }
+            };
+
         self.logging();
-        Ok(())
+        Ok(PreprocessorMessage { optional_old_assigned_properties_to_lines: None,
+            optional_assigned_properties_names })
     }
 
 
@@ -416,9 +461,12 @@ impl<T, V> Properties<T, V>
     pub fn update_lines_in_properties(&mut self, action_id: T, line_numbers: Vec<T>,
         geometry: &Geometry<T, V>,
         get_line_points_coordinates: fn(T, &Geometry<T, V>) -> Option<((V, V, V), (V, V, V))>,
-        tolerance: V) -> Result<(), JsValue>
+        tolerance: V) -> Result<PreprocessorMessage<T, V>, JsValue>
     {
         let error_message_header = "Properties: Update line in properties action";
+
+        let mut old_assigned_properties_to_lines = HashMap::new();
+        let mut assigned_properties_names = Vec::new();
 
         if let Some(changed_assigned_properties_to_lines) =
             self.changed_assigned_properties_to_lines.remove(&action_id)
@@ -437,9 +485,17 @@ impl<T, V> Properties<T, V>
                 let line_numbers = assigned_property_to_lines
                     .extract_related_lines_numbers();
 
-                let old_line_numbers = self.assigned_properties_to_lines
-                    .get(&assigned_property_to_lines_name).unwrap()
-                    .extract_related_lines_numbers();
+                // let old_line_numbers = self.assigned_properties_to_lines
+                //     .get(&assigned_property_to_lines_name).unwrap()
+                //     .extract_related_lines_numbers();
+
+                let old_assigned_property_to_lines =
+                    self.assigned_properties_to_lines.get(&assigned_property_to_lines_name)
+                        .unwrap();
+
+                old_assigned_properties_to_lines.insert(
+                    assigned_property_to_lines_name.to_string(),
+                    old_assigned_property_to_lines.clone());
 
                 let (_, _, cross_section_type) =
                         self.properties.get(&assigned_property_to_lines_name)
@@ -453,7 +509,7 @@ impl<T, V> Properties<T, V>
                         "name": assigned_property_to_lines_name,
                         "related_lines_data": related_lines_data,
                         "line_numbers": line_numbers,
-                        "old_line_numbers": old_line_numbers,
+                        // "old_line_numbers": old_line_numbers,
                         "cross_section_type": cross_section_type.as_str().to_lowercase(),
                     },
                     "is_action_id_should_be_increased": false });
@@ -540,6 +596,9 @@ impl<T, V> Properties<T, V>
                                             self.properties.get(assigned_property_to_lines_name)
                                                 .unwrap().extract_data();
 
+                                        assigned_properties_names.push(
+                                            assigned_property_to_lines_name.clone());
+
                                         let detail = json!({ "assigned_properties_to_lines_data":
                                             {
                                                 "name": assigned_property_to_lines_name,
@@ -574,7 +633,33 @@ impl<T, V> Properties<T, V>
                     changed_assigned_properties_to_lines);
             }
         }
+
+        let optional_old_assigned_properties_to_lines =
+            {
+                if old_assigned_properties_to_lines.is_empty()
+                {
+                    None
+                }
+                else
+                {
+                    Some(old_assigned_properties_to_lines)
+                }
+            };
+
+        let optional_assigned_properties_names =
+            {
+                if assigned_properties_names.is_empty()
+                {
+                    None
+                }
+                else
+                {
+                    Some(assigned_properties_names)
+                }
+            };
+
         self.logging();
-        Ok(())
+        Ok(PreprocessorMessage { optional_old_assigned_properties_to_lines,
+            optional_assigned_properties_names })
     }
 }

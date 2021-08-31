@@ -13,6 +13,8 @@ use finite_element_method::fem::finite_elements::fe_node::DeletedFENodeData;
 use finite_element_method::fem::finite_elements::finite_element::DeletedFEData;
 use finite_element_method::fem::global_analysis::fe_boundary_condition::DeletedBCData;
 
+use crate::preprocessor::properties::assigned_property::AssignedPropertyToLines;
+
 use crate::fe_solver::consts::ADD_NODE_EVENT_NAME;
 
 use crate::traits::ClearByActionIdTrait;
@@ -20,11 +22,21 @@ use crate::traits::ClearByActionIdTrait;
 use crate::consts::EVENT_TARGET;
 
 use crate::functions::{log, dispatch_custom_event};
+use crate::PreprocessorMessage;
+
+
+pub struct LineData<T>
+{
+    datum_nodes_numbers: Vec<T>,
+    optional_nodes_numbers: Option<Vec<T>>,
+    element_numbers: Vec<T>,
+}
 
 
 pub struct FESolver<T, V>
 {
     fem: FEModel<T, V>,
+    lines_data: HashMap<T, LineData<T>>,
     deleted_fe_nodes_data: HashMap<T, Vec<DeletedFENodeData<T, V>>>,    // { action_id: Vec<DeletedFENodeData> }
     deleted_fe_data: HashMap<T, Vec<DeletedFEData<T, V>>>,              // { action_id: Vec<DeletedFEData> }
     deleted_bcs_data: HashMap<T, Vec<DeletedBCData<T, V>>>,             // { action_id: Vec<DeletedBCData> }
@@ -42,10 +54,11 @@ impl<T, V> FESolver<T, V>
     pub fn create(tolerance: V) -> Self
     {
         let fem = FEModel::create(tolerance);
+        let lines_data = HashMap::new();
         let deleted_fe_nodes_data = HashMap::new();
         let deleted_fe_data = HashMap::new();
         let deleted_bcs_data = HashMap::new();
-        FESolver { fem, deleted_fe_nodes_data, deleted_fe_data, deleted_bcs_data }
+        FESolver { fem, lines_data, deleted_fe_nodes_data, deleted_fe_data, deleted_bcs_data }
     }
 
 
@@ -59,19 +72,25 @@ impl<T, V> FESolver<T, V>
     }
 
 
-    pub fn update_node(&mut self, action_id: T, number: T, x: V, y: V, z: V) -> Result<(), JsValue>
+    pub fn update_node(&mut self, action_id: T, number: T, x: V, y: V, z: V,
+        preprocessor_message: PreprocessorMessage<T, V>) -> Result<(), JsValue>
     {
         self.clear_by_action_id(action_id);
 
-        self.fem.update_node(number, x, y, z).map_err(|e| JsValue::from(e))?;
+        log(&format!("Preprocessor message: {:?}", preprocessor_message));
+
+        self.fem.update_node(number, x, y, z, None).map_err(|e| JsValue::from(e))?;
         self.logging()?;
         Ok(())
     }
 
 
-    pub fn delete_node(&mut self, action_id: T, number: T) -> Result<(), JsValue>
+    pub fn delete_node(&mut self, action_id: T, number: T,
+        preprocessor_message: PreprocessorMessage<T, V>) -> Result<(), JsValue>
     {
         self.clear_by_action_id(action_id);
+
+        log(&format!("Preprocessor message: {:?}", preprocessor_message));
 
         let (deleted_node_data,
             optional_deleted_fe_data,
@@ -92,8 +111,11 @@ impl<T, V> FESolver<T, V>
     }
 
 
-    pub fn restore_node(&mut self, action_id: T, number: T) -> Result<(), JsValue>
+    pub fn restore_node(&mut self, action_id: T, number: T,
+        preprocessor_message: PreprocessorMessage<T, V>) -> Result<(), JsValue>
     {
+        log(&format!("Preprocessor message: {:?}", preprocessor_message));
+
         if let Some(deleted_nodes_data) =
             self.deleted_fe_nodes_data.remove(&action_id)
         {

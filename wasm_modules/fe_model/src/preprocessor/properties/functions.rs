@@ -1,7 +1,5 @@
-use crate::types::FEUInt;
-
-
-pub fn line_numbers_same(lhs_line_numbers: &[FEUInt], rhs_line_numbers: &[FEUInt]) -> bool
+pub fn are_line_numbers_same<T>(lhs_line_numbers: &[T], rhs_line_numbers: &[T]) -> bool
+    where T: PartialEq + Eq,
 {
     for line_number in rhs_line_numbers
     {

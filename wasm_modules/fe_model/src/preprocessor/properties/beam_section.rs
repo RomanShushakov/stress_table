@@ -1,70 +1,74 @@
 use serde::Serialize;
 
-use crate::types::FEFloat;
-
 
 #[derive(Debug, Clone, Serialize)]
-pub struct BeamSection
+pub struct BeamSection<V>
 {
-    area: FEFloat,
-    i11: FEFloat,
-    i22: FEFloat,
-    i12: FEFloat,
-    it: FEFloat,
+    area: V,
+    i11: V,
+    i22: V,
+    i12: V,
+    it: V,
+    shear_factor: V,
 }
 
 
-impl BeamSection
+impl<V> BeamSection<V>
+    where V: Copy + PartialEq,
 {
-    pub fn create(area: FEFloat, i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat) -> Self
+    pub fn create(area: V, i11: V, i22: V, i12: V, it: V, shear_factor: V) -> Self
     {
-        BeamSection { area, i11, i22, i12, it }
+        BeamSection { area, i11, i22, i12, it, shear_factor }
     }
 
 
-    pub fn data_same(&self, area: FEFloat, i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat)
+    pub fn data_same(&self, area: V, i11: V, i22: V, i12: V, it: V, shear_factor: V)
         -> bool
     {
-        self.area == area && self.i11 == i11 && self.i22 == i22 && self.i12 == i12 && self.it == it
+        self.area == area && self.i11 == i11 && self.i22 == i22 && self.i12 == i12 &&
+        self.it == it && self.shear_factor == shear_factor
     }
 
 
-    pub fn update(&mut self, area: FEFloat, i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat)
+    pub fn update(&mut self, area: V, i11: V, i22: V, i12: V, it: V, shear_factor: V)
     {
         self.area = area;
         self.i11 = i11;
         self.i22 = i22;
         self.i12 = i12;
         self.it = it;
+        self.shear_factor = shear_factor;
     }
 
 
-    pub fn extract_data(&self) -> (FEFloat, FEFloat, FEFloat, FEFloat, FEFloat)
+    pub fn extract_data(&self) -> (V, V, V, V, V, V)
     {
-        (self.area, self.i11, self.i22, self.i12, self.it)
+        (self.area, self.i11, self.i22, self.i12, self.it, self.shear_factor)
     }
 }
 
 
 #[derive(Debug, Clone)]
-pub struct DeletedBeamSection
+pub struct DeletedBeamSection<V>
 {
     name: String,
-    beam_section: BeamSection,
+    beam_section: BeamSection<V>,
 }
 
 
-impl DeletedBeamSection
+impl<V> DeletedBeamSection<V>
+    where V: Copy + PartialEq,
 {
-    pub fn create(name: &str, beam_section: BeamSection) -> Self
+    pub fn create(name: &str, beam_section: BeamSection<V>) -> Self
     {
         DeletedBeamSection { name: String::from(name), beam_section }
     }
 
 
-    pub fn extract_name_and_data(&self) -> (&str, FEFloat, FEFloat, FEFloat, FEFloat, FEFloat)
+    pub fn extract_name_and_data(&self) -> (&str, V, V, V, V, V, V)
     {
-        let (area, i11, i22, i12, it) = self.beam_section.extract_data();
-        (&self.name, area, i11, i22, i12, it)
+        let (area, i11, i22, i12, it, shear_factor) =
+            self.beam_section.extract_data();
+        (&self.name, area, i11, i22, i12, it, shear_factor)
     }
 }

@@ -1,32 +1,31 @@
 use serde::Serialize;
 
-use crate::types::{FEUInt, FEFloat};
-
 
 #[derive(Debug, Copy, Clone, Serialize)]
-pub struct Point
+pub struct Point<V>
 {
-    x: FEFloat,
-    y: FEFloat,
-    z: FEFloat,
+    x: V,
+    y: V,
+    z: V,
 }
 
 
-impl Point
+impl<V> Point<V>
+    where V: Copy + PartialEq
 {
-    pub fn create(x: FEFloat, y: FEFloat, z: FEFloat) -> Self
+    pub fn create(x: V, y: V, z: V) -> Self
     {
         Point { x, y, z }
     }
 
 
-    pub fn coordinates_same(&self, x: FEFloat, y: FEFloat, z: FEFloat) -> bool
+    pub fn are_coordinates_same(&self, x: V, y: V, z: V) -> bool
     {
         self.x == x && self.y == y && self.z == z
     }
 
 
-    pub fn update(&mut self, x: FEFloat, y: FEFloat, z: FEFloat)
+    pub fn update(&mut self, x: V, y: V, z: V)
     {
         self.x = x;
         self.y = y;
@@ -34,7 +33,7 @@ impl Point
     }
 
 
-    pub fn extract_coordinates(&self) -> (FEFloat, FEFloat, FEFloat)
+    pub fn extract_coordinates(&self) -> (V, V, V)
     {
         (self.x, self.y, self.z)
     }
@@ -42,22 +41,24 @@ impl Point
 
 
 #[derive(Debug, Copy, Clone)]
-pub struct DeletedPoint
+pub struct DeletedPoint<T, V>
 {
-    number: FEUInt,
-    point: Point,
+    number: T,
+    point: Point<V>,
 }
 
 
-impl DeletedPoint
+impl<T, V> DeletedPoint<T, V>
+    where T: Copy,
+          V: Copy + PartialEq,
 {
-    pub fn create(number: FEUInt, point: Point) -> Self
+    pub fn create(number: T, point: Point<V>) -> Self
     {
         DeletedPoint { number, point }
     }
 
 
-    pub fn extract_number_and_coordinates(&self) -> (FEUInt, FEFloat, FEFloat, FEFloat)
+    pub fn extract_number_and_coordinates(&self) -> (T, V, V, V)
     {
         let (x, y, z) = self.point.extract_coordinates();
         (self.number, x, y, z)

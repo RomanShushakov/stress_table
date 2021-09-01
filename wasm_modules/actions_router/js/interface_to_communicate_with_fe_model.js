@@ -202,10 +202,11 @@ export function restoreTrussSectionInProperties(action_id, name, is_action_id_sh
     }
 }
 
-export function addBeamSectionToProperties(action_id, name, area, i11, i22, i12, it, is_action_id_should_be_increased) 
+export function addBeamSectionToProperties(action_id, name, area, i11, i22, i12, it, shear_factor, is_action_id_should_be_increased) 
 {
     const beamSectionData = { "action_id": action_id, "name": name, "area": area,
-        "i11": i11, "i22": i22, "i12": i12, "it": it, "is_action_id_should_be_increased": is_action_id_should_be_increased };
+        "i11": i11, "i22": i22, "i12": i12, "it": it, "shear_factor": shear_factor, 
+        "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
         communicatorWithFEModel.addBeamSectionToProperties = beamSectionData;
     } catch (error) {
@@ -213,10 +214,11 @@ export function addBeamSectionToProperties(action_id, name, area, i11, i22, i12,
     }
 }
 
-export function updateBeamSectionInProperties(action_id, name, area, i11, i22, i12, it, is_action_id_should_be_increased) 
+export function updateBeamSectionInProperties(action_id, name, area, i11, i22, i12, it, shear_factor, is_action_id_should_be_increased) 
 {
     const beamSectionData = { "action_id": action_id, "name": name, "area": area,
-        "i11": i11, "i22": i22, "i12": i12, "it": it, "is_action_id_should_be_increased": is_action_id_should_be_increased };
+        "i11": i11, "i22": i22, "i12": i12, "it": it, "shear_factor": shear_factor, 
+        "is_action_id_should_be_increased": is_action_id_should_be_increased };
     try {
         communicatorWithFEModel.updateBeamSectionInProperties = beamSectionData;
     } catch (error) {

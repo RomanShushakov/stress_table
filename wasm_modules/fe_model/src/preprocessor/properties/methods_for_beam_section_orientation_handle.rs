@@ -1,18 +1,16 @@
 use wasm_bindgen::prelude::*;
 use serde_json::json;
-use std::collections::HashMap;
-use std::convert::TryFrom;
+use serde::Serialize;
+use std::fmt::Debug;
+use std::hash::Hash;
+use std::ops::{Add, Sub, Mul, Div, MulAssign, SubAssign, AddAssign, Rem};
 
-use crate::preprocessor::traits::ClearByActionIdTrait;
+use crate::traits::ClearByActionIdTrait;
 
 use crate::preprocessor::geometry::geometry::Geometry;
 
 use crate::preprocessor::properties::properties::Properties;
-use crate::preprocessor::properties::beam_section_orientation::
-{
-    LocalAxis1Direction
-};
-use crate::preprocessor::properties::property::CrossSectionType;
+use crate::preprocessor::properties::beam_section_orientation::LocalAxis1Direction;
 use crate::preprocessor::properties::consts::
 {
     ADD_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_EVENT_NAME,
@@ -21,21 +19,25 @@ use crate::preprocessor::properties::consts::
     UPDATE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
 };
 
-use crate::types::{FEUInt, FEFloat};
+use finite_element_method::my_float::MyFloatTrait;
+use crate::preprocessor::functions::compare_with_tolerance;
 
 use crate::consts::EVENT_TARGET;
 
-use crate::functions::
-{
-    dispatch_custom_event, find_components_of_line_a_perpendicular_to_line_b,
-};
+use crate::functions::{dispatch_custom_event, find_components_of_line_a_perpendicular_to_line_b};
 use crate::preprocessor::properties::assigned_property::ChangedAssignedPropertyToLines;
 
 
-impl Properties
+impl<T, V> Properties<T, V>
+    where T: Copy + Debug + Serialize + Hash + Eq + PartialOrd + SubAssign + AddAssign +
+             Add<Output = T> + Rem<Output = T> + Div<Output = T> + Sub<Output = T> +
+             Mul<Output = T> + From<u8> + 'static,
+          V: Copy + Debug + Serialize + PartialEq + Into<f64> + From<f32> + Sub<Output = V> +
+             Mul<Output = V> + Add<Output = V> + MyFloatTrait + Div<Output = V> + PartialOrd +
+             MulAssign + SubAssign + AddAssign + 'static,
 {
-    pub fn add_beam_section_local_axis_1_direction(&mut self, action_id: FEUInt,
-        local_axis_1_direction: &[FEFloat], is_action_id_should_be_increased: bool)
+    pub fn add_beam_section_local_axis_1_direction(&mut self, action_id: T,
+        local_axis_1_direction: &[V], is_action_id_should_be_increased: bool)
         -> Result<(), JsValue>
     {
         self.clear_by_action_id(action_id);
@@ -68,8 +70,8 @@ impl Properties
     }
 
 
-    pub fn remove_beam_section_local_axis_1_direction(&mut self, action_id: FEUInt,
-        local_axis_1_direction: &[FEFloat], is_action_id_should_be_increased: bool)
+    pub fn remove_beam_section_local_axis_1_direction(&mut self, action_id: T,
+        local_axis_1_direction: &[V], is_action_id_should_be_increased: bool)
         -> Result<(), JsValue>
     {
         let error_message_header = "Properties: Remove beam section local axis 1 \
@@ -86,7 +88,7 @@ impl Properties
         {
             let mut changed_assigned_properties_to_lines_names = Vec::new();
 
-            let mut changed_assigned_properties_to_lines: Vec<ChangedAssignedPropertyToLines> =
+            let mut changed_assigned_properties_to_lines: Vec<ChangedAssignedPropertyToLines<T, V>> =
                 Vec::new();
 
             for (assigned_property_to_lines_name, assigned_property_to_lines) in
@@ -95,18 +97,17 @@ impl Properties
                 let old_related_lines_data =
                     assigned_property_to_lines.extract_related_lines_data();
 
-                for (line_number, existed_local_axis_1_direction) in
-                    old_related_lines_data.iter()
+                for old_related_line_data in old_related_lines_data.iter()
                 {
                     if let Some(local_axis_1_direction) =
-                        existed_local_axis_1_direction
+                        old_related_line_data.local_axis_1_direction()
                     {
-                        if *local_axis_1_direction == current_local_axis_1_direction
+                        if local_axis_1_direction == current_local_axis_1_direction
                         {
                             if changed_assigned_properties_to_lines
                                 .iter()
                                 .position(|changed_assigned_property_to_lines|
-                                    changed_assigned_property_to_lines.name_same(
+                                    changed_assigned_property_to_lines.is_name_same(
                                         assigned_property_to_lines_name))
                                 .is_none()
                             {
@@ -119,9 +120,9 @@ impl Properties
                                         assigned_property_to_lines.clone());
                                 changed_assigned_properties_to_lines.push(
                                     changed_assigned_property_to_lines);
-
                             }
-                            assigned_property_to_lines.update_related_lines_data(*line_number,
+                            assigned_property_to_lines.update_related_lines_data(
+                                old_related_line_data.line_number(),
                                 None);
                         }
                     }
@@ -187,8 +188,8 @@ impl Properties
     }
 
 
-    pub fn restore_beam_section_local_axis_1_direction(&mut self, action_id: FEUInt,
-        local_axis_1_direction: &[FEFloat], is_action_id_should_be_increased: bool)
+    pub fn restore_beam_section_local_axis_1_direction(&mut self, action_id: T,
+        local_axis_1_direction: &[V], is_action_id_should_be_increased: bool)
         -> Result<(), JsValue>
     {
         let error_message_header = "Properties: Restore beam section local axis 1 \
@@ -267,11 +268,11 @@ impl Properties
     }
 
 
-    pub fn update_beam_section_orientation_data(&mut self, action_id: FEUInt,
-        local_axis_1_direction: &[FEFloat], line_numbers: &[FEUInt],
-        is_action_id_should_be_increased: bool, geometry: &Geometry,
-        get_line_points_coordinates: fn(FEUInt, &Geometry) -> Option<((FEFloat, FEFloat, FEFloat),
-            (FEFloat, FEFloat, FEFloat))>) -> Result<(), JsValue>
+    pub fn update_beam_section_orientation_data(&mut self, action_id: T,
+        local_axis_1_direction: &[V], line_numbers: &[T],
+        is_action_id_should_be_increased: bool, geometry: &Geometry<T, V>,
+        get_line_points_coordinates: fn(T, &Geometry<T, V>) -> Option<((V, V, V),
+            (V, V, V))>, tolerance: V) -> Result<(), JsValue>
     {
         let error_message_header = "Properties: Update beam section orientation data action";
 
@@ -300,23 +301,27 @@ impl Properties
             if let Some((start_point_coordinates, end_point_coordinates)) =
                 get_line_points_coordinates(*line_number, geometry)
             {
-                let transformed_line = [
-                    end_point_coordinates.0 - start_point_coordinates.0,
-                    end_point_coordinates.1 - start_point_coordinates.1,
-                    end_point_coordinates.2 - start_point_coordinates.2
-                ];
+                let x = end_point_coordinates.0 - start_point_coordinates.0;
+                let y = end_point_coordinates.1 - start_point_coordinates.1;
+                let z = end_point_coordinates.2 - start_point_coordinates.2;
+
+                let transformed_line = [x, y, z];
+
                 let projection_of_beam_section_orientation_vector =
-                    find_components_of_line_a_perpendicular_to_line_b(
-                        &current_local_axis_1_direction.extract(), &transformed_line
+                    find_components_of_line_a_perpendicular_to_line_b::<T, V>(
+                        &current_local_axis_1_direction.extract(), &transformed_line,
+                        tolerance
                     )?;
-                let projection_of_beam_section_orientation_length = FEFloat::sqrt(
-                    projection_of_beam_section_orientation_vector[0].powi(2) +
-                        projection_of_beam_section_orientation_vector[1].powi(2) +
-                        projection_of_beam_section_orientation_vector[2].powi(2));
-                if projection_of_beam_section_orientation_length == 0 as FEFloat
+
+                let projection_of_beam_section_orientation_length = (
+                    projection_of_beam_section_orientation_vector[0].my_powi(2) +
+                        projection_of_beam_section_orientation_vector[1].my_powi(2) +
+                        projection_of_beam_section_orientation_vector[2].my_powi(2)).my_sqrt();
+
+                if projection_of_beam_section_orientation_length == V::from(0f32)
                 {
                     let error_message = format!("{}: Projection of local axis 1 direction \
-                        on line number {} equals to zero!", error_message_header, line_number);
+                        on line number {:?} equals to zero!", error_message_header, line_number);
                     return Err(JsValue::from(error_message));
                 }
             }
@@ -333,38 +338,40 @@ impl Properties
         {
             let mut is_assigned_property_to_lines_updated = false;
 
-            for (line_number, local_axis_1_direction) in
+            for related_line_data in
                 assigned_property_lo_lines.extract_related_lines_data().iter()
             {
-                if line_numbers.contains(line_number)
+                if line_numbers.contains(&related_line_data.line_number())
                 {
-                    if local_axis_1_direction.is_some()
+                    if related_line_data.local_axis_1_direction().is_some()
                     {
-                        if local_axis_1_direction.as_ref().unwrap() !=
+                        if related_line_data.local_axis_1_direction().as_ref().unwrap() !=
                             &current_local_axis_1_direction
                         {
-                            let error_message = &format!("{}: The line number {} has been \
+                            let error_message = &format!("{}: The line number {:?} has been \
                                 already used in local_axis_1_direction {:?}!",
-                                error_message_header, line_number,
-                                local_axis_1_direction.as_ref().unwrap().extract());
+                                error_message_header, related_line_data.line_number(),
+                                related_line_data.local_axis_1_direction().as_ref().unwrap().extract());
                             return Err(JsValue::from(error_message));
                         }
                     }
                     else
                     {
-                        assigned_property_lo_lines.update_related_lines_data(*line_number,
+                        assigned_property_lo_lines.update_related_lines_data(
+                            related_line_data.line_number(),
                             Some(current_local_axis_1_direction.clone()));
                         is_assigned_property_to_lines_updated = true;
                     }
                 }
                 else
                 {
-                    if local_axis_1_direction.is_some()
+                    if related_line_data.local_axis_1_direction().is_some()
                     {
-                        if local_axis_1_direction.as_ref().unwrap() == &current_local_axis_1_direction
+                        if related_line_data.local_axis_1_direction().as_ref().unwrap() ==
+                            &current_local_axis_1_direction
                         {
-                            assigned_property_lo_lines.update_related_lines_data(*line_number,
-                                None);
+                            assigned_property_lo_lines.update_related_lines_data(
+                                related_line_data.line_number(), None);
                             is_assigned_property_to_lines_updated = true;
                         }
                     }

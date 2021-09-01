@@ -1,17 +1,17 @@
 use wasm_bindgen::prelude::*;
+use std::fmt::Debug;
 
 use serde::Serialize;
 
-use crate::types::{FEUInt, FEFloat};
-
 
 #[derive(Debug, Clone, Serialize, PartialEq)]
-pub struct LocalAxis1Direction(FEFloat, FEFloat, FEFloat);
+pub struct LocalAxis1Direction<V>(V, V, V);
 
 
-impl LocalAxis1Direction
+impl<V> LocalAxis1Direction<V>
+    where V: Copy + Debug + Into<f64>,
 {
-    pub fn create(local_axis_1_direction: &[FEFloat]) -> Result<Self, JsValue>
+    pub fn create(local_axis_1_direction: &[V]) -> Result<Self, JsValue>
     {
         if local_axis_1_direction.len() != 3
         {
@@ -28,7 +28,7 @@ impl LocalAxis1Direction
     }
 
 
-    pub fn extract(&self) -> [FEFloat; 3]
+    pub fn extract(&self) -> [V; 3]
     {
         [self.0, self.1, self.2]
     }

@@ -1,10 +1,14 @@
+use std::hash::Hash;
+
 use crate::preprocessor::geometry::geometry::Geometry;
 
-use crate::types::{FEUInt, FEFloat};
+use finite_element_method::my_float::MyFloatTrait;
 
 
-pub fn get_line_points_coordinates(line_number: FEUInt, geometry: &Geometry)
-    -> Option<((FEFloat, FEFloat, FEFloat), (FEFloat, FEFloat, FEFloat))>
+pub fn get_line_points_coordinates<T, V>(line_number: T, geometry: &Geometry<T, V>)
+    -> Option<((V, V, V), (V, V, V))>
+    where T: Copy + Eq + Hash,
+          V: Copy + PartialEq,
 {
     if let Some(line) = geometry.lines.get(&line_number)
     {
@@ -35,5 +39,19 @@ pub fn get_line_points_coordinates(line_number: FEUInt, geometry: &Geometry)
     else
     {
         None
+    }
+}
+
+
+pub fn compare_with_tolerance<V>(value: V, tolerance: V) -> V
+    where V: MyFloatTrait + PartialOrd + From<f32>
+{
+    if value.my_abs() < tolerance
+    {
+        V::from(0f32)
+    }
+    else
+    {
+        value
     }
 }

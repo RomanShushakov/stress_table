@@ -1,7 +1,10 @@
 use wasm_bindgen::prelude::*;
 use serde_json::json;
+use serde::Serialize;
+use std::fmt::Debug;
+use std::hash::Hash;
 
-use crate::preprocessor::traits::ClearByActionIdTrait;
+use crate::traits::ClearByActionIdTrait;
 
 use crate::preprocessor::properties::properties::Properties;
 use crate::preprocessor::properties::material::{Material, DeletedMaterial};
@@ -10,17 +13,17 @@ use crate::preprocessor::properties::consts::
     ADD_MATERIAL_EVENT_NAME, UPDATE_MATERIAL_EVENT_NAME, DELETE_MATERIAL_EVENT_NAME,
 };
 
-use crate::types::{FEUInt, FEFloat};
-
 use crate::consts::EVENT_TARGET;
 
 use crate::functions::{dispatch_custom_event};
 
 
-impl Properties
+impl<T, V> Properties<T, V>
+    where T: Copy + Debug + Eq + Hash + Serialize + PartialOrd,
+          V: Copy + Debug + Serialize + PartialEq,
 {
-    pub fn add_material(&mut self, action_id: FEUInt, name: &str, young_modulus: FEFloat,
-        poisson_ratio: FEFloat, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    pub fn add_material(&mut self, action_id: T, name: &str, young_modulus: V,
+        poisson_ratio: V, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         let error_message_header = "Properties: Add material action";
 
@@ -34,10 +37,10 @@ impl Properties
         }
 
         if self.materials.values().position(|material|
-            material.data_same(young_modulus, poisson_ratio)).is_some()
+            material.is_data_same(young_modulus, poisson_ratio)).is_some()
         {
-            let error_message = &format!("{}: Material with Young's modulus {} and \
-                Poisson's ratio {} does already exist!", error_message_header,
+            let error_message = &format!("{}: Material with Young's modulus {:?} and \
+                Poisson's ratio {:?} does already exist!", error_message_header,
                 young_modulus, poisson_ratio);
             return Err(JsValue::from(error_message));
         }
@@ -53,18 +56,18 @@ impl Properties
     }
 
 
-    pub fn update_material(&mut self, action_id: FEUInt, name: &str, young_modulus: FEFloat,
-        poisson_ratio: FEFloat, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    pub fn update_material(&mut self, action_id: T, name: &str, young_modulus: V,
+        poisson_ratio: V, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         let error_message_header = "Properties: Update material action";
 
         self.clear_by_action_id(action_id);
 
         if self.materials.values().position(|material|
-            material.data_same(young_modulus, poisson_ratio)).is_some()
+            material.is_data_same(young_modulus, poisson_ratio)).is_some()
         {
-            let error_message = &format!("{}: Material with Young's modulus {} and \
-                Poisson's ratio {} does already exist!", error_message_header, young_modulus,
+            let error_message = &format!("{}: Material with Young's modulus {:?} and \
+                Poisson's ratio {:?} does already exist!", error_message_header, young_modulus,
                 poisson_ratio);
             return Err(JsValue::from(error_message));
         }
@@ -104,7 +107,7 @@ impl Properties
     }
 
 
-    pub fn delete_material(&mut self, action_id: FEUInt, name: &str,
+    pub fn delete_material(&mut self, action_id: T, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
 
@@ -138,7 +141,7 @@ impl Properties
     }
 
 
-    pub fn restore_material(&mut self, action_id: FEUInt, name: &str,
+    pub fn restore_material(&mut self, action_id: T, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         let error_message_header = "Properties: Restore material action";

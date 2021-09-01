@@ -1,7 +1,4 @@
-use crate::types::RendererFloat;
-
-
-pub const TOLERANCE: RendererFloat = 1e-6;
+pub const TOLERANCE: f32 = 1e-6;
 
 pub const EVENT_TARGET: &str = "fea-app";
 pub const SELECTED_POINTS_EVENT_MAME: &str = "selected_points";

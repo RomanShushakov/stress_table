@@ -1,7 +1,10 @@
 use wasm_bindgen::prelude::*;
 use serde_json::json;
+use serde::Serialize;
+use std::fmt::Debug;
+use std::hash::Hash;
 
-use crate::preprocessor::traits::ClearByActionIdTrait;
+use crate::traits::ClearByActionIdTrait;
 
 use crate::preprocessor::geometry::geometry::Geometry;
 use crate::preprocessor::geometry::line::{Line, DeletedLine};
@@ -10,24 +13,24 @@ use crate::preprocessor::geometry::consts::
     ADD_LINE_EVENT_NAME, UPDATE_LINE_EVENT_NAME, DELETE_LINE_EVENT_NAME,
 };
 
-use crate::types::{FEUInt};
-
 use crate::consts::EVENT_TARGET;
 
 use crate::functions::{dispatch_custom_event};
 
 
-impl Geometry
+impl<T, V> Geometry<T, V>
+    where T: Debug + Copy + Serialize + Hash + Eq + PartialOrd,
+          V: Debug + Copy,
 {
-    pub fn add_line(&mut self, action_id: FEUInt, number: FEUInt, start_point_number: FEUInt,
-        end_point_number: FEUInt, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    pub fn add_line(&mut self, action_id: T, number: T, start_point_number: T, end_point_number: T,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_by_action_id(action_id);
 
         if self.lines.contains_key(&number)
         {
             let error_message = &format!("Geometry: Add line action: Line with \
-                number {} does already exist!", number);
+                number {:?} does already exist!", number);
             return Err(JsValue::from(error_message));
         }
 
@@ -38,25 +41,26 @@ impl Geometry
             return Err(JsValue::from(error_message));
         }
 
-        if self.lines.values().position(|line|  line.start_and_end_points_same(
+        if self.lines.values().position(|line|  line.are_start_and_end_points_same(
             start_point_number, end_point_number)).is_some()
         {
             let error_message = &format!("Geometry: Add line action: Line with \
-                point number {} and {} does already exist!", start_point_number, end_point_number);
+                point number {:?} and {:?} does already exist!", start_point_number,
+                end_point_number);
             return Err(JsValue::from(error_message));
         }
 
         if !self.points.contains_key(&start_point_number)
         {
             let error_message = &format!("Geometry: Add line action: Point with \
-                number {} does not exist!", start_point_number);
+                number {:?} does not exist!", start_point_number);
             return Err(JsValue::from(error_message));
         }
 
         if !self.points.contains_key(&end_point_number)
         {
             let error_message = &format!("Geometry: Add line action: Point with \
-                number {} does not exist!", end_point_number);
+                number {:?} does not exist!", end_point_number);
             return Err(JsValue::from(error_message));
         }
 
@@ -71,8 +75,8 @@ impl Geometry
     }
 
 
-    pub fn update_line(&mut self, action_id: FEUInt, number: FEUInt, start_point_number: FEUInt,
-        end_point_number: FEUInt, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    pub fn update_line(&mut self, action_id: T, number: T, start_point_number: T,
+        end_point_number: T, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_by_action_id(action_id);
 
@@ -83,23 +87,24 @@ impl Geometry
             return Err(JsValue::from(error_message));
         }
 
-        if self.lines.values().position(|line| line.start_and_end_points_same(
+        if self.lines.values().position(|line| line.are_start_and_end_points_same(
             start_point_number, end_point_number)).is_some()
         {
             let error_message = &format!("Geometry: Update line action: Line with \
-                point number {} and {} does already exist!", start_point_number, end_point_number);
+                point number {:?} and {:?} does already exist!", start_point_number,
+                end_point_number);
             return Err(JsValue::from(error_message));
         }
         if !self.points.contains_key(&start_point_number)
         {
             let error_message = &format!("Geometry: Update line action: Point with \
-                number {} does not exist!", start_point_number);
+                number {:?} does not exist!", start_point_number);
             return Err(JsValue::from(error_message));
         }
         if !self.points.contains_key(&end_point_number)
         {
             let error_message = &format!("Geometry: Update line action: Point with \
-                number {} does not exist!", end_point_number);
+                number {:?} does not exist!", end_point_number);
             return Err(JsValue::from(error_message));
         }
         if let Some(line) = self.lines.get_mut(&number)
@@ -113,7 +118,7 @@ impl Geometry
         else
         {
             let error_message = &format!("Geometry: Update line action: Line with \
-                number {} does not exist!", number);
+                number {:?} does not exist!", number);
             return Err(JsValue::from(error_message));
         }
         self.logging();
@@ -121,8 +126,8 @@ impl Geometry
     }
 
 
-    pub fn delete_line(&mut self, action_id: FEUInt, number: FEUInt,
-        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    pub fn delete_line(&mut self, action_id: T, number: T, is_action_id_should_be_increased: bool)
+        -> Result<(), JsValue>
     {
         self.clear_by_action_id(action_id);
 
@@ -139,14 +144,14 @@ impl Geometry
         else
         {
             let error_message = &format!("Geometry: Delete line action: Line with \
-                number {} does not exist!", number);
+                number {:?} does not exist!", number);
             return Err(JsValue::from(error_message));
         }
     }
 
 
-    pub fn restore_line(&mut self, action_id: FEUInt, number: FEUInt,
-        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    pub fn restore_line(&mut self, action_id: T, number: T, is_action_id_should_be_increased: bool)
+        -> Result<(), JsValue>
     {
         if let Some(deleted_lines) = self.deleted_lines.remove(&action_id)
         {
@@ -156,7 +161,7 @@ impl Geometry
                     number of lines");
                 return Err(JsValue::from(error_message));
             }
-            if !deleted_lines[0].number_same(number) || self.lines.contains_key(&number)
+            if !deleted_lines[0].is_number_same(number) || self.lines.contains_key(&number)
             {
                 let error_message = &format!("Geometry: Restore line action: Incorrect \
                     line number");
@@ -175,14 +180,13 @@ impl Geometry
         else
         {
             let error_message = &format!("Geometry: Restore line action: Line with \
-                number {} does not exist!", number);
+                number {:?} does not exist!", number);
             return Err(JsValue::from(error_message));
         }
     }
 
 
-    pub fn extract_line_info_from_geometry(&mut self, number: FEUInt)
-        -> Result<(FEUInt, FEUInt), JsValue>
+    pub fn extract_line_info_from_geometry(&mut self, number: T) -> Result<(T, T), JsValue>
     {
         return if let Some(line) = self.lines.get(&number)
         {
@@ -192,7 +196,7 @@ impl Geometry
         else
         {
             let error_message = &format!("Geometry: Show line info action: Line with \
-                number {} does not exist!", number);
+                number {:?} does not exist!", number);
             Err(JsValue::from(error_message))
         }
     }

@@ -1,10 +1,9 @@
 use wasm_bindgen::prelude::*;
-use serde_json::json;
 use std::collections::HashMap;
+use std::fmt::Debug;
+use std::hash::Hash;
 
-use crate::preprocessor::traits::ClearByActionIdTrait;
-
-use crate::preprocessor::geometry::geometry::Geometry;
+use crate::traits::ClearByActionIdTrait;
 
 use crate::preprocessor::properties::material::{Material, DeletedMaterial};
 use crate::preprocessor::properties::truss_section::{TrussSection, DeletedTrussSection};
@@ -17,33 +16,32 @@ use crate::preprocessor::properties::assigned_property::
 };
 use crate::preprocessor::properties::beam_section_orientation::{LocalAxis1Direction};
 
-use crate::types::{FEUInt, FEFloat};
-
 use crate::functions::log;
 
 
-pub struct Properties
+pub struct Properties<T, V>
 {
-    pub materials: HashMap<String, Material>,   // { material_name: Material }
-    pub deleted_materials: HashMap<FEUInt, DeletedMaterial>,   // { action_id: DeletedMaterial }
-    pub truss_sections: HashMap<String, TrussSection>,  // { truss_section_name: TrussSection }
-    pub deleted_truss_sections: HashMap<FEUInt, DeletedTrussSection>,  // { action_id: DeletedTrussSection }
-    pub beam_sections: HashMap<String, BeamSection>,    // { beam_section_name: BeamSection }
-    pub deleted_beam_sections: HashMap<FEUInt, DeletedBeamSection>,  // { action_id: DeletedBeamSection }
-    pub properties: HashMap<String, Property>,  // { property_name: Property }
-    pub deleted_properties: HashMap<FEUInt, Vec<DeletedProperty>>,  // { action_id: Vec<DeletedProperty> }
-    pub assigned_properties_to_lines: HashMap<String, AssignedPropertyToLines>, // { property_name: AssignedProperties }
-    pub deleted_assigned_properties_to_lines: HashMap<FEUInt, Vec<DeletedAssignedPropertyToLines>>,    // { action_id: Vec<DeletedAssignedPropertyToLines> }
-    pub changed_assigned_properties_to_lines: HashMap<FEUInt, Vec<ChangedAssignedPropertyToLines>>,    // { action_id: Vec<ChangedAssignedPropertyToLines> }
-
-    pub beam_sections_local_axis_1_directions: Vec<LocalAxis1Direction>,
-    pub deleted_beam_sections_local_axis_1_directions: HashMap<FEUInt, LocalAxis1Direction>,   // { action_id: LocalAxis1Direction }
+    pub materials: HashMap<String, Material<V>>,                                                        // { material_name: Material }
+    pub deleted_materials: HashMap<T, DeletedMaterial<V>>,                                              // { action_id: DeletedMaterial }
+    pub truss_sections: HashMap<String, TrussSection<V>>,                                               // { truss_section_name: TrussSection }
+    pub deleted_truss_sections: HashMap<T, DeletedTrussSection<V>>,                                     // { action_id: DeletedTrussSection }
+    pub beam_sections: HashMap<String, BeamSection<V>>,                                                 // { beam_section_name: BeamSection }
+    pub deleted_beam_sections: HashMap<T, DeletedBeamSection<V>>,                                       // { action_id: DeletedBeamSection }
+    pub properties: HashMap<String, Property>,                                                          // { property_name: Property }
+    pub deleted_properties: HashMap<T, Vec<DeletedProperty>>,                                           // { action_id: Vec<DeletedProperty> }
+    pub assigned_properties_to_lines: HashMap<String, AssignedPropertyToLines<T, V>>,                   // { property_name: AssignedProperties }
+    pub deleted_assigned_properties_to_lines: HashMap<T, Vec<DeletedAssignedPropertyToLines<T, V>>>,    // { action_id: Vec<DeletedAssignedPropertyToLines> }
+    pub changed_assigned_properties_to_lines: HashMap<T, Vec<ChangedAssignedPropertyToLines<T, V>>>,    // { action_id: Vec<ChangedAssignedPropertyToLines> }
+    pub beam_sections_local_axis_1_directions: Vec<LocalAxis1Direction<V>>,
+    pub deleted_beam_sections_local_axis_1_directions: HashMap<T, LocalAxis1Direction<V>>,              // { action_id: LocalAxis1Direction }
 }
 
 
-impl Properties
+impl<T, V> Properties<T, V>
+    where T: Copy + Debug + Eq + Hash + PartialOrd,
+          V: Copy + Debug,
 {
-    pub fn create() -> Properties
+    pub fn create() -> Properties<T, V>
     {
         let materials = HashMap::new();
         let deleted_materials = HashMap::new();
@@ -71,12 +69,12 @@ impl Properties
     }
 
 
-    pub fn clear_deleted_materials_by_action_id(&mut self, action_id: FEUInt)
+    pub fn clear_deleted_materials_by_action_id(&mut self, action_id: T)
     {
         for action_id in self.deleted_materials.clone()
             .keys()
             .filter(|deleted_action_id| **deleted_action_id >= action_id)
-            .collect::<Vec<&FEUInt>>()
+            .collect::<Vec<&T>>()
             .iter()
         {
             let _ = self.deleted_materials.remove(&action_id);
@@ -84,12 +82,12 @@ impl Properties
     }
 
 
-    pub fn clear_deleted_truss_sections_by_action_id(&mut self, action_id: FEUInt)
+    pub fn clear_deleted_truss_sections_by_action_id(&mut self, action_id: T)
     {
         for action_id in self.deleted_truss_sections.clone()
             .keys()
             .filter(|deleted_action_id| **deleted_action_id >= action_id)
-            .collect::<Vec<&FEUInt>>()
+            .collect::<Vec<&T>>()
             .iter()
         {
             let _ = self.deleted_truss_sections.remove(&action_id);
@@ -97,12 +95,12 @@ impl Properties
     }
 
 
-    pub fn clear_deleted_beam_sections_by_action_id(&mut self, action_id: FEUInt)
+    pub fn clear_deleted_beam_sections_by_action_id(&mut self, action_id: T)
     {
         for action_id in self.deleted_beam_sections.clone()
             .keys()
             .filter(|deleted_action_id| **deleted_action_id >= action_id)
-            .collect::<Vec<&FEUInt>>()
+            .collect::<Vec<&T>>()
             .iter()
         {
             let _ = self.deleted_beam_sections.remove(&action_id);
@@ -110,12 +108,12 @@ impl Properties
     }
 
 
-    pub fn clear_deleted_properties_by_action_id(&mut self, action_id: FEUInt)
+    pub fn clear_deleted_properties_by_action_id(&mut self, action_id: T)
     {
         for action_id in self.deleted_properties.clone()
             .keys()
             .filter(|deleted_action_id| **deleted_action_id >= action_id)
-            .collect::<Vec<&FEUInt>>()
+            .collect::<Vec<&T>>()
             .iter()
         {
             let _ = self.deleted_properties.remove(&action_id);
@@ -123,12 +121,12 @@ impl Properties
     }
 
 
-    pub fn clear_deleted_assigned_properties_to_lines_by_action_id(&mut self, action_id: FEUInt)
+    pub fn clear_deleted_assigned_properties_to_lines_by_action_id(&mut self, action_id: T)
     {
         for action_id in self.deleted_assigned_properties_to_lines.clone()
             .keys()
             .filter(|deleted_action_id| **deleted_action_id >= action_id)
-            .collect::<Vec<&FEUInt>>()
+            .collect::<Vec<&T>>()
             .iter()
         {
             let _ = self.deleted_assigned_properties_to_lines.remove(&action_id);
@@ -136,12 +134,12 @@ impl Properties
     }
 
 
-    pub fn clear_changed_assigned_properties_to_lines_by_action_id(&mut self, action_id: FEUInt)
+    pub fn clear_changed_assigned_properties_to_lines_by_action_id(&mut self, action_id: T)
     {
         for action_id in self.changed_assigned_properties_to_lines.clone()
             .keys()
             .filter(|deleted_action_id| **deleted_action_id >= action_id)
-            .collect::<Vec<&FEUInt>>()
+            .collect::<Vec<&T>>()
             .iter()
         {
             let _ = self.changed_assigned_properties_to_lines.remove(&action_id);
@@ -149,12 +147,12 @@ impl Properties
     }
 
 
-    pub fn clear_deleted_beam_local_axis_1_direction_by_action_id(&mut self, action_id: FEUInt)
+    pub fn clear_deleted_beam_local_axis_1_direction_by_action_id(&mut self, action_id: T)
     {
         for action_id in self.deleted_beam_sections_local_axis_1_directions.clone()
             .keys()
             .filter(|deleted_action_id| **deleted_action_id >= action_id)
-            .collect::<Vec<&FEUInt>>()
+            .collect::<Vec<&T>>()
             .iter()
         {
             let _ = self.deleted_beam_sections_local_axis_1_directions.remove(&action_id);
@@ -162,7 +160,7 @@ impl Properties
     }
 
 
-    pub fn extract_line_info_from_properties(&mut self, number: FEUInt) -> Option<(String, String, String)>
+    pub fn extract_line_info_from_properties(&mut self, number: T) -> Option<(String, String, String)>
     {
         for (assigned_property_to_lines_name, assigned_property_to_lines) in
             self.assigned_properties_to_lines.iter()
@@ -199,7 +197,7 @@ impl Properties
         -> Result<(), JsValue>
     {
         if self.properties.values().position(|property|
-            property.data_same(material_name, cross_section_name, cross_section_type))
+            property.is_data_same(material_name, cross_section_name, cross_section_type))
                 .is_some()
         {
             let error_message = &format!("{}: Property with Material name {}, \
@@ -213,11 +211,11 @@ impl Properties
 
 
     pub fn check_for_the_similar_line_numbers_in_assigned_properties_to_lines_existence(&self,
-        line_numbers: &[FEUInt], error_message_header: &str) -> Result<(), JsValue>
+        line_numbers: &[T], error_message_header: &str) -> Result<(), JsValue>
     {
         if self.assigned_properties_to_lines.values()
             .position(|existed_assigned_property_to_lines|
-                existed_assigned_property_to_lines.line_numbers_same(line_numbers))
+                existed_assigned_property_to_lines.are_line_numbers_same(line_numbers))
             .is_some()
         {
             let error_message = &format!("{}: Assigned property to lines with line \
@@ -229,7 +227,7 @@ impl Properties
 
 
     pub fn check_for_line_numbers_intersection_in_assigned_properties_to_lines(&self,
-        assigned_property_to_lines_name: &str, line_numbers: &[FEUInt], error_message_header: &str)
+        assigned_property_to_lines_name: &str, line_numbers: &[T], error_message_header: &str)
         -> Result<(), JsValue>
     {
         if self.assigned_properties_to_lines.iter()
@@ -290,7 +288,7 @@ impl Properties
     }
 
 
-    pub fn check_the_correspondence_of_cross_section_type_to_beam(&self, line_number: &FEUInt,
+    pub fn check_the_correspondence_of_cross_section_type_to_beam(&self, line_number: &T,
         error_message_header: &str) -> Result<(), JsValue>
     {
         for (assigned_property_to_lines_name, assigned_property_to_lines) in
@@ -317,7 +315,7 @@ impl Properties
             }
         }
         let error_message = &format!("{}: There are no assigned property which \
-            contains line number {}!", error_message_header, line_number);
+            contains line number {:?}!", error_message_header, line_number);
         Err(JsValue::from(error_message))
     }
 
@@ -356,9 +354,11 @@ impl Properties
 }
 
 
-impl ClearByActionIdTrait for Properties
+impl<T, V> ClearByActionIdTrait<T> for Properties<T, V>
+    where T: Copy + Debug + Eq + Hash + PartialOrd,
+          V: Copy + Debug,
 {
-    fn clear_by_action_id(&mut self, action_id: FEUInt)
+    fn clear_by_action_id(&mut self, action_id: T)
     {
         self.clear_deleted_materials_by_action_id(action_id);
         self.clear_deleted_truss_sections_by_action_id(action_id);

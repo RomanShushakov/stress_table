@@ -1,4 +1,3 @@
-pub mod traits;
 pub mod preprocessor;
 pub mod geometry;
 pub mod properties;

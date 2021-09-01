@@ -39,13 +39,13 @@ extern "C"
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
     #[wasm_bindgen(js_name = addBeamSectionToProperties, catch)]
-    pub fn add_beam_section_to_properties(action_id: FEUInt, name: &str,
-        area: FEFloat, i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat,
+    pub fn add_beam_section_to_properties(action_id: FEUInt, name: &str, area: FEFloat,
+        i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat, shear_factor: FEFloat,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
     #[wasm_bindgen(js_name = updateBeamSectionInProperties, catch)]
-    pub fn update_beam_section_in_properties(action_id: FEUInt, name: &str,
-        area: FEFloat, i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat,
+    pub fn update_beam_section_in_properties(action_id: FEUInt, name: &str, area: FEFloat,
+        i11: FEFloat, i22: FEFloat, i12: FEFloat, it: FEFloat, shear_factor: FEFloat,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
     #[wasm_bindgen(js_name = deleteBeamSectionFromProperties, catch)]

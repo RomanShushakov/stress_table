@@ -132,6 +132,14 @@ class FeaRenderer extends HTMLElement {
         }
     }
 
+    set addNodeToRenderer(node) {
+        this.state.renderer.add_point_object(node.number, node.x, node.y, node.z, PointObjectType.Node);
+        if (this.state.isPaused === true)
+        {
+            this.state.renderer.tick();
+        }
+    }
+
     set objectInfo(objectInfo) {
         this.shadowRoot.querySelector(".object-info-field").innerHTML = `Object: ${objectInfo}`;
     }
@@ -140,6 +148,20 @@ class FeaRenderer extends HTMLElement {
         this.props.canvasWidth = size.width;
         this.props.canvasHeight = size.height;
         this.updateCanvasSize();
+    }
+
+    set toggleGeometryVisibility(_data) {
+        this.state.renderer.toggle_geometry_visibility();
+        if (this.state.isPaused === true) {
+            this.state.renderer.tick();
+        }
+    }
+
+    set toggleMeshVisibility(_data) {
+        this.state.renderer.toggle_mesh_visibility();
+        if (this.state.isPaused === true) {
+            this.state.renderer.tick();
+        }
     }
 
     set selectedView(view) {

@@ -1,30 +1,45 @@
 use wasm_bindgen::prelude::*;
 use serde_json::json;
+use std::ops::{Add, Sub, Mul, Div, Rem, AddAssign, SubAssign, MulAssign};
+use std::hash::Hash;
+use std::fmt::Debug;
+use serde::Serialize;
+
+use finite_element_method::my_float::MyFloatTrait;
 
 use crate::preprocessor::geometry::geometry::Geometry;
 use crate::preprocessor::properties::properties::Properties;
 
-use crate::types::FEUInt;
+use crate::preprocessor::functions::get_line_points_coordinates;
+
+use crate::PreprocessorMessage;
 
 
-pub struct Preprocessor
+pub struct Preprocessor<T, V>
 {
-    pub geometry: Geometry,
-    pub properties: Properties,
+    pub geometry: Geometry<T, V>,
+    pub properties: Properties<T, V>,
+    pub tolerance: V,
 }
 
 
-impl Preprocessor
+impl<T, V> Preprocessor<T, V>
+    where T: Copy + Add<Output = T> + Sub<Output = T> + Mul<Output = T> + Div<Output = T> +
+             Rem<Output = T> + AddAssign + Eq + From<u8> + Hash + Debug + Serialize + PartialOrd +
+             SubAssign + 'static,
+          V: Copy + Add<Output = V> + Sub<Output = V> + Mul<Output = V> + Div<Output = V> +
+             Debug + Serialize + From<f32> + Into<f64> + MyFloatTrait + PartialEq + MulAssign +
+             AddAssign + SubAssign + 'static,
 {
-    pub fn create() -> Self
+    pub fn create(tolerance: V) -> Self
     {
-        let geometry = Geometry::create();
-        let properties = Properties::create();
-        Preprocessor { geometry, properties }
+        let geometry = Geometry::<T, V>::create();
+        let properties = Properties::<T, V>::create();
+        Preprocessor { geometry, properties, tolerance }
     }
 
 
-    pub fn show_line_info(&mut self, number: FEUInt, handler: js_sys::Function) -> Result<(), JsValue>
+    pub fn show_line_info(&mut self, number: T, handler: js_sys::Function) -> Result<(), JsValue>
     {
         let (start_point_number, end_point_number) =
             self.geometry.extract_line_info_from_geometry(number)?;
@@ -56,33 +71,65 @@ impl Preprocessor
     }
 
 
-    pub fn delete_point(&mut self, action_id: FEUInt, number: FEUInt,
-        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    pub fn update_point(&mut self, action_id: T, number: T, x: V, y: V,
+        z: V, is_action_id_should_be_increased: bool) -> Result<PreprocessorMessage<T, V>, JsValue>
+    {
+        let line_numbers_for_update =
+            self.geometry.extract_line_numbers_for_update_or_delete(number);
+
+        self.geometry.update_point(action_id, number, x, y, z,
+            is_action_id_should_be_increased)?;
+
+        let preprocessor_message = self.properties.update_lines_in_properties(
+            action_id, line_numbers_for_update, &self.geometry,
+            get_line_points_coordinates, self.tolerance)?;
+
+        Ok(preprocessor_message)
+    }
+
+
+    pub fn delete_point(&mut self, action_id: T, number: T,
+        is_action_id_should_be_increased: bool) -> Result<PreprocessorMessage<T, V>, JsValue>
     {
         let line_numbers_for_delete =
-            self.geometry.extract_line_numbers_for_delete(number);
+            self.geometry.extract_line_numbers_for_update_or_delete(number);
 
-        self.properties.delete_line_numbers_from_properties(action_id,
+        let preprocessor_message =
+            self.properties.delete_line_numbers_from_properties(action_id,
             &line_numbers_for_delete)?;
 
         self.geometry.delete_point(action_id, number, &line_numbers_for_delete,
             is_action_id_should_be_increased)?;
-        Ok(())
+        Ok(preprocessor_message)
     }
 
 
-    pub fn restore_point(&mut self, action_id: FEUInt, number: FEUInt,
-        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    pub fn restore_point(&mut self, action_id: T, number: T,
+        is_action_id_should_be_increased: bool) -> Result<PreprocessorMessage<T, V>, JsValue>
     {
         let restored_line_numbers =
             self.geometry.restore_point(action_id, number, is_action_id_should_be_increased)?;
 
-        self.properties.restore_line_numbers_in_properties(action_id, &restored_line_numbers)?;
+        let preprocessor_message =
+            self.properties.restore_line_numbers_in_properties(action_id, restored_line_numbers)?;
+        Ok(preprocessor_message)
+    }
+
+
+    pub fn update_line(&mut self, action_id: T, number: T, start_point_number: T,
+        end_point_number: T, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.geometry.update_line(action_id, number, start_point_number, end_point_number,
+            is_action_id_should_be_increased)?;
+
+        self.properties.update_line_in_properties(action_id, number, &self.geometry,
+            get_line_points_coordinates, self.tolerance)?;
+
         Ok(())
     }
 
 
-    pub fn delete_line(&mut self, action_id: FEUInt, number: FEUInt,
+    pub fn delete_line(&mut self, action_id: T, number: T,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.properties.delete_line_numbers_from_properties(action_id, &vec![number])?;
@@ -92,13 +139,13 @@ impl Preprocessor
     }
 
 
-    pub fn restore_line(&mut self, action_id: FEUInt, number: FEUInt,
+    pub fn restore_line(&mut self, action_id: T, number: T,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.geometry.restore_line(action_id, number, is_action_id_should_be_increased)?;
 
         self.properties.restore_line_numbers_in_properties(action_id,
-            &vec![number])?;
+            vec![number])?;
         Ok(())
     }
 }

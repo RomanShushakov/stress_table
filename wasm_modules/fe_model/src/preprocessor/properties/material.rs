@@ -1,38 +1,37 @@
 use serde::Serialize;
 
-use crate::types::FEFloat;
-
 
 #[derive(Debug, Clone, Serialize)]
-pub struct Material
+pub struct Material<V>
 {
-    young_modulus: FEFloat,
-    poisson_ratio: FEFloat
+    young_modulus: V,
+    poisson_ratio: V,
 }
 
 
-impl Material
+impl<V> Material<V>
+    where V: Copy + PartialEq,
 {
-    pub fn create(young_modulus: FEFloat, poisson_ratio: FEFloat) -> Self
+    pub fn create(young_modulus: V, poisson_ratio: V) -> Self
     {
         Material { young_modulus, poisson_ratio }
     }
 
 
-    pub fn data_same(&self, young_modulus: FEFloat, poisson_ration: FEFloat) -> bool
+    pub fn is_data_same(&self, young_modulus: V, poisson_ration: V) -> bool
     {
         self.young_modulus == young_modulus && self.poisson_ratio == poisson_ration
     }
 
 
-    pub fn update(&mut self, young_modulus: FEFloat, poisson_ration: FEFloat)
+    pub fn update(&mut self, young_modulus: V, poisson_ration: V)
     {
         self.young_modulus = young_modulus;
         self.poisson_ratio = poisson_ration;
     }
 
 
-    pub fn extract_data(&self) -> (FEFloat, FEFloat)
+    pub fn extract_data(&self) -> (V, V)
     {
         (self.young_modulus, self.poisson_ratio)
     }
@@ -40,22 +39,23 @@ impl Material
 
 
 #[derive(Debug, Clone)]
-pub struct DeletedMaterial
+pub struct DeletedMaterial<V>
 {
     name: String,
-    material: Material,
+    material: Material<V>,
 }
 
 
-impl DeletedMaterial
+impl<V> DeletedMaterial<V>
+    where V: Copy + PartialEq,
 {
-    pub fn create(name: &str, material: Material) -> Self
+    pub fn create(name: &str, material: Material<V>) -> Self
     {
         DeletedMaterial { name: String::from(name), material }
     }
 
 
-    pub fn extract_name_and_data(&self) -> (&str, FEFloat, FEFloat)
+    pub fn extract_name_and_data(&self) -> (&str, V, V)
     {
         let (young_modulus, poisson_ratio) = self.material.extract_data();
         (&self.name, young_modulus, poisson_ratio)

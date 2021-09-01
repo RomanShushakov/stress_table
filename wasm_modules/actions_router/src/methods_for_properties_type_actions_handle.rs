@@ -272,10 +272,17 @@ impl ActionsRouter
             .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Add beam section action: \
                 It value could not be converted to FEFloat!")))?;
+        let shear_factor = beam_section_data["shear_factor"].as_str()
+            .ok_or(JsValue::from("Actions router: Add beam section action: \
+                Shear factor value could not be extracted!"))?
+            .parse::<FEFloat>()
+            .or(Err(JsValue::from("Actions router: Add beam section action: \
+                Shear factor value could not be converted to FEFloat!")))?;
         self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
         let action_type = ActionType::from(PropertiesActionType::AddBeamSection(
-                name, area, i11, i22, i12, it, is_action_id_should_be_increased));
+                name, area, i11, i22, i12, it,
+                shear_factor, is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
         let add_to_active_actions = true;
         self.current_action = Some((action, add_to_active_actions));
@@ -316,6 +323,11 @@ impl ActionsRouter
             .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Update beam section action: \
                 Beam section old It value could not be converted to FEFloat!")))?;
+        let old_shear_factor = beam_section_data["old_beam_section_values"]["shear_factor"]
+            .to_string()
+            .parse::<FEFloat>()
+            .or(Err(JsValue::from("Actions router: Update beam section action: \
+                Beam section old shear factor value could not be converted to FEFloat!")))?;
         let new_area = beam_section_data["new_beam_section_values"]["area"]
             .as_str()
             .ok_or(JsValue::from("Actions router: Update beam section action: \
@@ -351,11 +363,20 @@ impl ActionsRouter
             .parse::<FEFloat>()
             .or(Err(JsValue::from("Actions router: Update beam section action: \
                 Beam section new It value could not be converted to FEFloat!")))?;
+        let new_shear_factor = beam_section_data["new_beam_section_values"]["shear_factor"]
+            .as_str()
+            .ok_or(JsValue::from("Actions router: Update beam section action: \
+                Beam section new shear factor value could not be extracted!"))?
+            .parse::<FEFloat>()
+            .or(Err(JsValue::from("Actions router: Update beam section action: \
+                Beam section new It value could not be converted to FEFloat!")))?;
         self.undo_actions.clear();
         let is_action_id_should_be_increased = true;
         let action_type = ActionType::from(PropertiesActionType::UpdateBeamSection(
-            name, old_area, old_i11, old_i22, old_i12, old_it, new_area,
-            new_i11, new_i22, new_i12, new_it, is_action_id_should_be_increased));
+            name, old_area, old_i11, old_i22, old_i12,
+            old_it, old_shear_factor, new_area, new_i11,
+            new_i22, new_i12, new_it, new_shear_factor,
+            is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
         let add_to_active_actions = true;
         self.current_action = Some((action, add_to_active_actions));

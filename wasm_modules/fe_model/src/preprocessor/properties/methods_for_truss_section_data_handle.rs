@@ -1,7 +1,10 @@
 use wasm_bindgen::prelude::*;
 use serde_json::json;
+use serde::Serialize;
+use std::fmt::Debug;
+use std::hash::Hash;
 
-use crate::preprocessor::traits::ClearByActionIdTrait;
+use crate::traits::ClearByActionIdTrait;
 
 use crate::preprocessor::properties::properties::Properties;
 use crate::preprocessor::properties::truss_section::{TrussSection, DeletedTrussSection};
@@ -12,17 +15,17 @@ use crate::preprocessor::properties::consts::
     DELETE_TRUSS_SECTION_EVENT_NAME
 };
 
-use crate::types::{FEUInt, FEFloat};
-
 use crate::consts::EVENT_TARGET;
 
 use crate::functions::{dispatch_custom_event};
 
 
-impl Properties
+impl<T, V> Properties<T, V>
+    where T: Copy + Debug + Eq + Hash + Serialize + PartialOrd,
+          V: Copy + Debug + Serialize + PartialEq,
 {
-    pub fn add_truss_section(&mut self, action_id: FEUInt, name: &str, area: FEFloat,
-        area2: Option<FEFloat>, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    pub fn add_truss_section(&mut self, action_id: T, name: &str, area: V,
+        area2: Option<V>, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         let error_message_header = "Properties: Add truss section action";
 
@@ -36,9 +39,9 @@ impl Properties
         }
 
         if self.truss_sections.values().position(|truss_section|
-            truss_section.data_same(area, area2)).is_some()
+            truss_section.is_data_same(area, area2)).is_some()
         {
-            let error_message = &format!("{}: Truss section with Area {} and Area 2 {:?} \
+            let error_message = &format!("{}: Truss section with Area {:?} and Area 2 {:?} \
                 does already exist!", error_message_header, area, area2);
             return Err(JsValue::from(error_message));
         }
@@ -55,17 +58,17 @@ impl Properties
     }
 
 
-    pub fn update_truss_section(&mut self, action_id: FEUInt, name: &str, area: FEFloat,
-        area2: Option<FEFloat>, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    pub fn update_truss_section(&mut self, action_id: T, name: &str, area: V,
+        area2: Option<V>, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         let error_message_header = "Properties: Update truss section action";
 
         self.clear_by_action_id(action_id);
 
         if self.truss_sections.values().position(|truss_section|
-            truss_section.data_same(area, area2)).is_some()
+            truss_section.is_data_same(area, area2)).is_some()
         {
-            let error_message = &format!("{}:  Truss section with Area {} and Area 2 {:?} \
+            let error_message = &format!("{}:  Truss section with Area {:?} and Area 2 {:?} \
                 does already exist!", error_message_header, area, area2);
             return Err(JsValue::from(error_message));
         }
@@ -108,7 +111,7 @@ impl Properties
     }
 
 
-    pub fn delete_truss_section(&mut self, action_id: FEUInt, name: &str,
+    pub fn delete_truss_section(&mut self, action_id: T, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_by_action_id(action_id);
@@ -142,7 +145,7 @@ impl Properties
     }
 
 
-    pub fn restore_truss_section(&mut self, action_id: FEUInt, name: &str,
+    pub fn restore_truss_section(&mut self, action_id: T, name: &str,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         if let Some(deleted_truss_section) =

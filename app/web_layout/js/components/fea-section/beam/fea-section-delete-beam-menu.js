@@ -5,7 +5,7 @@ class FeaSectionDeleteBeamMenu extends HTMLElement {
         this.props = {
             actionId: null,             // u32;
             isFEModelLoaded: false,     // load status of wasm module "fe_model";
-            beamSections: [],           // array of: [{ name: String, area: f64, i11: f64, i22: f64, i12: f64, it: f64 }];
+            beamSections: [],           // array of: [{ name: String, area: f64, i11: f64, i22: f64, i12: f64, it: f64, shear_factor: f64 }];
         };
 
         this.state = {};

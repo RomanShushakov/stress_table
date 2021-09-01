@@ -95,13 +95,13 @@ pub enum PropertiesActionType
     // ( name, is_action_id_should_be_increased )
     RestoreTrussSection(String, bool),
 
-    // ( name, area, I11, I22, I12, It, is_action_id_should_be_increased )
-    AddBeamSection(String, FEFloat, FEFloat, FEFloat, FEFloat, FEFloat, bool),
+    // ( name, area, I11, I22, I12, It, shear_factor, is_action_id_should_be_increased )
+    AddBeamSection(String, FEFloat, FEFloat, FEFloat, FEFloat, FEFloat, FEFloat, bool),
 
-    // ( name, old_area, old_I11, old_I22, old_I12, old_It, new_area,
-    // new_I11, new_I22, new_I12, new_It, is_action_id_should_be_increased )
+    // ( name, old_area, old_I11, old_I22, old_I12, old_It, old_shear_factor, new_area,
+    // new_I11, new_I22, new_I12, new_It, new_shear_factor, is_action_id_should_be_increased )
     UpdateBeamSection(String, FEFloat, FEFloat, FEFloat, FEFloat, FEFloat,
-        FEFloat, FEFloat, FEFloat, FEFloat, FEFloat, bool),
+        FEFloat, FEFloat, FEFloat, FEFloat, FEFloat, FEFloat, FEFloat, bool),
 
     // ( name, is_action_id_should_be_increased )
     DeleteBeamSection(String, bool),
@@ -193,19 +193,19 @@ impl Action
     }
 
 
-    pub fn action_id_same(&self, action_id: FEUInt) -> bool
+    pub fn is_action_id_same(&self, action_id: FEUInt) -> bool
     {
         self.action_id == action_id
     }
 
 
-    pub fn get_action_id(&self) -> FEUInt
+    pub fn action_id(&self) -> FEUInt
     {
         self.action_id
     }
 
 
-    pub fn get_action_type(&self) -> ActionType
+    pub fn action_type(&self) -> ActionType
     {
         self.action_type.clone()
     }

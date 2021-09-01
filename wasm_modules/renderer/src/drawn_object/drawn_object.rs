@@ -3,14 +3,15 @@ use web_sys::{WebGlRenderingContext as GL};
 use std::f32::consts::PI;
 use std::collections::{HashMap, HashSet};
 
+use extended_matrix::extended_matrix::ExtendedMatrix;
+use extended_matrix::basic_matrix::basic_matrix::MatrixElementPosition;
+use extended_matrix::functions::extract_element_value;
+
 use crate::point_object::{PointObjectKey, PointObject};
 use crate::point_object::{PointObjectType};
 
 use crate::line_object::{LineObject, LineObjectKey, BeamSectionOrientation};
 use crate::line_object::{LineObjectType, LineObjectColorScheme};
-
-use crate::extended_matrix::{ExtendedMatrix, MatrixElementPosition};
-use crate::extended_matrix::extract_element_value;
 
 use crate::drawn_object::consts::
 {
@@ -206,14 +207,33 @@ impl DrawnObject
 
 
     pub fn add_point_object(&mut self, point_objects: &HashMap<PointObjectKey, PointObject>,
-        gl_mode: GLMode, under_selection_box_colors: &Vec<u8>, selected_colors: &HashSet<[u8; 4]>)
-        -> Result<(), JsValue>
+        gl_mode: GLMode, under_selection_box_colors: &Vec<u8>, selected_colors: &HashSet<[u8; 4]>,
+        is_geometry_visible: &bool, is_mesh_visible: &bool) -> Result<(), JsValue>
     {
+        if !*is_geometry_visible && !*is_mesh_visible
+        {
+            return Ok(());
+        }
+
         let start_index =
             if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
+
+        let mut excluded_point_objects = 0i32;
         for (i, (point_object_key, point_object))  in
             point_objects.iter().enumerate()
         {
+            if !*is_geometry_visible && point_object_key.get_object_type() == PointObjectType::Point
+            {
+                excluded_point_objects += 1i32;
+                continue;
+            }
+
+            if !*is_mesh_visible && point_object_key.get_object_type() == PointObjectType::Node
+            {
+                excluded_point_objects += 1i32;
+                continue;
+            }
+
             let initial_color = match point_object_key.get_object_type()
                 {
                     PointObjectType::Point => DRAWN_POINTS_COLOR,
@@ -230,7 +250,7 @@ impl DrawnObject
             self.indexes_numbers.push(start_index + i as u32);
         }
         self.modes.push(GLPrimitiveType::Points);
-        self.elements_numbers.push(point_objects.len() as i32);
+        self.elements_numbers.push(point_objects.len() as i32 - excluded_point_objects);
         let offset = self.define_offset();
         self.offsets.push(offset);
         Ok(())
@@ -242,13 +262,29 @@ impl DrawnObject
         line_objects: &HashMap<LineObjectKey, LineObject>,
         gl_mode: GLMode, under_selection_box_colors: &Vec<u8>,
         selected_colors: &HashSet<[u8; 4]>, base_points_number: u32,
-        base_radius: f32) -> Result<(), JsValue>
+        base_radius: f32, is_geometry_visible: &bool, is_mesh_visible: &bool) -> Result<(), JsValue>
     {
+        if !*is_geometry_visible && !*is_mesh_visible
+        {
+            return Ok(());
+        }
+
         let start_index =
             if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
         let mut count = 0;
+
         for (line_object_key, line_object) in line_objects.iter()
         {
+            if !*is_geometry_visible && line_object_key.get_object_type() == LineObjectType::Line
+            {
+                continue;
+            }
+
+            if !*is_mesh_visible && line_object_key.get_object_type() == LineObjectType::Element
+            {
+                continue;
+            }
+
             let initial_color = match line_object_key.get_object_type()
                 {
                     LineObjectType::Line =>
@@ -278,7 +314,7 @@ impl DrawnObject
                         rotation_matrix.transpose();
                         let point_object_coordinates_shift =
                             ExtendedMatrix::create(3u32, 1u32,
-                            vec![base_radius * 2.0, 0.0, 0.0]);
+                            vec![base_radius * 2.0, 0.0, 0.0], TOLERANCE);
                         let mut directional_vectors = Vec::new();
                         let angle = 2.0 * PI / base_points_number as f32;
                         for point_number in 0..base_points_number
@@ -295,7 +331,8 @@ impl DrawnObject
                                 };
                             let directional_vector =
                                 ExtendedMatrix::create(3u32,
-                                1u32, vec![0.0, local_y, local_x]);
+                                1u32, vec![0.0, local_y, local_x],
+                                TOLERANCE);
                             directional_vectors.push(directional_vector);
                         }
                         for directional_vector in &directional_vectors
@@ -407,13 +444,15 @@ impl DrawnObject
                 let b_y = line_end_point_coordinates[1] - line_start_point_coordinates[1];
                 let b_z = line_end_point_coordinates[2] - line_start_point_coordinates[2];
                 let a = ExtendedMatrix::create(3u32,
-                    1u32, vec![a_x, a_y, a_z]);
-                let coeff_matrix = ExtendedMatrix::create(3u32,
+                    1u32, vec![a_x, a_y, a_z], TOLERANCE);
+                let norm = 1f32 / (b_x.powi(2) + b_y.powi(2) + b_z.powi(2));
+                let mut coeff_matrix = ExtendedMatrix::create(3u32,
                     3u32, vec![
                         - b_z * b_z - b_y * b_y, b_x * b_y, b_x * b_z,
                         b_y * b_x, - b_x * b_x - b_z * b_z,	b_y * b_z,
                         b_z * b_x,	b_z * b_y, - b_y * b_y - b_x * b_x,
-                    ]);
+                    ], TOLERANCE);
+                coeff_matrix.multiply_by_number(norm);
                 let local_axis_1_direction_projection_matrix =
                     coeff_matrix
                         .multiply_by_matrix(&a)
@@ -444,14 +483,11 @@ impl DrawnObject
                 ];
                 let updated_local_axis_1_end_point_coordinates = [
                     (line_mid_point_coordinates[0] +
-                    local_axis_1_direction_projection_x_coord_value /
-                        local_axis_1_direction_projection_length * line_length),
+                    local_axis_1_direction_projection_x_coord_value * line_length),
                     (line_mid_point_coordinates[1] +
-                    local_axis_1_direction_projection_y_coord_value /
-                        local_axis_1_direction_projection_length * line_length),
+                    local_axis_1_direction_projection_y_coord_value * line_length),
                     (line_mid_point_coordinates[2] +
-                     local_axis_1_direction_projection_z_coord_value /
-                        local_axis_1_direction_projection_length * line_length),
+                     local_axis_1_direction_projection_z_coord_value * line_length),
                 ];
                 let updated_local_axis_1_color = DRAWN_BEAM_SECTION_ORIENTATION_COLOR;
                 self.vertices_coordinates.extend(&line_mid_point_coordinates);
@@ -502,7 +538,7 @@ impl DrawnObject
                             - height,
                             *local_y,
                             *local_x,
-                        ]);
+                        ], TOLERANCE);
                     let transformed_local_coordinates = rotation_matrix_for_cap
                         .multiply_by_matrix(&local_coordinates)
                         .map_err(|e| JsValue::from(e))?;

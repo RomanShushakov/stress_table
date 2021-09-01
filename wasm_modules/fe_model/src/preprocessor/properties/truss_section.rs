@@ -1,38 +1,37 @@
 use serde::Serialize;
 
-use crate::types::FEFloat;
-
 
 #[derive(Debug, Clone, Serialize)]
-pub struct TrussSection
+pub struct TrussSection<V>
 {
-    area: FEFloat,
-    area2: Option<FEFloat>,
+    area: V,
+    area2: Option<V>,
 }
 
 
-impl TrussSection
+impl<V> TrussSection<V>
+    where V: Copy + PartialEq,
 {
-    pub fn create(area: FEFloat, area2: Option<FEFloat>) -> Self
+    pub fn create(area: V, area2: Option<V>) -> Self
     {
         TrussSection { area, area2 }
     }
 
 
-    pub fn data_same(&self, area: FEFloat, area2: Option<FEFloat>) -> bool
+    pub fn is_data_same(&self, area: V, area2: Option<V>) -> bool
     {
         self.area == area && self.area2 == area2
     }
 
 
-    pub fn update(&mut self, area: FEFloat, area2: Option<FEFloat>)
+    pub fn update(&mut self, area: V, area2: Option<V>)
     {
         self.area = area;
         self.area2 = area2;
     }
 
 
-    pub fn extract_data(&self) -> (FEFloat, Option<FEFloat>)
+    pub fn extract_data(&self) -> (V, Option<V>)
     {
         (self.area, self.area2)
     }
@@ -40,22 +39,23 @@ impl TrussSection
 
 
 #[derive(Debug, Clone)]
-pub struct DeletedTrussSection
+pub struct DeletedTrussSection<V>
 {
     name: String,
-    truss_section: TrussSection,
+    truss_section: TrussSection<V>,
 }
 
 
-impl DeletedTrussSection
+impl<V> DeletedTrussSection<V>
+    where V: Copy + PartialEq,
 {
-    pub fn create(name: &str, truss_section: TrussSection) -> Self
+    pub fn create(name: &str, truss_section: TrussSection<V>) -> Self
     {
         DeletedTrussSection { name: String::from(name), truss_section }
     }
 
 
-    pub fn extract_name_and_data(&self) -> (&str, FEFloat, Option<FEFloat>)
+    pub fn extract_name_and_data(&self) -> (&str, V, Option<V>)
     {
         let (area, area2) = self.truss_section.extract_data();
         (&self.name, area, area2)

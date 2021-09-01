@@ -5,7 +5,7 @@ class FeaSectionAddBeamMenu extends HTMLElement {
         this.props = {
             actionId: null,             // u32;
             isFEModelLoaded: false,     // load status of wasm module "fe_model";
-            beamSections: [],           // array of: [{ name: String, area: f64, i11: f64, i22: f64, i12: f64, it: f64 }];
+            beamSections: [],           // array of: [{ name: String, area: f64, i11: f64, i22: f64, i12: f64, it: f64, shear_factor: f64 }];
         };
 
         this.state = {};
@@ -305,6 +305,54 @@ class FeaSectionAddBeamMenu extends HTMLElement {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
+                .Shear-factor-field-content {
+                    display: flex;
+                    flex-direction: row;
+                    background-color: #3b4453;
+                    padding: 0rem;
+                    margin-top: 1rem;
+                }
+
+                .Shear-factor-caption {
+                    margin: 0rem;
+                    padding: 0rem;
+                    color: #D9D9D9;
+                    font-size: 85%;
+                    width: 6rem;
+                }
+
+                .Shear-factor {
+                    margin-top: 0rem;
+                    margin-bottom: 0rem;
+                    margin-left: 1rem;
+                    margin-right: 0rem;
+                    padding: 0rem;
+                    width: 5rem;
+                    background-color: #3b4453;
+                    border: #4a5060;
+                    border-bottom: 0.1rem solid #4a5060;
+                    outline: none;
+                    color: #D9D9D9;
+                }
+
+                .Shear-factor[type=number]::-webkit-outer-spin-button,
+                .Shear-factor[type=number]::-webkit-inner-spin-button {
+                    -webkit-appearance: none;
+                    margin: 0;
+                }
+
+                .Shear-factor[type=number] {
+                    -moz-appearance: textfield;
+                }
+
+                .Shear-factor:hover {
+                    box-shadow: 0rem 0.15rem 0rem #4a5060;
+                }
+
+                .Shear-factor:focus {
+                    box-shadow: 0rem 0.15rem 0rem #4a5060;
+                }
+
                 .apply-cancel-buttons {
                     margin-top: 1rem;
                     margin-bottom: 0rem;
@@ -396,6 +444,11 @@ class FeaSectionAddBeamMenu extends HTMLElement {
                     <input class="It" type="number"/>
                 </div>
 
+                <div class="Shear-factor-field-content">
+                    <p class="Shear-factor-caption">Shear factor</p>
+                    <input class="Shear-factor" type="number"/>
+                </div>
+
                 <div class="apply-cancel-buttons">
                     <button class="apply-button">Apply</button>
                     <button class="cancel-button">Cancel</button>
@@ -446,6 +499,12 @@ class FeaSectionAddBeamMenu extends HTMLElement {
             this.dropHighlight(inputtedIt);
             this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
         });
+
+        this.shadowRoot.querySelector(".Shear-factor").addEventListener("click", () => {
+            const inputtedShearFactor = this.shadowRoot.querySelector(".Shear-factor");
+            this.dropHighlight(inputtedShearFactor);
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+        });
     }
 
     set actionId(value) {
@@ -474,6 +533,7 @@ class FeaSectionAddBeamMenu extends HTMLElement {
         beamSectionInProps.i22 = beamSection.i22;
         beamSectionInProps.i12 = beamSection.i12;
         beamSectionInProps.it = beamSection.it;
+        beamSectionInProps.shear_factor = beamSection.shear_factor;
     }
 
     set deleteBeamSectionFromClient(beamSection) {
@@ -551,6 +611,7 @@ class FeaSectionAddBeamMenu extends HTMLElement {
         this.shadowRoot.querySelector(".I22").value = 1;
         this.shadowRoot.querySelector(".I12").value = 0;
         this.shadowRoot.querySelector(".It").value = 1;
+        this.shadowRoot.querySelector(".Shear-factor").value = 1;
     }
 
 
@@ -597,7 +658,16 @@ class FeaSectionAddBeamMenu extends HTMLElement {
             }
         }
 
-        if (newBeamSectionNameField.value === "" || areaField.value === "") {
+        const ShearFactorField = this.shadowRoot.querySelector(".Shear-factor");
+        if (ShearFactorField.value === "") {
+            if (ShearFactorField.classList.contains("highlighted") === false) {
+                ShearFactorField.classList.add("highlighted");
+            }
+        }
+
+        if (newBeamSectionNameField.value === "" || areaField.value === "" || I11Field.value === "" ||
+            I22Field.value === "" || I12Field.value === "" || ItField.value === "" || 
+            ShearFactorField.value === "") {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
                     "Note: The highlighted fields should be filled!";
@@ -609,10 +679,10 @@ class FeaSectionAddBeamMenu extends HTMLElement {
 
         if (this.isNumeric(areaField.value) === false || this.isNumeric(I11Field.value) === false ||
             this.isNumeric(I22Field.value) === false || this.isNumeric(I12Field.value) === false ||
-            this.isNumeric(ItField.value) === false) {
+            this.isNumeric(ItField.value) === false || this.isNumeric(ShearFactorField.value) === false) {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
                 this.shadowRoot.querySelector(".analysis-info-message").innerHTML = 
-                    "Note: Only numbers could be used as input values for Area, I11, I22, I12 and It!";
+                    "Note: Only numbers could be used as input values for Area, I11, I22, I12, It and Shear factor!";
                 return;
             } else {
                 return;
@@ -625,7 +695,7 @@ class FeaSectionAddBeamMenu extends HTMLElement {
             "actionId": this.props.actionId,
             "name": newBeamSectionNameField.value, 
             "area": areaField.value, "i11": I11Field.value, "i22": I22Field.value, 
-            "i12": I12Field.value, "it": ItField.value,
+            "i12": I12Field.value, "it": ItField.value, "shear_factor": ShearFactorField.value,
         }};
 
         this.dispatchEvent(new CustomEvent("clientMessage", {
@@ -651,6 +721,8 @@ class FeaSectionAddBeamMenu extends HTMLElement {
         this.dropHighlight(inputtedI12Field);
         const inputtedItField = this.shadowRoot.querySelector(".It");
         this.dropHighlight(inputtedItField);
+        const inputtedShearFactorField = this.shadowRoot.querySelector(".Shear-factor");
+        this.dropHighlight(inputtedShearFactorField);
         this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
     }
 

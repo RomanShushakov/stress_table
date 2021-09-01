@@ -128,6 +128,8 @@ class FeaApp extends HTMLElement {
         this.addEventListener("selected_lines", (event) => this.handleSelectedLinesMessage(event));
         this.addEventListener("selected_line_elements", (event) => this.handleSelectedLineElementsMessage(event));
 
+        this.addEventListener("toggleGeometryVisibility", (event) => this.handleToggleGeometryVisibilityMessage(event));
+        this.addEventListener("toggleMeshVisibility", (event) => this.handleToggleMeshVisibilityMessage(event));
         this.addEventListener("changeView", (event) => this.handleChangeViewMessage(event));
 
         this.addEventListener("previewSelectedLineNumbers", (event) => this.handlePreviewSelectedLineNumbersMessage(event));
@@ -172,6 +174,8 @@ class FeaApp extends HTMLElement {
             (event) => this.handleRemoveBeamSectionLocalAxis1DirectionServerMessage(event));
         this.addEventListener("update_beam_section_orientation_data_server_message",
             (event) => this.handleUpdateBeamSectionOrientationDataServerMessage(event));
+
+        this.addEventListener("add_node_server_message", (event) => this.handleAddNodeServerMessage(event));
 
         this.addEventListener("decreaseActionId", (_event) => this.handleDecreaseActionIdMessage());
 
@@ -296,7 +300,8 @@ class FeaApp extends HTMLElement {
                 const beamSections = Array.from(
                     Object.entries(extractedBeamSectionsData.extracted_beam_sections),
                     ([key, value]) => ({
-                        "name": key, "area": value.area, "i11": value.i11, "i22": value.i22, "i12": value.i12, "it": value.it
+                        "name": key, "area": value.area, "i11": value.i11, "i22": value.i22, "i12": value.i12, "it": value.it,
+                        "shear_factor": value.shear_factor,
                     }));
                 this.querySelector(event.target.tagName.toLowerCase()).beamSections = beamSections; 
             }
@@ -329,11 +334,11 @@ class FeaApp extends HTMLElement {
                     Object.entries(extractedAssignedPropertiesToLinesData.extracted_assigned_properties_to_lines);
                 for (let i = 0; i < extractedAssignedPropertiesToLines.length; i++) {
                     const relatedLinesData = extractedAssignedPropertiesToLines[i][1].related_lines_data;
-                    const relatedLineElementsNumbers = extractedAssignedPropertiesToLines[i][1].related_line_elements_numbers;
+                    const relatedNodesNumbers = extractedAssignedPropertiesToLines[i][1].related_nodes_numbers;
                     const assignedPropertyToLines = { 
                         "name": extractedAssignedPropertiesToLines[i][0], 
                         "related_lines_data": relatedLinesData,
-                        "related_line_elements_numbers": relatedLineElementsNumbers,
+                        "related_nodes_numbers": relatedNodesNumbers,
                     }
                     assignedPropertiesToLines.push(assignedPropertyToLines)
                 }
@@ -451,12 +456,12 @@ class FeaApp extends HTMLElement {
             const pointNumber = pointNumbers[0];
             if (this.state.isLinesSelectionModeEnabled === false) {
                 this.state.actionsRouter.show_point_info(
-                    pointNumber,
+                    BigInt(pointNumber),
                     (objectInfo) => this.showObjectInfoHandler(objectInfo),
                 );
             } else {
                 this.state.actionsRouter.show_point_info(
-                    pointNumber,
+                    BigInt(pointNumber),
                     (objectInfo) => this.showObjectInfoWithoutMenuOpeningHandler(objectInfo),
                 );
             }
@@ -486,13 +491,13 @@ class FeaApp extends HTMLElement {
             const lineNumber = lineNumbers[0];
             if (this.state.isLinesSelectionModeEnabled === false) {
                 this.state.actionsRouter.show_line_info(
-                    lineNumber,
+                    BigInt(lineNumber),
                     (objectInfo) => this.showObjectInfoHandler(objectInfo),
                 );
             } else {
                 this.selectLinesInClientForDataAssign(lineNumber);
                 this.state.actionsRouter.show_line_info(
-                    lineNumber,
+                    BigInt(lineNumber),
                     (objectInfo) => this.showObjectInfoWithoutMenuOpeningHandler(objectInfo),
                 );
             }
@@ -507,6 +512,18 @@ class FeaApp extends HTMLElement {
         } else {
             console.log("Selected line element number: ", lineElementNumbers[0]);
         }
+        event.stopPropagation();
+    }
+
+    handleToggleGeometryVisibilityMessage(event) {
+        const data = true;
+        this.shadowRoot.querySelector("fea-renderer").toggleGeometryVisibility = data;
+        event.stopPropagation();
+    }
+
+    handleToggleMeshVisibilityMessage(event) {
+        const data = true;
+        this.shadowRoot.querySelector("fea-renderer").toggleMeshVisibility = data;
         event.stopPropagation();
     }
 
@@ -785,7 +802,8 @@ class FeaApp extends HTMLElement {
             i11: event.detail.beam_section_data.i11,
             i22: event.detail.beam_section_data.i22,
             i12: event.detail.beam_section_data.i12,
-            it: event.detail.beam_section_data.it };
+            it: event.detail.beam_section_data.it,
+            shear_factor: event.detail.beam_section_data.shear_factor };
         for (let i = 0; i < this.state.beamSectionsDataDependentMenus.length; i++) {
             if (this.querySelector(this.state.beamSectionsDataDependentMenus[i]) !== null) {
                 this.querySelector(this.state.beamSectionsDataDependentMenus[i]).addBeamSectionToClient = beamSection;
@@ -804,7 +822,8 @@ class FeaApp extends HTMLElement {
             i11: event.detail.beam_section_data.i11,
             i22: event.detail.beam_section_data.i22,
             i12: event.detail.beam_section_data.i12,
-            it: event.detail.beam_section_data.it };
+            it: event.detail.beam_section_data.it,
+            shear_factor: event.detail.beam_section_data.shear_factor };
         for (let i = 0; i < this.state.beamSectionsDataDependentMenus.length; i++) {
             if (this.querySelector(this.state.beamSectionsDataDependentMenus[i]) !== null) {
                 this.querySelector(this.state.beamSectionsDataDependentMenus[i]).updateBeamSectionInClient = beamSection;
@@ -983,6 +1002,17 @@ class FeaApp extends HTMLElement {
                     .updateBeamSectionOrientationDataInClient = beamSectionOrientationData;
             }
         } 
+        event.stopPropagation();
+    }
+
+    handleAddNodeServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;
+        }
+        const node = { 
+            number: event.detail.node_data.number, x: event.detail.node_data.x,
+            y: event.detail.node_data.y, z: event.detail.node_data.z };
+        this.shadowRoot.querySelector("fea-renderer").addNodeToRenderer = node;
         event.stopPropagation();
     }
 

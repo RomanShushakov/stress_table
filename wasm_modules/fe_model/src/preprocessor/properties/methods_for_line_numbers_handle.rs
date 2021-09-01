@@ -24,9 +24,7 @@ use finite_element_method::my_float::MyFloatTrait;
 
 use crate::consts::EVENT_TARGET;
 
-use crate::functions::{dispatch_custom_event, find_components_of_line_a_perpendicular_to_line_b, log};
-use crate::PreprocessorMessage;
-use std::collections::HashMap;
+use crate::functions::{dispatch_custom_event, find_components_of_line_a_perpendicular_to_line_b};
 
 
 impl<T, V> Properties<T, V>
@@ -37,15 +35,11 @@ impl<T, V> Properties<T, V>
              Into<f64> + MulAssign + SubAssign + AddAssign + Div<Output = V> + Mul<Output = V> +
              Sub<Output = V> + 'static,
 {
-    pub fn delete_line_numbers_from_properties(&mut self, action_id: T,
-        line_numbers: &[T]) -> Result<PreprocessorMessage<T, V>, JsValue>
+    pub fn delete_line_numbers_from_properties(&mut self, action_id: T, line_numbers: &[T])
+        -> Result<(), JsValue>
     {
         self.clear_by_action_id(action_id);
-
-        let mut old_assigned_properties_to_lines = HashMap::new();
-
         let mut changed_assigned_properties_to_lines = Vec::new();
-
         let mut deleted_assigned_properties_to_lines = Vec::new();
 
         for (assigned_property_to_lines_name, assigned_property_to_lines) in
@@ -64,10 +58,6 @@ impl<T, V> Properties<T, V>
                     assigned_property_to_lines.clone());
                 deleted_assigned_properties_to_lines.push(deleted_assigned_property_to_lines);
 
-                old_assigned_properties_to_lines.insert(
-                    assigned_property_to_lines_name.to_string(),
-                    assigned_property_to_lines.clone());
-
                 let detail = json!({ "assigned_properties_to_lines_data":
                     {
                         "name": assigned_property_to_lines_name,
@@ -85,10 +75,6 @@ impl<T, V> Properties<T, V>
                     ChangedAssignedPropertyToLines::create(assigned_property_to_lines_name,
                     assigned_property_to_lines.clone());
                 changed_assigned_properties_to_lines.push(changed_assigned_property_to_lines);
-
-                old_assigned_properties_to_lines.insert(
-                    assigned_property_to_lines_name.to_string(),
-                    assigned_property_to_lines.clone());
 
                 let old_line_numbers =
                     assigned_property_to_lines.extract_related_lines_numbers();
@@ -141,31 +127,16 @@ impl<T, V> Properties<T, V>
                 deleted_assigned_properties_to_lines);
         }
 
-        let optional_old_assigned_properties_to_lines =
-            {
-                if old_assigned_properties_to_lines.is_empty()
-                {
-                    None
-                }
-                else
-                {
-                    Some(old_assigned_properties_to_lines)
-                }
-            };
-
         self.logging();
-        Ok(PreprocessorMessage { optional_old_assigned_properties_to_lines,
-            optional_assigned_properties_names: None })
+        Ok(())
     }
 
 
     pub fn restore_line_numbers_in_properties(&mut self, action_id: T,
-        restored_line_numbers: Vec<T>) -> Result<PreprocessorMessage<T, V>, JsValue>
+        restored_line_numbers: Vec<T>) -> Result<(), JsValue>
     {
         let mut is_appropriate_data_exist = false;
         let mut restored_line_numbers_for_check = restored_line_numbers.clone();
-
-        let mut assigned_properties_names = Vec::new();
 
         if let Some(changed_assigned_properties_to_lines) =
             self.changed_assigned_properties_to_lines.remove(&action_id)
@@ -200,8 +171,6 @@ impl<T, V> Properties<T, V>
 
                 self.assigned_properties_to_lines.insert(assigned_property_to_lines_name.clone(),
                     assigned_property_to_lines);
-
-                assigned_properties_names.push(assigned_property_to_lines_name.clone());
 
                 let detail = json!({ "assigned_properties_to_lines_data":
                     {
@@ -248,8 +217,6 @@ impl<T, V> Properties<T, V>
                 self.assigned_properties_to_lines.insert(assigned_property_to_lines_name.clone(),
                     assigned_property_to_lines);
 
-                assigned_properties_names.push(assigned_property_to_lines_name.clone());
-
                 let detail = json!({ "assigned_properties_to_lines_data":
                     {
                         "name": assigned_property_to_lines_name,
@@ -276,21 +243,8 @@ impl<T, V> Properties<T, V>
             }
         }
 
-        let optional_assigned_properties_names =
-            {
-                if assigned_properties_names.is_empty()
-                {
-                    None
-                }
-                else
-                {
-                    Some(assigned_properties_names)
-                }
-            };
-
         self.logging();
-        Ok(PreprocessorMessage { optional_old_assigned_properties_to_lines: None,
-            optional_assigned_properties_names })
+        Ok(())
     }
 
 
@@ -442,12 +396,9 @@ impl<T, V> Properties<T, V>
     pub fn update_lines_in_properties(&mut self, action_id: T, line_numbers: Vec<T>,
         geometry: &Geometry<T, V>,
         get_line_points_coordinates: fn(T, &Geometry<T, V>) -> Option<((V, V, V), (V, V, V))>,
-        tolerance: V) -> Result<PreprocessorMessage<T, V>, JsValue>
+        tolerance: V) -> Result<(), JsValue>
     {
         let error_message_header = "Properties: Update line in properties action";
-
-        let mut old_assigned_properties_to_lines = HashMap::new();
-        let mut assigned_properties_names = Vec::new();
 
         if let Some(changed_assigned_properties_to_lines) =
             self.changed_assigned_properties_to_lines.remove(&action_id)
@@ -469,14 +420,6 @@ impl<T, V> Properties<T, V>
                 // let old_line_numbers = self.assigned_properties_to_lines
                 //     .get(&assigned_property_to_lines_name).unwrap()
                 //     .extract_related_lines_numbers();
-
-                let old_assigned_property_to_lines =
-                    self.assigned_properties_to_lines.get(&assigned_property_to_lines_name)
-                        .unwrap();
-
-                old_assigned_properties_to_lines.insert(
-                    assigned_property_to_lines_name.to_string(),
-                    old_assigned_property_to_lines.clone());
 
                 let (_, _, cross_section_type) =
                         self.properties.get(&assigned_property_to_lines_name)
@@ -577,9 +520,6 @@ impl<T, V> Properties<T, V>
                                             self.properties.get(assigned_property_to_lines_name)
                                                 .unwrap().extract_data();
 
-                                        assigned_properties_names.push(
-                                            assigned_property_to_lines_name.clone());
-
                                         let detail = json!({ "assigned_properties_to_lines_data":
                                             {
                                                 "name": assigned_property_to_lines_name,
@@ -615,32 +555,7 @@ impl<T, V> Properties<T, V>
             }
         }
 
-        let optional_old_assigned_properties_to_lines =
-            {
-                if old_assigned_properties_to_lines.is_empty()
-                {
-                    None
-                }
-                else
-                {
-                    Some(old_assigned_properties_to_lines)
-                }
-            };
-
-        let optional_assigned_properties_names =
-            {
-                if assigned_properties_names.is_empty()
-                {
-                    None
-                }
-                else
-                {
-                    Some(assigned_properties_names)
-                }
-            };
-
         self.logging();
-        Ok(PreprocessorMessage { optional_old_assigned_properties_to_lines,
-            optional_assigned_properties_names })
+        Ok(())
     }
 }

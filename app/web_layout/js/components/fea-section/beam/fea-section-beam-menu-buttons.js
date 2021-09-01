@@ -82,9 +82,9 @@ class FeaSectionBeamMenuButtons extends HTMLElement {
             <div class=wrapper>
                 <div class="section-beam-menu-buttons-content">
                     <p class="section-beam-menu-buttons-caption">Add</p>
-                    <add-button class="section-add-beam-menu-button" name="beam section"></add-button>
-                    <update-button class="section-update-beam-menu-button" name="beam section"></update-button>
-                    <delete-button class="section-delete-beam-menu-button" name="beam section"></delete-button>
+                    <add-button class="section-add-beam-menu-button"></add-button>
+                    <update-button class="section-update-beam-menu-button"></update-button>
+                    <delete-button class="section-delete-beam-menu-button"></delete-button>
                 </div>
             </div>
         `;

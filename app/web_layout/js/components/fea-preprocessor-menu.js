@@ -10,6 +10,7 @@ class FeaPreprocessorMenu extends HTMLElement {
                 "material-menu": "fea-material-menu",
                 "section-menu": "fea-section-menu",
                 "properties-menu": "fea-properties-menu",
+                "load-menu": "fea-load-menu",
             },
         };
 

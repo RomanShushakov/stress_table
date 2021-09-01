@@ -266,7 +266,6 @@ impl<T, V> Properties<T, V>
 
         if is_appropriate_data_exist
         {
-            log("YEAH");
             if restored_line_numbers.len() == restored_line_numbers_for_check.len()
             {
                 let error_message = &format!("Properties: Restore line numbers action: \

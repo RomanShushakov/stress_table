@@ -456,12 +456,12 @@ class FeaApp extends HTMLElement {
             const pointNumber = pointNumbers[0];
             if (this.state.isLinesSelectionModeEnabled === false) {
                 this.state.actionsRouter.show_point_info(
-                    pointNumber,
+                    BigInt(pointNumber),
                     (objectInfo) => this.showObjectInfoHandler(objectInfo),
                 );
             } else {
                 this.state.actionsRouter.show_point_info(
-                    pointNumber,
+                    BigInt(pointNumber),
                     (objectInfo) => this.showObjectInfoWithoutMenuOpeningHandler(objectInfo),
                 );
             }
@@ -491,13 +491,13 @@ class FeaApp extends HTMLElement {
             const lineNumber = lineNumbers[0];
             if (this.state.isLinesSelectionModeEnabled === false) {
                 this.state.actionsRouter.show_line_info(
-                    lineNumber,
+                    BigInt(lineNumber),
                     (objectInfo) => this.showObjectInfoHandler(objectInfo),
                 );
             } else {
                 this.selectLinesInClientForDataAssign(lineNumber);
                 this.state.actionsRouter.show_line_info(
-                    lineNumber,
+                    BigInt(lineNumber),
                     (objectInfo) => this.showObjectInfoWithoutMenuOpeningHandler(objectInfo),
                 );
             }

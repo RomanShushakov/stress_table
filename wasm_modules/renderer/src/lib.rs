@@ -49,7 +49,6 @@ use crate::shader_programs::ShaderPrograms;
 
 mod methods_for_canvas_manipulation;
 
-mod types;
 
 mod consts;
 use consts::

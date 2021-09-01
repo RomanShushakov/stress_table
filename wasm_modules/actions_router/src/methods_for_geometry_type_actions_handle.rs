@@ -22,6 +22,13 @@ impl ActionsRouter
             .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Add point action: \
                 Point number could not be converted to FEUInt!")))?;
+
+        if number > 10000 as FEUInt
+        {
+            return Err(JsValue::from("Actions router: Add point action: Point number could \
+                not be greater than 10000!"));
+        }
+
         let x = point_data["x"].as_str()
             .ok_or(JsValue::from("Actions router: Add point action: \
                 Point x coordinate could not be extracted!"))?
@@ -143,6 +150,13 @@ impl ActionsRouter
             .parse::<FEUInt>()
             .or(Err(JsValue::from("Actions router: Add line action: \
                 Line number could not be converted to FEUInt!")))?;
+
+        if number > 10000 as FEUInt
+        {
+            return Err(JsValue::from("Actions router: Add line action: Line number could \
+                not be greater than 10000!"));
+        }
+
         let start_point_number = line_data["start_point_number"].as_str()
             .ok_or(JsValue::from("Actions router: Add line action: \
                 Line start point number could not be extracted!"))?

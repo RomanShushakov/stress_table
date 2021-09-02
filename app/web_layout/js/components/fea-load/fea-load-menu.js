@@ -6,18 +6,15 @@ class FeaLoadMenu extends HTMLElement {
 
         this.state = {
             menuNames: {
-                "load-add-load-menu-concentrated-force": "fea-properties-add-properties-menu",
-                "load-update-load-menu-concentrated-force": "fea-properties-update-properties-menu",
-                "load-delete-load-menu-concentrated-force": "fea-properties-delete-properties-menu",
-                "load-add-load-menu-moment": "fea-properties-assign-properties-menu",
-                "load-update-load-menu-moment": "fea-properties-beam-section-orientation-menu",
-                "load-delete-load-menu-moment": "fea-properties-add-properties-menu",
-                "load-add-load-menu-line-load": "fea-properties-update-properties-menu",
-                "load-update-load-menu-line-load": "fea-properties-delete-properties-menu",
-                "load-delete-load-menu-line-load": "fea-properties-assign-properties-menu",
+                "load-add-load-menu-concentrated-load": "fea-load-add-concentrated-load-menu",
+                "load-update-load-menu-concentrated-load": "fea-properties-update-properties-menu",
+                "load-delete-load-menu-concentrated-load": "fea-properties-delete-properties-menu",
+                "load-add-load-menu-distributed-load": "fea-properties-assign-properties-menu",
+                "load-update-load-menu-distributed-load": "fea-properties-beam-section-orientation-menu",
+                "load-delete-load-menu-distributed-load": "fea-properties-add-properties-menu",
             },
 
-            loadTypes: ["Concentrated force", "Moment", "Line load"],
+            loadTypes: ["Concentrated load", "Distributed load"],
         };
 
         this.attachShadow({ mode: "open" });
@@ -155,14 +152,11 @@ class FeaLoadMenu extends HTMLElement {
     defineLoadTypeForLoadMenuButtons() {
         const loadTypeSelect = this.shadowRoot.querySelector(".load-type");
         switch (loadTypeSelect.value) {
-            case "Concentrated force":
-                this.shadowRoot.querySelector("fea-load-menu-buttons").setAttribute("load-type", "concentrated-force");
+            case "Concentrated load":
+                this.shadowRoot.querySelector("fea-load-menu-buttons").setAttribute("load-type", "concentrated-load");
                 break;
-            case "Moment":
-                this.shadowRoot.querySelector("fea-load-menu-buttons").setAttribute("load-type", "moment");
-                break;
-            case "Line load":
-                this.shadowRoot.querySelector("fea-load-menu-buttons").setAttribute("load-type", "line-load");
+            case "Distributed load":
+                this.shadowRoot.querySelector("fea-load-menu-buttons").setAttribute("load-type", "distributed-load");
                 break;
         }
     }

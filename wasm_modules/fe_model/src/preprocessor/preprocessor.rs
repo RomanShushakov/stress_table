@@ -4,11 +4,13 @@ use std::ops::{Add, Sub, Mul, Div, Rem, AddAssign, SubAssign, MulAssign};
 use std::hash::Hash;
 use std::fmt::Debug;
 use serde::Serialize;
+use std::collections::HashMap;
 
 use finite_element_method::my_float::MyFloatTrait;
 
 use crate::preprocessor::geometry::geometry::Geometry;
 use crate::preprocessor::properties::properties::Properties;
+use crate::preprocessor::loads::loads::ConcentratedLoad;
 
 use crate::preprocessor::functions::get_line_points_coordinates;
 
@@ -17,6 +19,7 @@ pub struct Preprocessor<T, V>
 {
     pub geometry: Geometry<T, V>,
     pub properties: Properties<T, V>,
+    pub concentrated_loads: HashMap<T, ConcentratedLoad<V>>,
     pub tolerance: V,
 }
 
@@ -33,7 +36,8 @@ impl<T, V> Preprocessor<T, V>
     {
         let geometry = Geometry::<T, V>::create();
         let properties = Properties::<T, V>::create();
-        Preprocessor { geometry, properties, tolerance }
+        let concentrated_loads = HashMap::new();
+        Preprocessor { geometry, properties, concentrated_loads, tolerance }
     }
 
 

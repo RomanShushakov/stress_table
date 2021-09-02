@@ -36,10 +36,15 @@ use external_functions::communication_with_properties::
     extract_properties, extract_assigned_properties_to_lines,
     extract_beam_sections_local_axis_1_directions,
 };
+use external_functions::communication_with_loads::
+{
+    add_concentrated_load_to_loads, update_concentrated_load_in_loads,
+    delete_concentrated_load_from_loads, restore_concentrated_load_in_loads,
+    extract_concentrated_loads
+};
 
 mod action;
-use action::{Action, Coordinates};
-use action::{GeometryActionType, ActionType, PropertiesActionType};
+use action::{Action, GeometryActionType, ActionType, PropertiesActionType, LoadsActionType};
 
 mod types;
 use types::{FEUInt};
@@ -60,12 +65,15 @@ use consts::
     ADD_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_MESSAGE_HEADER,
     REMOVE_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_MESSAGE_HEADER,
     UPDATE_BEAM_SECTION_ORIENTATION_DATA_MESSAGE_HEADER,
+    ADD_CONCENTRATED_LOAD_MESSAGE_HEADER,
     UNDO_MESSAGE_HEADER, REDO_MESSAGE_HEADER,
 };
 
 mod methods_for_geometry_type_actions_handle;
 
 mod methods_for_properties_type_actions_handle;
+
+mod methods_for_loads_type_actions_handle;
 
 
 async fn add_to_cache(message: JsValue) -> Result<(), JsValue>
@@ -534,6 +542,57 @@ impl ActionsRouter
                                     let add_to_active_actions = false;
                                     self.current_action = Some((action, add_to_active_actions));
                                 },
+                        }
+                    },
+                ActionType::LoadsActionType(loads_action_type) =>
+                    {
+                        match loads_action_type
+                        {
+                            LoadsActionType::AddConcentratedLoad(
+                                point_number,
+                                _concentrated_load,
+                                _is_action_id_should_be_increased) =>
+                                {
+                                    let is_action_id_should_be_increased = false;
+                                    let action_type = ActionType::from(
+                                        LoadsActionType::DeleteConcentratedLoad(
+                                            *point_number,
+                                            is_action_id_should_be_increased));
+                                    let action = Action::create(action_id, action_type);
+                                    let add_to_active_actions = false;
+                                    self.current_action = Some((action, add_to_active_actions));
+                                },
+                            LoadsActionType::UpdateConcentratedLoad(
+                                point_number,
+                                old_concentrated_load,
+                                new_concentrated_load,
+                                _is_action_id_should_be_increased) =>
+                                {
+                                    let is_action_id_should_be_increased = false;
+                                    let action_type = ActionType::from(
+                                        LoadsActionType::UpdateConcentratedLoad(
+                                            *point_number,
+                                            new_concentrated_load.clone(),
+                                            old_concentrated_load.clone(),
+                                            is_action_id_should_be_increased));
+                                    let action = Action::create(action_id, action_type);
+                                    let add_to_active_actions = false;
+                                    self.current_action = Some((action, add_to_active_actions));
+                                },
+                            LoadsActionType::DeleteConcentratedLoad(
+                                point_number,
+                                _is_action_id_should_be_increased) =>
+                                {
+                                    let is_action_id_should_be_increased = false;
+                                    let action_type = ActionType::from(
+                                        LoadsActionType::RestoreConcentratedLoad(
+                                            *point_number,
+                                            is_action_id_should_be_increased));
+                                    let action = Action::create(action_id, action_type);
+                                    let add_to_active_actions = false;
+                                    self.current_action = Some((action, add_to_active_actions));
+                                },
+                            LoadsActionType::RestoreConcentratedLoad(_, _) => (),
                         }
                     }
             }
@@ -1025,6 +1084,75 @@ impl ActionsRouter
                                     }
                                 },
                         }
+                    },
+                ActionType::LoadsActionType(loads_action_type) =>
+                    {
+                        match loads_action_type
+                        {
+                            LoadsActionType::AddConcentratedLoad(
+                                point_number,
+                                concentrated_load,
+                                is_action_id_should_be_increased) =>
+                                {
+                                    let fx = concentrated_load.get_fx();
+                                    let fy = concentrated_load.get_fy();
+                                    let fz = concentrated_load.get_fz();
+                                    let mx = concentrated_load.get_mx();
+                                    let my = concentrated_load.get_my();
+                                    let mz = concentrated_load.get_mz();
+                                    add_concentrated_load_to_loads(action_id, *point_number,
+                                        fx, fy, fz, mx, my, mz,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions == true
+                                    {
+                                        self.active_actions.push(action.clone());
+                                    }
+                                },
+                            LoadsActionType::UpdateConcentratedLoad(
+                                point_number,
+                                _old_concentrated_load,
+                                new_concentrated_load,
+                                is_action_id_should_be_increased) =>
+                                {
+                                    let fx = new_concentrated_load.get_fx();
+                                    let fy = new_concentrated_load.get_fy();
+                                    let fz = new_concentrated_load.get_fz();
+                                    let mx = new_concentrated_load.get_mx();
+                                    let my = new_concentrated_load.get_my();
+                                    let mz = new_concentrated_load.get_mz();
+                                    update_concentrated_load_in_loads(action_id,
+                                        *point_number, fx, fy, fz, mx, my, mz,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions == true
+                                    {
+                                        self.active_actions.push(action.clone());
+                                    }
+                                },
+                            LoadsActionType::DeleteConcentratedLoad(
+                                point_number,
+                                is_action_id_should_be_increased) =>
+                                {
+                                    delete_concentrated_load_from_loads(action_id,
+                                        *point_number,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions
+                                    {
+                                        self.active_actions.push(action.clone());
+                                    }
+                                },
+                            LoadsActionType::RestoreConcentratedLoad(
+                                point_number,
+                                is_action_id_should_be_increased) =>
+                                {
+                                    restore_concentrated_load_in_loads(action_id,
+                                        *point_number,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions == true
+                                    {
+                                        self.active_actions.push(action.clone());
+                                    }
+                                },
+                        }
                     }
             }
             self.current_action = None;
@@ -1158,6 +1286,11 @@ impl ActionsRouter
             self.handle_update_beam_section_orientation_data_message(
                 &beam_section_orientation_data)?;
         }
+        else if let Some(concentrated_load_data) = serialized_message.get(
+            ADD_CONCENTRATED_LOAD_MESSAGE_HEADER)
+        {
+            self.handle_add_concentrated_load_message(&concentrated_load_data)?;
+        }
         else if let Some(undo_data) = serialized_message.get(UNDO_MESSAGE_HEADER)
         {
             self.handle_undo_message(&undo_data)?;
@@ -1252,6 +1385,12 @@ impl ActionsRouter
     pub fn extract_beam_sections_local_axis_1_directions(&self, handler: js_sys::Function)
     {
         extract_beam_sections_local_axis_1_directions(handler);
+    }
+
+
+    pub fn extract_concentrated_loads(&self, handler: js_sys::Function)
+    {
+        extract_concentrated_loads(handler);
     }
 
 

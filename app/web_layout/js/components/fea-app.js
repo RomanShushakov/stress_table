@@ -18,6 +18,7 @@ class FeaApp extends HTMLElement {
                 "fea-geometry-delete-point-menu",
                 "fea-geometry-add-line-menu",
                 "fea-geometry-update-line-menu",
+                "fea-load-add-concentrated-load-menu",
             ],
             linesDataDependentMenus: [
                 "fea-geometry-add-line-menu",
@@ -64,6 +65,9 @@ class FeaApp extends HTMLElement {
             ],
             beamSectionsOrientationsDependentMenus: [
                 "fea-properties-beam-section-orientation-menu",
+            ],
+            concentratedLoadsDataDependentMenus: [
+                "fea-load-add-concentrated-load-menu",
             ]
         };
 
@@ -121,7 +125,9 @@ class FeaApp extends HTMLElement {
         this.addEventListener("getBeamSections", (event) => this.getBeamSections(event));
         this.addEventListener("getProperties", (event) => this.getProperties(event));
         this.addEventListener("getAssignedPropertiesToLines", (event) => this.getAssignedPropertiesToLines(event));
-        this.addEventListener("getBeamSectionsLocalAxis1Directions", (event) => this.getBeamSectionsLocalAxis1Directionsions(event))
+        this.addEventListener("getBeamSectionsLocalAxis1Directions", (event) => this.getBeamSectionsLocalAxis1Directionsions(event));
+
+        this.addEventListener("getConcentratedLoads", (event) => this.getConcentratedLoads(event));
 
         this.addEventListener("selected_points", (event) => this.handleSelectedPointsMessage(event));
         this.addEventListener("selected_nodes", (event) => this.handleSelectedNodesMessage(event));
@@ -351,6 +357,19 @@ class FeaApp extends HTMLElement {
             (extractedBeamSectionsLocalAxis1DirectionsData) => {
                 this.querySelector(event.target.tagName.toLowerCase()).beamSectionsLocalAxis1Directions = 
                     extractedBeamSectionsLocalAxis1DirectionsData.extracted_beam_sections_local_axis_1_directions; 
+            }
+        );
+        event.stopPropagation();
+    }
+
+    getConcentratedLoads(event) {
+        this.state.actionsRouter.extract_concentrated_loads(
+            (extractedConcentratedLoadsData) => { 
+                const concentratedLoads = new Map(Array.from(
+                    Object.entries(extractedConcentratedLoadsData.extracted_concentrated_loads), 
+                    ([key, value]) => [parseInt(key), value]
+                ));
+                this.querySelector(event.target.tagName.toLowerCase()).concentratedLoads = concentratedLoads; 
             }
         );
         event.stopPropagation();

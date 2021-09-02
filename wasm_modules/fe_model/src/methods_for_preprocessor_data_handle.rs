@@ -3,6 +3,7 @@ use wasm_bindgen::prelude::*;
 use crate::FEModel;
 
 use crate::types::{FEUInt, FEFloat};
+use crate::functions::log;
 
 
 #[wasm_bindgen]
@@ -63,18 +64,6 @@ impl FEModel
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.preprocessor.restore_line(action_id, number, is_action_id_should_be_increased)
-    }
-
-
-    pub fn extract_points(&self, handler: js_sys::Function) -> Result<(), JsValue>
-    {
-        self.preprocessor.extract_points(handler)
-    }
-
-
-    pub fn extract_lines(&self, handler: js_sys::Function) -> Result<(), JsValue>
-    {
-        self.preprocessor.extract_lines(handler)
     }
 
 
@@ -274,6 +263,50 @@ impl FEModel
     }
 
 
+    pub fn add_concentrated_load(&mut self, action_id: FEUInt, point_number: FEUInt,
+        fx: FEFloat, fy: FEFloat, fz: FEFloat, mx: FEFloat, my: FEFloat, mz: FEFloat,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        log(&format!("{}, {}, {}, {}, {}, {}, {}, {}, {}", action_id, point_number,
+            fx, fy, fz, mx, my, mz, is_action_id_should_be_increased));
+        Ok(())
+    }
+
+
+    pub fn update_concentrated_load(&mut self, action_id: FEUInt, point_number: FEUInt,
+        fx: FEFloat, fy: FEFloat, fz: FEFloat, mx: FEFloat, my: FEFloat, mz: FEFloat,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        Ok(())
+    }
+
+
+    pub fn delete_concentrated_load(&mut self, action_id: FEUInt, point_number: FEUInt,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        Ok(())
+    }
+
+
+    pub fn restore_concentrated_load(&mut self, action_id: FEUInt, point_number: FEUInt,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        Ok(())
+    }
+
+
+    pub fn extract_points(&self, handler: js_sys::Function) -> Result<(), JsValue>
+    {
+        self.preprocessor.extract_points(handler)
+    }
+
+
+    pub fn extract_lines(&self, handler: js_sys::Function) -> Result<(), JsValue>
+    {
+        self.preprocessor.extract_lines(handler)
+    }
+
+
     pub fn extract_materials(&self, handler: js_sys::Function) -> Result<(), JsValue>
     {
         self.preprocessor.extract_materials(handler)
@@ -308,6 +341,13 @@ impl FEModel
         -> Result<(), JsValue>
     {
         self.preprocessor.extract_beam_sections_local_axis_1_directions(handler)
+    }
+
+
+    pub fn extract_concentrated_loads(&self, handler: js_sys::Function)
+        -> Result<(), JsValue>
+    {
+        self.preprocessor.extract_concentrated_loads(handler)
     }
 
 

@@ -58,6 +58,7 @@ import FeaPropertiesBeamSectionOrientationMenu from "./components/fea-properties
 
 import FeaLoadMenu from "./components/fea-load/fea-load-menu.js";
 import FeaLoadMenuButtons from "./components/fea-load/fea-load-menu-buttons.js";
+import FeaLoadAddConcentratedLoadMenu from "./components/fea-load/fea-load-add-concentrated-load-menu.js";
 
 customElements.define("fea-app", FeaApp);
 customElements.define("fea-app-menu-bar", FeaAppMenuBar);
@@ -119,3 +120,4 @@ customElements.define("fea-properties-beam-section-orientation-menu", FeaPropert
 
 customElements.define("fea-load-menu", FeaLoadMenu);
 customElements.define("fea-load-menu-buttons", FeaLoadMenuButtons);
+customElements.define("fea-load-add-concentrated-load-menu", FeaLoadAddConcentratedLoadMenu);

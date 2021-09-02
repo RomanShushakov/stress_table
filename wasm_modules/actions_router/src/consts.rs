@@ -34,5 +34,7 @@ pub const REMOVE_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_MESSAGE_HEADER: &str =
 pub const UPDATE_BEAM_SECTION_ORIENTATION_DATA_MESSAGE_HEADER: &str =
     "update_beam_section_orientation_data";
 
+pub const ADD_CONCENTRATED_LOAD_MESSAGE_HEADER: &str = "add_concentrated_load";
+
 pub const UNDO_MESSAGE_HEADER: &str = "undo";
 pub const REDO_MESSAGE_HEADER: &str = "redo";

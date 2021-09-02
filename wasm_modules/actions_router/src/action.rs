@@ -151,11 +151,87 @@ pub enum PropertiesActionType
 }
 
 
+#[derive(Clone, Debug)]
+pub struct ConcentratedLoad
+{
+    fx: FEFloat,
+    fy: FEFloat,
+    fz: FEFloat,
+    mx: FEFloat,
+    my: FEFloat,
+    mz: FEFloat,
+}
+
+
+impl ConcentratedLoad
+{
+    pub fn create(fx: FEFloat, fy: FEFloat, fz: FEFloat, mx: FEFloat, my: FEFloat, mz: FEFloat)
+        -> ConcentratedLoad
+    {
+        ConcentratedLoad { fx, fy, fz, mx, my, mz }
+    }
+
+
+    pub fn get_fx(&self) -> FEFloat
+    {
+        self.fx
+    }
+
+
+    pub fn get_fy(&self) -> FEFloat
+    {
+        self.fy
+    }
+
+
+    pub fn get_fz(&self) -> FEFloat
+    {
+        self.fz
+    }
+
+
+    pub fn get_mx(&self) -> FEFloat
+    {
+        self.mx
+    }
+
+
+    pub fn get_my(&self) -> FEFloat
+    {
+        self.my
+    }
+
+
+    pub fn get_mz(&self) -> FEFloat
+    {
+        self.mz
+    }
+}
+
+
+#[derive(Debug, Clone)]
+pub enum LoadsActionType
+{
+    // ( point_number, ConcentratedLoad, is_action_id_should_be_increased )
+    AddConcentratedLoad(FEUInt, ConcentratedLoad, bool),
+
+    // ( point_number, ConcentratedLoad, ConcentratedLoad, is_action_id_should_be_increased )
+    UpdateConcentratedLoad(FEUInt, ConcentratedLoad, ConcentratedLoad, bool),
+
+    // ( point_number, is_action_id_should_be_increased )
+    DeleteConcentratedLoad(FEUInt, bool),
+
+    // ( point_number, is_action_id_should_be_increased )
+    RestoreConcentratedLoad(FEUInt, bool),
+}
+
+
 #[derive(Debug, Clone)]
 pub enum ActionType
 {
     GeometryActionType(GeometryActionType),
     PropertiesActionType(PropertiesActionType),
+    LoadsActionType(LoadsActionType),
 }
 
 
@@ -173,6 +249,15 @@ impl From<PropertiesActionType> for ActionType
     fn from(action_type: PropertiesActionType) -> Self
     {
         ActionType::PropertiesActionType(action_type)
+    }
+}
+
+
+impl From<LoadsActionType> for ActionType
+{
+    fn from(action_type: LoadsActionType) -> Self
+    {
+        ActionType::LoadsActionType(action_type)
     }
 }
 

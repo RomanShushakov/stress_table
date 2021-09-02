@@ -90,30 +90,6 @@ class CommunicatorWithFEModel {
         }
     }
 
-    set showPointInfo(pointInfoData) {
-        try {
-            this.state.feModel.show_point_info(pointInfoData.number, pointInfoData.handler);
-        } catch (error) {
-            throw error;
-        }
-    }
-
-    set showLineInfo(lineInfoData) {
-        try {
-            this.state.feModel.show_line_info(lineInfoData.number, lineInfoData.handler);
-        } catch (error) {
-            throw error;
-        }
-    }
-
-    set extractPoints(handler) {
-        this.state.feModel.extract_points(handler);
-    }
-
-    set extractLines(handler) {
-        this.state.feModel.extract_lines(handler);
-    }
-
     set addMaterialToProperties(materialData) {
         try {
             this.state.feModel.add_material(materialData.action_id, materialData.name, 
@@ -341,6 +317,71 @@ class CommunicatorWithFEModel {
         }
     }
 
+    set addConcentratedLoadToLoads(concentratedLoadData) {
+        try {
+            this.state.feModel.add_concentrated_load(concentratedLoadData.action_id, 
+                concentratedLoadData.point_number, concentratedLoadData.fx, concentratedLoadData.fy, 
+                concentratedLoadData.fz, concentratedLoadData.mx, concentratedLoadData.my,
+                concentratedLoadData.mz, concentratedLoadData.is_action_id_should_be_increased);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    set updateConcentratedLoadInLoads(concentratedLoadData) {
+        try {
+            this.state.feModel.update_concentrated_load(concentratedLoadData.action_id, 
+                concentratedLoadData.point_number, concentratedLoadData.fx, concentratedLoadData.fy, 
+                concentratedLoadData.fz, concentratedLoadData.mx, concentratedLoadData.my,
+                concentratedLoadData.mz, concentratedLoadData.is_action_id_should_be_increased);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+
+    set deleteConcentratedLoadFromLoads(concentratedLoadData) {
+        try {
+            this.state.feModel.delete_concentrated_load(concentratedLoadData.action_id,
+                concentratedLoadData.point_number, concentratedLoadData.is_action_id_should_be_increased);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    set restoreConcentratedLoadInLoads(concentratedLoadData) {
+        try {
+            this.state.feModel.restore_concentrated_load(concentratedLoadData.action_id,
+                concentratedLoadData.point_number, concentratedLoadData.is_action_id_should_be_increased);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    set showPointInfo(pointInfoData) {
+        try {
+            this.state.feModel.show_point_info(pointInfoData.number, pointInfoData.handler);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    set showLineInfo(lineInfoData) {
+        try {
+            this.state.feModel.show_line_info(lineInfoData.number, lineInfoData.handler);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    set extractPoints(handler) {
+        this.state.feModel.extract_points(handler);
+    }
+
+    set extractLines(handler) {
+        this.state.feModel.extract_lines(handler);
+    }
+
     set extractMaterials(handler) {
         this.state.feModel.extract_materials(handler);
     }
@@ -367,6 +408,10 @@ class CommunicatorWithFEModel {
 
     set extractBeamSectionsLocalAxis1Directions(handler) {
         this.state.feModel.extract_beam_sections_local_axis_1_directions(handler);
+    }
+
+    set extractConcentratedLoads(handler) {
+        this.state.feModel.extract_concentrated_loads(handler);
     }
 }
 

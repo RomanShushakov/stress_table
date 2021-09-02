@@ -88,36 +88,6 @@ export function restoreLineInGeometry(action_id, number, is_action_id_should_be_
     }
 }
 
-export function showPointInfo(number, handler) 
-{
-    const pointInfoData = {"number": number, "handler": handler};
-    try {
-        communicatorWithFEModel.showPointInfo = pointInfoData;
-    } catch (error) {
-        throw error;
-    }
-}
-
-export function showLineInfo(number, handler) 
-{
-    const lineInfoData = { "number": number, "handler": handler };
-    try {
-        communicatorWithFEModel.showLineInfo = lineInfoData;
-    } catch (error) {
-        throw error;
-    }
-}
-
-export function extractPoints(handler) 
-{
-    communicatorWithFEModel.extractPoints = handler;
-}
-
-export function extractLines(handler) 
-{
-    communicatorWithFEModel.extractLines = handler;
-}
-
 export function addMaterialToProperties(action_id, name, young_modulus, poisson_ratio, is_action_id_should_be_increased) 
 {
     const materialData = { "action_id": action_id, "name": name, "young_modulus": young_modulus,
@@ -389,6 +359,84 @@ export function updateBeamSectionOrientationDataInProperties(action_id, local_ax
     }
 }
 
+export function addConcentratedLoadToLoads(action_id, point_number, 
+    fx, fy, fz, mx, my, mz, is_action_id_should_be_increased) 
+{
+    const concentratedLoadData = { "action_id": action_id, "point_number": point_number, 
+        "fx": fx, "fy": fy, "fz": fz, "mx": mx, "my": my, "mz": mz, 
+        "is_action_id_should_be_increased": is_action_id_should_be_increased };
+    try {
+        communicatorWithFEModel.addConcentratedLoadToLoads = concentratedLoadData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function updateConcentratedLoadInLoads(action_id, point_number, 
+    fx, fy, fz, mx, my, mz, is_action_id_should_be_increased) 
+{
+    const concentratedLoadData = { "action_id": action_id, "point_number": point_number, 
+        "fx": fx, "fy": fy, "fz": fz, "mx": mx, "my": my, "mz": mz,
+        "is_action_id_should_be_increased": is_action_id_should_be_increased };
+    try {
+        communicatorWithFEModel.updateConcentratedLoadInLoads = concentratedLoadData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function deleteConcentratedLoadFromLoads(action_id, point_number, is_action_id_should_be_increased) 
+{
+    const concentratedLoadData = { "action_id": action_id, 
+        "point_number": point_number, "is_action_id_should_be_increased": is_action_id_should_be_increased };
+    try {
+        communicatorWithFEModel.deleteConcentratedLoadFromLoads = concentratedLoadData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function restoreConcentratedLoadInLoads(action_id, point_number, is_action_id_should_be_increased) 
+{
+    const concentratedLoadData = { "action_id": action_id, 
+        "point_number": point_number, "is_action_id_should_be_increased": is_action_id_should_be_increased };
+    try {
+        communicatorWithFEModel.restoreConcentratedLoadInLoads = concentratedLoadData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function showPointInfo(number, handler) 
+{
+    const pointInfoData = {"number": number, "handler": handler};
+    try {
+        communicatorWithFEModel.showPointInfo = pointInfoData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function showLineInfo(number, handler) 
+{
+    const lineInfoData = { "number": number, "handler": handler };
+    try {
+        communicatorWithFEModel.showLineInfo = lineInfoData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function extractPoints(handler) 
+{
+    communicatorWithFEModel.extractPoints = handler;
+}
+
+export function extractLines(handler) 
+{
+    communicatorWithFEModel.extractLines = handler;
+}
+
 export function extractMaterials(handler) 
 {
     communicatorWithFEModel.extractMaterials = handler;
@@ -417,6 +465,11 @@ export function extractAssignedProperties(handler)
 export function extractAssignedPropertiesToLines(handler) 
 {
     communicatorWithFEModel.extractAssignedPropertiesToLines = handler;
+}
+
+export function extractConcentratedLoads(handler) 
+{
+    communicatorWithFEModel.extractConcentratedLoads = handler;
 }
 
 export function extractBeamSectionsLocalAxis1Directions(handler) 

@@ -6,15 +6,21 @@ pub enum Sign
 }
 
 
+pub enum Direction
+{
+    X, Y, Z
+}
+
+
 #[derive(Debug)]
 pub struct ConcentratedLoadObject
 {
-    optional_fx: Option<Sign>,
-    optional_fy: Option<Sign>,
-    optional_fz: Option<Sign>,
-    optional_mx: Option<Sign>,
-    optional_my: Option<Sign>,
-    optional_mz: Option<Sign>,
+    optional_fx_sign: Option<Sign>,
+    optional_fy_sign: Option<Sign>,
+    optional_fz_sign: Option<Sign>,
+    optional_mx_sign: Option<Sign>,
+    optional_my_sign: Option<Sign>,
+    optional_mz_sign: Option<Sign>,
     uid: u32,
 }
 
@@ -35,8 +41,13 @@ impl ConcentratedLoadObject
             else if my < 0f32 { Some(Sign::Negative) } else { None };
         let optional_mz = if mz > 0f32 { Some(Sign::Positive) }
             else if mz < 0f32 { Some(Sign::Negative) } else { None };
-        ConcentratedLoadObject { optional_fx, optional_fy, optional_fz,
-            optional_mx, optional_my, optional_mz, uid }
+        ConcentratedLoadObject {
+            optional_fx_sign: optional_fx,
+            optional_fy_sign: optional_fy,
+            optional_fz_sign: optional_fz,
+            optional_mx_sign: optional_mx,
+            optional_my_sign: optional_my,
+            optional_mz_sign: optional_mz, uid }
     }
 
 
@@ -52,8 +63,38 @@ impl ConcentratedLoadObject
     }
 
 
-    pub fn optional_fx(&self) -> &Option<Sign>
+    pub fn optional_fx_sign(&self) -> &Option<Sign>
     {
-        &self.optional_fx
+        &self.optional_fx_sign
+    }
+
+
+    pub fn optional_fy_sign(&self) -> &Option<Sign>
+    {
+        &self.optional_fy_sign
+    }
+
+
+    pub fn optional_fz_sign(&self) -> &Option<Sign>
+    {
+        &self.optional_fz_sign
+    }
+
+
+        pub fn optional_mx_sign(&self) -> &Option<Sign>
+    {
+        &self.optional_mx_sign
+    }
+
+
+    pub fn optional_my_sign(&self) -> &Option<Sign>
+    {
+        &self.optional_my_sign
+    }
+
+
+    pub fn optional_mz_sign(&self) -> &Option<Sign>
+    {
+        &self.optional_mz_sign
     }
 }

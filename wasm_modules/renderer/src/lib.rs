@@ -215,6 +215,23 @@ impl Renderer
                     &self.props.is_geometry_visible,
                     &self.props.is_mesh_visible)?;
             }
+            if !self.state.concentrated_load_objects.is_empty()
+            {
+                drawn_object_for_selection.add_concentrated_load_objects(
+                    &self.props.point_objects,
+                    &mut self.state.concentrated_load_objects,
+                    GLMode::Selection,
+                    &self.state.under_selection_box_colors,
+                    &self.state.selected_colors,
+                    DRAWN_CONCENTRATED_LOAD_OBJECTS_LINE_LENGTH /
+                            (1.0 + self.props.d_scale),
+                    DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
+                    DRAWN_CONCENTRATED_LOAD_OBJECTS_CAPS_BASE_POINTS_NUMBER,
+                    DRAWN_CONCENTRATED_LOAD_OBJECTS_CAPS_HEIGHT /
+                        (1.0 + self.props.d_scale),
+                    DRAWN_CONCENTRATED_LOAD_OBJECTS_CAPS_WIDTH /
+                        (1.0 + self.props.d_scale))?;
+            }
             self.state.drawn_object_for_selection = Some(drawn_object_for_selection);
         }
         else
@@ -276,6 +293,7 @@ impl Renderer
                     &self.state.selected_colors,
                     DRAWN_CONCENTRATED_LOAD_OBJECTS_LINE_LENGTH /
                             (1.0 + self.props.d_scale),
+                    DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
                     DRAWN_CONCENTRATED_LOAD_OBJECTS_CAPS_BASE_POINTS_NUMBER,
                     DRAWN_CONCENTRATED_LOAD_OBJECTS_CAPS_HEIGHT /
                         (1.0 + self.props.d_scale),
@@ -727,7 +745,6 @@ impl Renderer
     {
         let width = self.props.canvas_gl.width();
         let height = self.props.canvas_gl.height();
-        let old_under_selection_box_colors = self.state.under_selection_box_colors.clone();
 
         self.state.gl.clear_color(0.0, 0.0, 0.0, 1.0);
         self.state.ctx.clear_rect(0.0, 0.0, width as f64, height as f64);
@@ -874,10 +891,7 @@ impl Renderer
         self.state.gl.clear(GL::DEPTH_BUFFER_BIT);
         self.state.gl.line_width(1.0);
 
-        if old_under_selection_box_colors != self.state.under_selection_box_colors
-        {
-            self.update_drawn_object_visible()?;
-        }
+        self.update_drawn_object_visible()?;
 
         if let Some(drawn_object_visible) = &self.state.drawn_object_visible
         {

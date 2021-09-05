@@ -44,7 +44,11 @@ use external_functions::communication_with_loads::
 };
 
 mod action;
-use action::{Action, GeometryActionType, ActionType, PropertiesActionType, LoadsActionType};
+use action::
+{
+    Action, GeometryActionType, ActionType, PropertiesActionType, LoadsActionType, Coordinates,
+    ConcentratedLoad
+};
 
 mod types;
 use types::{FEUInt};
@@ -137,7 +141,7 @@ impl ActionsRouter
             action.is_action_id_same(action_id))
         {
             let undo_action = self.active_actions.remove(position);
-            match &undo_action.action_type()
+            match &undo_action.ref_action_type()
             {
                 ActionType::GeometryActionType(geometry_action_type) =>
                     {
@@ -150,7 +154,8 @@ impl ActionsRouter
                                 {
                                     let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::from(
-                                        GeometryActionType::DeletePoint(*point_number,
+                                        GeometryActionType::DeletePoint(
+                                            *point_number,
                                             is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
                                     let add_to_active_actions = false;
@@ -164,8 +169,10 @@ impl ActionsRouter
                                 {
                                     let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::from(
-                                        GeometryActionType::UpdatePoint(*point_number,
-                                            new_coordinates.clone(), old_coordinates.clone(),
+                                        GeometryActionType::UpdatePoint(
+                                            *point_number,
+                                            new_coordinates.to_owned(),
+                                            old_coordinates.to_owned(),
                                             is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
                                     let add_to_active_actions = false;
@@ -177,7 +184,8 @@ impl ActionsRouter
                                 {
                                     let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::from(
-                                        GeometryActionType::RestorePoint(*point_number,
+                                        GeometryActionType::RestorePoint(
+                                            *point_number,
                                             is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
                                     let add_to_active_actions = false;
@@ -192,7 +200,8 @@ impl ActionsRouter
                                 {
                                     let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::from(
-                                        GeometryActionType::DeleteLine(*line_number,
+                                        GeometryActionType::DeleteLine(
+                                            *line_number,
                                             is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
                                     let add_to_active_actions = false;
@@ -208,9 +217,12 @@ impl ActionsRouter
                                 {
                                     let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::from(
-                                        GeometryActionType::UpdateLine(*line_number,
-                                            *new_start_point_number, *new_end_point_number,
-                                            *old_start_point_number, *old_end_point_number,
+                                        GeometryActionType::UpdateLine(
+                                            *line_number,
+                                            *new_start_point_number,
+                                            *new_end_point_number,
+                                            *old_start_point_number,
+                                            *old_end_point_number,
                                             is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
                                     let add_to_active_actions = false;
@@ -222,7 +234,8 @@ impl ActionsRouter
                                 {
                                     let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::from(
-                                        GeometryActionType::RestoreLine(*line_number,
+                                        GeometryActionType::RestoreLine(
+                                            *line_number,
                                             is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
                                     let add_to_active_actions = false;
@@ -244,7 +257,7 @@ impl ActionsRouter
                                     let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::from(
                                         PropertiesActionType::DeleteMaterial(
-                                            material_name.clone(),
+                                            material_name.to_owned(),
                                             is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
                                     let add_to_active_actions = false;
@@ -261,7 +274,7 @@ impl ActionsRouter
                                     let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::from(
                                         PropertiesActionType::UpdateMaterial(
-                                            material_name.clone(),
+                                            material_name.to_owned(),
                                             *new_young_modulus, *new_poisson_ratio,
                                             *old_young_modulus, *old_poisson_ratio,
                                             is_action_id_should_be_increased));
@@ -276,7 +289,7 @@ impl ActionsRouter
                                     let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::from(
                                         PropertiesActionType::RestoreMaterial(
-                                            material_name.clone(),
+                                            material_name.to_owned(),
                                             is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
                                     let add_to_active_actions = false;
@@ -292,7 +305,7 @@ impl ActionsRouter
                                     let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::from(
                                         PropertiesActionType::DeleteTrussSection(
-                                            truss_section_name.clone(),
+                                            truss_section_name.to_owned(),
                                             is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
                                     let add_to_active_actions = false;
@@ -309,7 +322,7 @@ impl ActionsRouter
                                     let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::from(
                                         PropertiesActionType::UpdateTrussSection(
-                                            truss_section_name.clone(),
+                                            truss_section_name.to_owned(),
                                             *new_area, *new_area2,
                                             *old_area, *old_area2,
                                             is_action_id_should_be_increased));
@@ -324,7 +337,7 @@ impl ActionsRouter
                                     let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::from(
                                         PropertiesActionType::RestoreTrussSection(
-                                            truss_section_name.clone(),
+                                            truss_section_name.to_owned(),
                                             is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
                                     let add_to_active_actions = false;
@@ -344,7 +357,7 @@ impl ActionsRouter
                                     let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::from(
                                         PropertiesActionType::DeleteBeamSection(
-                                            beam_section_name.clone(),
+                                            beam_section_name.to_owned(),
                                             is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
                                     let add_to_active_actions = false;
@@ -369,7 +382,7 @@ impl ActionsRouter
                                     let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::from(
                                         PropertiesActionType::UpdateBeamSection(
-                                            beam_section_name.clone(),
+                                            beam_section_name.to_owned(),
                                             *new_area, *new_i11,
                                             *new_i22, *new_i12,
                                             *new_it, *new_shear_factor,
@@ -388,7 +401,7 @@ impl ActionsRouter
                                     let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::from(
                                         PropertiesActionType::RestoreBeamSection(
-                                            beam_section_name.clone(),
+                                            beam_section_name.to_owned(),
                                             is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
                                     let add_to_active_actions = false;
@@ -405,7 +418,7 @@ impl ActionsRouter
                                     let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::from(
                                         PropertiesActionType::DeleteProperties(
-                                            properties_name.clone(),
+                                            properties_name.to_owned(),
                                             is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
                                     let add_to_active_actions = false;
@@ -424,13 +437,13 @@ impl ActionsRouter
                                     let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::from(
                                         PropertiesActionType::UpdateProperties(
-                                            properties_name.clone(),
-                                            new_material_name.clone(),
-                                            new_cross_section_name.clone(),
-                                            new_cross_section_type.clone(),
-                                            old_material_name.clone(),
-                                            old_cross_section_name.clone(),
-                                            old_cross_section_type.clone(),
+                                            properties_name.to_owned(),
+                                            new_material_name.to_owned(),
+                                            new_cross_section_name.to_owned(),
+                                            new_cross_section_type.to_owned(),
+                                            old_material_name.to_owned(),
+                                            old_cross_section_name.to_owned(),
+                                            old_cross_section_type.to_owned(),
                                             is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
                                     let add_to_active_actions = false;
@@ -443,7 +456,7 @@ impl ActionsRouter
                                     let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::from(
                                         PropertiesActionType::RestoreProperties(
-                                            properties_name.clone(),
+                                            properties_name.to_owned(),
                                             is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
                                     let add_to_active_actions = false;
@@ -458,7 +471,7 @@ impl ActionsRouter
                                     let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::from(
                                         PropertiesActionType::DeleteAssignedPropertiesToLines(
-                                            assigned_properties_name.clone(),
+                                            assigned_properties_name.to_owned(),
                                             is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
                                     let add_to_active_actions = false;
@@ -473,9 +486,9 @@ impl ActionsRouter
                                     let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::from(
                                         PropertiesActionType::UpdateAssignedPropertiesToLines(
-                                            assigned_properties_name.clone(),
-                                            new_line_numbers.clone(),
-                                            old_line_numbers.clone(),
+                                            assigned_properties_name.to_owned(),
+                                            new_line_numbers.to_owned(),
+                                            old_line_numbers.to_owned(),
                                             is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
                                     let add_to_active_actions = false;
@@ -488,7 +501,7 @@ impl ActionsRouter
                                     let is_action_id_should_be_increased = false;
                                     let action_type = ActionType::from(
                                         PropertiesActionType::RestoreAssignedPropertiesToLines(
-                                            assigned_properties_name.clone(),
+                                            assigned_properties_name.to_owned(),
                                             is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
                                     let add_to_active_actions = false;
@@ -503,7 +516,7 @@ impl ActionsRouter
                                     let action_type = ActionType::from(
                                         PropertiesActionType::
                                             RemoveBeamSectionLocalAxis1Direction(
-                                                local_axis_1_direction.clone(),
+                                                local_axis_1_direction.to_owned(),
                                                 is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
                                     let add_to_active_actions = false;
@@ -517,7 +530,7 @@ impl ActionsRouter
                                     let action_type = ActionType::from(
                                         PropertiesActionType::
                                             RestoreBeamSectionLocalAxis1Direction(
-                                                local_axis_1_direction.clone(),
+                                                local_axis_1_direction.to_owned(),
                                                 is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
                                     let add_to_active_actions = false;
@@ -534,9 +547,9 @@ impl ActionsRouter
                                     let action_type = ActionType::from(
                                         PropertiesActionType::
                                         UpdateBeamSectionOrientationData(
-                                            local_axis_1_direction.clone(),
-                                            new_line_numbers.clone(),
-                                            old_line_numbers.clone(),
+                                            local_axis_1_direction.to_owned(),
+                                            new_line_numbers.to_owned(),
+                                            old_line_numbers.to_owned(),
                                             is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
                                     let add_to_active_actions = false;
@@ -572,8 +585,8 @@ impl ActionsRouter
                                     let action_type = ActionType::from(
                                         LoadsActionType::UpdateConcentratedLoad(
                                             *point_number,
-                                            new_concentrated_load.clone(),
-                                            old_concentrated_load.clone(),
+                                            new_concentrated_load.to_owned(),
+                                            old_concentrated_load.to_owned(),
                                             is_action_id_should_be_increased));
                                     let action = Action::create(action_id, action_type);
                                     let add_to_active_actions = false;
@@ -620,12 +633,11 @@ impl ActionsRouter
 
     fn handle_current_action(&mut self) -> Result<(), JsValue>
     {
-        if let Some((action, add_to_active_actions)) =
-            &self.current_action
+        if let Some((action, add_to_active_actions)) = &self.current_action
         {
-            let action_id = action.action_id();
-            let action_type = &action.action_type();
-            match action_type
+            let ref_action_id = action.ref_action_id();
+            let ref_action_type = action.ref_action_type();
+            match ref_action_type
             {
                 ActionType::GeometryActionType(geometry_action_type) =>
                     {
@@ -636,14 +648,13 @@ impl ActionsRouter
                                 coordinates,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    let x = coordinates.get_x();
-                                    let y = coordinates.get_y();
-                                    let z = coordinates.get_z();
-                                    add_point_to_geometry(action_id, *point_number, x, y, z,
-                                        *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    let Coordinates { x, y, z } =
+                                        coordinates;
+                                    add_point_to_geometry(*ref_action_id, *point_number,
+                                        *x, *y, *z, *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                             GeometryActionType::UpdatePoint(
@@ -652,36 +663,35 @@ impl ActionsRouter
                                 new_coordinates,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    let x = new_coordinates.get_x();
-                                    let y = new_coordinates.get_y();
-                                    let z = new_coordinates.get_z();
-                                    update_point_in_geometry(action_id, *point_number, x, y, z,
-                                        *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    let Coordinates { x, y, z } =
+                                        new_coordinates;
+                                    update_point_in_geometry(*ref_action_id, *point_number,
+                                        *x, *y, *z, *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                             GeometryActionType::DeletePoint(
                                 point_number,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    delete_point_from_geometry(action_id, *point_number,
+                                    delete_point_from_geometry(*ref_action_id, *point_number,
                                         *is_action_id_should_be_increased)?;
                                     if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                             GeometryActionType::RestorePoint(
                                 point_number,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    restore_point_in_geometry(action_id, *point_number,
+                                    restore_point_in_geometry(*ref_action_id, *point_number,
                                         *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                             GeometryActionType::AddLine(
@@ -690,12 +700,12 @@ impl ActionsRouter
                                 end_point_number,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    add_line_to_geometry(action_id, *line_number,
+                                    add_line_to_geometry(*ref_action_id, *line_number,
                                         *start_point_number, *end_point_number,
                                         *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                             GeometryActionType::UpdateLine(
@@ -706,34 +716,34 @@ impl ActionsRouter
                                 new_end_point_number,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    update_line_in_geometry(action_id, *line_number,
+                                    update_line_in_geometry(*ref_action_id, *line_number,
                                         *new_start_point_number, *new_end_point_number,
                                         *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 }
                             GeometryActionType::DeleteLine(
                                 line_number,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    delete_line_from_geometry(action_id, *line_number,
+                                    delete_line_from_geometry(*ref_action_id, *line_number,
                                         *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                             GeometryActionType::RestoreLine(
                                 line_number,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    restore_line_in_geometry(action_id, *line_number,
+                                    restore_line_in_geometry(*ref_action_id, *line_number,
                                         *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                         }
@@ -748,13 +758,12 @@ impl ActionsRouter
                                 poisson_ratio,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    add_material_to_properties(action_id,
-                                        material_name,
-                                        *young_modulus, *poisson_ratio,
+                                    add_material_to_properties(*ref_action_id,
+                                        material_name, *young_modulus, *poisson_ratio,
                                         *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                             PropertiesActionType::UpdateMaterial(
@@ -765,37 +774,34 @@ impl ActionsRouter
                                 new_poisson_ratio,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    update_material_in_properties(action_id,
-                                        material_name,
-                                        *new_young_modulus, *new_poisson_ratio,
+                                    update_material_in_properties(*ref_action_id,
+                                        material_name, *new_young_modulus, *new_poisson_ratio,
                                         *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                             PropertiesActionType::DeleteMaterial(
                                 material_name,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    delete_material_from_properties(action_id,
-                                        material_name,
-                                        *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    delete_material_from_properties(*ref_action_id,
+                                        material_name, *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                             PropertiesActionType::RestoreMaterial(
                                 material_name,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    restore_material_in_properties(action_id,
-                                       material_name,
-                                       *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    restore_material_in_properties(*ref_action_id,
+                                        material_name, *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                             PropertiesActionType::AddTrussSection(
@@ -804,13 +810,12 @@ impl ActionsRouter
                                 area2,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    add_truss_section_to_properties(action_id,
-                                        truss_section_name,
-                                        *area, *area2,
+                                    add_truss_section_to_properties(*ref_action_id,
+                                        truss_section_name, *area, *area2,
                                         *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                             PropertiesActionType::UpdateTrussSection(
@@ -821,37 +826,34 @@ impl ActionsRouter
                                 new_area2,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    update_truss_section_in_properties(action_id,
-                                        truss_section_name,
-                                        *new_area, *new_area2,
+                                    update_truss_section_in_properties(*ref_action_id,
+                                        truss_section_name, *new_area, *new_area2,
                                         *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                             PropertiesActionType::DeleteTrussSection(
                                 truss_section_name,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    delete_truss_section_from_properties(action_id,
-                                        truss_section_name,
-                                        *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    delete_truss_section_from_properties(*ref_action_id,
+                                        truss_section_name, *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                             PropertiesActionType::RestoreTrussSection(
                                 truss_section_name,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    restore_truss_section_in_properties(action_id,
-                                        truss_section_name,
-                                        *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    restore_truss_section_in_properties(*ref_action_id,
+                                        truss_section_name, *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                             PropertiesActionType::AddBeamSection(
@@ -864,13 +866,12 @@ impl ActionsRouter
                                 shear_factor,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    add_beam_section_to_properties(action_id,
-                                        beam_section_name,
-                                        *area, *i11, *i22, *i12, *it, *shear_factor,
-                                        *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    add_beam_section_to_properties(*ref_action_id,
+                                        beam_section_name, *area, *i11, *i22, *i12, *it,
+                                        *shear_factor, *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                             PropertiesActionType::UpdateBeamSection(
@@ -889,37 +890,35 @@ impl ActionsRouter
                                 new_shear_factor,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    update_beam_section_in_properties(action_id,
+                                    update_beam_section_in_properties(*ref_action_id,
                                         beam_section_name, *new_area, *new_i11, *new_i22, *new_i12,
                                         *new_it, *new_shear_factor,
                                         *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                             PropertiesActionType::DeleteBeamSection(
                                 beam_section_name,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    delete_beam_section_from_properties(action_id,
-                                        beam_section_name,
-                                        *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    delete_beam_section_from_properties(*ref_action_id,
+                                        beam_section_name, *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                             PropertiesActionType::RestoreBeamSection(
                                 beam_section_name,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    restore_beam_section_in_properties(action_id,
-                                        beam_section_name,
-                                        *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    restore_beam_section_in_properties(*ref_action_id,
+                                        beam_section_name, *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                             PropertiesActionType::AddProperties(
@@ -929,13 +928,12 @@ impl ActionsRouter
                                 cross_section_type,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    add_properties_to_properties(action_id,
-                                        properties_name, material_name,
-                                        cross_section_name, cross_section_type,
+                                    add_properties_to_properties(*ref_action_id, properties_name,
+                                        material_name, cross_section_name, cross_section_type,
                                         *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                             PropertiesActionType::UpdateProperties(
@@ -948,37 +946,34 @@ impl ActionsRouter
                                 new_cross_section_type,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    update_properties_in_properties(action_id,
-                                        properties_name,
-                                        new_material_name, new_cross_section_name,
+                                    update_properties_in_properties(*ref_action_id,
+                                        properties_name, new_material_name, new_cross_section_name,
                                         new_cross_section_type, *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                             PropertiesActionType::DeleteProperties(
                                 properties_name,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    delete_properties_from_properties(action_id,
-                                        properties_name,
-                                        *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    delete_properties_from_properties(*ref_action_id,
+                                        properties_name, *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                             PropertiesActionType::RestoreProperties(
                                 properties_name,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    restore_properties_in_properties(action_id,
-                                        properties_name,
-                                        *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    restore_properties_in_properties(*ref_action_id,
+                                        properties_name, *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                             PropertiesActionType::AddAssignedPropertiesToLines(
@@ -986,12 +981,12 @@ impl ActionsRouter
                                 line_numbers,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    add_assigned_properties_to_lines_to_properties(action_id,
-                                        properties_name, line_numbers.as_slice(),
+                                    add_assigned_properties_to_lines_to_properties(*ref_action_id,
+                                        properties_name, line_numbers,
                                         *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                             PropertiesActionType::UpdateAssignedPropertiesToLines(
@@ -1000,47 +995,48 @@ impl ActionsRouter
                                 new_line_numbers,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    update_assigned_properties_to_lines_in_properties(action_id,
-                                        properties_name, new_line_numbers,
+                                    update_assigned_properties_to_lines_in_properties(
+                                        *ref_action_id, properties_name, new_line_numbers,
                                         *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                             PropertiesActionType::DeleteAssignedPropertiesToLines(
                                 properties_name,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    delete_assigned_properties_to_lines_from_properties(action_id,
-                                        properties_name, *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    delete_assigned_properties_to_lines_from_properties(
+                                        *ref_action_id, properties_name,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                             PropertiesActionType::RestoreAssignedPropertiesToLines(
                                 assigned_properties_name,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    restore_assigned_properties_to_lines_in_properties(action_id,
-                                        assigned_properties_name,
+                                    restore_assigned_properties_to_lines_in_properties(
+                                        *ref_action_id, assigned_properties_name,
                                         *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                             PropertiesActionType::AddBeamSectionLocalAxis1Direction(
                                 local_axis_1_direction,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    add_beam_section_local_axis_1_direction_to_properties(action_id,
-                                        local_axis_1_direction,
+                                    add_beam_section_local_axis_1_direction_to_properties(
+                                        *ref_action_id, local_axis_1_direction,
                                         *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                             PropertiesActionType::RemoveBeamSectionLocalAxis1Direction(
@@ -1048,12 +1044,11 @@ impl ActionsRouter
                                 is_action_id_should_be_increased) =>
                                 {
                                     remove_beam_section_local_axis_1_direction_from_properties(
-                                        action_id,
-                                        local_axis_1_direction,
+                                        *ref_action_id, local_axis_1_direction,
                                         *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                             PropertiesActionType::RestoreBeamSectionLocalAxis1Direction(
@@ -1061,12 +1056,11 @@ impl ActionsRouter
                                 is_action_id_should_be_increased) =>
                                 {
                                     restore_beam_section_local_axis_1_direction_in_properties(
-                                        action_id,
-                                        local_axis_1_direction,
+                                        *ref_action_id, local_axis_1_direction,
                                         *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                             PropertiesActionType::UpdateBeamSectionOrientationData(
@@ -1075,12 +1069,12 @@ impl ActionsRouter
                                 new_line_numbers,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    update_beam_section_orientation_data_in_properties(action_id,
-                                        local_axis_1_direction, new_line_numbers,
+                                    update_beam_section_orientation_data_in_properties(
+                                        *ref_action_id, local_axis_1_direction, new_line_numbers,
                                         *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                         }
@@ -1094,18 +1088,14 @@ impl ActionsRouter
                                 concentrated_load,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    let fx = concentrated_load.get_fx();
-                                    let fy = concentrated_load.get_fy();
-                                    let fz = concentrated_load.get_fz();
-                                    let mx = concentrated_load.get_mx();
-                                    let my = concentrated_load.get_my();
-                                    let mz = concentrated_load.get_mz();
-                                    add_concentrated_load_to_loads(action_id, *point_number,
-                                        fx, fy, fz, mx, my, mz,
+                                    let ConcentratedLoad { fx, fy, fz,
+                                        mx, my, mz } = concentrated_load;
+                                    add_concentrated_load_to_loads(*ref_action_id, *point_number,
+                                        *fx, *fy, *fz, *mx, *my, *mz,
                                         *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                             LoadsActionType::UpdateConcentratedLoad(
@@ -1114,42 +1104,37 @@ impl ActionsRouter
                                 new_concentrated_load,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    let fx = new_concentrated_load.get_fx();
-                                    let fy = new_concentrated_load.get_fy();
-                                    let fz = new_concentrated_load.get_fz();
-                                    let mx = new_concentrated_load.get_mx();
-                                    let my = new_concentrated_load.get_my();
-                                    let mz = new_concentrated_load.get_mz();
-                                    update_concentrated_load_in_loads(action_id,
-                                        *point_number, fx, fy, fz, mx, my, mz,
+                                    let ConcentratedLoad { fx, fy, fz,
+                                        mx, my, mz } =
+                                            new_concentrated_load;
+                                    update_concentrated_load_in_loads(*ref_action_id,
+                                        *point_number, *fx, *fy, *fz, *mx, *my, *mz,
                                         *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                             LoadsActionType::DeleteConcentratedLoad(
                                 point_number,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    delete_concentrated_load_from_loads(action_id,
-                                        *point_number,
-                                        *is_action_id_should_be_increased)?;
+                                    delete_concentrated_load_from_loads(*ref_action_id,
+                                        *point_number, *is_action_id_should_be_increased)?;
                                     if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                             LoadsActionType::RestoreConcentratedLoad(
                                 point_number,
                                 is_action_id_should_be_increased) =>
                                 {
-                                    restore_concentrated_load_in_loads(action_id,
-                                        *point_number,
-                                        *is_action_id_should_be_increased)?;
-                                    if *add_to_active_actions == true
+                                    restore_concentrated_load_in_loads(*ref_action_id,
+                                        *point_number, *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions
                                     {
-                                        self.active_actions.push(action.clone());
+                                        self.active_actions.push(action.to_owned());
                                     }
                                 },
                         }
@@ -1316,8 +1301,8 @@ impl ActionsRouter
 
         for action in &self.active_actions
         {
-            let action_id = &action.action_id();
-            let action_type = &action.action_type();
+            let action_id = &action.ref_action_id();
+            let action_type = &action.ref_action_type();
             log(&format!("Actions router active actions: \n
                 Action id: {:?}, action type: {:?} \n",
                 action_id, action_type));
@@ -1327,8 +1312,8 @@ impl ActionsRouter
 
         for action in &self.undo_actions
         {
-            let action_id = &action.action_id();
-            let action_type = &action.action_type();
+            let action_id = &action.ref_action_id();
+            let action_type = &action.ref_action_type();
             log(&format!("Actions router undo actions: \n
                 Action id: {:?}, action type: {:?} \n",
                 action_id, action_type));

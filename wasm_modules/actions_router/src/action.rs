@@ -4,9 +4,9 @@ use crate::types::{FEUInt, FEFloat};
 #[derive(Clone, Debug)]
 pub struct Coordinates
 {
-    x: FEFloat,
-    y: FEFloat,
-    z: FEFloat,
+    pub x: FEFloat,
+    pub y: FEFloat,
+    pub z: FEFloat,
 }
 
 
@@ -15,24 +15,6 @@ impl Coordinates
     pub fn create(x: FEFloat, y: FEFloat, z: FEFloat) -> Coordinates
     {
         Coordinates { x, y, z }
-    }
-
-
-    pub fn get_x(&self) -> FEFloat
-    {
-        self.x
-    }
-
-
-    pub fn get_y(&self) -> FEFloat
-    {
-        self.y
-    }
-
-
-    pub fn get_z(&self) -> FEFloat
-    {
-        self.z
     }
 }
 
@@ -154,12 +136,12 @@ pub enum PropertiesActionType
 #[derive(Clone, Debug)]
 pub struct ConcentratedLoad
 {
-    fx: FEFloat,
-    fy: FEFloat,
-    fz: FEFloat,
-    mx: FEFloat,
-    my: FEFloat,
-    mz: FEFloat,
+    pub fx: FEFloat,
+    pub fy: FEFloat,
+    pub fz: FEFloat,
+    pub mx: FEFloat,
+    pub my: FEFloat,
+    pub mz: FEFloat,
 }
 
 
@@ -169,42 +151,6 @@ impl ConcentratedLoad
         -> ConcentratedLoad
     {
         ConcentratedLoad { fx, fy, fz, mx, my, mz }
-    }
-
-
-    pub fn get_fx(&self) -> FEFloat
-    {
-        self.fx
-    }
-
-
-    pub fn get_fy(&self) -> FEFloat
-    {
-        self.fy
-    }
-
-
-    pub fn get_fz(&self) -> FEFloat
-    {
-        self.fz
-    }
-
-
-    pub fn get_mx(&self) -> FEFloat
-    {
-        self.mx
-    }
-
-
-    pub fn get_my(&self) -> FEFloat
-    {
-        self.my
-    }
-
-
-    pub fn get_mz(&self) -> FEFloat
-    {
-        self.mz
     }
 }
 
@@ -284,14 +230,14 @@ impl Action
     }
 
 
-    pub fn action_id(&self) -> FEUInt
+    pub fn ref_action_id(&self) -> &FEUInt
     {
-        self.action_id
+        &self.action_id
     }
 
 
-    pub fn action_type(&self) -> ActionType
+    pub fn ref_action_type(&self) -> &ActionType
     {
-        self.action_type.clone()
+        &self.action_type
     }
 }

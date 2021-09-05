@@ -15,7 +15,7 @@ lto = true
 crate-type = ["cdylib"]
 
 [dependencies]
-extended_matrix = "0.2.11"
+extended_matrix = "0.2.12"
 wasm-bindgen = { version = "0.2.76", features = ["serde-serialize"] }
 js-sys = "0.3.53"
 serde = { version = "1.0.130", features = ["derive"] }

@@ -5,7 +5,7 @@ use std::collections::{HashMap, HashSet};
 
 use extended_matrix::extended_matrix::ExtendedMatrix;
 use extended_matrix::basic_matrix::basic_matrix::MatrixElementPosition;
-use extended_matrix::functions::extract_element_value;
+use extended_matrix::functions::copy_element_value;
 
 use crate::point_object::{PointObjectKey, PointObject};
 use crate::point_object::{PointObjectType};
@@ -351,24 +351,24 @@ impl DrawnObject
                                 rotation_matrix.multiply_by_matrix(&point_object_coordinates_shift)
                                     .map_err(|e| JsValue::from(e))?;
                             let all_directional_vector_values =
-                                transformed_directional_vector.extract_all_elements_values();
+                                transformed_directional_vector.copy_all_elements_values();
                             let all_point_object_coordinates_shift_values =
-                                transformed_point_object_coordinates_shift.extract_all_elements_values();
+                                transformed_point_object_coordinates_shift.copy_all_elements_values();
                             let directional_vector_x_coordinate =
-                                extract_element_value(0, 0,
+                                copy_element_value(0, 0,
                                     &all_directional_vector_values);
                             let object_coordinates_shift_x_coordinate =
-                                extract_element_value(0, 0,
+                                copy_element_value(0, 0,
                                     &all_point_object_coordinates_shift_values);
-                            let directional_vector_y_coordinate = extract_element_value(1,
+                            let directional_vector_y_coordinate = copy_element_value(1,
                                 0,&all_directional_vector_values);
                             let object_coordinates_shift_y_coordinate =
-                                extract_element_value(1, 0,
+                                copy_element_value(1, 0,
                                     &all_point_object_coordinates_shift_values);
-                            let directional_vector_z_coordinate = extract_element_value(2,
+                            let directional_vector_z_coordinate = copy_element_value(2,
                                 0, &all_directional_vector_values);
                             let object_coordinates_shift_z_coordinate =
-                                extract_element_value(2, 0,
+                                copy_element_value(2, 0,
                                     &all_point_object_coordinates_shift_values);
                             directional_vector_start_point_object_coordinates[0] +=
                                 directional_vector_x_coordinate +
@@ -461,12 +461,12 @@ impl DrawnObject
                         .multiply_by_matrix(&a)
                         .map_err(|e| JsValue::from(e))?;
                 let local_axis_1_direction_projection_all_values =
-                    local_axis_1_direction_projection_matrix.extract_all_elements_values();
-                let local_axis_1_direction_projection_x_coord_value = extract_element_value(
+                    local_axis_1_direction_projection_matrix.copy_all_elements_values();
+                let local_axis_1_direction_projection_x_coord_value = copy_element_value(
                     0, 0, &local_axis_1_direction_projection_all_values);
-                let local_axis_1_direction_projection_y_coord_value = extract_element_value(
+                let local_axis_1_direction_projection_y_coord_value = copy_element_value(
                     1, 0, &local_axis_1_direction_projection_all_values);
-                let local_axis_1_direction_projection_z_coord_value = extract_element_value(
+                let local_axis_1_direction_projection_z_coord_value = copy_element_value(
                     2, 0, &local_axis_1_direction_projection_all_values);
                 let local_axis_1_direction_projection_length = f32::sqrt(
                     (local_axis_1_direction_projection_x_coord_value.powi(2) +
@@ -546,15 +546,15 @@ impl DrawnObject
                         .multiply_by_matrix(&local_coordinates)
                         .map_err(|e| JsValue::from(e))?;
                     let transformed_local_coordinates_values =
-                        transformed_local_coordinates.extract_all_elements_values();
+                        transformed_local_coordinates.copy_all_elements_values();
                     let coordinates = [
-                        extract_element_value(0, 0,
+                        copy_element_value(0, 0,
                             &transformed_local_coordinates_values) +
                             updated_local_axis_1_end_point_coordinates[0],
-                        extract_element_value(1, 0,
+                        copy_element_value(1, 0,
                             &transformed_local_coordinates_values) +
                             updated_local_axis_1_end_point_coordinates[1],
-                        extract_element_value(2, 0,
+                        copy_element_value(2, 0,
                             &transformed_local_coordinates_values) +
                             updated_local_axis_1_end_point_coordinates[2],
                     ];

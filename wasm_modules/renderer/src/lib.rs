@@ -39,7 +39,13 @@ use drawn_object::consts::
     CANVAS_DRAWN_LINES_TRUSS_PROPS_DENOTATION_COLOR, CANVAS_DRAWN_LINES_BEAM_PROPS_DENOTATION_COLOR,
     CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR, DRAWN_LINE_OBJECTS_DENOTATION_SHIFT, HINTS_COLOR,
     SELECTION_RECTANGLE_STROKE_COLOR, SELECTION_RECTANGLE_FILL_COLOR,
+    DRAWN_CONCENTRATED_LOAD_OBJECTS_LINE_LENGTH, DRAWN_CONCENTRATED_LOAD_OBJECTS_CAPS_HEIGHT,
+    DRAWN_CONCENTRATED_LOAD_OBJECTS_CAPS_WIDTH,
+    DRAWN_CONCENTRATED_LOAD_OBJECTS_CAPS_BASE_POINTS_NUMBER,
 };
+
+mod concentrated_load_object;
+use concentrated_load_object::ConcentratedLoadObject;
 
 mod buffer_objects;
 use crate::buffer_objects::BufferObjects;
@@ -104,6 +110,7 @@ struct State
     selected_colors: HashSet<[u8; 4]>,
     line_objects: HashMap<LineObjectKey, LineObject>,
     beam_section_orientation_for_preview: Option<BeamSectionOrientation>,
+    concentrated_load_objects: HashMap<u32, ConcentratedLoadObject>,
     selection_box_start_x: Option<i32>,
     selection_box_start_y: Option<i32>,
 }
@@ -165,6 +172,7 @@ impl Renderer
             selected_colors: HashSet::new(),
             line_objects: HashMap::new(),
             beam_section_orientation_for_preview: None,
+            concentrated_load_objects: HashMap::new(),
             selection_box_start_x: None,
             selection_box_start_y: None,
         };
@@ -257,6 +265,22 @@ impl Renderer
                             (1.0 + self.props.d_scale),
                     )?;
                 }
+            }
+            if !self.state.concentrated_load_objects.is_empty()
+            {
+                drawn_object_visible.add_concentrated_load_objects(
+                    &self.props.point_objects,
+                    &self.state.concentrated_load_objects,
+                    GLMode::Visible,
+                    &self.state.under_selection_box_colors,
+                    &self.state.selected_colors,
+                    DRAWN_CONCENTRATED_LOAD_OBJECTS_LINE_LENGTH /
+                            (1.0 + self.props.d_scale),
+                    DRAWN_CONCENTRATED_LOAD_OBJECTS_CAPS_BASE_POINTS_NUMBER,
+                    DRAWN_CONCENTRATED_LOAD_OBJECTS_CAPS_HEIGHT /
+                        (1.0 + self.props.d_scale),
+                    DRAWN_CONCENTRATED_LOAD_OBJECTS_CAPS_WIDTH /
+                        (1.0 + self.props.d_scale))?;
             }
             self.state.drawn_object_visible = Some(drawn_object_visible);
         }
@@ -655,6 +679,43 @@ impl Renderer
     }
 
 
+    pub fn add_concentrated_load(&mut self, point_number: u32, fx: f32, fy: f32, fz: f32,
+        mx: f32, my: f32, mz: f32) -> Result<(), JsValue>
+    {
+        let point_object_key = PointObjectKey::create(point_number,
+            PointObjectType::Point);
+        if !self.props.point_objects.contains_key(&point_object_key)
+        {
+            let error_message = format!("Renderer: Add concentrated load action: Point with \
+                number {} does not exist!", point_number);
+            return Err(JsValue::from(error_message));
+        }
+
+        let uid =
+            {
+                let mut current_uid = rand::random::<u32>();
+                while self.props.point_objects.values().position(|point_object|
+                        point_object.is_uid_same(current_uid)).is_some() ||
+                    self.state.line_objects.values().position(|line_object|
+                        line_object.is_uid_same(current_uid)).is_some() || current_uid == 255 ||
+                    self.state.concentrated_load_objects.values()
+                        .position(|concentrated_load_object|
+                            concentrated_load_object.is_uid_same(current_uid)).is_some()
+                {
+                    current_uid = rand::random::<u32>();
+                }
+                current_uid
+            };
+
+        let concentrated_load_object = ConcentratedLoadObject::create(
+            fx, fy, fz, mx, my, mz, uid);
+        self.state.concentrated_load_objects.insert(point_number, concentrated_load_object);
+        self.update_drawn_object_for_selection()?;
+        self.update_drawn_object_visible()?;
+        Ok(())
+    }
+
+
     pub fn tick(&mut self) -> Result<(), JsValue>
     {
         self.render()?;
@@ -968,8 +1029,10 @@ impl Renderer
             }
         }
 
-        self.state.buffer_objects.store_drawn_object(&self.state.gl, &self.state.cs_axes_drawn_object);
-        self.state.buffer_objects.associate_with_shader_programs(&self.state.gl, &self.state.shader_programs);
+        self.state.buffer_objects.store_drawn_object(&self.state.gl,
+            &self.state.cs_axes_drawn_object);
+        self.state.buffer_objects.associate_with_shader_programs(&self.state.gl,
+            &self.state.shader_programs);
 
         let mut projection_matrix = mat4::new_zero();
         mat4::orthographic(&mut projection_matrix,

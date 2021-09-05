@@ -13,10 +13,13 @@ use crate::point_object::{PointObjectType};
 use crate::line_object::{LineObject, LineObjectKey, BeamSectionOrientation};
 use crate::line_object::{LineObjectType, LineObjectColorScheme};
 
+use crate::concentrated_load_object::ConcentratedLoadObject;
+
 use crate::drawn_object::consts::
 {
     DRAWN_POINTS_COLOR, DRAWN_NODES_COLOR, DRAWN_LINES_DEFAULT_COLOR, DRAWN_LINES_TRUSS_PROPS_COLOR,
     DRAWN_LINES_BEAM_PROPS_COLOR, DRAWN_ELEMENTS_COLOR, DRAWN_BEAM_SECTION_ORIENTATION_COLOR,
+    DRAWN_CONCENTRATED_LOAD_OBJECTS_COLOR
 };
 
 use crate::consts::TOLERANCE;
@@ -587,6 +590,159 @@ impl DrawnObject
                 return Err(JsValue::from(error_message));
             }
         }
+        Ok(())
+    }
+
+
+
+    pub fn add_concentrated_load_objects(&mut self,
+        point_objects: &HashMap<PointObjectKey, PointObject>,
+        concentrated_load_objects: &HashMap<u32, ConcentratedLoadObject>,
+        gl_mode: GLMode, under_selection_box_colors: &Vec<u8>,
+        selected_colors: &HashSet<[u8; 4]>, line_length: f32,
+        base_points_number: u32, height: f32, base_radius: f32) -> Result<(), JsValue>
+    {
+        let start_index =
+            if let Some(index) = self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
+        let mut count = 0;
+
+        for (point_number, concentrated_load_object) in
+            concentrated_load_objects.iter()
+        {
+            let initial_color = DRAWN_CONCENTRATED_LOAD_OBJECTS_COLOR;
+            let concentrated_load_object_color = define_drawn_object_color(&gl_mode,
+                concentrated_load_object.get_uid(), selected_colors, under_selection_box_colors,
+                &initial_color);
+
+            let point_object_key = PointObjectKey::create(*point_number,
+                PointObjectType::Point);
+            if let Some(point_object) = point_objects.get(&point_object_key)
+            {
+                let start_coordinates = [point_object.get_normalized_x()?,
+                    point_object.get_normalized_y()?, point_object.get_normalized_z()?];
+                if let Some(fx) = concentrated_load_object.optional_fx()
+                {
+
+                }
+
+            }
+            else
+            {
+                let error_message = format!("Renderer: Point object extraction: \
+                    Point with number {} does not exist!", point_number);
+                return Err(JsValue::from(error_message));
+            }
+
+
+
+            // let start_point_object_coordinates =
+            //     line_object.get_start_point_object_coordinates(point_objects)?;
+            // let end_point_object_coordinates =
+            //     line_object.get_end_point_object_coordinates(point_objects)?;
+            // match gl_mode
+            // {
+            //     GLMode::Selection =>
+            //         {
+            //             let mut rotation_matrix =
+            //                 line_object.extract_rotation_matrix(point_objects)?;
+            //             rotation_matrix.transpose();
+            //             let point_object_coordinates_shift =
+            //                 ExtendedMatrix::create(3u32, 1u32,
+            //                 vec![base_radius * 2.0, 0.0, 0.0], TOLERANCE);
+            //             let mut directional_vectors = Vec::new();
+            //             let angle = 2.0 * PI / base_points_number as f32;
+            //             for point_number in 0..base_points_number
+            //             {
+            //                 let angle = angle * point_number as f32;
+            //                 let local_x = {
+            //                     let value = base_radius * angle.cos();
+            //                     if value.abs() < TOLERANCE { 0.0 } else { value }
+            //                 };
+            //                 let local_y =
+            //                     {
+            //                         let value = base_radius * angle.sin();
+            //                         if value.abs() < TOLERANCE { 0.0 } else { value }
+            //                     };
+            //                 let directional_vector =
+            //                     ExtendedMatrix::create(3u32,
+            //                     1u32, vec![0.0, local_y, local_x],
+            //                     TOLERANCE);
+            //                 directional_vectors.push(directional_vector);
+            //             }
+            //             for directional_vector in &directional_vectors
+            //             {
+            //                 let mut directional_vector_start_point_object_coordinates =
+            //                     start_point_object_coordinates;
+            //                 let mut directional_vector_end_point_object_coordinates =
+            //                     end_point_object_coordinates;
+            //                 let transformed_directional_vector =
+            //                     rotation_matrix.multiply_by_matrix(directional_vector)
+            //                         .map_err(|e| JsValue::from(e))?;
+            //                 let transformed_point_object_coordinates_shift =
+            //                     rotation_matrix.multiply_by_matrix(&point_object_coordinates_shift)
+            //                         .map_err(|e| JsValue::from(e))?;
+            //                 let all_directional_vector_values =
+            //                     transformed_directional_vector.extract_all_elements_values();
+            //                 let all_point_object_coordinates_shift_values =
+            //                     transformed_point_object_coordinates_shift.extract_all_elements_values();
+            //                 let directional_vector_x_coordinate =
+            //                     extract_element_value(0, 0,
+            //                         &all_directional_vector_values);
+            //                 let object_coordinates_shift_x_coordinate =
+            //                     extract_element_value(0, 0,
+            //                         &all_point_object_coordinates_shift_values);
+            //                 let directional_vector_y_coordinate = extract_element_value(1,
+            //                     0,&all_directional_vector_values);
+            //                 let object_coordinates_shift_y_coordinate =
+            //                     extract_element_value(1, 0,
+            //                         &all_point_object_coordinates_shift_values);
+            //                 let directional_vector_z_coordinate = extract_element_value(2,
+            //                     0, &all_directional_vector_values);
+            //                 let object_coordinates_shift_z_coordinate =
+            //                     extract_element_value(2, 0,
+            //                         &all_point_object_coordinates_shift_values);
+            //                 directional_vector_start_point_object_coordinates[0] +=
+            //                     directional_vector_x_coordinate +
+            //                         object_coordinates_shift_x_coordinate;
+            //                 directional_vector_start_point_object_coordinates[1] +=
+            //                     directional_vector_y_coordinate +
+            //                         object_coordinates_shift_y_coordinate;
+            //                 directional_vector_start_point_object_coordinates[2] +=
+            //                     directional_vector_z_coordinate +
+            //                         object_coordinates_shift_z_coordinate;
+            //                 self.vertices_coordinates.extend(
+            //                     &directional_vector_start_point_object_coordinates);
+            //                 self.colors_values.extend(&line_object_color);
+            //                 self.indexes_numbers.push(start_index + count);
+            //                 count += 1;
+            //                 directional_vector_end_point_object_coordinates[0] +=
+            //                     directional_vector_x_coordinate - object_coordinates_shift_x_coordinate;
+            //                 directional_vector_end_point_object_coordinates[1] +=
+            //                     directional_vector_y_coordinate - object_coordinates_shift_y_coordinate;
+            //                 directional_vector_end_point_object_coordinates[2] +=
+            //                     directional_vector_z_coordinate - object_coordinates_shift_z_coordinate;
+            //                 self.vertices_coordinates.extend(
+            //                     &directional_vector_end_point_object_coordinates);
+            //                 self.colors_values.extend(&line_object_color);
+            //                 self.indexes_numbers.push(start_index + count);
+            //                 count += 1;
+            //             }
+            //         },
+            //     _ => ()
+            // }
+            // self.vertices_coordinates.extend(&start_point_object_coordinates);
+            // self.colors_values.extend(&line_object_color);
+            // self.indexes_numbers.push(start_index + count);
+            // count += 1;
+            // self.vertices_coordinates.extend(&end_point_object_coordinates);
+            // self.colors_values.extend(&line_object_color);
+            // self.indexes_numbers.push(start_index + count);
+            // count += 1;
+        }
+        // self.modes.push(GLPrimitiveType::Lines);
+        // self.elements_numbers.push(count as i32);
+        // let offset = self.define_offset();
+        // self.offsets.push(offset);
         Ok(())
     }
 }

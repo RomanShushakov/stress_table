@@ -267,9 +267,8 @@ impl FEModel
         fx: FEFloat, fy: FEFloat, fz: FEFloat, mx: FEFloat, my: FEFloat, mz: FEFloat,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        log(&format!("{}, {}, {}, {}, {}, {}, {}, {}, {}", action_id, point_number,
-            fx, fy, fz, mx, my, mz, is_action_id_should_be_increased));
-        Ok(())
+        self.preprocessor.add_concentrated_load(action_id, point_number, fx, fy, fz, mx, my, mz,
+        is_action_id_should_be_increased)
     }
 
 

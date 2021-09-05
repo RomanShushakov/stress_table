@@ -1,0 +1,1 @@
+pub const ADD_CONCENTRATED_LOAD_EVENT_NAME: &str = "add_concentrated_load_server_message";

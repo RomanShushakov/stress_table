@@ -181,6 +181,8 @@ class FeaApp extends HTMLElement {
         this.addEventListener("update_beam_section_orientation_data_server_message",
             (event) => this.handleUpdateBeamSectionOrientationDataServerMessage(event));
 
+        this.addEventListener("add_concentrated_load_server_message", (event) => this.handleConcentratedLoadServerMessage(event));
+
         this.addEventListener("add_node_server_message", (event) => this.handleAddNodeServerMessage(event));
 
         this.addEventListener("decreaseActionId", (_event) => this.handleDecreaseActionIdMessage());
@@ -1019,6 +1021,28 @@ class FeaApp extends HTMLElement {
                     .updateBeamSectionOrientationDataInClient = beamSectionOrientationData;
             }
         } 
+        event.stopPropagation();
+    }
+
+    handleConcentratedLoadServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;
+        }
+        const concentratedLoad = { 
+            point_number: event.detail.concentrated_load_data.point_number, 
+            fx: event.detail.concentrated_load_data.fx,
+            fy: event.detail.concentrated_load_data.fy, 
+            fz: event.detail.concentrated_load_data.fz,
+            mx: event.detail.concentrated_load_data.mx, 
+            my: event.detail.concentrated_load_data.my,
+            mz: event.detail.concentrated_load_data.mz };
+        for (let i = 0; i < this.state.concentratedLoadsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.concentratedLoadsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.concentratedLoadsDataDependentMenus[i])
+                    .addConcentratedLoadToClient = concentratedLoad;
+            }
+        } 
+        this.shadowRoot.querySelector("fea-renderer").addConcentratedLoadToRenderer = concentratedLoad;
         event.stopPropagation();
     }
 

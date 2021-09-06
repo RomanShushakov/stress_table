@@ -13,13 +13,13 @@ use crate::point_object::{PointObjectType};
 use crate::line_object::{LineObject, LineObjectKey, BeamSectionOrientation};
 use crate::line_object::{LineObjectType, LineObjectColorScheme};
 
-use crate::concentrated_load_object::{ConcentratedLoadObject, Sign, Direction};
+use crate::concentrated_load::{ConcentratedLoad, Sign, Direction};
 
 use crate::drawn_object::consts::
 {
     DRAWN_POINTS_COLOR, DRAWN_NODES_COLOR, DRAWN_LINES_DEFAULT_COLOR, DRAWN_LINES_TRUSS_PROPS_COLOR,
     DRAWN_LINES_BEAM_PROPS_COLOR, DRAWN_ELEMENTS_COLOR, DRAWN_BEAM_SECTION_ORIENTATION_COLOR,
-    DRAWN_CONCENTRATED_LOAD_OBJECTS_COLOR
+    DRAWN_CONCENTRATED_LOADS_COLOR
 };
 
 use crate::consts::TOLERANCE;
@@ -594,10 +594,10 @@ impl DrawnObject
     }
 
 
-    fn add_concentrated_load_object_line_for_force(&mut self, gl_mode: &GLMode, sign: &Sign,
+    fn add_concentrated_load_line_for_force(&mut self, gl_mode: &GLMode, sign: &Sign,
         direction: &Direction, start_coordinates: &[f32; 3], line_length: f32,
         base_points_number_for_lines: u32, base_radius: f32,
-        concentrated_load_object_color: &[f32; 4])
+        concentrated_load_color: &[f32; 4])
     {
         let start_index = if let Some(index) =
             self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
@@ -704,11 +704,11 @@ impl DrawnObject
                                 };
 
                             self.vertices_coordinates.extend(&updated_start_point_coordinates);
-                            self.colors_values.extend(concentrated_load_object_color);
+                            self.colors_values.extend(concentrated_load_color);
                             self.indexes_numbers.push(start_index + count);
                             count += 1;
                             self.vertices_coordinates.extend(&updated_end_point_coordinates);
-                            self.colors_values.extend(concentrated_load_object_color);
+                            self.colors_values.extend(concentrated_load_color);
                             self.indexes_numbers.push(start_index + count);
                             count += 1;
                         }
@@ -716,11 +716,11 @@ impl DrawnObject
                 _ => ()
             }
         self.vertices_coordinates.extend(start_coordinates);
-        self.colors_values.extend(concentrated_load_object_color);
+        self.colors_values.extend(concentrated_load_color);
         self.indexes_numbers.push(start_index + count);
         count += 1;
         self.vertices_coordinates.extend(&end_coordinates);
-        self.colors_values.extend(concentrated_load_object_color);
+        self.colors_values.extend(concentrated_load_color);
         self.indexes_numbers.push(start_index + count);
         count += 1;
         self.modes.push(GLPrimitiveType::Lines);
@@ -730,9 +730,9 @@ impl DrawnObject
     }
 
 
-    fn add_concentrated_load_object_cap_for_force(&mut self, sign: &Sign, direction: &Direction,
+    fn add_concentrated_load_cap_for_force(&mut self, sign: &Sign, direction: &Direction,
         start_coordinates: &[f32; 3], line_length: f32, base_points_number_for_caps: u32,
-        base_radius: f32, height: f32, concentrated_load_object_color: &[f32; 4])
+        base_radius: f32, height: f32, concentrated_load_color: &[f32; 4])
     {
         let multiplier = match sign { Sign::Positive => 1f32, Sign::Negative => -1f32 };
 
@@ -817,13 +817,13 @@ impl DrawnObject
         {
             if point_number == 1
             {
-                self.colors_values.extend(concentrated_load_object_color);
-                self.colors_values.extend(concentrated_load_object_color);
-                self.colors_values.extend(concentrated_load_object_color);
+                self.colors_values.extend(concentrated_load_color);
+                self.colors_values.extend(concentrated_load_color);
+                self.colors_values.extend(concentrated_load_color);
             }
             else
             {
-                self.colors_values.extend(concentrated_load_object_color);
+                self.colors_values.extend(concentrated_load_color);
             }
             self.indexes_numbers.extend(&[start_index,
                 start_index + point_number, start_index + point_number + 1]);
@@ -838,10 +838,10 @@ impl DrawnObject
     }
 
 
-    fn add_concentrated_load_object_line_for_moment(&mut self, gl_mode: &GLMode, sign: &Sign,
+    fn add_concentrated_load_line_for_moment(&mut self, gl_mode: &GLMode, sign: &Sign,
         direction: &Direction, start_coordinates: &[f32; 3], line_length: f32,
         base_points_number_for_lines: u32, base_radius: f32,
-        concentrated_load_object_color: &[f32; 4])
+        concentrated_load_color: &[f32; 4])
     {
         let start_index = if let Some(index) =
             self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
@@ -951,11 +951,11 @@ impl DrawnObject
                                 };
 
                             self.vertices_coordinates.extend(&updated_start_point_coordinates);
-                            self.colors_values.extend(concentrated_load_object_color);
+                            self.colors_values.extend(concentrated_load_color);
                             self.indexes_numbers.push(start_index + count);
                             count += 1;
                             self.vertices_coordinates.extend(&updated_end_point_coordinates);
-                            self.colors_values.extend(concentrated_load_object_color);
+                            self.colors_values.extend(concentrated_load_color);
                             self.indexes_numbers.push(start_index + count);
                             count += 1;
                         }
@@ -963,11 +963,11 @@ impl DrawnObject
                 _ => ()
             }
         self.vertices_coordinates.extend(start_coordinates);
-        self.colors_values.extend(concentrated_load_object_color);
+        self.colors_values.extend(concentrated_load_color);
         self.indexes_numbers.push(start_index + count);
         count += 1;
         self.vertices_coordinates.extend(&end_coordinates);
-        self.colors_values.extend(concentrated_load_object_color);
+        self.colors_values.extend(concentrated_load_color);
         self.indexes_numbers.push(start_index + count);
         count += 1;
         self.modes.push(GLPrimitiveType::Lines);
@@ -977,9 +977,9 @@ impl DrawnObject
     }
 
 
-    fn add_concentrated_load_object_cap_for_moment(&mut self, sign: &Sign, direction: &Direction,
+    fn add_concentrated_load_cap_for_moment(&mut self, sign: &Sign, direction: &Direction,
         start_coordinates: &[f32; 3], line_length: f32, base_points_number_for_caps: u32,
-        base_radius: f32, height: f32, concentrated_load_object_color: &[f32; 4])
+        base_radius: f32, height: f32, concentrated_load_color: &[f32; 4])
     {
         let multiplier = match sign { Sign::Positive => 1f32, Sign::Negative => -1f32 };
 
@@ -1065,13 +1065,13 @@ impl DrawnObject
         {
             if point_number == 1
             {
-                self.colors_values.extend(concentrated_load_object_color);
-                self.colors_values.extend(concentrated_load_object_color);
-                self.colors_values.extend(concentrated_load_object_color);
+                self.colors_values.extend(concentrated_load_color);
+                self.colors_values.extend(concentrated_load_color);
+                self.colors_values.extend(concentrated_load_color);
             }
             else
             {
-                self.colors_values.extend(concentrated_load_object_color);
+                self.colors_values.extend(concentrated_load_color);
             }
             self.indexes_numbers.extend(&[start_index,
                 start_index + point_number, start_index + point_number + 1]);
@@ -1161,13 +1161,13 @@ impl DrawnObject
         {
             if point_number == 1
             {
-                self.colors_values.extend(concentrated_load_object_color);
-                self.colors_values.extend(concentrated_load_object_color);
-                self.colors_values.extend(concentrated_load_object_color);
+                self.colors_values.extend(concentrated_load_color);
+                self.colors_values.extend(concentrated_load_color);
+                self.colors_values.extend(concentrated_load_color);
             }
             else
             {
-                self.colors_values.extend(concentrated_load_object_color);
+                self.colors_values.extend(concentrated_load_color);
             }
             self.indexes_numbers.extend(&[start_index,
                 start_index + point_number, start_index + point_number + 1]);
@@ -1182,82 +1182,79 @@ impl DrawnObject
     }
 
 
-    pub fn add_concentrated_load_objects(&mut self,
-        point_objects: &HashMap<PointObjectKey, PointObject>,
-        concentrated_load_objects: &HashMap<u32, ConcentratedLoadObject>,
-        gl_mode: GLMode, under_selection_box_colors: &Vec<u8>,
-        selected_colors: &HashSet<[u8; 4]>, line_length: f32,
-        base_points_number_for_lines: u32,
-        base_points_number_for_caps: u32,
+    pub fn add_concentrated_loads(&mut self, point_objects: &HashMap<PointObjectKey, PointObject>,
+        concentrated_loads: &HashMap<u32, ConcentratedLoad>, gl_mode: GLMode,
+        under_selection_box_colors: &Vec<u8>, selected_colors: &HashSet<[u8; 4]>,
+        line_length: f32, base_points_number_for_lines: u32, base_points_number_for_caps: u32,
         height: f32, base_radius: f32) -> Result<(), JsValue>
     {
-        for (point_number, concentrated_load_object) in
-            concentrated_load_objects.iter()
+        for (point_number, concentrated_load) in
+            concentrated_loads.iter()
         {
-            let initial_color = DRAWN_CONCENTRATED_LOAD_OBJECTS_COLOR;
-            let concentrated_load_object_color = define_drawn_object_color(&gl_mode,
-                concentrated_load_object.get_uid(), selected_colors, under_selection_box_colors,
+            let initial_color = DRAWN_CONCENTRATED_LOADS_COLOR;
+            let concentrated_load_color = define_drawn_object_color(&gl_mode,
+                concentrated_load.get_uid(), selected_colors, under_selection_box_colors,
                 &initial_color);
 
             let point_object_key = PointObjectKey::create(*point_number,
-                                                          PointObjectType::Point);
+                PointObjectType::Point);
             if let Some(point_object) = point_objects.get(&point_object_key)
             {
                 let start_coordinates = [point_object.get_normalized_x()?,
                     point_object.get_normalized_y()?, point_object.get_normalized_z()?];
-                if let Some(sign) = concentrated_load_object.optional_fx_sign()
+                if let Some(sign) = concentrated_load.optional_fx_sign()
                 {
-                    self.add_concentrated_load_object_line_for_force(&gl_mode, sign,
-                        &Direction::X, &start_coordinates, line_length,
-                        base_points_number_for_lines, base_radius, &concentrated_load_object_color);
-                    self.add_concentrated_load_object_cap_for_force(sign, &Direction::X,
-                        &start_coordinates, line_length, base_points_number_for_caps, base_radius,
-                        height, &concentrated_load_object_color);
+                    self.add_concentrated_load_line_for_force(&gl_mode, sign, &Direction::X,
+                        &start_coordinates, line_length, base_points_number_for_lines, base_radius,
+                        &concentrated_load_color);
+                    self.add_concentrated_load_cap_for_force(sign, &Direction::X,
+                                                             &start_coordinates, line_length, base_points_number_for_caps, base_radius,
+                                                             height, &concentrated_load_color);
                 }
-                if let Some(sign) = concentrated_load_object.optional_fy_sign()
+                if let Some(sign) = concentrated_load.optional_fy_sign()
                 {
-                    self.add_concentrated_load_object_line_for_force(&gl_mode, sign,
-                        &Direction::Y, &start_coordinates, line_length,
-                        base_points_number_for_lines, base_radius, &concentrated_load_object_color);
-                    self.add_concentrated_load_object_cap_for_force(sign, &Direction::Y,
-                        &start_coordinates, line_length, base_points_number_for_caps, base_radius,
-                        height, &concentrated_load_object_color);
+                    self.add_concentrated_load_line_for_force(&gl_mode, sign,
+                                                              &Direction::Y, &start_coordinates, line_length,
+                                                              base_points_number_for_lines, base_radius, &concentrated_load_color);
+                    self.add_concentrated_load_cap_for_force(sign, &Direction::Y,
+                                                             &start_coordinates, line_length, base_points_number_for_caps, base_radius,
+                                                             height, &concentrated_load_color);
                 }
-                if let Some(sign) = concentrated_load_object.optional_fz_sign()
+                if let Some(sign) = concentrated_load.optional_fz_sign()
                 {
-                    self.add_concentrated_load_object_line_for_force(&gl_mode, sign,
-                        &Direction::Z, &start_coordinates, line_length,
-                        base_points_number_for_lines, base_radius, &concentrated_load_object_color);
-                    self.add_concentrated_load_object_cap_for_force(sign, &Direction::Z,
-                        &start_coordinates, line_length, base_points_number_for_caps, base_radius,
-                        height, &concentrated_load_object_color);
+                    self.add_concentrated_load_line_for_force(&gl_mode, sign,
+                                                              &Direction::Z, &start_coordinates, line_length,
+                                                              base_points_number_for_lines, base_radius, &concentrated_load_color);
+                    self.add_concentrated_load_cap_for_force(sign, &Direction::Z,
+                                                             &start_coordinates, line_length, base_points_number_for_caps, base_radius,
+                                                             height, &concentrated_load_color);
                 }
-                if let Some(sign) = concentrated_load_object.optional_mx_sign()
+                if let Some(sign) = concentrated_load.optional_mx_sign()
                 {
-                    self.add_concentrated_load_object_line_for_moment(&gl_mode, sign,
-                        &Direction::X, &start_coordinates, line_length,
-                        base_points_number_for_lines, base_radius, &concentrated_load_object_color);
-                    self.add_concentrated_load_object_cap_for_moment(sign, &Direction::X,
-                        &start_coordinates, line_length, base_points_number_for_caps, base_radius,
-                        height, &concentrated_load_object_color);
+                    self.add_concentrated_load_line_for_moment(&gl_mode, sign,
+                                                               &Direction::X, &start_coordinates, line_length,
+                                                               base_points_number_for_lines, base_radius, &concentrated_load_color);
+                    self.add_concentrated_load_cap_for_moment(sign, &Direction::X,
+                                                              &start_coordinates, line_length, base_points_number_for_caps, base_radius,
+                                                              height, &concentrated_load_color);
                 }
-                if let Some(sign) = concentrated_load_object.optional_my_sign()
+                if let Some(sign) = concentrated_load.optional_my_sign()
                 {
-                    self.add_concentrated_load_object_line_for_moment(&gl_mode, sign,
-                        &Direction::Y, &start_coordinates, line_length,
-                        base_points_number_for_lines, base_radius, &concentrated_load_object_color);
-                    self.add_concentrated_load_object_cap_for_moment(sign, &Direction::Y,
-                        &start_coordinates, line_length, base_points_number_for_caps, base_radius,
-                        height, &concentrated_load_object_color);
+                    self.add_concentrated_load_line_for_moment(&gl_mode, sign,
+                                                               &Direction::Y, &start_coordinates, line_length,
+                                                               base_points_number_for_lines, base_radius, &concentrated_load_color);
+                    self.add_concentrated_load_cap_for_moment(sign, &Direction::Y,
+                                                              &start_coordinates, line_length, base_points_number_for_caps, base_radius,
+                                                              height, &concentrated_load_color);
                 }
-                if let Some(sign) = concentrated_load_object.optional_mz_sign()
+                if let Some(sign) = concentrated_load.optional_mz_sign()
                 {
-                    self.add_concentrated_load_object_line_for_moment(&gl_mode, sign,
-                        &Direction::Z, &start_coordinates, line_length,
-                        base_points_number_for_lines, base_radius, &concentrated_load_object_color);
-                    self.add_concentrated_load_object_cap_for_moment(sign, &Direction::Z,
-                        &start_coordinates, line_length, base_points_number_for_caps, base_radius,
-                        height, &concentrated_load_object_color);
+                    self.add_concentrated_load_line_for_moment(&gl_mode, sign,
+                                                               &Direction::Z, &start_coordinates, line_length,
+                                                               base_points_number_for_lines, base_radius, &concentrated_load_color);
+                    self.add_concentrated_load_cap_for_moment(sign, &Direction::Z,
+                                                              &start_coordinates, line_length, base_points_number_for_caps, base_radius,
+                                                              height, &concentrated_load_color);
                 }
             }
             else

@@ -69,6 +69,7 @@ class FeaApp extends HTMLElement {
             concentratedLoadsDataDependentMenus: [
                 "fea-load-add-concentrated-load-menu",
                 "fea-load-update-concentrated-load-menu",
+                "fea-load-delete-concentrated-load-menu",
             ]
         };
 
@@ -186,6 +187,7 @@ class FeaApp extends HTMLElement {
 
         this.addEventListener("add_concentrated_load_server_message", (event) => this.handleAddConcentratedLoadServerMessage(event));
         this.addEventListener("update_concentrated_load_server_message", (event) => this.handleUpdateConcentratedLoadServerMessage(event));
+        this.addEventListener("delete_concentrated_load_server_message", (event) => this.handleDeleteConcentratedLoadServerMessage(event));
 
         this.addEventListener("add_node_server_message", (event) => this.handleAddNodeServerMessage(event));
 
@@ -1116,6 +1118,21 @@ class FeaApp extends HTMLElement {
             }
         } 
         this.shadowRoot.querySelector("fea-renderer").updateConcentratedLoadInRenderer = concentratedLoad;
+        event.stopPropagation();
+    }
+
+    handleDeleteConcentratedLoadServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;
+        }
+        const concentratedLoad = { point_number: event.detail.concentrated_load_data.point_number };
+        for (let i = 0; i < this.state.concentratedLoadsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.concentratedLoadsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.concentratedLoadsDataDependentMenus[i])
+                    .deleteConcentratedLoadFromClient = concentratedLoad;
+            }
+        } 
+        this.shadowRoot.querySelector("fea-renderer").deleteConcentratedLoadFromRenderer = concentratedLoad;
         event.stopPropagation();
     }
 

@@ -70,6 +70,7 @@ use consts::
     REMOVE_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_MESSAGE_HEADER,
     UPDATE_BEAM_SECTION_ORIENTATION_DATA_MESSAGE_HEADER,
     ADD_CONCENTRATED_LOAD_MESSAGE_HEADER, UPDATE_CONCENTRATED_LOAD_MESSAGE_HEADER,
+    DELETE_CONCENTRATED_LOAD_MESSAGE_HEADER,
     UNDO_MESSAGE_HEADER, REDO_MESSAGE_HEADER,
 };
 
@@ -1280,6 +1281,11 @@ impl ActionsRouter
             UPDATE_CONCENTRATED_LOAD_MESSAGE_HEADER)
         {
             self.handle_update_concentrated_load_message(&concentrated_load_data)?;
+        }
+        else if let Some(concentrated_load_data) = serialized_message.get(
+            DELETE_CONCENTRATED_LOAD_MESSAGE_HEADER)
+        {
+            self.handle_delete_concentrated_load_message(&concentrated_load_data)?;
         }
         else if let Some(undo_data) = serialized_message.get(UNDO_MESSAGE_HEADER)
         {

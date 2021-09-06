@@ -5,10 +5,11 @@ use std::hash::Hash;
 use std::fmt::Debug;
 
 use crate::preprocessor::loads::loads::Loads;
-use crate::preprocessor::loads::concentrated_load::ConcentratedLoad;
+use crate::preprocessor::loads::concentrated_load::{ConcentratedLoad, DeletedConcentratedLoad};
 use crate::preprocessor::loads::consts::
 {
     ADD_CONCENTRATED_LOAD_EVENT_NAME, UPDATE_CONCENTRATED_LOAD_EVENT_NAME,
+    DELETE_CONCENTRATED_LOAD_EVENT_NAME,
 };
 
 use crate::traits::ClearByActionIdTrait;
@@ -86,6 +87,72 @@ impl<T, V> Loads<T, V>
                 The concentrated load applied to point with number {:?} does not exist!",
                 point_number);
             Err(JsValue::from(&error_message))
+        }
+    }
+
+
+    pub fn delete_concentrated_load(&mut self, action_id: T, point_number: T,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.clear_by_action_id(action_id);
+
+        if let Some((point_number, concentrated_load)) =
+            self.concentrated_loads.remove_entry(&point_number)
+        {
+            let deleted_concentrated_load =
+                DeletedConcentratedLoad::create(point_number, concentrated_load);
+            self.deleted_concentrated_loads.insert(action_id, deleted_concentrated_load);
+            let detail = json!({ "concentrated_load_data": { "point_number": point_number },
+                "is_action_id_should_be_increased": is_action_id_should_be_increased });
+            dispatch_custom_event(detail, DELETE_CONCENTRATED_LOAD_EVENT_NAME,
+                EVENT_TARGET)?;
+            self.logging();
+            Ok(())
+        }
+        else
+        {
+            let error_message = &format!("Loads: Delete concentrated load action: \
+                Concentrated load applied to point with number {:?} does not exist!", point_number);
+            return Err(JsValue::from(error_message));
+        }
+    }
+
+
+    pub fn restore_concentrated_load(&mut self, action_id: T, point_number: T,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        if let Some(deleted_concentrated_load) =
+            self.deleted_concentrated_loads.remove(&action_id)
+        {
+            let (deleted_concentrated_load_point_number, fx, fy, fz,
+                mx, my, mz) =
+                    deleted_concentrated_load.copy_point_number_and_load_components();
+            if deleted_concentrated_load_point_number != point_number
+            {
+                let error_message = &format!("Loads: Restore concentrated load action: \
+                    Concentrated load applied to point with number {:?} does not exist!",
+                    point_number);
+                return Err(JsValue::from(error_message));
+            }
+            let detail = json!({ "concentrated_load_data":
+                {
+                    "point_number": deleted_concentrated_load_point_number,
+                    "fx": fx, "fy": fy, "fz": fz, "mx": mx, "my": my, "mz": mz,
+                },
+                "is_action_id_should_be_increased": is_action_id_should_be_increased });
+            dispatch_custom_event(detail, ADD_CONCENTRATED_LOAD_EVENT_NAME,
+                EVENT_TARGET)?;
+            self.concentrated_loads.insert(deleted_concentrated_load_point_number,
+                ConcentratedLoad::create(fx, fy, fz, mx, my, mz));
+
+            self.logging();
+            Ok(())
+        }
+        else
+        {
+            let error_message = &format!("Loads: Restore concentrated load action: \
+                Concentrated load applied to point with number {:?} does not exist!", point_number);
+            return Err(JsValue::from(error_message));
         }
     }
 

@@ -185,4 +185,27 @@ impl ActionsRouter
         self.current_action = Some((action, add_to_active_actions));
         Ok(())
     }
+
+
+    pub(super) fn handle_delete_concentrated_load_message(&mut self, concentrated_load_data: &Value)
+        -> Result<(), JsValue>
+    {
+        let action_id = concentrated_load_data["actionId"].to_string()
+            .parse::<FEUInt>()
+            .or(Err(JsValue::from( "Actions router: Delete concentrated load action: \
+                Action id could not be converted to FEUInt!")))?;
+        let point_number = concentrated_load_data["point_number"].to_string()
+            .parse::<FEUInt>()
+            .or(Err(JsValue::from("Actions router: Delete concentrated load action: \
+                Point number could not be converted to FEUInt!")))?;
+        self.undo_actions.clear();
+        let is_action_id_should_be_increased = true;
+        let action_type = ActionType::from(
+            LoadsActionType::DeleteConcentratedLoad(
+                point_number, is_action_id_should_be_increased));
+        let action = Action::create(action_id, action_type);
+        let add_to_active_actions = true;
+        self.current_action = Some((action, add_to_active_actions));
+        Ok(())
+    }
 }

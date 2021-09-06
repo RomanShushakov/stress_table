@@ -19,7 +19,7 @@ impl<T, V> Preprocessor<T, V>
         self.properties.clear_by_action_id(action_id);
 
         self.loads.add_concentrated_load(action_id, point_number, fx, fy, fz, mx, my, mz,
-        is_action_id_should_be_increased)
+            is_action_id_should_be_increased)
     }
 
 
@@ -30,7 +30,26 @@ impl<T, V> Preprocessor<T, V>
         self.properties.clear_by_action_id(action_id);
 
         self.loads.update_concentrated_load(action_id, point_number, fx, fy, fz, mx, my, mz,
-        is_action_id_should_be_increased)
+            is_action_id_should_be_increased)
+    }
+
+
+    pub fn delete_concentrated_load(&mut self, action_id: T, point_number: T,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.geometry.clear_by_action_id(action_id);
+        self.properties.clear_by_action_id(action_id);
+
+        self.loads.delete_concentrated_load(action_id, point_number,
+            is_action_id_should_be_increased)
+    }
+
+
+    pub fn restore_concentrated_load(&mut self, action_id: T, point_number: T,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.loads.restore_concentrated_load(action_id, point_number,
+            is_action_id_should_be_increased)
     }
 
 

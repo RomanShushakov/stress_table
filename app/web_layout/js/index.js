@@ -60,6 +60,7 @@ import FeaLoadMenu from "./components/fea-load/fea-load-menu.js";
 import FeaLoadMenuButtons from "./components/fea-load/fea-load-menu-buttons.js";
 import FeaLoadAddConcentratedLoadMenu from "./components/fea-load/fea-load-add-concentrated-load-menu.js";
 import FeaLoadUpdateConcentratedLoadMenu from "./components/fea-load/fea-load-update-concentrated-load-menu.js";
+import FeaLoadDeleteConcentratedLoadMenu from "./components/fea-load/fea-load-delete-concentrated-load-menu.js";
 
 customElements.define("fea-app", FeaApp);
 customElements.define("fea-app-menu-bar", FeaAppMenuBar);
@@ -123,3 +124,4 @@ customElements.define("fea-load-menu", FeaLoadMenu);
 customElements.define("fea-load-menu-buttons", FeaLoadMenuButtons);
 customElements.define("fea-load-add-concentrated-load-menu", FeaLoadAddConcentratedLoadMenu);
 customElements.define("fea-load-update-concentrated-load-menu", FeaLoadUpdateConcentratedLoadMenu);
+customElements.define("fea-load-delete-concentrated-load-menu", FeaLoadDeleteConcentratedLoadMenu);

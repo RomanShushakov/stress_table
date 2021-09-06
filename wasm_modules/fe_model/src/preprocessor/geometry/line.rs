@@ -34,7 +34,7 @@ impl<T> Line<T>
     }
 
 
-    pub fn extract_points_numbers(&self) -> (T, T)
+    pub fn copy_points_numbers(&self) -> (T, T)
     {
         (self.start_point_number, self.end_point_number)
     }
@@ -58,14 +58,14 @@ impl<T> DeletedLine<T>
     }
 
 
-    pub fn extract_number_and_points_numbers(&self) -> (T, T, T)
+    pub fn copy_number_and_points_numbers(&self) -> (T, T, T)
     {
-        let (start_point_number, end_point_number) = self.line.extract_points_numbers();
+        let (start_point_number, end_point_number) = self.line.copy_points_numbers();
         (self.number, start_point_number, end_point_number)
     }
 
 
-    pub fn extract_number(&self) -> T
+    pub fn copy_number(&self) -> T
     {
         self.number
     }

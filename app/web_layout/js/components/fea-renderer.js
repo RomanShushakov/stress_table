@@ -154,6 +154,14 @@ class FeaRenderer extends HTMLElement {
         }
     }
 
+    set deleteConcentratedLoadFromRenderer(concentratedLoad) {
+        this.state.renderer.delete_concentrated_load(concentratedLoad.point_number);
+        if (this.state.isPaused === true)
+        {
+            this.state.renderer.tick();
+        }
+    }
+
     set addNodeToRenderer(node) {
         this.state.renderer.add_point_object(node.number, node.x, node.y, node.z, PointObjectType.Node);
         if (this.state.isPaused === true)

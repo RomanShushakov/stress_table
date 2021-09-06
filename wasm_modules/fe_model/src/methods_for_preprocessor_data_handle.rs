@@ -284,14 +284,16 @@ impl FEModel
     pub fn delete_concentrated_load(&mut self, action_id: FEUInt, point_number: FEUInt,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        Ok(())
+        self.preprocessor.delete_concentrated_load(action_id, point_number,
+            is_action_id_should_be_increased)
     }
 
 
     pub fn restore_concentrated_load(&mut self, action_id: FEUInt, point_number: FEUInt,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        Ok(())
+        self.preprocessor.restore_concentrated_load(action_id, point_number,
+            is_action_id_should_be_increased)
     }
 
 

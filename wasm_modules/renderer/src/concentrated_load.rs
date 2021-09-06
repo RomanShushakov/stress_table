@@ -13,7 +13,7 @@ pub enum Direction
 
 
 #[derive(Debug)]
-pub struct ConcentratedLoadObject
+pub struct ConcentratedLoad
 {
     optional_fx_sign: Option<Sign>,
     optional_fy_sign: Option<Sign>,
@@ -25,7 +25,7 @@ pub struct ConcentratedLoadObject
 }
 
 
-impl ConcentratedLoadObject
+impl ConcentratedLoad
 {
     pub fn create(fx: f32, fy: f32, fz: f32, mx: f32, my: f32, mz: f32, uid: u32) -> Self
     {
@@ -41,7 +41,7 @@ impl ConcentratedLoadObject
             else if my < 0f32 { Some(Sign::Negative) } else { None };
         let optional_mz_sign = if mz > 0f32 { Some(Sign::Positive) }
             else if mz < 0f32 { Some(Sign::Negative) } else { None };
-        ConcentratedLoadObject {
+        ConcentratedLoad {
             optional_fx_sign,
             optional_fy_sign,
             optional_fz_sign,

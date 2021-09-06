@@ -88,7 +88,7 @@ impl<T, V> Geometry<T, V>
         let mut line_numbers_for_update_or_delete = Vec::new();
         for (line_number, line) in self.lines.iter()
         {
-            let (start_point_number, end_point_number) = line.extract_points_numbers();
+            let (start_point_number, end_point_number) = line.copy_points_numbers();
             if start_point_number == point_number || end_point_number == point_number
             {
                 line_numbers_for_update_or_delete.push(*line_number);
@@ -144,7 +144,7 @@ impl<T, V> Geometry<T, V>
         if let Some(deleted_point) = self.deleted_points.remove(&action_id)
         {
             let (deleted_point_number, x, y, z) =
-                deleted_point.extract_number_and_coordinates();
+                deleted_point.copy_number_and_coordinates();
             if deleted_point_number != number
             {
                 let error_message = &format!("Geometry: Restore point action: Point with \
@@ -164,15 +164,15 @@ impl<T, V> Geometry<T, V>
                 for deleted_line in &deleted_lines
                 {
                     let (number, start_point_number, end_point_number) =
-                        deleted_line.extract_number_and_points_numbers();
+                        deleted_line.copy_number_and_points_numbers();
                     let detail = json!({ "line_data": { "number": number,
                             "start_point_number": start_point_number,
                             "end_point_number": end_point_number },
                         "is_action_id_should_be_increased": is_action_id_should_be_increased });
                     dispatch_custom_event(detail, ADD_LINE_EVENT_NAME,
                         EVENT_TARGET)?;
-                    self.lines.insert(deleted_line.extract_number(),
-                        Line::create(start_point_number, end_point_number));
+                    self.lines.insert(deleted_line.copy_number(),
+                                      Line::create(start_point_number, end_point_number));
                     restored_line_numbers.push(number);
                 }
             }
@@ -192,7 +192,7 @@ impl<T, V> Geometry<T, V>
     {
         return if let Some(point) = self.points.get(&number)
         {
-            let (x, y, z) = point.extract_coordinates();
+            let (x, y, z) = point.copy_coordinates();
             let point_info_json = json!({ "point_data": { "number": number,
                 "x": x, "y": y, "z": z } });
             let point_info = JsValue::from_serde(&point_info_json)

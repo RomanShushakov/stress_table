@@ -64,3 +64,22 @@ pub struct DeletedConcentratedLoad<T, V>
     point_number: T,
     concentrated_load: ConcentratedLoad<V>,
 }
+
+
+impl<T, V> DeletedConcentratedLoad<T, V>
+    where T: Copy,
+          V: Copy + PartialEq,
+{
+    pub fn create(point_number: T, concentrated_load: ConcentratedLoad<V>) -> Self
+    {
+        DeletedConcentratedLoad { point_number, concentrated_load }
+    }
+
+
+    pub fn copy_point_number_and_load_components(&self) -> (T, V, V, V, V, V, V)
+    {
+        let (fx, fy, fz) = self.concentrated_load.copy_load_components();
+        let (mx, my, mz) = self.concentrated_load.copy_moment_components();
+        (self.point_number, fx, fy, fz, mx, my, mz)
+    }
+}

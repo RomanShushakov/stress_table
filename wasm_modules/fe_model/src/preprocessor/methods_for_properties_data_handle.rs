@@ -25,6 +25,7 @@ impl<T, V> Preprocessor<T, V>
         poisson_ratio: V, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.geometry.clear_by_action_id(action_id);
+        self.loads.clear_by_action_id(action_id);
 
         self.properties.add_material(action_id, name, young_modulus, poisson_ratio,
             is_action_id_should_be_increased)
@@ -35,6 +36,7 @@ impl<T, V> Preprocessor<T, V>
         poisson_ratio: V, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.geometry.clear_by_action_id(action_id);
+        self.loads.clear_by_action_id(action_id);
 
         self.properties.update_material(action_id, name, young_modulus, poisson_ratio,
             is_action_id_should_be_increased)
@@ -45,6 +47,7 @@ impl<T, V> Preprocessor<T, V>
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.geometry.clear_by_action_id(action_id);
+        self.loads.clear_by_action_id(action_id);
 
         self.properties.delete_material(action_id, name, is_action_id_should_be_increased)
     }
@@ -61,6 +64,7 @@ impl<T, V> Preprocessor<T, V>
         area2: Option<V>, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.geometry.clear_by_action_id(action_id);
+        self.loads.clear_by_action_id(action_id);
 
         self.properties.add_truss_section(action_id, name, area, area2,
             is_action_id_should_be_increased)
@@ -71,6 +75,7 @@ impl<T, V> Preprocessor<T, V>
         area2: Option<V>, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.geometry.clear_by_action_id(action_id);
+        self.loads.clear_by_action_id(action_id);
 
         self.properties.update_truss_section(action_id, name, area, area2,
             is_action_id_should_be_increased)
@@ -81,6 +86,7 @@ impl<T, V> Preprocessor<T, V>
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.geometry.clear_by_action_id(action_id);
+        self.loads.clear_by_action_id(action_id);
 
         self.properties.delete_truss_section(action_id, name,
             is_action_id_should_be_increased)
@@ -100,6 +106,7 @@ impl<T, V> Preprocessor<T, V>
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.geometry.clear_by_action_id(action_id);
+        self.loads.clear_by_action_id(action_id);
 
         self.properties.add_beam_section(action_id, name, area, i11, i22, i12, it, shear_factor,
             is_action_id_should_be_increased)
@@ -111,6 +118,7 @@ impl<T, V> Preprocessor<T, V>
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.geometry.clear_by_action_id(action_id);
+        self.loads.clear_by_action_id(action_id);
 
         self.properties.update_beam_section(action_id, name, area, i11, i22, i12, it, shear_factor,
             is_action_id_should_be_increased)
@@ -121,6 +129,7 @@ impl<T, V> Preprocessor<T, V>
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.geometry.clear_by_action_id(action_id);
+        self.loads.clear_by_action_id(action_id);
 
         self.properties.delete_beam_section(action_id, name, is_action_id_should_be_increased)
     }
@@ -138,6 +147,7 @@ impl<T, V> Preprocessor<T, V>
         -> Result<(), JsValue>
     {
         self.geometry.clear_by_action_id(action_id);
+        self.loads.clear_by_action_id(action_id);
 
         self.properties.add_properties(action_id, name, material_name, cross_section_name,
             cross_section_type, is_action_id_should_be_increased)
@@ -149,6 +159,7 @@ impl<T, V> Preprocessor<T, V>
         -> Result<(), JsValue>
     {
         self.geometry.clear_by_action_id(action_id);
+        self.loads.clear_by_action_id(action_id);
 
         self.properties.update_properties(action_id, name, material_name, cross_section_name,
             cross_section_type, is_action_id_should_be_increased)
@@ -159,6 +170,7 @@ impl<T, V> Preprocessor<T, V>
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.geometry.clear_by_action_id(action_id);
+        self.loads.clear_by_action_id(action_id);
 
         self.properties.delete_properties(action_id, name, is_action_id_should_be_increased)
     }
@@ -178,6 +190,7 @@ impl<T, V> Preprocessor<T, V>
         self.geometry.check_for_line_numbers_existence(line_numbers, error_message_header)?;
 
         self.geometry.clear_by_action_id(action_id);
+        self.loads.clear_by_action_id(action_id);
 
         self.properties.add_assigned_properties_to_lines(action_id, name, line_numbers,
             is_action_id_should_be_increased)
@@ -191,6 +204,7 @@ impl<T, V> Preprocessor<T, V>
         self.geometry.check_for_line_numbers_existence(line_numbers, error_message_header)?;
 
         self.geometry.clear_by_action_id(action_id);
+        self.loads.clear_by_action_id(action_id);
 
         self.properties.update_assigned_properties_to_lines(action_id, name, line_numbers,
             is_action_id_should_be_increased)
@@ -201,6 +215,7 @@ impl<T, V> Preprocessor<T, V>
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.geometry.clear_by_action_id(action_id);
+        self.loads.clear_by_action_id(action_id);
 
         self.properties.delete_assigned_properties_to_lines(action_id, name,
             is_action_id_should_be_increased)
@@ -220,6 +235,7 @@ impl<T, V> Preprocessor<T, V>
         -> Result<(), JsValue>
     {
         self.geometry.clear_by_action_id(action_id);
+        self.loads.clear_by_action_id(action_id);
 
         self.properties.add_beam_section_local_axis_1_direction(action_id, local_axis_1_direction,
             is_action_id_should_be_increased)
@@ -231,6 +247,7 @@ impl<T, V> Preprocessor<T, V>
         -> Result<(), JsValue>
     {
         self.geometry.clear_by_action_id(action_id);
+        self.loads.clear_by_action_id(action_id);
 
         self.properties.remove_beam_section_local_axis_1_direction(action_id,
             local_axis_1_direction, is_action_id_should_be_increased)
@@ -250,6 +267,9 @@ impl<T, V> Preprocessor<T, V>
         local_axis_1_direction: &[V], line_numbers: &[T],
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
+        self.geometry.clear_by_action_id(action_id);
+        self.loads.clear_by_action_id(action_id);
+
         self.properties.update_beam_section_orientation_data(action_id, local_axis_1_direction,
             line_numbers, is_action_id_should_be_increased, &self.geometry,
             get_line_points_coordinates, self.tolerance)

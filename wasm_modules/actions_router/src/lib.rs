@@ -40,7 +40,7 @@ use external_functions::communication_with_loads::
 {
     add_concentrated_load_to_loads, update_concentrated_load_in_loads,
     delete_concentrated_load_from_loads, restore_concentrated_load_in_loads,
-    extract_concentrated_loads
+    extract_concentrated_loads, show_concentrated_load_info,
 };
 
 mod action;
@@ -69,7 +69,7 @@ use consts::
     ADD_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_MESSAGE_HEADER,
     REMOVE_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_MESSAGE_HEADER,
     UPDATE_BEAM_SECTION_ORIENTATION_DATA_MESSAGE_HEADER,
-    ADD_CONCENTRATED_LOAD_MESSAGE_HEADER,
+    ADD_CONCENTRATED_LOAD_MESSAGE_HEADER, UPDATE_CONCENTRATED_LOAD_MESSAGE_HEADER,
     UNDO_MESSAGE_HEADER, REDO_MESSAGE_HEADER,
 };
 
@@ -1276,6 +1276,11 @@ impl ActionsRouter
         {
             self.handle_add_concentrated_load_message(&concentrated_load_data)?;
         }
+        else if let Some(concentrated_load_data) = serialized_message.get(
+            UPDATE_CONCENTRATED_LOAD_MESSAGE_HEADER)
+        {
+            self.handle_update_concentrated_load_message(&concentrated_load_data)?;
+        }
         else if let Some(undo_data) = serialized_message.get(UNDO_MESSAGE_HEADER)
         {
             self.handle_undo_message(&undo_data)?;
@@ -1382,6 +1387,13 @@ impl ActionsRouter
     pub fn show_point_info(&self, number: FEUInt, handler: js_sys::Function) -> Result<(), JsValue>
     {
         show_point_info(number, handler)
+    }
+
+
+    pub fn show_concentrated_load_info(&self, point_number: FEUInt, handler: js_sys::Function)
+        -> Result<(), JsValue>
+    {
+        show_concentrated_load_info(point_number, handler)
     }
 
 

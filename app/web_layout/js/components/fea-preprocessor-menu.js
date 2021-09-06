@@ -75,6 +75,21 @@ class FeaPreprocessorMenu extends HTMLElement {
         }
     }
 
+    set selectConcentratedLoadInClient(concentratedLoadpointNumber) {
+        if (this.querySelector("fea-load-menu") === null) {
+            this.delay(0)
+                .then(() => { 
+                    this.shadowRoot.querySelector("fea-preprocessor-menu-buttons").toggleButton = "load-menu-button";
+                })
+                .then(async () => { this.querySelector("fea-load-menu").selectConcentratedLoadInClient = concentratedLoadpointNumber });
+        } else {
+            this.delay(0)
+                .then(() => { 
+                    this.querySelector("fea-load-menu").selectConcentratedLoadInClient = concentratedLoadpointNumber;
+                });
+        }
+    }
+
     connectedCallback() {
     }
 

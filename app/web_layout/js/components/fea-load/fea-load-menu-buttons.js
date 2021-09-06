@@ -100,6 +100,10 @@ class FeaLoadMenuButtons extends HTMLElement {
             () => this.activateInner("load-delete-load-menu-button"));
     }
 
+    set activateButton(buttonName) {
+        this.activateInner(buttonName);
+    }
+
     connectedCallback() {
     }
 

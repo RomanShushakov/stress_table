@@ -117,7 +117,7 @@ impl<T, V> AssignedPropertyToLines<T, V>
     }
 
 
-    pub fn extract_related_lines_data(&self) -> Vec<RelatedLineData<T, V>>
+    pub fn clone_related_lines_data(&self) -> Vec<RelatedLineData<T, V>>
     {
         self.related_lines_data.clone()
     }

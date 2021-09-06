@@ -1,11 +1,10 @@
-class FeaLoadAddConcentratedLoadMenu extends HTMLElement {
+class FeaLoadUpdateConcentratedLoadMenu extends HTMLElement {
     constructor() {
         super();
 
         this.props = {
             actionId: null,                 // u32;
             isFEModelLoaded: false,         // load status of wasm module "fe_model";
-            points: new Map(),              // map: { number: u32, { x: f64, y: f64, z: f64}, ... };
             concentratedLoads: new Map(),   // map: { point_number: u32, { fx: f64, fy: f64, fz: f64, mx: f64, my: f64, mz: f64 }, ... };
         };
 
@@ -527,9 +526,9 @@ class FeaLoadAddConcentratedLoadMenu extends HTMLElement {
             </div>
         `;
 
-        this.shadowRoot.querySelector(".apply-button").addEventListener("click", () => this.addConcentratedLoad());
+        this.shadowRoot.querySelector(".apply-button").addEventListener("click", () => this.updateConcentratedLoad());
 
-        this.shadowRoot.querySelector(".cancel-button").addEventListener("click", () => this.cancelConcentratedLoadAddition());
+        this.shadowRoot.querySelector(".cancel-button").addEventListener("click", () => this.cancelConcentratedLoadUpdate());
 
         this.shadowRoot.querySelector(".point-number").addEventListener("change", () => this.updateConcentratedLoadValues());
 
@@ -584,27 +583,8 @@ class FeaLoadAddConcentratedLoadMenu extends HTMLElement {
         this.props.isFEModelLoaded = value;
     }
 
-    set points(value) {
-        this.props.points = value;
-    }
-
     set concentratedLoads(value) {
         this.props.concentratedLoads = value;
-    }
-
-    set addPointToClient(point) {
-        this.props.points.set(point.number, {"x": point.x, "y": point.y, "z": point.z});
-        this.defineConcentratedLoadOptions();
-    }
-
-    set updatePointInClient(point) {
-        this.props.points.set(point.number, {"x": point.x, "y": point.y, "z": point.z});
-        this.defineConcentratedLoadOptions();
-    }
-
-    set deletePointFromClient(point) {
-        this.props.points.delete(point.number);
-        this.defineConcentratedLoadOptions();
     }
 
     set addConcentratedLoadToClient(concentratedLoad) {
@@ -636,6 +616,24 @@ class FeaLoadAddConcentratedLoadMenu extends HTMLElement {
         }
     }
 
+    set selectConcentratedLoadInClient(pointNumber) {
+        const frame = () => {
+            if (this.props.isFEModelLoaded === true) {
+                clearInterval(id);
+                const pointNumberSelect = this.shadowRoot.querySelector(".point-number");
+                const pointNumberOptions = pointNumberSelect.options;
+                for (let option, i = 0; option = pointNumberOptions[i]; i++) {
+                    if (option.value == pointNumber) {
+                        pointNumberSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+                this.updateConcentratedLoadValues();
+            }
+        }
+        const id = setInterval(frame, 10);
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {
@@ -648,7 +646,6 @@ class FeaLoadAddConcentratedLoadMenu extends HTMLElement {
             this.getFEModelLoadStatus();
             if (this.props.isFEModelLoaded === true) {
                 clearInterval(id);
-                this.getPoints();
                 this.getConcentratedLoads();
                 this.defineConcentratedLoadOptions();
             }
@@ -683,13 +680,6 @@ class FeaLoadAddConcentratedLoadMenu extends HTMLElement {
         }));
     }
 
-    getPoints() {
-        this.dispatchEvent(new CustomEvent("getPoints", {
-            bubbles: true,
-            composed: true,
-        }));
-    }
-
     getConcentratedLoads() {
         this.dispatchEvent(new CustomEvent("getConcentratedLoads", {
             bubbles: true,
@@ -702,8 +692,8 @@ class FeaLoadAddConcentratedLoadMenu extends HTMLElement {
         for (let i = pointNumberSelect.length - 1; i >= 0; i--) {
             pointNumberSelect.options[i] = null;
         }
-        if (this.props.points.size > 0) {
-            const pointsNumbers = Array.from(this.props.points.keys()).sort((a, b) => a - b);
+        if (this.props.concentratedLoads.size > 0) {
+            const pointsNumbers = Array.from(this.props.concentratedLoads.keys()).sort((a, b) => a - b);
             for (let i = 0; i < pointsNumbers.length; i++) {
                 let pointNumberOption = document.createElement("option");
                 pointNumberOption.value = pointsNumbers[i];
@@ -739,33 +729,18 @@ class FeaLoadAddConcentratedLoadMenu extends HTMLElement {
 
     updateConcentratedLoadValues() {
         const selectedPointNumber = this.shadowRoot.querySelector(".point-number").value;
-        if (this.props.concentratedLoads.get(parseInt(selectedPointNumber)) !== undefined) {
-            this.shadowRoot.querySelector(".fx").value = this.props.concentratedLoads.get(parseInt(selectedPointNumber)).fx;
-            this.dropHighlight(this.shadowRoot.querySelector(".fx"));
-            this.shadowRoot.querySelector(".fy").value = this.props.concentratedLoads.get(parseInt(selectedPointNumber)).fy;
-            this.dropHighlight(this.shadowRoot.querySelector(".fy"));
-            this.shadowRoot.querySelector(".fz").value = this.props.concentratedLoads.get(parseInt(selectedPointNumber)).fz;
-            this.dropHighlight(this.shadowRoot.querySelector(".fz"));
-            this.shadowRoot.querySelector(".mx").value = this.props.concentratedLoads.get(parseInt(selectedPointNumber)).mx;
-            this.dropHighlight(this.shadowRoot.querySelector(".mx"));
-            this.shadowRoot.querySelector(".my").value = this.props.concentratedLoads.get(parseInt(selectedPointNumber)).my;
-            this.dropHighlight(this.shadowRoot.querySelector(".my"));
-            this.shadowRoot.querySelector(".mz").value = this.props.concentratedLoads.get(parseInt(selectedPointNumber)).mz;
-            this.dropHighlight(this.shadowRoot.querySelector(".mz"));
-        } else {
-            this.shadowRoot.querySelector(".fx").value = "";
-            this.dropHighlight(this.shadowRoot.querySelector(".fx"));
-            this.shadowRoot.querySelector(".fy").value = "";
-            this.dropHighlight(this.shadowRoot.querySelector(".fy"));
-            this.shadowRoot.querySelector(".fz").value = "";
-            this.dropHighlight(this.shadowRoot.querySelector(".fz"));
-            this.shadowRoot.querySelector(".mx").value = "";
-            this.dropHighlight(this.shadowRoot.querySelector(".mx"));
-            this.shadowRoot.querySelector(".my").value = "";
-            this.dropHighlight(this.shadowRoot.querySelector(".my"));
-            this.shadowRoot.querySelector(".mz").value = "";
-            this.dropHighlight(this.shadowRoot.querySelector(".mz"));
-        }
+        this.shadowRoot.querySelector(".fx").value = this.props.concentratedLoads.get(parseInt(selectedPointNumber)).fx;
+        this.dropHighlight(this.shadowRoot.querySelector(".fx"));
+        this.shadowRoot.querySelector(".fy").value = this.props.concentratedLoads.get(parseInt(selectedPointNumber)).fy;
+        this.dropHighlight(this.shadowRoot.querySelector(".fy"));
+        this.shadowRoot.querySelector(".fz").value = this.props.concentratedLoads.get(parseInt(selectedPointNumber)).fz;
+        this.dropHighlight(this.shadowRoot.querySelector(".fz"));
+        this.shadowRoot.querySelector(".mx").value = this.props.concentratedLoads.get(parseInt(selectedPointNumber)).mx;
+        this.dropHighlight(this.shadowRoot.querySelector(".mx"));
+        this.shadowRoot.querySelector(".my").value = this.props.concentratedLoads.get(parseInt(selectedPointNumber)).my;
+        this.dropHighlight(this.shadowRoot.querySelector(".my"));
+        this.shadowRoot.querySelector(".mz").value = this.props.concentratedLoads.get(parseInt(selectedPointNumber)).mz;
+        this.dropHighlight(this.shadowRoot.querySelector(".mz"));
         this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
     }
 
@@ -781,7 +756,7 @@ class FeaLoadAddConcentratedLoadMenu extends HTMLElement {
         }
     }
 
-    addConcentratedLoad() {
+    updateConcentratedLoad() {
         const selectedPointNumberField = this.shadowRoot.querySelector(".point-number");
         if (selectedPointNumberField.value == "") {
             if (selectedPointNumberField.classList.contains("highlighted") === false) {
@@ -859,11 +834,23 @@ class FeaLoadAddConcentratedLoadMenu extends HTMLElement {
 
         this.getActionId();
 
-        const message = {"add_concentrated_load": {
+        const oldConcentratedLoadValues = this.props.concentratedLoads.get(parseInt(selectedPointNumberField.value));
+
+        const message = {"update_concentrated_load": {
             "actionId": this.props.actionId,
             "point_number": selectedPointNumberField.value, 
-            "fx": inputtedFXField.value, "fy": inputtedFYField.value, "fz": inputtedFZField.value,
-            "mx": inputtedMXField.value, "my": inputtedMYField.value, "mz": inputtedMZField.value,
+            "old_concentrated_load_values": 
+                { 
+                    "fx": oldConcentratedLoadValues.fx, "fy": oldConcentratedLoadValues.fy,
+                    "fz": oldConcentratedLoadValues.fz, "mx": oldConcentratedLoadValues.mx,
+                    "my": oldConcentratedLoadValues.my, "mz": oldConcentratedLoadValues.mz,   
+                },
+            "new_concentrated_load_values": 
+                { 
+                    "fx": inputtedFXField.value, "fy": inputtedFYField.value,
+                    "fz": inputtedFZField.value, "mx": inputtedMXField.value,
+                    "my": inputtedMYField.value, "mz": inputtedMZField.value,
+                }
         }};
 
         this.dispatchEvent(new CustomEvent("clientMessage", {
@@ -877,13 +864,13 @@ class FeaLoadAddConcentratedLoadMenu extends HTMLElement {
         this.shadowRoot.querySelector(".point-number-filter").value = null;
     }
 
-    cancelConcentratedLoadAddition() {
-        if (this.props.points.size > 0) {
+    cancelConcentratedLoadUpdate() {
+        if (this.props.concentratedLoads.size > 0) {
             this.defineConcentratedLoadOptions();
         }
         this.shadowRoot.querySelector(".point-number-filter").value = null;
-        const selectedPointNumberField = this.shadowRoot.querySelector(".point-number");
-        this.dropHighlight(selectedPointNumberField);
+        const selectedPointNumberForUpdateField = this.shadowRoot.querySelector(".point-number");
+        this.dropHighlight(selectedPointNumberForUpdateField);
         const inputtedFXField = this.shadowRoot.querySelector(".fx");
         this.dropHighlight(inputtedFXField);
         const inputtedFYField = this.shadowRoot.querySelector(".fy");
@@ -913,4 +900,4 @@ class FeaLoadAddConcentratedLoadMenu extends HTMLElement {
       }
 }
 
-export default FeaLoadAddConcentratedLoadMenu;
+export default FeaLoadUpdateConcentratedLoadMenu;

@@ -6,7 +6,10 @@ use std::fmt::Debug;
 
 use crate::preprocessor::loads::loads::Loads;
 use crate::preprocessor::loads::concentrated_load::ConcentratedLoad;
-use crate::preprocessor::loads::consts::ADD_CONCENTRATED_LOAD_EVENT_NAME;
+use crate::preprocessor::loads::consts::
+{
+    ADD_CONCENTRATED_LOAD_EVENT_NAME, UPDATE_CONCENTRATED_LOAD_EVENT_NAME,
+};
 
 use crate::traits::ClearByActionIdTrait;
 use crate::consts::EVENT_TARGET;
@@ -47,6 +50,72 @@ impl<T, V> Loads<T, V>
             EVENT_TARGET)?;
         self.logging();
         Ok(())
+    }
+
+
+    pub fn update_concentrated_load(&mut self, action_id: T, point_number: T, fx: V, fy: V, fz: V,
+        mx: V, my: V, mz: V, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.clear_by_action_id(action_id);
+
+        if self.concentrated_loads.values().position(|concentrated_load|
+            concentrated_load.are_load_components_same(fx, fy, fz) &&
+            concentrated_load.are_moment_components_same(mx, my, mz)).is_some()
+        {
+            let error_message = &format!("Loads: Update concentrated load action: \
+                Concentrated load with components {:?}, {:?}, {:?}, {:?}, {:?}, {:?} does already \
+                exist!", fx, fy, fz, mx, my, mz);
+            return Err(JsValue::from(error_message));
+        }
+
+        if let Some(concentrated_load) = self.concentrated_loads
+            .get_mut(&point_number)
+        {
+            concentrated_load.update(fx, fy, fz, mx, my, mz);
+            let detail = json!({ "concentrated_load_data": { "point_number": point_number,
+                "fx": fx, "fy": fy, "fz": fz, "mx": mx, "my": my, "mz": mz },
+                "is_action_id_should_be_increased": is_action_id_should_be_increased });
+            dispatch_custom_event(detail, UPDATE_CONCENTRATED_LOAD_EVENT_NAME,
+                EVENT_TARGET)?;
+            self.logging();
+            Ok(())
+        }
+        else
+        {
+            let error_message = format!("Loads: Update concentrated load action: \
+                The concentrated load applied to point with number {:?} does not exist!",
+                point_number);
+            Err(JsValue::from(&error_message))
+        }
+    }
+
+
+    pub fn show_concentrated_load_info(&mut self, point_number: T, handler: js_sys::Function)
+        -> Result<(), JsValue>
+    {
+        return if let Some(concentrated_load) =
+            self.concentrated_loads.get(&point_number)
+        {
+            let (fx, fy, fz) = concentrated_load.copy_load_components();
+            let (mx, my, mz) = concentrated_load.copy_moment_components();
+            let concentrated_load_info_json = json!({ "concentrated_load_data":
+                {
+                    "point_number": point_number, "fx": fx, "fy": fy, "fz": fz,
+                    "mx": mx, "my": my, "mz": mz,
+                } });
+            let concentrated_load_info = JsValue::from_serde(&concentrated_load_info_json)
+                .or(Err(JsValue::from("Loads: Show concentrated load info: Concentrated \
+                    load info could not be composed!")))?;
+            let this = JsValue::null();
+            let _ = handler.call1(&this, &concentrated_load_info)?;
+            Ok(())
+        }
+        else
+        {
+            let error_message = &format!("Loads: Show concentrated load info action: \
+                Concentrated load applied to point with number {:?} does not exist!", point_number);
+            Err(JsValue::from(error_message))
+        }
     }
 
 

@@ -54,7 +54,7 @@ impl<T, V> Properties<T, V>
             AssignedPropertyToLines::create_initial(line_numbers);
 
         let related_lines_data =
-            assigned_property_to_lines.extract_related_lines_data();
+            assigned_property_to_lines.clone_related_lines_data();
 
         self.assigned_properties_to_lines.insert(name.to_owned(), assigned_property_to_lines);
 
@@ -144,7 +144,7 @@ impl<T, V> Properties<T, V>
 
                 let related_lines_data =
                     self.assigned_properties_to_lines.get(&assigned_property_to_lines_name)
-                        .unwrap().extract_related_lines_data();
+                        .unwrap().clone_related_lines_data();
 
                 let detail = json!({ "assigned_properties_to_lines_data":
                     {
@@ -203,7 +203,7 @@ impl<T, V> Properties<T, V>
 
                 let related_lines_data =
                     self.assigned_properties_to_lines.get(name).unwrap()
-                        .extract_related_lines_data();
+                        .clone_related_lines_data();
                 let detail = json!({ "assigned_properties_to_lines_data":
                     {
                         "name": name,
@@ -339,7 +339,7 @@ impl<T, V> Properties<T, V>
                 self.properties.get(name).unwrap().extract_data();
 
             let related_lines_data =
-                self.assigned_properties_to_lines.get(name).unwrap().extract_related_lines_data();
+                self.assigned_properties_to_lines.get(name).unwrap().clone_related_lines_data();
 
             let related_lines_numbers = self.assigned_properties_to_lines.get(name)
                 .unwrap().extract_related_lines_numbers();
@@ -380,7 +380,7 @@ impl<T, V> Properties<T, V>
                     deleted_assigned_property_to_lines.extract_and_drop();
 
                 let related_lines_data =
-                    assigned_property_to_lines.extract_related_lines_data();
+                    assigned_property_to_lines.clone_related_lines_data();
 
                 let line_numbers =
                     assigned_property_to_lines.extract_related_lines_numbers();

@@ -28,6 +28,10 @@ extern "C"
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>;
 
 
+    #[wasm_bindgen(js_name = showConcentratedLoadInfo, catch)]
+    pub fn show_concentrated_load_info(point_number: FEUInt, handler: js_sys::Function)
+        -> Result<(), JsValue>;
+
     #[wasm_bindgen(js_name = extractConcentratedLoads)]
     pub fn extract_concentrated_loads(handler: js_sys::Function);
 }

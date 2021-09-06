@@ -142,7 +142,7 @@ impl<T, V> Properties<T, V>
                     }
 
                     let related_lines_data =
-                        changed_assigned_property_to_lines.extract_related_lines_data();
+                        changed_assigned_property_to_lines.clone_related_lines_data();
 
                     self.assigned_properties_to_lines.insert(
                         changed_assigned_property_to_lines_name,
@@ -191,7 +191,7 @@ impl<T, V> Properties<T, V>
                     }
 
                     let related_lines_data =
-                        assigned_property_to_lines.extract_related_lines_data();
+                        assigned_property_to_lines.clone_related_lines_data();
 
                     let detail = json!({ "assigned_properties_to_lines_data":
                         {

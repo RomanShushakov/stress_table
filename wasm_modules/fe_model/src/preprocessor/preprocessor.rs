@@ -13,6 +13,7 @@ use crate::preprocessor::properties::properties::Properties;
 use crate::preprocessor::loads::loads::Loads;
 
 use crate::preprocessor::functions::get_line_points_coordinates;
+use crate::traits::ClearByActionIdTrait;
 
 
 pub struct Preprocessor<T, V>
@@ -82,6 +83,8 @@ impl<T, V> Preprocessor<T, V>
         self.geometry.update_point(action_id, number, x, y, z,
             is_action_id_should_be_increased)?;
 
+        self.loads.clear_by_action_id(action_id);
+
         self.properties.update_lines_in_properties(action_id, line_numbers_for_update,
             &self.geometry, get_line_points_coordinates, self.tolerance)?;
 
@@ -120,6 +123,8 @@ impl<T, V> Preprocessor<T, V>
     {
         self.geometry.update_line(action_id, number, start_point_number, end_point_number,
             is_action_id_should_be_increased)?;
+
+        self.loads.clear_by_action_id(action_id);
 
         self.properties.update_line_in_properties(action_id, number, &self.geometry,
             get_line_points_coordinates, self.tolerance)?;

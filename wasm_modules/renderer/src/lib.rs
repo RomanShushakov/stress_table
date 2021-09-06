@@ -60,7 +60,7 @@ mod consts;
 use consts::
 {
     EVENT_TARGET, SELECTED_POINTS_EVENT_MAME, SELECTED_NODES_EVENT_MAME, SELECTED_LINES_EVENT_MAME,
-    SELECTED_LINE_ELEMENTS_EVENT_MAME
+    SELECTED_LINE_ELEMENTS_EVENT_MAME, SELECTED_CONCENTRATED_LOADS_POINTS_NUMBERS_EVENT_MAME,
 };
 
 mod functions;
@@ -514,6 +514,7 @@ impl Renderer
         let mut selected_node_numbers = Vec::new();
         let mut selected_line_numbers = Vec::new();
         let mut selected_line_element_numbers = Vec::new();
+        let mut selected_concentrated_loads_points_numbers = Vec::new();
         let mut is_object_selected = false;
         for selected_color in self.state.selected_colors.iter()
         {
@@ -534,6 +535,7 @@ impl Renderer
                     }
                 }
             }
+
             for (line_object_key, line_object) in
                 self.state.line_objects.iter()
             {
@@ -548,6 +550,16 @@ impl Renderer
                         LineObjectType::Element =>
                             selected_line_element_numbers.push(selected_line_object_number),
                     }
+                }
+            }
+
+            for (point_number, concentrated_load_object) in
+                self.state.concentrated_load_objects.iter()
+            {
+                if concentrated_load_object.is_uid_same(
+                    u32::from_be_bytes(*selected_color))
+                {
+                    selected_concentrated_loads_points_numbers.push(point_number);
                 }
             }
         }
@@ -583,6 +595,17 @@ impl Renderer
             dispatch_custom_event(detail, SELECTED_LINE_ELEMENTS_EVENT_MAME,
                 EVENT_TARGET)?;
         }
+
+        if !selected_concentrated_loads_points_numbers.is_empty()
+        {
+            is_object_selected = true;
+            let detail = json!({
+                "concentrated_loads_points_numbers": selected_concentrated_loads_points_numbers });
+            dispatch_custom_event(detail,
+                SELECTED_CONCENTRATED_LOADS_POINTS_NUMBERS_EVENT_MAME,
+                EVENT_TARGET)?;
+        }
+
         self.state.beam_section_orientation_for_preview = None;
         self.update_drawn_object_visible()?;
         if is_object_selected
@@ -728,6 +751,27 @@ impl Renderer
         let concentrated_load_object = ConcentratedLoadObject::create(
             fx, fy, fz, mx, my, mz, uid);
         self.state.concentrated_load_objects.insert(point_number, concentrated_load_object);
+        self.update_drawn_object_for_selection()?;
+        self.update_drawn_object_visible()?;
+        Ok(())
+    }
+
+
+    pub fn update_concentrated_load(&mut self, point_number: u32, fx: f32, fy: f32, fz: f32,
+        mx: f32, my: f32, mz: f32) -> Result<(), JsValue>
+    {
+        if let Some(concentrated_load_object) =
+            self.state.concentrated_load_objects.get_mut(&point_number)
+        {
+            concentrated_load_object.update_load_and_moment_components(fx, fy, fz, mx, my, mz);
+        }
+        else
+        {
+            let error_message = format!("Renderer: Update concentrated load action: \
+                Concentrated load applied to point with number {} does not exist!",
+                point_number);
+            return Err(JsValue::from(error_message));
+        }
         self.update_drawn_object_for_selection()?;
         self.update_drawn_object_visible()?;
         Ok(())

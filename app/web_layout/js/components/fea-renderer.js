@@ -143,6 +143,17 @@ class FeaRenderer extends HTMLElement {
         }
     }
 
+    set updateConcentratedLoadInRenderer(concentratedLoad) {
+        this.state.renderer.update_concentrated_load(
+            concentratedLoad.point_number, 
+            concentratedLoad.fx, concentratedLoad.fy, concentratedLoad.fz,
+            concentratedLoad.mx, concentratedLoad.my, concentratedLoad.mz);
+        if (this.state.isPaused === true)
+        {
+            this.state.renderer.tick();
+        }
+    }
+
     set addNodeToRenderer(node) {
         this.state.renderer.add_point_object(node.number, node.x, node.y, node.z, PointObjectType.Node);
         if (this.state.isPaused === true)

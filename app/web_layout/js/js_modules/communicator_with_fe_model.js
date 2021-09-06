@@ -374,6 +374,14 @@ class CommunicatorWithFEModel {
         }
     }
 
+    set showConcentratedLoadInfo(concentratedLoadInfoData) {
+        try {
+            this.state.feModel.show_concentrated_load_info(concentratedLoadInfoData.point_number, concentratedLoadInfoData.handler);
+        } catch (error) {
+            throw error;
+        }
+    }
+
     set extractPoints(handler) {
         this.state.feModel.extract_points(handler);
     }

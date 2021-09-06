@@ -7,7 +7,7 @@ class FeaLoadMenu extends HTMLElement {
         this.state = {
             menuNames: {
                 "load-add-load-menu-concentrated-load": "fea-load-add-concentrated-load-menu",
-                "load-update-load-menu-concentrated-load": "fea-properties-update-properties-menu",
+                "load-update-load-menu-concentrated-load": "fea-load-update-concentrated-load-menu",
                 "load-delete-load-menu-concentrated-load": "fea-properties-delete-properties-menu",
                 "load-add-load-menu-distributed-load": "fea-properties-assign-properties-menu",
                 "load-update-load-menu-distributed-load": "fea-properties-beam-section-orientation-menu",
@@ -116,6 +116,21 @@ class FeaLoadMenu extends HTMLElement {
         this.addEventListener("deactivate-menu", (event) => this.deactivateMenu(event));
 
         this.shadowRoot.querySelector(".load-type").addEventListener("change", () => this.defineLoadTypeForLoadMenuButtons());
+    }
+
+    set selectConcentratedLoadInClient(concentratedLoadpointNumber) {
+        const loadTypeSelect = this.shadowRoot.querySelector(".load-type");
+                const loadTypeOptions = loadTypeSelect.options;
+                for (let option, i = 0; option = loadTypeOptions[i]; i++) {
+                    if (option.value == "Concentrated load") {
+                        loadTypeSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+        this.defineLoadTypeForLoadMenuButtons();
+        this.shadowRoot.querySelector("fea-load-menu-buttons").activateButton = "load-update-load-menu-button";
+        this.querySelector("fea-load-update-concentrated-load-menu").selectConcentratedLoadInClient = 
+            concentratedLoadpointNumber;
     }
 
     connectedCallback() {

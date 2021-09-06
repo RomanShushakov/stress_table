@@ -276,7 +276,8 @@ impl FEModel
         fx: FEFloat, fy: FEFloat, fz: FEFloat, mx: FEFloat, my: FEFloat, mz: FEFloat,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        Ok(())
+        self.preprocessor.update_concentrated_load(action_id, point_number, fx, fy, fz, mx, my, mz,
+            is_action_id_should_be_increased)
     }
 
 
@@ -330,7 +331,8 @@ impl FEModel
     }
 
 
-    pub fn extract_assigned_properties_to_lines(&self, handler: js_sys::Function) -> Result<(), JsValue>
+    pub fn extract_assigned_properties_to_lines(&self, handler: js_sys::Function)
+        -> Result<(), JsValue>
     {
         self.preprocessor.extract_assigned_properties_to_lines(handler)
     }
@@ -350,14 +352,23 @@ impl FEModel
     }
 
 
-    pub fn show_point_info(&mut self, number: FEUInt, handler: js_sys::Function) -> Result<(), JsValue>
+    pub fn show_point_info(&mut self, number: FEUInt, handler: js_sys::Function)
+        -> Result<(), JsValue>
     {
         self.preprocessor.show_point_info(number, handler)
     }
 
 
-    pub fn show_line_info(&mut self, number: FEUInt, handler: js_sys::Function) -> Result<(), JsValue>
+    pub fn show_line_info(&mut self, number: FEUInt, handler: js_sys::Function)
+        -> Result<(), JsValue>
     {
         self.preprocessor.show_line_info(number, handler)
+    }
+
+
+    pub fn show_concentrated_load_info(&mut self, number: FEUInt, handler: js_sys::Function)
+        -> Result<(), JsValue>
+    {
+        self.preprocessor.show_concentrated_load_info(number, handler)
     }
 }

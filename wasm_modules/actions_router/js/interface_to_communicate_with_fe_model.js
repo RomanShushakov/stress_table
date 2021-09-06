@@ -427,6 +427,16 @@ export function showLineInfo(number, handler)
     }
 }
 
+export function showConcentratedLoadInfo(pointNumber, handler) 
+{
+    const concentratedLoadInfoData = {"point_number": pointNumber, "handler": handler};
+    try {
+        communicatorWithFEModel.showConcentratedLoadInfo = concentratedLoadInfoData;
+    } catch (error) {
+        throw error;
+    }
+}
+
 export function extractPoints(handler) 
 {
     communicatorWithFEModel.extractPoints = handler;

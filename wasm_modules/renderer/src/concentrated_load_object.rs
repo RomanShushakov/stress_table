@@ -29,25 +29,49 @@ impl ConcentratedLoadObject
 {
     pub fn create(fx: f32, fy: f32, fz: f32, mx: f32, my: f32, mz: f32, uid: u32) -> Self
     {
-        let optional_fx = if fx > 0f32 { Some(Sign::Positive) }
+        let optional_fx_sign = if fx > 0f32 { Some(Sign::Positive) }
             else if fx < 0f32 { Some(Sign::Negative) } else { None };
-        let optional_fy = if fy > 0f32 { Some(Sign::Positive) }
+        let optional_fy_sign = if fy > 0f32 { Some(Sign::Positive) }
             else if fy < 0f32 { Some(Sign::Negative) } else { None };
-        let optional_fz = if fz > 0f32 { Some(Sign::Positive) }
+        let optional_fz_sign = if fz > 0f32 { Some(Sign::Positive) }
             else if fz < 0f32 { Some(Sign::Negative) } else { None };
-        let optional_mx = if mx > 0f32 { Some(Sign::Positive) }
+        let optional_mx_sign = if mx > 0f32 { Some(Sign::Positive) }
             else if mx < 0f32 { Some(Sign::Negative) } else { None };
-        let optional_my = if my > 0f32 { Some(Sign::Positive) }
+        let optional_my_sign = if my > 0f32 { Some(Sign::Positive) }
             else if my < 0f32 { Some(Sign::Negative) } else { None };
-        let optional_mz = if mz > 0f32 { Some(Sign::Positive) }
+        let optional_mz_sign = if mz > 0f32 { Some(Sign::Positive) }
             else if mz < 0f32 { Some(Sign::Negative) } else { None };
         ConcentratedLoadObject {
-            optional_fx_sign: optional_fx,
-            optional_fy_sign: optional_fy,
-            optional_fz_sign: optional_fz,
-            optional_mx_sign: optional_mx,
-            optional_my_sign: optional_my,
-            optional_mz_sign: optional_mz, uid }
+            optional_fx_sign,
+            optional_fy_sign,
+            optional_fz_sign,
+            optional_mx_sign,
+            optional_my_sign,
+            optional_mz_sign, uid }
+    }
+
+
+    pub fn update_load_and_moment_components(&mut self, fx: f32, fy: f32, fz: f32, mx: f32, my: f32,
+        mz: f32)
+    {
+        let optional_fx_sign = if fx > 0f32 { Some(Sign::Positive) }
+            else if fx < 0f32 { Some(Sign::Negative) } else { None };
+        let optional_fy_sign = if fy > 0f32 { Some(Sign::Positive) }
+            else if fy < 0f32 { Some(Sign::Negative) } else { None };
+        let optional_fz_sign = if fz > 0f32 { Some(Sign::Positive) }
+            else if fz < 0f32 { Some(Sign::Negative) } else { None };
+        let optional_mx_sign = if mx > 0f32 { Some(Sign::Positive) }
+            else if mx < 0f32 { Some(Sign::Negative) } else { None };
+        let optional_my_sign = if my > 0f32 { Some(Sign::Positive) }
+            else if my < 0f32 { Some(Sign::Negative) } else { None };
+        let optional_mz_sign = if mz > 0f32 { Some(Sign::Positive) }
+            else if mz < 0f32 { Some(Sign::Negative) } else { None };
+        self.optional_fx_sign = optional_fx_sign;
+        self.optional_fy_sign = optional_fy_sign;
+        self.optional_fz_sign = optional_fz_sign;
+        self.optional_mx_sign = optional_mx_sign;
+        self.optional_my_sign = optional_my_sign;
+        self.optional_mz_sign = optional_mz_sign;
     }
 
 

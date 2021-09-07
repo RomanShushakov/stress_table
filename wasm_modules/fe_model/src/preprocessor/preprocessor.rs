@@ -101,6 +101,8 @@ impl<T, V> Preprocessor<T, V>
         self.properties.delete_line_numbers_from_properties(action_id,
             &line_numbers_for_delete)?;
 
+        self.loads.delete_concentrated_load_applied_to_point(action_id, number)?;
+
         self.geometry.delete_point(action_id, number, &line_numbers_for_delete,
             is_action_id_should_be_increased)?;
         Ok(())
@@ -114,6 +116,9 @@ impl<T, V> Preprocessor<T, V>
             self.geometry.restore_point(action_id, number, is_action_id_should_be_increased)?;
 
         self.properties.restore_line_numbers_in_properties(action_id, restored_line_numbers)?;
+
+        self.loads.restore_concentrated_load_applied_to_point(action_id, number)?;
+
         Ok(())
     }
 

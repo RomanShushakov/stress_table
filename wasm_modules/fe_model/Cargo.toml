@@ -6,9 +6,7 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [profile.release]
-panic = 'abort'
-codegen-units = 1
-opt-level = 's'
+#opt-level = "s"
 lto = true
 
 [lib]
@@ -26,10 +24,10 @@ js-sys = "0.3.53"
 [dependencies.web-sys]
 version = "0.3.53"
 features = [
-  'Document',
-  'Window',
-  'Element',
-  'CustomEvent',
-  'CustomEventInit',
-  'EventTarget'
+  "Document",
+  "Window",
+  "Element",
+  "CustomEvent",
+  "CustomEventInit",
+  "EventTarget",
 ]

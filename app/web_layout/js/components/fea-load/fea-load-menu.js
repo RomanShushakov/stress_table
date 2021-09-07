@@ -9,7 +9,7 @@ class FeaLoadMenu extends HTMLElement {
                 "load-add-load-menu-concentrated-load": "fea-load-add-concentrated-load-menu",
                 "load-update-load-menu-concentrated-load": "fea-load-update-concentrated-load-menu",
                 "load-delete-load-menu-concentrated-load": "fea-load-delete-concentrated-load-menu",
-                "load-add-load-menu-distributed-load": "fea-properties-assign-properties-menu",
+                "load-add-load-menu-distributed-load": "fea-load-add-distributed-load-menu",
                 "load-update-load-menu-distributed-load": "fea-properties-beam-section-orientation-menu",
                 "load-delete-load-menu-distributed-load": "fea-properties-add-properties-menu",
             },

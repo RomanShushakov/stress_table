@@ -26,6 +26,7 @@ class FeaApp extends HTMLElement {
                 "fea-geometry-delete-line-menu",
                 "fea-properties-assign-properties-menu",
                 "fea-properties-beam-section-orientation-menu",
+                "fea-load-add-distributed-load-menu",
             ],
             materialsDataDependentMenus: [
                 "fea-material-add-material-menu",

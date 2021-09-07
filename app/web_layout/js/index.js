@@ -63,6 +63,7 @@ import FeaLoadUpdateConcentratedLoadMenu from "./components/fea-load/fea-load-up
 import FeaLoadDeleteConcentratedLoadMenu from "./components/fea-load/fea-load-delete-concentrated-load-menu.js";
 import FeaLoadAddDistributedLoadMenu from "./components/fea-load/fea-load-add-distributed-load-menu.js";
 import FeaLoadUpdateDistributedLoadMenu from "./components/fea-load/fea-load-update-distributed-load-menu.js";
+import FeaLoadDeleteDistributedLoadMenu from "./components/fea-load/fea-load-delete-distributed-load-menu.js";
 
 customElements.define("fea-app", FeaApp);
 customElements.define("fea-app-menu-bar", FeaAppMenuBar);
@@ -129,3 +130,4 @@ customElements.define("fea-load-update-concentrated-load-menu", FeaLoadUpdateCon
 customElements.define("fea-load-delete-concentrated-load-menu", FeaLoadDeleteConcentratedLoadMenu);
 customElements.define("fea-load-add-distributed-load-menu", FeaLoadAddDistributedLoadMenu);
 customElements.define("fea-load-update-distributed-load-menu", FeaLoadUpdateDistributedLoadMenu);
+customElements.define("fea-load-delete-distributed-load-menu", FeaLoadDeleteDistributedLoadMenu);

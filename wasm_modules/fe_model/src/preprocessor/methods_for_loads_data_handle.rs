@@ -53,6 +53,17 @@ impl<T, V> Preprocessor<T, V>
     }
 
 
+    pub fn add_distributed_line_load(&mut self, action_id: T, line_number: T, qx: V, qy: V, qz: V,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.geometry.clear_by_action_id(action_id);
+        self.properties.clear_by_action_id(action_id);
+
+        self.loads.add_distributed_line_load(action_id, line_number, qx, qy, qz,
+            is_action_id_should_be_increased)
+    }
+
+
     pub fn show_concentrated_load_info(&mut self, point_number: T, handler: js_sys::Function)
         -> Result<(), JsValue>
     {

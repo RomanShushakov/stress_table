@@ -71,6 +71,11 @@ class FeaApp extends HTMLElement {
                 "fea-load-add-concentrated-load-menu",
                 "fea-load-update-concentrated-load-menu",
                 "fea-load-delete-concentrated-load-menu",
+            ],
+            distributedLoadsDataDependentMenus: [
+                "fea-load-add-distributed-load-menu",
+                "fea-load-update-distributed-load-menu",
+                "fea-load-delete-distributed-load-menu",
             ]
         };
 

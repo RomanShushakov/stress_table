@@ -11,8 +11,8 @@ use crate::preprocessor::loads::distributed_line_load::
 };
 use crate::preprocessor::loads::consts::
 {
-    ADD_DISTRIBUTED_LINE_LOAD_EVENT_NAME, UPDATE_CONCENTRATED_LOAD_EVENT_NAME,
-    DELETE_CONCENTRATED_LOAD_EVENT_NAME,
+    ADD_DISTRIBUTED_LINE_LOAD_EVENT_NAME, UPDATE_DISTRIBUTED_LINE_LOAD_EVENT_NAME,
+    DELETE_DISTRIBUTED_LINE_LOAD_EVENT_NAME,
 };
 
 use crate::traits::ClearByActionIdTrait;
@@ -55,202 +55,228 @@ impl<T, V> Loads<T, V>
     }
 
 
-    // pub fn update_concentrated_load(&mut self, action_id: T, point_number: T, fx: V, fy: V, fz: V,
-    //     mx: V, my: V, mz: V, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
-    // {
-    //     self.clear_by_action_id(action_id);
-    //
-    //     if self.concentrated_loads.values().position(|concentrated_load|
-    //         concentrated_load.are_load_components_same(fx, fy, fz) &&
-    //         concentrated_load.are_moment_components_same(mx, my, mz)).is_some()
-    //     {
-    //         let error_message = &format!("Loads: Update concentrated load action: \
-    //             Concentrated load with components {:?}, {:?}, {:?}, {:?}, {:?}, {:?} does already \
-    //             exist!", fx, fy, fz, mx, my, mz);
-    //         return Err(JsValue::from(error_message));
-    //     }
-    //
-    //     if let Some(concentrated_load) = self.concentrated_loads
-    //         .get_mut(&point_number)
-    //     {
-    //         concentrated_load.update(fx, fy, fz, mx, my, mz);
-    //         let detail = json!({ "concentrated_load_data": { "point_number": point_number,
-    //             "fx": fx, "fy": fy, "fz": fz, "mx": mx, "my": my, "mz": mz },
-    //             "is_action_id_should_be_increased": is_action_id_should_be_increased });
-    //         dispatch_custom_event(detail, UPDATE_CONCENTRATED_LOAD_EVENT_NAME,
-    //             EVENT_TARGET)?;
-    //         self.logging();
-    //         Ok(())
-    //     }
-    //     else
-    //     {
-    //         let error_message = format!("Loads: Update concentrated load action: \
-    //             The concentrated load applied to point with number {:?} does not exist!",
-    //             point_number);
-    //         Err(JsValue::from(&error_message))
-    //     }
-    // }
-    //
-    //
-    // pub fn delete_concentrated_load(&mut self, action_id: T, point_number: T,
-    //     is_action_id_should_be_increased: bool) -> Result<(), JsValue>
-    // {
-    //     self.clear_by_action_id(action_id);
-    //
-    //     if let Some((point_number, concentrated_load)) =
-    //         self.concentrated_loads.remove_entry(&point_number)
-    //     {
-    //         let deleted_concentrated_load =
-    //             DeletedConcentratedLoad::create(point_number, concentrated_load);
-    //         self.deleted_concentrated_loads.insert(action_id, deleted_concentrated_load);
-    //         let detail = json!({ "concentrated_load_data": { "point_number": point_number },
-    //             "is_action_id_should_be_increased": is_action_id_should_be_increased });
-    //         dispatch_custom_event(detail, DELETE_CONCENTRATED_LOAD_EVENT_NAME,
-    //             EVENT_TARGET)?;
-    //         self.logging();
-    //         Ok(())
-    //     }
-    //     else
-    //     {
-    //         let error_message = &format!("Loads: Delete concentrated load action: \
-    //             Concentrated load applied to point with number {:?} does not exist!", point_number);
-    //         return Err(JsValue::from(error_message));
-    //     }
-    // }
-    //
-    //
-    // pub fn restore_concentrated_load(&mut self, action_id: T, point_number: T,
-    //     is_action_id_should_be_increased: bool) -> Result<(), JsValue>
-    // {
-    //     if let Some(deleted_concentrated_load) =
-    //         self.deleted_concentrated_loads.remove(&action_id)
-    //     {
-    //         let (deleted_concentrated_load_point_number, fx, fy, fz,
-    //             mx, my, mz) =
-    //                 deleted_concentrated_load.copy_point_number_and_load_components();
-    //         if deleted_concentrated_load_point_number != point_number
-    //         {
-    //             let error_message = &format!("Loads: Restore concentrated load action: \
-    //                 Concentrated load applied to point with number {:?} does not exist!",
-    //                 point_number);
-    //             return Err(JsValue::from(error_message));
-    //         }
-    //         let detail = json!({ "concentrated_load_data":
-    //             {
-    //                 "point_number": deleted_concentrated_load_point_number,
-    //                 "fx": fx, "fy": fy, "fz": fz, "mx": mx, "my": my, "mz": mz,
-    //             },
-    //             "is_action_id_should_be_increased": is_action_id_should_be_increased });
-    //         dispatch_custom_event(detail, ADD_CONCENTRATED_LOAD_EVENT_NAME,
-    //             EVENT_TARGET)?;
-    //         self.concentrated_loads.insert(deleted_concentrated_load_point_number,
-    //             ConcentratedLoad::create(fx, fy, fz, mx, my, mz));
-    //
-    //         self.logging();
-    //         Ok(())
-    //     }
-    //     else
-    //     {
-    //         let error_message = &format!("Loads: Restore concentrated load action: \
-    //             Concentrated load applied to point with number {:?} does not exist!", point_number);
-    //         return Err(JsValue::from(error_message));
-    //     }
-    // }
-    //
-    //
-    // pub fn delete_concentrated_load_applied_to_point(&mut self, action_id: T, point_number: T)
-    //     -> Result<(), JsValue>
-    // {
-    //     self.clear_by_action_id(action_id);
-    //
-    //     if let Some((point_number, concentrated_load)) =
-    //         self.concentrated_loads.remove_entry(&point_number)
-    //     {
-    //         let deleted_concentrated_load =
-    //             DeletedConcentratedLoad::create(point_number, concentrated_load);
-    //         self.deleted_concentrated_loads.insert(action_id, deleted_concentrated_load);
-    //         let detail = json!({ "concentrated_load_data": { "point_number": point_number },
-    //             "is_action_id_should_be_increased": false });
-    //         dispatch_custom_event(detail, DELETE_CONCENTRATED_LOAD_EVENT_NAME,
-    //             EVENT_TARGET)?;
-    //         self.logging();
-    //     }
-    //     Ok(())
-    // }
-    //
-    //
-    // pub fn restore_concentrated_load_applied_to_point(&mut self, action_id: T, point_number: T)
-    //     -> Result<(), JsValue>
-    // {
-    //     if let Some(deleted_concentrated_load) =
-    //         self.deleted_concentrated_loads.remove(&action_id)
-    //     {
-    //         let (deleted_concentrated_load_point_number, fx, fy, fz,
-    //             mx, my, mz) =
-    //                 deleted_concentrated_load.copy_point_number_and_load_components();
-    //         if deleted_concentrated_load_point_number != point_number
-    //         {
-    //             let error_message = &format!("Loads: Restore concentrated load action: \
-    //                 Concentrated load applied to point with number {:?} does not exist!",
-    //                 point_number);
-    //             return Err(JsValue::from(error_message));
-    //         }
-    //         let detail = json!({ "concentrated_load_data":
-    //             {
-    //                 "point_number": deleted_concentrated_load_point_number,
-    //                 "fx": fx, "fy": fy, "fz": fz, "mx": mx, "my": my, "mz": mz,
-    //             },
-    //             "is_action_id_should_be_increased": false });
-    //         dispatch_custom_event(detail, ADD_CONCENTRATED_LOAD_EVENT_NAME,
-    //             EVENT_TARGET)?;
-    //         self.concentrated_loads.insert(deleted_concentrated_load_point_number,
-    //             ConcentratedLoad::create(fx, fy, fz, mx, my, mz));
-    //
-    //         self.logging();
-    //     }
-    //     Ok(())
-    // }
-    //
-    //
-    // pub fn show_concentrated_load_info(&mut self, point_number: T, handler: js_sys::Function)
-    //     -> Result<(), JsValue>
-    // {
-    //     return if let Some(concentrated_load) =
-    //         self.concentrated_loads.get(&point_number)
-    //     {
-    //         let (fx, fy, fz) = concentrated_load.copy_load_components();
-    //         let (mx, my, mz) = concentrated_load.copy_moment_components();
-    //         let concentrated_load_info_json = json!({ "concentrated_load_data":
-    //             {
-    //                 "point_number": point_number, "fx": fx, "fy": fy, "fz": fz,
-    //                 "mx": mx, "my": my, "mz": mz,
-    //             } });
-    //         let concentrated_load_info = JsValue::from_serde(&concentrated_load_info_json)
-    //             .or(Err(JsValue::from("Loads: Show concentrated load info: Concentrated \
-    //                 load info could not be composed!")))?;
-    //         let this = JsValue::null();
-    //         let _ = handler.call1(&this, &concentrated_load_info)?;
-    //         Ok(())
-    //     }
-    //     else
-    //     {
-    //         let error_message = &format!("Loads: Show concentrated load info action: \
-    //             Concentrated load applied to point with number {:?} does not exist!", point_number);
-    //         Err(JsValue::from(error_message))
-    //     }
-    // }
-    //
-    //
-    // pub fn extract_concentrated_loads(&self, handler: js_sys::Function) -> Result<(), JsValue>
-    // {
-    //     let extracted_concentrated_loads = json!({ "extracted_concentrated_loads":
-    //         self.concentrated_loads });
-    //     let composed_extracted_concentrated_loads =
-    //         JsValue::from_serde(&extracted_concentrated_loads)
-    //             .or(Err(JsValue::from("Preprocessor: Extract concentrated loads: \
-    //                 Concentrated loads could not be composed for extraction!")))?;
-    //     let this = JsValue::null();
-    //     let _ = handler.call1(&this, &composed_extracted_concentrated_loads);
-    //     Ok(())
-    // }
+    pub fn update_distributed_line_load(&mut self, action_id: T, line_number: T, qx: V, qy: V,
+        qz: V, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.clear_by_action_id(action_id);
+
+        if self.distributed_line_loads.values().position(|distributed_line_load|
+            distributed_line_load.are_load_components_same(qx, qy, qz)).is_some()
+        {
+            let error_message = &format!("Loads: Update distributed line load action: \
+                Distributed line load with components {:?}, {:?}, {:?}, does already exist!",
+                qx, qy, qz);
+            return Err(JsValue::from(error_message));
+        }
+
+        if let Some(distributed_line_load) =
+            self.distributed_line_loads.get_mut(&line_number)
+        {
+            distributed_line_load.update(qx, qy, qz);
+            let detail = json!({ "distributed_line_load_data": { "line_number": line_number,
+                "qx": qx, "qy": qy, "qz": qz },
+                "is_action_id_should_be_increased": is_action_id_should_be_increased });
+            dispatch_custom_event(detail, UPDATE_DISTRIBUTED_LINE_LOAD_EVENT_NAME,
+                EVENT_TARGET)?;
+            self.logging();
+            Ok(())
+        }
+        else
+        {
+            let error_message = format!("Loads: Update distributed line load action: \
+                The distributed line load applied to line with number {:?} does not exist!",
+                line_number);
+            Err(JsValue::from(&error_message))
+        }
+    }
+
+
+    pub fn delete_distributed_line_load(&mut self, action_id: T, line_number: T,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.clear_by_action_id(action_id);
+
+        if let Some((line_number, distributed_line_load)) =
+            self.distributed_line_loads.remove_entry(&line_number)
+        {
+            let deleted_distributed_line_load =
+                DeletedDistributedLineLoad::create(line_number, distributed_line_load);
+            self.deleted_distributed_line_loads.insert(action_id,
+                vec![deleted_distributed_line_load]);
+            let detail = json!({ "distributed_line_load_data": { "line_number": line_number },
+                "is_action_id_should_be_increased": is_action_id_should_be_increased });
+            dispatch_custom_event(detail, DELETE_DISTRIBUTED_LINE_LOAD_EVENT_NAME,
+                EVENT_TARGET)?;
+            self.logging();
+            Ok(())
+        }
+        else
+        {
+            let error_message = &format!("Loads: Delete distributed line load action: \
+                Distributed line load applied to line with number {:?} does not exist!",
+                line_number);
+            return Err(JsValue::from(error_message));
+        }
+    }
+
+
+    pub fn restore_distributed_line_load(&mut self, action_id: T, line_number: T,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        if let Some(deleted_distributed_line_loads) =
+            self.deleted_distributed_line_loads.remove(&action_id)
+        {
+            if deleted_distributed_line_loads.len() != 1
+            {
+                let error_message = "Loads: Restore distributed line loads \
+                    action: Incorrect number of deleted distributed line loads";
+                return Err(JsValue::from(error_message));
+            }
+            let deleted_distributed_line_load =
+                &deleted_distributed_line_loads[0];
+
+            let (deleted_distributed_line_load_line_number, qx, qy, qz) =
+                    deleted_distributed_line_load.copy_line_number_and_load_components();
+            if deleted_distributed_line_load_line_number != line_number
+            {
+                let error_message = &format!("Loads: Restore distributed line loads \
+                    action: Distributed line load applied to line with number {:?} does not exist!",
+                    line_number);
+                return Err(JsValue::from(error_message));
+            }
+            let detail = json!({ "distributed line_load_data":
+                {
+                    "line_number": deleted_distributed_line_load_line_number,
+                    "qx": qx, "qy": qy, "qz": qz,
+                },
+                "is_action_id_should_be_increased": is_action_id_should_be_increased });
+            dispatch_custom_event(detail, ADD_DISTRIBUTED_LINE_LOAD_EVENT_NAME,
+                EVENT_TARGET)?;
+            self.distributed_line_loads.insert(deleted_distributed_line_load_line_number,
+                DistributedLineLoad::create(qx, qy, qz));
+
+            self.logging();
+            Ok(())
+        }
+        else
+        {
+            let error_message = &format!("Loads: Restore concentrated load action: \
+                Concentrated load applied to point with number {:?} does not exist!", line_number);
+            return Err(JsValue::from(error_message));
+        }
+    }
+
+
+    pub fn delete_distributed_line_loads_applied_to_lines(&mut self, action_id: T,
+        line_numbers: &[T]) -> Result<(), JsValue>
+    {
+        self.clear_by_action_id(action_id);
+
+        let mut deleted_distributed_line_loads = Vec::new();
+
+        for line_number in line_numbers
+        {
+            if let Some((line_number, distributed_line_load)) =
+                self.distributed_line_loads.remove_entry(line_number)
+            {
+                let deleted_distributed_line_load =
+                    DeletedDistributedLineLoad::create(line_number, distributed_line_load);
+                deleted_distributed_line_loads.push(deleted_distributed_line_load);
+
+                let detail = json!({ "distributed_line_load_data":
+                    { "line_number": line_number },
+                    "is_action_id_should_be_increased": false });
+                dispatch_custom_event(detail, DELETE_DISTRIBUTED_LINE_LOAD_EVENT_NAME,
+                    EVENT_TARGET)?;
+            }
+        }
+
+        if !deleted_distributed_line_loads.is_empty()
+        {
+            self.deleted_distributed_line_loads.insert(action_id,
+                deleted_distributed_line_loads);
+            self.logging();
+        }
+        Ok(())
+    }
+
+
+    pub fn restore_distributed_line_loads_applied_to_lines(&mut self, action_id: T,
+        line_numbers: &[T]) -> Result<(), JsValue>
+    {
+        if let Some(deleted_distributed_line_loads) =
+            self.deleted_distributed_line_loads.remove(&action_id)
+        {
+            for deleted_distributed_line_load in
+                deleted_distributed_line_loads.iter()
+            {
+                let (deleted_deleted_distributed_line_load_line_number, qx, qy, qz) =
+                    deleted_distributed_line_load.copy_line_number_and_load_components();
+                if !line_numbers.contains(&deleted_deleted_distributed_line_load_line_number)
+                {
+                    let error_message = &format!("Loads: Restore distributed line load \
+                        action: Restored line numbers {:?} does not contain line number {:?} to \
+                        which distributed line load applied!",
+                        line_numbers, deleted_deleted_distributed_line_load_line_number);
+                    return Err(JsValue::from(error_message));
+                }
+                let detail = json!({ "distributed_line_load_data":
+                    {
+                        "line_number": deleted_deleted_distributed_line_load_line_number,
+                        "qx": qx, "qy": qy, "qz": qz
+                    },
+                    "is_action_id_should_be_increased": false });
+                dispatch_custom_event(detail, ADD_DISTRIBUTED_LINE_LOAD_EVENT_NAME,
+                    EVENT_TARGET)?;
+                self.distributed_line_loads.insert(
+                    deleted_deleted_distributed_line_load_line_number,
+                    DistributedLineLoad::create(qx, qy, qz));
+            }
+            self.logging();
+        }
+        Ok(())
+    }
+
+
+    pub fn show_distributed_line_load_info(&mut self, line_number: T, handler: js_sys::Function)
+        -> Result<(), JsValue>
+    {
+        return if let Some(distributed_line_load) =
+            self.distributed_line_loads.get(&line_number)
+        {
+            let (qx, qy, qz) = distributed_line_load.copy_load_components();
+            let distributed_line_load_info_json = json!({ "distributed_line_load_data":
+                {
+                    "line_number": line_number, "qx": qx, "qy": qy, "qz": qz,
+                } });
+            let distributed_line_load_info = JsValue::from_serde(
+                &distributed_line_load_info_json)
+                .or(Err(JsValue::from("Loads: Show distributed line load info: Distributed \
+                    line load info could not be composed!")))?;
+            let this = JsValue::null();
+            let _ = handler.call1(&this, &distributed_line_load_info)?;
+            Ok(())
+        }
+        else
+        {
+            let error_message = &format!("Loads: Show distributed line load info action: \
+                Distributed line load applied to line with number {:?} does not exist!",
+                line_number);
+            Err(JsValue::from(error_message))
+        }
+    }
+
+
+    pub fn extract_distributed_line_loads(&self, handler: js_sys::Function) -> Result<(), JsValue>
+    {
+        let extracted_distributed_line_loads = json!({ "extracted_distributed_line_loads":
+            self.distributed_line_loads });
+        let composed_extracted_distributed_line_loads =
+            JsValue::from_serde(&extracted_distributed_line_loads)
+                .or(Err(JsValue::from("Preprocessor: Extract distributed line loads: \
+                    Distributed line loads could not be composed for extraction!")))?;
+        let this = JsValue::null();
+        let _ = handler.call1(&this, &composed_extracted_distributed_line_loads);
+        Ok(())
+    }
 }

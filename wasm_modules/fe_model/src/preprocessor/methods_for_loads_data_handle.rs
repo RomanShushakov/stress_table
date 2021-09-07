@@ -64,6 +64,36 @@ impl<T, V> Preprocessor<T, V>
     }
 
 
+    pub fn update_distributed_line_load(&mut self, action_id: T, line_number: T, qx: V, qy: V,
+        qz: V, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.geometry.clear_by_action_id(action_id);
+        self.properties.clear_by_action_id(action_id);
+
+        self.loads.update_distributed_line_load(action_id, line_number, qx, qy, qz,
+            is_action_id_should_be_increased)
+    }
+
+
+    pub fn delete_distributed_line_load(&mut self, action_id: T, line_number: T,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.geometry.clear_by_action_id(action_id);
+        self.properties.clear_by_action_id(action_id);
+
+        self.loads.delete_distributed_line_load(action_id, line_number,
+            is_action_id_should_be_increased)
+    }
+
+
+    pub fn restore_distributed_line_load(&mut self, action_id: T, line_number: T,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.loads.restore_distributed_line_load(action_id, line_number,
+            is_action_id_should_be_increased)
+    }
+
+
     pub fn show_concentrated_load_info(&mut self, point_number: T, handler: js_sys::Function)
         -> Result<(), JsValue>
     {
@@ -71,8 +101,21 @@ impl<T, V> Preprocessor<T, V>
     }
 
 
+    pub fn show_distributed_line_load_info(&mut self, line_number: T, handler: js_sys::Function)
+        -> Result<(), JsValue>
+    {
+        self.loads.show_distributed_line_load_info(line_number, handler)
+    }
+
+
     pub fn extract_concentrated_loads(&self, handler: js_sys::Function) -> Result<(), JsValue>
     {
         self.loads.extract_concentrated_loads(handler)
+    }
+
+
+    pub fn extract_distributed_line_loads(&self, handler: js_sys::Function) -> Result<(), JsValue>
+    {
+        self.loads.extract_distributed_line_loads(handler)
     }
 }

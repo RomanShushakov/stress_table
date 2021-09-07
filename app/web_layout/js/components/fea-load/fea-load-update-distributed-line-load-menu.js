@@ -1,12 +1,11 @@
-class FeaLoadAddDistributedLoadMenu extends HTMLElement {
+class FeaLoadUpdateDistributedLineLoadMenu extends HTMLElement {
     constructor() {
         super();
 
         this.props = {
-            actionId: null,                 // u32;
-            isFEModelLoaded: false,         // load status of wasm module "fe_model";
-            lines: new Map(),               // map: { number: u32, start_point_number: u32, end_point_number: u32 }, ...};
-            distributedLoads: new Map(),    // map: { line_number: u32, { qx: f64, qy: f64, qz: f64 }, ... };
+            actionId: null,                     // u32;
+            isFEModelLoaded: false,             // load status of wasm module "fe_model";
+            distributedLineLoads: new Map(),    // map: { line_number: u32, { qx: f64, qy: f64, qz: f64 }, ... };
         };
 
         this.state = {};
@@ -368,11 +367,11 @@ class FeaLoadAddDistributedLoadMenu extends HTMLElement {
             </div>
         `;
 
-        this.shadowRoot.querySelector(".apply-button").addEventListener("click", () => this.addDistributedLoad());
+        this.shadowRoot.querySelector(".apply-button").addEventListener("click", () => this.updateDistributedLineLoad());
 
-        this.shadowRoot.querySelector(".cancel-button").addEventListener("click", () => this.cancelDistributedLoadAddition());
+        this.shadowRoot.querySelector(".cancel-button").addEventListener("click", () => this.cancelDistributedLineLoadUpdate());
 
-        this.shadowRoot.querySelector(".line-number").addEventListener("change", () => this.updateDistributedLoadValues());
+        this.shadowRoot.querySelector(".line-number").addEventListener("change", () => this.updateDistributedLineLoadValues());
 
         this.shadowRoot.querySelector(".line-number-filter").addEventListener("keyup", () => {
             this.filter(
@@ -407,54 +406,53 @@ class FeaLoadAddDistributedLoadMenu extends HTMLElement {
         this.props.isFEModelLoaded = value;
     }
 
-    set lines(value) {
-        this.props.lines = value;
+    set distributedLineLoads(value) {
+        this.props.distributedLineLoads = value;
     }
 
-    set distributedLoads(value) {
-        this.props.distributedLoads = value;
-    }
-
-    set addLineToClient(line) {
-        this.props.lines.set(line.number, { "start_point_number": line.start_point_number, "end_point_number": line.end_point_number });
-        this.defineDistributedLoadOptions();
-    }
-
-    set updateLineInClient(line) {
-        this.props.lines.set(line.number, { "start_point_number": line.start_point_number, "end_point_number": line.end_point_number });
-        this.defineDistributedLoadOptions();
-    }
-
-    set deleteLineFromClient(line) {
-        this.props.lines.delete(line.number);
-        this.defineDistributedLoadOptions();
-    }
-
-    set addDistributedLoadToClient(distributedLoad) {
-        this.props.distributedLoads.set(distributedLoad.line_number, 
+    set addDistributedLineLoadToClient(distributedLineLoad) {
+        this.props.distributedLineLoads.set(distributedLineLoad.line_number, 
             {
-                "qx": distributedLoad.qx, "qy": distributedLoad.qy, "qz": distributedLoad.qz
+                "qx": distributedLineLoad.qx, "qy": distributedLineLoad.qy, "qz": distributedLineLoad.qz
             });
-        this.defineDistributedLoadOptions();
+        this.defineDistributedLineLoadOptions();
     }
 
-    set updateDistributedLoadInClient(distributedLoad) {
-        this.props.distributedLoads.set(distributedLoad.line_number, 
+    set updateDistributedLineLoadInClient(distributedLineLoad) {
+        this.props.distributedLineLoads.set(distributedLineLoad.line_number, 
             {
-                "qx": distributedLoad.qx, "qy": distributedLoad.qy, "qz": distributedLoad.qz
+                "qx": distributedLineLoad.qx, "qy": distributedLineLoad.qy, "qz": distributedLineLoad.qz
             });
-        this.defineDistributedLoadOptions();
+        this.defineDistributedLineLoadOptions();
     }
 
-    set deleteDistributedLoadFromClient(distributedLoad) {
-        this.props.distributedLoads.delete(distributedLoad.line_number);
-        this.defineDistributedLoadOptions();
+    set deleteDistributedLineLoadFromClient(distributedLineLoad) {
+        this.props.distributedLineLoads.delete(distributedLineLoad.line_number);
+        this.defineDistributedLineLoadOptions();
     }
 
     set feModelError(error) {
         if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
             this.shadowRoot.querySelector(".analysis-info-message").innerHTML = error;
         }
+    }
+
+    set selectDistributedLineLoadInClient(lineNumber) {
+        const frame = () => {
+            if (this.props.isFEModelLoaded === true) {
+                clearInterval(id);
+                const lineNumberSelect = this.shadowRoot.querySelector(".line-number");
+                const lineNumberOptions = lineNumberSelect.options;
+                for (let option, i = 0; option = lineNumberOptions[i]; i++) {
+                    if (option.value == lineNumber) {
+                        lineNumberSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+                this.updateDistributedLineLoadValues();
+            }
+        }
+        const id = setInterval(frame, 10);
     }
 
     connectedCallback() {
@@ -469,9 +467,8 @@ class FeaLoadAddDistributedLoadMenu extends HTMLElement {
             this.getFEModelLoadStatus();
             if (this.props.isFEModelLoaded === true) {
                 clearInterval(id);
-                this.getLines();
-                this.getDistributedLoads();
-                this.defineDistributedLoadOptions();
+                this.getDistributedLineLoads();
+                this.defineDistributedLineLoadOptions();
             }
         }
         const id = setInterval(frame, 10);
@@ -504,27 +501,20 @@ class FeaLoadAddDistributedLoadMenu extends HTMLElement {
         }));
     }
 
-    getLines() {
-        this.dispatchEvent(new CustomEvent("getLines", {
+    getDistributedLineLoads() {
+        this.dispatchEvent(new CustomEvent("getDistributedLineLoads", {
             bubbles: true,
             composed: true,
         }));
     }
 
-    getDistributedLoads() {
-        this.dispatchEvent(new CustomEvent("getDistributedLoads", {
-            bubbles: true,
-            composed: true,
-        }));
-    }
-
-    defineDistributedLoadOptions() {
+    defineDistributedLineLoadOptions() {
         const lineNumberSelect = this.shadowRoot.querySelector(".line-number");
         for (let i = lineNumberSelect.length - 1; i >= 0; i--) {
             lineNumberSelect.options[i] = null;
         }
-        if (this.props.lines.size > 0) {
-            const linesNumbers = Array.from(this.props.lines.keys()).sort((a, b) => a - b);
+        if (this.props.distributedLineLoads.size > 0) {
+            const linesNumbers = Array.from(this.props.distributedLineLoads.keys()).sort((a, b) => a - b);
             for (let i = 0; i < linesNumbers.length; i++) {
                 let lineNumberOption = document.createElement("option");
                 lineNumberOption.value = linesNumbers[i];
@@ -532,10 +522,10 @@ class FeaLoadAddDistributedLoadMenu extends HTMLElement {
                 lineNumberSelect.appendChild(lineNumberOption);
             }
 
-            if (this.props.distributedLoads.get(linesNumbers[0]) !== undefined) {
-                this.shadowRoot.querySelector(".qx").value = this.props.distributedLoads.get(linesNumbers[0]).qx;
-                this.shadowRoot.querySelector(".qy").value = this.props.distributedLoads.get(linesNumbers[0]).qy;
-                this.shadowRoot.querySelector(".qz").value = this.props.distributedLoads.get(linesNumbers[0]).qz;
+            if (this.props.distributedLineLoads.get(linesNumbers[0]) !== undefined) {
+                this.shadowRoot.querySelector(".qx").value = this.props.distributedLineLoads.get(linesNumbers[0]).qx;
+                this.shadowRoot.querySelector(".qy").value = this.props.distributedLineLoads.get(linesNumbers[0]).qy;
+                this.shadowRoot.querySelector(".qz").value = this.props.distributedLineLoads.get(linesNumbers[0]).qz;
             } else {
                 this.shadowRoot.querySelector(".qx").value = "";
                 this.shadowRoot.querySelector(".qy").value = "";
@@ -549,23 +539,14 @@ class FeaLoadAddDistributedLoadMenu extends HTMLElement {
         }
     }
 
-    updateDistributedLoadValues() {
-        const selectedLineNumber = this.shadowRoot.querySelector(".line-number").value;
-        if (this.props.distributedLoads.get(parseInt(selectedLineNumber)) !== undefined) {
-            this.shadowRoot.querySelector(".qx").value = this.props.distributedLoads.get(parseInt(selectedLineNumber)).qx;
-            this.dropHighlight(this.shadowRoot.querySelector(".qx"));
-            this.shadowRoot.querySelector(".qy").value = this.props.distributedLoads.get(parseInt(selectedLineNumber)).qy;
-            this.dropHighlight(this.shadowRoot.querySelector(".qy"));
-            this.shadowRoot.querySelector(".qz").value = this.props.distributedLoads.get(parseInt(selectedLineNumber)).qz;
-            this.dropHighlight(this.shadowRoot.querySelector(".qz"));
-        } else {
-            this.shadowRoot.querySelector(".qx").value = "";
-            this.dropHighlight(this.shadowRoot.querySelector(".qx"));
-            this.shadowRoot.querySelector(".qy").value = "";
-            this.dropHighlight(this.shadowRoot.querySelector(".qy"));
-            this.shadowRoot.querySelector(".qz").value = "";
-            this.dropHighlight(this.shadowRoot.querySelector(".qz"));
-        }
+    updateDistributedLineLoadValues() {
+        const selectedLineNumber = this.shadowRoot.querySelector(".point-number").value;
+        this.shadowRoot.querySelector(".qx").value = this.props.distributedLineLoads.get(parseInt(selectedLineNumber)).qx;
+        this.dropHighlight(this.shadowRoot.querySelector(".qx"));
+        this.shadowRoot.querySelector(".qy").value = this.props.distributedLineLoads.get(parseInt(selectedLineNumber)).qy;
+        this.dropHighlight(this.shadowRoot.querySelector(".qy"));
+        this.shadowRoot.querySelector(".qz").value = this.props.distributedLineLoads.get(parseInt(selectedLineNumber)).qz;
+        this.dropHighlight(this.shadowRoot.querySelector(".qz"));
         this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
     }
 
@@ -581,7 +562,7 @@ class FeaLoadAddDistributedLoadMenu extends HTMLElement {
         }
     }
 
-    addDistributedLoad() {
+    updateDistributedLineLoad() {
         const selectedLineNumberField = this.shadowRoot.querySelector(".line-number");
         if (selectedLineNumberField.value == "") {
             if (selectedLineNumberField.classList.contains("highlighted") === false) {
@@ -635,10 +616,21 @@ class FeaLoadAddDistributedLoadMenu extends HTMLElement {
 
         this.getActionId();
 
-        const message = {"add_distributed_load": {
+        const oldDistributedLineLoadValues = this.props.distributedLineLoads.get(parseInt(selectedLineNumberField.value));
+
+        const message = {"update_distributed_line_load": {
             "actionId": this.props.actionId,
             "line_number": selectedLineNumberField.value, 
-            "qx": inputtedQXField.value, "qy": inputtedQYField.value, "qz": inputtedQZField.value,
+            "old_distributed_line_load_values": 
+                { 
+                    "qx": oldDistributedLineLoadValues.qx, "qy": oldDistributedLineLoadValues.qy,
+                    "qz": oldDistributedLineLoadValues.qz,   
+                },
+            "new_distributed_line_load_values": 
+                { 
+                    "qx": inputtedQXField.value, "qy": inputtedQYField.value,
+                    "qz": inputtedQZField.value,
+                }
         }};
 
         this.dispatchEvent(new CustomEvent("clientMessage", {
@@ -652,18 +644,18 @@ class FeaLoadAddDistributedLoadMenu extends HTMLElement {
         this.shadowRoot.querySelector(".line-number-filter").value = null;
     }
 
-    cancelDistributedLoadAddition() {
-        if (this.props.lines.size > 0) {
-            this.defineDistributedLoadOptions();
+    cancelDistributedLineLoadUpdate() {
+        if (this.props.distributedLineLoads.size > 0) {
+            this.defineDistributedLineLoadOptions();
         }
         this.shadowRoot.querySelector(".line-number-filter").value = null;
-        const selectedLineNumberField = this.shadowRoot.querySelector(".line-number");
-        this.dropHighlight(selectedLineNumberField);
+        const selectedLineNumberForUpdateField = this.shadowRoot.querySelector(".line-number");
+        this.dropHighlight(selectedLineNumberForUpdateField);
         const inputtedQXField = this.shadowRoot.querySelector(".qx");
         this.dropHighlight(inputtedQXField);
         const inputtedQYField = this.shadowRoot.querySelector(".qy");
         this.dropHighlight(inputtedQYField);
-        const inputtedQZField = this.shadowRoot.querySelector(".qz");
+        const inputtedQZField = this.shadowRoot.querySelector(".z");
         this.dropHighlight(inputtedQZField);
         this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
     }
@@ -682,4 +674,4 @@ class FeaLoadAddDistributedLoadMenu extends HTMLElement {
       }
 }
 
-export default FeaLoadAddDistributedLoadMenu;
+export default FeaLoadUpdateDistributedLineLoadMenu;

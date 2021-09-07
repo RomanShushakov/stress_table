@@ -26,7 +26,7 @@ class FeaApp extends HTMLElement {
                 "fea-geometry-delete-line-menu",
                 "fea-properties-assign-properties-menu",
                 "fea-properties-beam-section-orientation-menu",
-                "fea-load-add-distributed-load-menu",
+                "fea-load-add-distributed-line-load-menu",
             ],
             materialsDataDependentMenus: [
                 "fea-material-add-material-menu",
@@ -72,10 +72,10 @@ class FeaApp extends HTMLElement {
                 "fea-load-update-concentrated-load-menu",
                 "fea-load-delete-concentrated-load-menu",
             ],
-            distributedLoadsDataDependentMenus: [
-                "fea-load-add-distributed-load-menu",
-                "fea-load-update-distributed-load-menu",
-                "fea-load-delete-distributed-load-menu",
+            distributedLineLoadsDataDependentMenus: [
+                "fea-load-add-distributed-line-load-menu",
+                "fea-load-update-distributed-line-load-menu",
+                "fea-load-delete-distributed-line-load-menu",
             ]
         };
 

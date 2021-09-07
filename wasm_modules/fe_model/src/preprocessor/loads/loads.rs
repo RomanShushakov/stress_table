@@ -13,10 +13,10 @@ use crate::functions::log;
 
 pub struct Loads<T, V>
 {
-    pub concentrated_loads: HashMap<T, ConcentratedLoad<V>>,                            // { point_number: ConcentratedLoad }
-    pub distributed_line_loads: HashMap<T, DistributedLineLoad<V>>,                     // { line_number: DistributedLineLoad }
-    pub deleted_concentrated_loads: HashMap<T, DeletedConcentratedLoad<T, V>>,          // { action_id: DeletedConcentratedLoad }
-    pub deleted_distributed_line_loads: HashMap<T, DeletedDistributedLineLoad<T, V>>,   // { action_id: DeletedConcentratedLoad }
+    pub concentrated_loads: HashMap<T, ConcentratedLoad<V>>,                                // { point_number: ConcentratedLoad }
+    pub distributed_line_loads: HashMap<T, DistributedLineLoad<V>>,                         // { line_number: DistributedLineLoad }
+    pub deleted_concentrated_loads: HashMap<T, DeletedConcentratedLoad<T, V>>,              // { action_id: DeletedConcentratedLoad }
+    pub deleted_distributed_line_loads: HashMap<T, Vec<DeletedDistributedLineLoad<T, V>>>,  // { action_id: Vec<DeletedDistributedLineLoad> }
 }
 
 

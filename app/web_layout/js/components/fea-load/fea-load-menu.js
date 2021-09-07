@@ -9,9 +9,9 @@ class FeaLoadMenu extends HTMLElement {
                 "load-add-load-menu-concentrated-load": "fea-load-add-concentrated-load-menu",
                 "load-update-load-menu-concentrated-load": "fea-load-update-concentrated-load-menu",
                 "load-delete-load-menu-concentrated-load": "fea-load-delete-concentrated-load-menu",
-                "load-add-load-menu-distributed-load": "fea-load-add-distributed-load-menu",
-                "load-update-load-menu-distributed-load": "fea-load-update-distributed-load-menu",
-                "load-delete-load-menu-distributed-load": "fea-load-delete-distributed-load-menu",
+                "load-add-load-menu-distributed-line-load": "fea-load-add-distributed-line-load-menu",
+                "load-update-load-menu-distributed-line-load": "fea-load-update-distributed-line-load-menu",
+                "load-delete-load-menu-distributed-line-load": "fea-load-delete-distributed-line-load-menu",
             },
 
             loadTypes: ["Concentrated load", "Distributed load"],
@@ -171,7 +171,7 @@ class FeaLoadMenu extends HTMLElement {
                 this.shadowRoot.querySelector("fea-load-menu-buttons").setAttribute("load-type", "concentrated-load");
                 break;
             case "Distributed load":
-                this.shadowRoot.querySelector("fea-load-menu-buttons").setAttribute("load-type", "distributed-load");
+                this.shadowRoot.querySelector("fea-load-menu-buttons").setAttribute("load-type", "distributed-line-load");
                 break;
         }
     }

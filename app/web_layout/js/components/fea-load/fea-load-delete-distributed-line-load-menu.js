@@ -1,11 +1,11 @@
-class FeaLoadDeleteDistributedLoadMenu extends HTMLElement {
+class FeaLoadDeleteDistributedLineLoadMenu extends HTMLElement {
     constructor() {
         super();
 
         this.props = {
-            actionId: null,                 // u32;
-            isFEModelLoaded: false,         // load status of wasm module "fe_model";
-            distributedLoads: new Map(),    // map: { line_number: u32, { qx: f64, qy: f64, qz: f64 }, ... };
+            actionId: null,                     // u32;
+            isFEModelLoaded: false,             // load status of wasm module "fe_model";
+            distributedLineLoads: new Map(),    // map: { line_number: u32, { qx: f64, qy: f64, qz: f64 }, ... };
         };
 
         this.state = {};
@@ -208,9 +208,9 @@ class FeaLoadDeleteDistributedLoadMenu extends HTMLElement {
             </div>
         `;
 
-        this.shadowRoot.querySelector(".apply-button").addEventListener("click", () => this.deleteDistributedLoad());
+        this.shadowRoot.querySelector(".apply-button").addEventListener("click", () => this.deleteDistributedLineLoad());
 
-        this.shadowRoot.querySelector(".cancel-button").addEventListener("click", () => this.cancelDistributedLoadDelete());
+        this.shadowRoot.querySelector(".cancel-button").addEventListener("click", () => this.cancelDistributedLineLoadDelete());
 
         this.shadowRoot.querySelector(".line-number-filter").addEventListener("keyup", () => {
             this.filter(
@@ -227,24 +227,24 @@ class FeaLoadDeleteDistributedLoadMenu extends HTMLElement {
         this.props.isFEModelLoaded = value;
     }
 
-    set distributedLoads(value) {
-        this.props.distributedLoads = value;
+    set distributedLineLoads(value) {
+        this.props.distributedLineLoads = value;
     }
 
-    set addDistributedLoadToClient(distributedLoad) {
-        this.props.distributedLoads.set(distributedLoad.line_number, 
+    set addDistributedLineLoadToClient(distributedLineLoad) {
+        this.props.distributedLineLoads.set(distributedLineLoad.line_number, 
             {
-                "qx": distributedLoad.qx, "qy": distributedLoad.qy, "qz": distributedLoad.qz
+                "qx": distributedLineLoad.qx, "qy": distributedLineLoad.qy, "qz": distributedLineLoad.qz
             });
-        this.defineDistributedLoadOptions();
+        this.defineDistributedLineLoadOptions();
     }
 
-    set updateDistributedLoadInClient(_distributedLoad) {
+    set updateDistributedLineLoadInClient(_distributedLineLoad) {
     }
 
-    set deleteDistributedLoadFromClient(distributedLoad) {
-        this.props.distributedLoads.delete(distributedLoad.line_number);
-        this.defineDistributedLoadOptions();
+    set deleteDistributedLineLoadFromClient(distributedLineLoad) {
+        this.props.distributedLineLoads.delete(distributedLineLoad.line_number);
+        this.defineDistributedLineLoadOptions();
     }
 
     set feModelError(error) {
@@ -265,8 +265,8 @@ class FeaLoadDeleteDistributedLoadMenu extends HTMLElement {
             this.getFEModelLoadStatus();
             if (this.props.isFEModelLoaded === true) {
                 clearInterval(id);
-                this.getDistributedLoads();
-                this.defineDistributedLoadOptions();
+                this.getDistributedLineLoads();
+                this.defineDistributedLineLoadOptions();
             }
         }
         const id = setInterval(frame, 10);
@@ -299,19 +299,19 @@ class FeaLoadDeleteDistributedLoadMenu extends HTMLElement {
         }));
     }
 
-    getDistributedLoads() {
-        this.dispatchEvent(new CustomEvent("getDistributedLoads", {
+    getDistributedLineLoads() {
+        this.dispatchEvent(new CustomEvent("getDistributedLineLoads", {
             bubbles: true,
             composed: true,
         }));
     }
 
-    defineDistributedLoadOptions() {
+    defineDistributedLineLoadOptions() {
         const lineNumberSelect = this.shadowRoot.querySelector(".line-number");
         for (let i = lineNumberSelect.length - 1; i >= 0; i--) {
             lineNumberSelect.options[i] = null;
         }
-        const linesNumbers = Array.from(this.props.distributedLoads.keys()).sort((a, b) => a - b);
+        const linesNumbers = Array.from(this.props.distributedLineLoads.keys()).sort((a, b) => a - b);
         for (let i = 0; i < linesNumbers.length; i++) {
             let lineNumberOption = document.createElement("option");
             lineNumberOption.value = linesNumbers[i];
@@ -331,7 +331,7 @@ class FeaLoadDeleteDistributedLoadMenu extends HTMLElement {
         }
     }
 
-    deleteDistributedLoad() {
+    deleteDistributedLineLoad() {
         const selectedLineNumberField = this.shadowRoot.querySelector(".line-number");
         if (selectedLineNumberField.value == "") {
             if (selectedLineNumberField.classList.contains("highlighted") === false) {
@@ -351,7 +351,7 @@ class FeaLoadDeleteDistributedLoadMenu extends HTMLElement {
 
         this.getActionId();
         
-        const message = {"delete_distributed_load": 
+        const message = {"delete_distributed_line_load": 
             { "actionId": this.props.actionId, "line_number": parseInt(selectedLineNumberField.value) }};
 
         this.dispatchEvent(new CustomEvent("clientMessage", {
@@ -364,9 +364,9 @@ class FeaLoadDeleteDistributedLoadMenu extends HTMLElement {
         this.shadowRoot.querySelector(".line-number-filter").value = null;
     }
 
-    cancelDistributedLoadDelete() {
-        if (this.props.distributedLoads.size > 0) {
-            this.defineDistributedLoadOptions();
+    cancelDistributedLineLoadDelete() {
+        if (this.props.distributedLineLoads.size > 0) {
+            this.defineDistributedLineLoadOptions();
         }
         this.shadowRoot.querySelector(".line-number-filter").value = null;
         const selectedLineNumberForDeleteField = this.shadowRoot.querySelector(".line-number");
@@ -381,4 +381,4 @@ class FeaLoadDeleteDistributedLoadMenu extends HTMLElement {
     }
 }
 
-export default FeaLoadDeleteDistributedLoadMenu;
+export default FeaLoadDeleteDistributedLineLoadMenu;

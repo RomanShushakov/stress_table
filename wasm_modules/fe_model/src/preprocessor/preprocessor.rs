@@ -79,9 +79,7 @@ impl<T, V> Preprocessor<T, V>
     {
         let line_numbers_for_update =
             self.geometry.extract_line_numbers_for_update_or_delete(number);
-
-        self.geometry.update_point(action_id, number, x, y, z,
-            is_action_id_should_be_increased)?;
+        self.geometry.update_point(action_id, number, x, y, z,is_action_id_should_be_increased)?;
 
         self.loads.clear_by_action_id(action_id);
 
@@ -101,6 +99,8 @@ impl<T, V> Preprocessor<T, V>
         self.properties.delete_line_numbers_from_properties(action_id,
             &line_numbers_for_delete)?;
 
+        self.loads.delete_distributed_line_loads_applied_to_lines(action_id,
+            &line_numbers_for_delete)?;
         self.loads.delete_concentrated_load_applied_to_point(action_id, number)?;
 
         self.geometry.delete_point(action_id, number, &line_numbers_for_delete,
@@ -115,10 +115,11 @@ impl<T, V> Preprocessor<T, V>
         let restored_line_numbers =
             self.geometry.restore_point(action_id, number, is_action_id_should_be_increased)?;
 
-        self.properties.restore_line_numbers_in_properties(action_id, restored_line_numbers)?;
+        self.properties.restore_line_numbers_in_properties(action_id, &restored_line_numbers)?;
 
         self.loads.restore_concentrated_load_applied_to_point(action_id, number)?;
-
+        self.loads.restore_distributed_line_loads_applied_to_lines(action_id,
+            &restored_line_numbers)?;
         Ok(())
     }
 
@@ -133,7 +134,6 @@ impl<T, V> Preprocessor<T, V>
 
         self.properties.update_line_in_properties(action_id, number, &self.geometry,
             get_line_points_coordinates, self.tolerance)?;
-
         Ok(())
     }
 
@@ -142,6 +142,9 @@ impl<T, V> Preprocessor<T, V>
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.properties.delete_line_numbers_from_properties(action_id, &vec![number])?;
+
+        self.loads.delete_distributed_line_loads_applied_to_lines(action_id,
+            &vec![number])?;
 
         self.geometry.delete_line(action_id, number, is_action_id_should_be_increased)?;
         Ok(())
@@ -154,7 +157,10 @@ impl<T, V> Preprocessor<T, V>
         self.geometry.restore_line(action_id, number, is_action_id_should_be_increased)?;
 
         self.properties.restore_line_numbers_in_properties(action_id,
-            vec![number])?;
+            &vec![number])?;
+
+        self.loads.restore_distributed_line_loads_applied_to_lines(action_id,
+            &vec![number])?;
         Ok(())
     }
 }

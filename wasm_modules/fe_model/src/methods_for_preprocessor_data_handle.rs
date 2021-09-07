@@ -301,32 +301,32 @@ impl FEModel
         qx: FEFloat, qy: FEFloat, qz: FEFloat, is_action_id_should_be_increased: bool)
         -> Result<(), JsValue>
     {
-        self.preprocessor.add_distributed_line_load(action_id, point_number, qx, qy, qz,
+        self.preprocessor.add_distributed_line_load(action_id, line_number, qx, qy, qz,
         is_action_id_should_be_increased)
     }
 
 
-    pub fn update_concentrated_load(&mut self, action_id: FEUInt, point_number: FEUInt,
-        fx: FEFloat, fy: FEFloat, fz: FEFloat, mx: FEFloat, my: FEFloat, mz: FEFloat,
-        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    pub fn update_distributed_line_load(&mut self, action_id: FEUInt, line_number: FEUInt,
+        qx: FEFloat, qy: FEFloat, qz: FEFloat, is_action_id_should_be_increased: bool)
+        -> Result<(), JsValue>
     {
-        self.preprocessor.update_concentrated_load(action_id, point_number, fx, fy, fz, mx, my, mz,
+        self.preprocessor.update_distributed_line_load(action_id, line_number, qx, qy, qz,
             is_action_id_should_be_increased)
     }
 
 
-    pub fn delete_concentrated_load(&mut self, action_id: FEUInt, point_number: FEUInt,
+    pub fn delete_distributed_kine_load(&mut self, action_id: FEUInt, line_number: FEUInt,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.preprocessor.delete_concentrated_load(action_id, point_number,
+        self.preprocessor.delete_distributed_line_load(action_id, line_number,
             is_action_id_should_be_increased)
     }
 
 
-    pub fn restore_concentrated_load(&mut self, action_id: FEUInt, point_number: FEUInt,
+    pub fn restore_distributed_line_load(&mut self, action_id: FEUInt, line_number: FEUInt,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
-        self.preprocessor.restore_concentrated_load(action_id, point_number,
+        self.preprocessor.restore_distributed_line_load(action_id, line_number,
             is_action_id_should_be_increased)
     }
 
@@ -388,6 +388,13 @@ impl FEModel
     }
 
 
+    pub fn extract_distributed_line_loads(&self, handler: js_sys::Function)
+        -> Result<(), JsValue>
+    {
+        self.preprocessor.extract_distributed_line_loads(handler)
+    }
+
+
     pub fn show_point_info(&mut self, number: FEUInt, handler: js_sys::Function)
         -> Result<(), JsValue>
     {
@@ -402,9 +409,16 @@ impl FEModel
     }
 
 
-    pub fn show_concentrated_load_info(&mut self, number: FEUInt, handler: js_sys::Function)
+    pub fn show_concentrated_load_info(&mut self, point_number: FEUInt, handler: js_sys::Function)
         -> Result<(), JsValue>
     {
-        self.preprocessor.show_concentrated_load_info(number, handler)
+        self.preprocessor.show_concentrated_load_info(point_number, handler)
+    }
+
+
+    pub fn show_distributed_line_load_info(&mut self, line_number: FEUInt,
+        handler: js_sys::Function) -> Result<(), JsValue>
+    {
+        self.preprocessor.show_distributed_line_load_info(line_number, handler)
     }
 }

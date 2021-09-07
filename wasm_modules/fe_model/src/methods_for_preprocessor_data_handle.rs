@@ -3,11 +3,40 @@ use wasm_bindgen::prelude::*;
 use crate::FEModel;
 
 use crate::types::{FEUInt, FEFloat};
+use crate::functions::log;
 
 
 #[wasm_bindgen]
 impl FEModel
 {
+    pub fn add_point(&mut self, action_id: FEUInt, number: FEUInt, x: FEFloat, y: FEFloat,
+        z: FEFloat, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.preprocessor.add_point(action_id, number, x, y, z, is_action_id_should_be_increased)
+    }
+
+
+    pub fn update_point(&mut self, action_id: FEUInt, number: FEUInt, x: FEFloat, y: FEFloat,
+        z: FEFloat, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.preprocessor.update_point(action_id, number, x, y, z, is_action_id_should_be_increased)
+    }
+
+
+    pub fn delete_point(&mut self, action_id: FEUInt, number: FEUInt,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.preprocessor.delete_point(action_id, number, is_action_id_should_be_increased)
+    }
+
+
+    pub fn restore_point(&mut self, action_id: FEUInt, number: FEUInt,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.preprocessor.restore_point(action_id, number, is_action_id_should_be_increased)
+    }
+
+
     pub fn add_line(&mut self, action_id: FEUInt, number: FEUInt, start_point_number: FEUInt,
         end_point_number: FEUInt, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
@@ -35,18 +64,6 @@ impl FEModel
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.preprocessor.restore_line(action_id, number, is_action_id_should_be_increased)
-    }
-
-
-    pub fn extract_points(&self, handler: js_sys::Function) -> Result<(), JsValue>
-    {
-        self.preprocessor.extract_points(handler)
-    }
-
-
-    pub fn extract_lines(&self, handler: js_sys::Function) -> Result<(), JsValue>
-    {
-        self.preprocessor.extract_lines(handler)
     }
 
 
@@ -246,6 +263,52 @@ impl FEModel
     }
 
 
+    pub fn add_concentrated_load(&mut self, action_id: FEUInt, point_number: FEUInt,
+        fx: FEFloat, fy: FEFloat, fz: FEFloat, mx: FEFloat, my: FEFloat, mz: FEFloat,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.preprocessor.add_concentrated_load(action_id, point_number, fx, fy, fz, mx, my, mz,
+        is_action_id_should_be_increased)
+    }
+
+
+    pub fn update_concentrated_load(&mut self, action_id: FEUInt, point_number: FEUInt,
+        fx: FEFloat, fy: FEFloat, fz: FEFloat, mx: FEFloat, my: FEFloat, mz: FEFloat,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.preprocessor.update_concentrated_load(action_id, point_number, fx, fy, fz, mx, my, mz,
+            is_action_id_should_be_increased)
+    }
+
+
+    pub fn delete_concentrated_load(&mut self, action_id: FEUInt, point_number: FEUInt,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.preprocessor.delete_concentrated_load(action_id, point_number,
+            is_action_id_should_be_increased)
+    }
+
+
+    pub fn restore_concentrated_load(&mut self, action_id: FEUInt, point_number: FEUInt,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.preprocessor.restore_concentrated_load(action_id, point_number,
+            is_action_id_should_be_increased)
+    }
+
+
+    pub fn extract_points(&self, handler: js_sys::Function) -> Result<(), JsValue>
+    {
+        self.preprocessor.extract_points(handler)
+    }
+
+
+    pub fn extract_lines(&self, handler: js_sys::Function) -> Result<(), JsValue>
+    {
+        self.preprocessor.extract_lines(handler)
+    }
+
+
     pub fn extract_materials(&self, handler: js_sys::Function) -> Result<(), JsValue>
     {
         self.preprocessor.extract_materials(handler)
@@ -270,7 +333,8 @@ impl FEModel
     }
 
 
-    pub fn extract_assigned_properties_to_lines(&self, handler: js_sys::Function) -> Result<(), JsValue>
+    pub fn extract_assigned_properties_to_lines(&self, handler: js_sys::Function)
+        -> Result<(), JsValue>
     {
         self.preprocessor.extract_assigned_properties_to_lines(handler)
     }
@@ -283,14 +347,30 @@ impl FEModel
     }
 
 
-    pub fn show_point_info(&mut self, number: FEUInt, handler: js_sys::Function) -> Result<(), JsValue>
+    pub fn extract_concentrated_loads(&self, handler: js_sys::Function)
+        -> Result<(), JsValue>
+    {
+        self.preprocessor.extract_concentrated_loads(handler)
+    }
+
+
+    pub fn show_point_info(&mut self, number: FEUInt, handler: js_sys::Function)
+        -> Result<(), JsValue>
     {
         self.preprocessor.show_point_info(number, handler)
     }
 
 
-    pub fn show_line_info(&mut self, number: FEUInt, handler: js_sys::Function) -> Result<(), JsValue>
+    pub fn show_line_info(&mut self, number: FEUInt, handler: js_sys::Function)
+        -> Result<(), JsValue>
     {
         self.preprocessor.show_line_info(number, handler)
+    }
+
+
+    pub fn show_concentrated_load_info(&mut self, number: FEUInt, handler: js_sys::Function)
+        -> Result<(), JsValue>
+    {
+        self.preprocessor.show_concentrated_load_info(number, handler)
     }
 }

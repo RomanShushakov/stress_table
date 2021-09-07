@@ -65,7 +65,6 @@ impl<T, V> RelatedLineData<T, V>
 pub struct AssignedPropertyToLines<T, V>
 {
     related_lines_data: Vec<RelatedLineData<T, V>>,
-    related_nodes_numbers: Vec<T>,
 }
 
 
@@ -76,13 +75,12 @@ impl<T, V> AssignedPropertyToLines<T, V>
     pub fn create_initial(line_numbers: &[T]) -> Self
     {
         let mut related_lines_data = Vec::new();
-        let related_nodes_numbers = Vec::new();
         for line_number in line_numbers
         {
             let related_line_data = RelatedLineData::create_initial(*line_number);
             related_lines_data.push(related_line_data);
         }
-        AssignedPropertyToLines { related_lines_data, related_nodes_numbers }
+        AssignedPropertyToLines { related_lines_data }
     }
 
 
@@ -119,7 +117,7 @@ impl<T, V> AssignedPropertyToLines<T, V>
     }
 
 
-    pub fn extract_related_lines_data(&self) -> Vec<RelatedLineData<T, V>>
+    pub fn clone_related_lines_data(&self) -> Vec<RelatedLineData<T, V>>
     {
         self.related_lines_data.clone()
     }

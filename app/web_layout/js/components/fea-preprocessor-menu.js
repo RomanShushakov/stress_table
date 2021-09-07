@@ -10,6 +10,7 @@ class FeaPreprocessorMenu extends HTMLElement {
                 "material-menu": "fea-material-menu",
                 "section-menu": "fea-section-menu",
                 "properties-menu": "fea-properties-menu",
+                "load-menu": "fea-load-menu",
             },
         };
 
@@ -70,6 +71,21 @@ class FeaPreprocessorMenu extends HTMLElement {
             this.delay(0)
                 .then(() => { 
                     this.querySelector("fea-geometry-menu").selectLineInClient = lineNumber;
+                });
+        }
+    }
+
+    set selectConcentratedLoadInClient(concentratedLoadpointNumber) {
+        if (this.querySelector("fea-load-menu") === null) {
+            this.delay(0)
+                .then(() => { 
+                    this.shadowRoot.querySelector("fea-preprocessor-menu-buttons").toggleButton = "load-menu-button";
+                })
+                .then(async () => { this.querySelector("fea-load-menu").selectConcentratedLoadInClient = concentratedLoadpointNumber });
+        } else {
+            this.delay(0)
+                .then(() => { 
+                    this.querySelector("fea-load-menu").selectConcentratedLoadInClient = concentratedLoadpointNumber;
                 });
         }
     }

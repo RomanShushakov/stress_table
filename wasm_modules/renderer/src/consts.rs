@@ -5,3 +5,5 @@ pub const SELECTED_POINTS_EVENT_MAME: &str = "selected_points";
 pub const SELECTED_NODES_EVENT_MAME: &str = "selected_nodes";
 pub const SELECTED_LINES_EVENT_MAME: &str = "selected_lines";
 pub const SELECTED_LINE_ELEMENTS_EVENT_MAME: &str = "selected_line_elements";
+pub const SELECTED_CONCENTRATED_LOADS_POINTS_NUMBERS_EVENT_MAME: &str =
+    "selected_concentrated_loads_points_numbers";

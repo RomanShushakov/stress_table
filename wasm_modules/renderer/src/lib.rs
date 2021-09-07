@@ -11,7 +11,7 @@ use std::collections::{HashMap, HashSet};
 use std::convert::TryFrom;
 
 mod point_object;
-use point_object::{PointObjectKey, PointObject, Coordinates};
+use point_object::{PointObjectKey, PointObject};
 use point_object::{PointObjectType};
 
 mod line_object;
@@ -39,7 +39,13 @@ use drawn_object::consts::
     CANVAS_DRAWN_LINES_TRUSS_PROPS_DENOTATION_COLOR, CANVAS_DRAWN_LINES_BEAM_PROPS_DENOTATION_COLOR,
     CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR, DRAWN_LINE_OBJECTS_DENOTATION_SHIFT, HINTS_COLOR,
     SELECTION_RECTANGLE_STROKE_COLOR, SELECTION_RECTANGLE_FILL_COLOR,
+    DRAWN_CONCENTRATED_LOADS_LINE_LENGTH, DRAWN_CONCENTRATED_LOADS_CAPS_HEIGHT,
+    DRAWN_CONCENTRATED_LOADS_CAPS_WIDTH,
+    DRAWN_CONCENTRATED_LOADS_CAPS_BASE_POINTS_NUMBER,
 };
+
+mod concentrated_load;
+use concentrated_load::ConcentratedLoad;
 
 mod buffer_objects;
 use crate::buffer_objects::BufferObjects;
@@ -49,12 +55,17 @@ use crate::shader_programs::ShaderPrograms;
 
 mod methods_for_canvas_manipulation;
 
+mod methods_for_point_object_crud;
+
+mod methods_for_line_object_crud;
+
+mod methods_for_concentrated_load_crud;
 
 mod consts;
 use consts::
 {
     EVENT_TARGET, SELECTED_POINTS_EVENT_MAME, SELECTED_NODES_EVENT_MAME, SELECTED_LINES_EVENT_MAME,
-    SELECTED_LINE_ELEMENTS_EVENT_MAME
+    SELECTED_LINE_ELEMENTS_EVENT_MAME, SELECTED_CONCENTRATED_LOADS_POINTS_NUMBERS_EVENT_MAME,
 };
 
 mod functions;
@@ -104,6 +115,7 @@ struct State
     selected_colors: HashSet<[u8; 4]>,
     line_objects: HashMap<LineObjectKey, LineObject>,
     beam_section_orientation_for_preview: Option<BeamSectionOrientation>,
+    concentrated_loads: HashMap<u32, ConcentratedLoad>,
     selection_box_start_x: Option<i32>,
     selection_box_start_y: Option<i32>,
 }
@@ -165,6 +177,7 @@ impl Renderer
             selected_colors: HashSet::new(),
             line_objects: HashMap::new(),
             beam_section_orientation_for_preview: None,
+            concentrated_loads: HashMap::new(),
             selection_box_start_x: None,
             selection_box_start_y: None,
         };
@@ -206,6 +219,23 @@ impl Renderer
                     DRAWN_LINE_OBJECTS_BASE_RADIUS / (1.0 + self.props.d_scale),
                     &self.props.is_geometry_visible,
                     &self.props.is_mesh_visible)?;
+            }
+            if !self.state.concentrated_loads.is_empty()
+            {
+                drawn_object_for_selection.add_concentrated_loads(
+                    &self.props.point_objects,
+                    &mut self.state.concentrated_loads,
+                    GLMode::Selection,
+                    &self.state.under_selection_box_colors,
+                    &self.state.selected_colors,
+                    DRAWN_CONCENTRATED_LOADS_LINE_LENGTH /
+                            (1.0 + self.props.d_scale),
+                    DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
+                    DRAWN_CONCENTRATED_LOADS_CAPS_BASE_POINTS_NUMBER,
+                    DRAWN_CONCENTRATED_LOADS_CAPS_HEIGHT /
+                        (1.0 + self.props.d_scale),
+                    DRAWN_CONCENTRATED_LOADS_CAPS_WIDTH /
+                        (1.0 + self.props.d_scale))?;
             }
             self.state.drawn_object_for_selection = Some(drawn_object_for_selection);
         }
@@ -258,206 +288,29 @@ impl Renderer
                     )?;
                 }
             }
+            if !self.state.concentrated_loads.is_empty()
+            {
+                drawn_object_visible.add_concentrated_loads(
+                    &self.props.point_objects,
+                    &self.state.concentrated_loads,
+                    GLMode::Visible,
+                    &self.state.under_selection_box_colors,
+                    &self.state.selected_colors,
+                    DRAWN_CONCENTRATED_LOADS_LINE_LENGTH /
+                            (1.0 + self.props.d_scale),
+                    DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
+                    DRAWN_CONCENTRATED_LOADS_CAPS_BASE_POINTS_NUMBER,
+                    DRAWN_CONCENTRATED_LOADS_CAPS_HEIGHT /
+                        (1.0 + self.props.d_scale),
+                    DRAWN_CONCENTRATED_LOADS_CAPS_WIDTH /
+                        (1.0 + self.props.d_scale))?;
+            }
             self.state.drawn_object_visible = Some(drawn_object_visible);
         }
         else
         {
             self.state.drawn_object_visible = None;
         }
-        Ok(())
-    }
-
-
-    pub fn add_point_object(&mut self, number: u32, x: f32, y: f32, z: f32,
-        point_object_type: PointObjectType) -> Result<(), JsValue>
-    {
-        let point_object_key = PointObjectKey::create(number, point_object_type);
-        let coordinates = Coordinates::create(x, y, z);
-        let point_object = PointObject::create(coordinates);
-        self.props.point_objects.insert(point_object_key, point_object);
-        self.update_point_objects_normalized_coordinates();
-        self.update_drawn_object_for_selection()?;
-        self.update_drawn_object_visible()?;
-        Ok(())
-    }
-
-
-    pub fn update_point_object(&mut self, number: u32, x: f32, y: f32, z: f32,
-        point_object_type: PointObjectType) -> Result<(), JsValue>
-    {
-        if let Some(point_object) = self.props.point_objects
-            .get_mut(&PointObjectKey::create(number, point_object_type))
-        {
-            point_object.update_coordinates(x, y, z);
-            self.update_point_objects_normalized_coordinates();
-        }
-        else
-        {
-            let error_message = format!("Renderer: Update {} action: {} with number \
-                {} does not exist!", point_object_type.as_str().to_lowercase(),
-                point_object_type.as_str(), number);
-            return Err(JsValue::from(error_message));
-        }
-        self.update_drawn_object_for_selection()?;
-        self.update_drawn_object_visible()?;
-        Ok(())
-    }
-
-
-    pub fn delete_point_object(&mut self, number: u32, point_object_type: PointObjectType)
-        -> Result<(), JsValue>
-    {
-        if self.props.point_objects.remove(&PointObjectKey::create(
-            number, point_object_type)).is_none()
-        {
-            let error_message = format!("Renderer: Delete {} action: {} with \
-                number {} does not exist!", point_object_type.as_str().to_lowercase(),
-                point_object_type.as_str(), number);
-            return Err(JsValue::from(error_message));
-        }
-        if !self.props.point_objects.is_empty()
-        {
-            self.update_point_objects_normalized_coordinates();
-        }
-        self.update_drawn_object_for_selection()?;
-        self.update_drawn_object_visible()?;
-        Ok(())
-    }
-
-
-    pub fn add_line_object(&mut self, number: u32, start_point_object_number: u32,
-        end_point_object_number: u32, line_object_type: LineObjectType) -> Result<(), JsValue>
-    {
-        let point_object_type = match line_object_type
-            {
-                LineObjectType::Line => PointObjectType::Point,
-                LineObjectType::Element => PointObjectType::Node,
-            };
-        let start_point_object_key = PointObjectKey::create(
-            start_point_object_number, point_object_type);
-        let end_point_object_key = PointObjectKey::create(
-            end_point_object_number, point_object_type);
-        if !self.props.point_objects.contains_key(&start_point_object_key)
-        {
-            let error_message = format!("Renderer: Add {} action: {} with number \
-                {} does not exist!", line_object_type.as_str().to_lowercase(),
-            point_object_type.as_str(), start_point_object_number);
-            return Err(JsValue::from(error_message));
-        }
-        if !self.props.point_objects.contains_key(&end_point_object_key)
-        {
-            let error_message = format!("Renderer: Add {} action: {} with number \
-                {} does not exist!", line_object_type.as_str().to_lowercase(),
-            point_object_type.as_str(), end_point_object_number);
-            return Err(JsValue::from(error_message));
-        }
-        let uid =
-            {
-                let mut current_uid = rand::random::<u32>();
-                while self.props.point_objects.values().position(|point_object|
-                        point_object.is_uid_same(current_uid)).is_some() ||
-                    self.state.line_objects.values().position(|line_object|
-                        line_object.is_uid_same(current_uid)).is_some() || current_uid == 255
-                {
-                    current_uid = rand::random::<u32>();
-                }
-                current_uid
-            };
-        let line_object_key = LineObjectKey::create(number, line_object_type);
-        let line_object = LineObject::create(start_point_object_key,
-            end_point_object_key, uid);
-        self.state.line_objects.insert(line_object_key, line_object);
-        self.update_drawn_object_for_selection()?;
-        self.update_drawn_object_visible()?;
-        Ok(())
-    }
-
-
-    pub fn update_line_object(&mut self, number: u32, start_point_object_number: u32,
-        end_point_object_number: u32, line_object_type: LineObjectType) -> Result<(), JsValue>
-    {
-        let point_object_type = match line_object_type
-            {
-                LineObjectType::Line => PointObjectType::Point,
-                LineObjectType::Element => PointObjectType::Node,
-            };
-        let start_point_object_key = PointObjectKey::create(
-            start_point_object_number, point_object_type);
-        let end_point_object_key = PointObjectKey::create(
-            end_point_object_number, point_object_type);
-        if !self.props.point_objects.contains_key(&start_point_object_key)
-        {
-            let error_message = format!("Renderer: Update {} action: {} with number \
-                {} does not exist!", line_object_type.as_str().to_lowercase(),
-            point_object_type.as_str(), start_point_object_number);
-            return Err(JsValue::from(error_message));
-        }
-        if !self.props.point_objects.contains_key(&end_point_object_key)
-        {
-            let error_message = format!("Renderer: Update {} action: {} with number \
-                {} does not exist!", line_object_type.as_str().to_lowercase(),
-            point_object_type.as_str(), end_point_object_number);
-            return Err(JsValue::from(error_message));
-        }
-
-        if let Some(line_object) = self.state.line_objects.get_mut(
-            &LineObjectKey::create(number, line_object_type))
-        {
-            line_object.update(start_point_object_key, end_point_object_key);
-        }
-        else
-        {
-            let error_message = format!("Renderer: Update {} action: {} with number \
-                {} does not exist!", line_object_type.as_str().to_lowercase(),
-                line_object_type.as_str(), number);
-            return Err(JsValue::from(error_message));
-        }
-        self.update_drawn_object_for_selection()?;
-        self.update_drawn_object_visible()?;
-        Ok(())
-    }
-
-
-    pub fn delete_line_object(&mut self, number: u32, line_object_type: LineObjectType)
-        -> Result<(), JsValue>
-    {
-        if self.state.line_objects.remove(&LineObjectKey::create(number, line_object_type))
-            .is_none()
-        {
-            let error_message = format!("Renderer: Delete {} action: {} with \
-                number {} does not exist!", line_object_type.as_str().to_lowercase(),
-                line_object_type.as_str(), number);
-            return Err(JsValue::from(error_message));
-        }
-        self.update_drawn_object_for_selection()?;
-        self.update_drawn_object_visible()?;
-        Ok(())
-    }
-
-
-    pub fn update_line_objects_color_scheme(&mut self, line_object_numbers: &[u32],
-        line_object_type: LineObjectType, line_object_color_scheme: LineObjectColorScheme)
-        -> Result<(), JsValue>
-    {
-        for line_object_number in line_object_numbers
-        {
-            let line_object_key = LineObjectKey::create(
-                *line_object_number, line_object_type);
-            if let Some(line_object) = self.state.line_objects
-                .get_mut(&line_object_key)
-            {
-                line_object.update_color_scheme(line_object_color_scheme);
-            }
-            else
-            {
-                let error_message = format!("Renderer: Update {} color scheme action: {} \
-                    with number {} does not exist!", line_object_type.as_str().to_lowercase(),
-                    line_object_type.as_str(), line_object_number);
-                return Err(JsValue::from(error_message));
-            }
-        }
-        self.update_drawn_object_for_selection()?;
-        self.update_drawn_object_visible()?;
         Ok(())
     }
 
@@ -472,6 +325,7 @@ impl Renderer
         let mut selected_node_numbers = Vec::new();
         let mut selected_line_numbers = Vec::new();
         let mut selected_line_element_numbers = Vec::new();
+        let mut selected_concentrated_loads_points_numbers = Vec::new();
         let mut is_object_selected = false;
         for selected_color in self.state.selected_colors.iter()
         {
@@ -492,6 +346,7 @@ impl Renderer
                     }
                 }
             }
+
             for (line_object_key, line_object) in
                 self.state.line_objects.iter()
             {
@@ -506,6 +361,16 @@ impl Renderer
                         LineObjectType::Element =>
                             selected_line_element_numbers.push(selected_line_object_number),
                     }
+                }
+            }
+
+            for (point_number, concentrated_load) in
+                self.state.concentrated_loads.iter()
+            {
+                if concentrated_load.is_uid_same(
+                    u32::from_be_bytes(*selected_color))
+                {
+                    selected_concentrated_loads_points_numbers.push(point_number);
                 }
             }
         }
@@ -541,6 +406,17 @@ impl Renderer
             dispatch_custom_event(detail, SELECTED_LINE_ELEMENTS_EVENT_MAME,
                 EVENT_TARGET)?;
         }
+
+        if !selected_concentrated_loads_points_numbers.is_empty()
+        {
+            is_object_selected = true;
+            let detail = json!({
+                "concentrated_loads_points_numbers": selected_concentrated_loads_points_numbers });
+            dispatch_custom_event(detail,
+                SELECTED_CONCENTRATED_LOADS_POINTS_NUMBERS_EVENT_MAME,
+                EVENT_TARGET)?;
+        }
+
         self.state.beam_section_orientation_for_preview = None;
         self.update_drawn_object_visible()?;
         if is_object_selected
@@ -666,7 +542,6 @@ impl Renderer
     {
         let width = self.props.canvas_gl.width();
         let height = self.props.canvas_gl.height();
-        let old_under_selection_box_colors = self.state.under_selection_box_colors.clone();
 
         self.state.gl.clear_color(0.0, 0.0, 0.0, 1.0);
         self.state.ctx.clear_rect(0.0, 0.0, width as f64, height as f64);
@@ -813,10 +688,7 @@ impl Renderer
         self.state.gl.clear(GL::DEPTH_BUFFER_BIT);
         self.state.gl.line_width(1.0);
 
-        if old_under_selection_box_colors != self.state.under_selection_box_colors
-        {
-            self.update_drawn_object_visible()?;
-        }
+        self.update_drawn_object_visible()?;
 
         if let Some(drawn_object_visible) = &self.state.drawn_object_visible
         {
@@ -968,8 +840,10 @@ impl Renderer
             }
         }
 
-        self.state.buffer_objects.store_drawn_object(&self.state.gl, &self.state.cs_axes_drawn_object);
-        self.state.buffer_objects.associate_with_shader_programs(&self.state.gl, &self.state.shader_programs);
+        self.state.buffer_objects.store_drawn_object(&self.state.gl,
+            &self.state.cs_axes_drawn_object);
+        self.state.buffer_objects.associate_with_shader_programs(&self.state.gl,
+            &self.state.shader_programs);
 
         let mut projection_matrix = mat4::new_zero();
         mat4::orthographic(&mut projection_matrix,

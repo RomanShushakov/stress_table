@@ -13,17 +13,17 @@ pub fn get_line_points_coordinates<T, V>(line_number: T, geometry: &Geometry<T, 
     if let Some(line) = geometry.lines.get(&line_number)
     {
         let (start_point_number, end_point_number) =
-            line.extract_points_numbers();
+            line.copy_points_numbers();
         let mut start_point_coordinates = None;
         let mut end_point_coordinates = None;
         if let Some(point) = geometry.points.get(&start_point_number)
         {
-            let coordinates = point.extract_coordinates();
+            let coordinates = point.copy_coordinates();
             start_point_coordinates = Some(coordinates);
         }
         if let Some(point) = geometry.points.get(&end_point_number)
         {
-            let coordinates = point.extract_coordinates();
+            let coordinates = point.copy_coordinates();
             end_point_coordinates = Some(coordinates);
         }
         if let (Some(start_point_coordinates), Some(end_point_coordinates)) =

@@ -95,7 +95,7 @@ impl<T, V> Properties<T, V>
                 self.assigned_properties_to_lines.iter_mut()
             {
                 let old_related_lines_data =
-                    assigned_property_to_lines.extract_related_lines_data();
+                    assigned_property_to_lines.clone_related_lines_data();
 
                 for old_related_line_data in old_related_lines_data.iter()
                 {
@@ -141,7 +141,7 @@ impl<T, V> Properties<T, V>
                 let related_lines_data =
                     self.assigned_properties_to_lines
                         .get(changed_assigned_property_to_lines_name).unwrap()
-                        .extract_related_lines_data();
+                        .clone_related_lines_data();
 
                 let related_lines_numbers =
                     self.assigned_properties_to_lines
@@ -218,7 +218,7 @@ impl<T, V> Properties<T, V>
                         changed_assigned_property_to_lines.extract_and_drop();
 
                     let related_lines_data =
-                        assigned_property_to_lines.extract_related_lines_data();
+                        assigned_property_to_lines.clone_related_lines_data();
 
                     let related_lines_numbers =
                         assigned_property_to_lines.extract_related_lines_numbers();
@@ -339,7 +339,7 @@ impl<T, V> Properties<T, V>
             let mut is_assigned_property_to_lines_updated = false;
 
             for related_line_data in
-                assigned_property_lo_lines.extract_related_lines_data().iter()
+                assigned_property_lo_lines.clone_related_lines_data().iter()
             {
                 if line_numbers.contains(&related_line_data.line_number())
                 {
@@ -381,7 +381,7 @@ impl<T, V> Properties<T, V>
             if is_assigned_property_to_lines_updated
             {
                 let related_lines_data =
-                    assigned_property_lo_lines.extract_related_lines_data();
+                    assigned_property_lo_lines.clone_related_lines_data();
 
                 let related_lines_numbers =
                     assigned_property_lo_lines.extract_related_lines_numbers();

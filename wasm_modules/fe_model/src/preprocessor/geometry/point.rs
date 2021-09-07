@@ -33,7 +33,7 @@ impl<V> Point<V>
     }
 
 
-    pub fn extract_coordinates(&self) -> (V, V, V)
+    pub fn copy_coordinates(&self) -> (V, V, V)
     {
         (self.x, self.y, self.z)
     }
@@ -58,9 +58,9 @@ impl<T, V> DeletedPoint<T, V>
     }
 
 
-    pub fn extract_number_and_coordinates(&self) -> (T, V, V, V)
+    pub fn copy_number_and_coordinates(&self) -> (T, V, V, V)
     {
-        let (x, y, z) = self.point.extract_coordinates();
+        let (x, y, z) = self.point.copy_coordinates();
         (self.number, x, y, z)
     }
 }

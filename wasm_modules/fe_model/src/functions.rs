@@ -7,7 +7,7 @@ use std::fmt::Debug;
 use finite_element_method::my_float::MyFloatTrait;
 
 use extended_matrix::extended_matrix::ExtendedMatrix;
-use extended_matrix::functions::extract_element_value;
+use extended_matrix::functions::copy_element_value;
 
 
 #[wasm_bindgen]
@@ -77,15 +77,15 @@ pub fn find_components_of_line_a_perpendicular_to_line_b<T, V>(line_a: &[V; 3],
         .map_err(|e| JsValue::from(e))?;
 
     let components_of_line_a_perpendicular_to_line_b_all_values =
-        components_of_line_a_perpendicular_to_line_b_matrix.extract_all_elements_values();
+        components_of_line_a_perpendicular_to_line_b_matrix.copy_all_elements_values();
 
-    let a_perpendicular_to_b_x = extract_element_value(T::from(0u8), T::from(0u8),
+    let a_perpendicular_to_b_x = copy_element_value(T::from(0u8), T::from(0u8),
         &components_of_line_a_perpendicular_to_line_b_all_values);
 
-    let a_perpendicular_to_b_y = extract_element_value(T::from(1u8), T::from(0u8),
+    let a_perpendicular_to_b_y = copy_element_value(T::from(1u8), T::from(0u8),
         &components_of_line_a_perpendicular_to_line_b_all_values);
 
-    let a_perpendicular_to_b_z = extract_element_value(T::from(2u8), T::from(0u8),
+    let a_perpendicular_to_b_z = copy_element_value(T::from(2u8), T::from(0u8),
         &components_of_line_a_perpendicular_to_line_b_all_values);
 
     Ok([a_perpendicular_to_b_x, a_perpendicular_to_b_y, a_perpendicular_to_b_z])

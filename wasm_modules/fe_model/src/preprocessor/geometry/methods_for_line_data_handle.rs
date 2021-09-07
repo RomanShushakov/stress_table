@@ -168,7 +168,7 @@ impl<T, V> Geometry<T, V>
                 return Err(JsValue::from(error_message));
             }
             let (number, start_point_number, end_point_number) = deleted_lines[0]
-                .extract_number_and_points_numbers();
+                .copy_number_and_points_numbers();
             self.lines.insert(number, Line::create(start_point_number, end_point_number));
             let detail = json!({ "line_data": { "number": number,
                 "start_point_number": start_point_number, "end_point_number": end_point_number },
@@ -190,7 +190,7 @@ impl<T, V> Geometry<T, V>
     {
         return if let Some(line) = self.lines.get(&number)
         {
-            let (start_point_number, end_point_number) = line.extract_points_numbers();
+            let (start_point_number, end_point_number) = line.copy_points_numbers();
             Ok((start_point_number, end_point_number))
         }
         else

@@ -18,6 +18,7 @@ class FeaApp extends HTMLElement {
                 "fea-geometry-delete-point-menu",
                 "fea-geometry-add-line-menu",
                 "fea-geometry-update-line-menu",
+                "fea-load-add-concentrated-load-menu",
             ],
             linesDataDependentMenus: [
                 "fea-geometry-add-line-menu",
@@ -64,6 +65,11 @@ class FeaApp extends HTMLElement {
             ],
             beamSectionsOrientationsDependentMenus: [
                 "fea-properties-beam-section-orientation-menu",
+            ],
+            concentratedLoadsDataDependentMenus: [
+                "fea-load-add-concentrated-load-menu",
+                "fea-load-update-concentrated-load-menu",
+                "fea-load-delete-concentrated-load-menu",
             ]
         };
 
@@ -121,12 +127,16 @@ class FeaApp extends HTMLElement {
         this.addEventListener("getBeamSections", (event) => this.getBeamSections(event));
         this.addEventListener("getProperties", (event) => this.getProperties(event));
         this.addEventListener("getAssignedPropertiesToLines", (event) => this.getAssignedPropertiesToLines(event));
-        this.addEventListener("getBeamSectionsLocalAxis1Directions", (event) => this.getBeamSectionsLocalAxis1Directionsions(event))
+        this.addEventListener("getBeamSectionsLocalAxis1Directions", (event) => this.getBeamSectionsLocalAxis1Directionsions(event));
+
+        this.addEventListener("getConcentratedLoads", (event) => this.getConcentratedLoads(event));
 
         this.addEventListener("selected_points", (event) => this.handleSelectedPointsMessage(event));
         this.addEventListener("selected_nodes", (event) => this.handleSelectedNodesMessage(event));
         this.addEventListener("selected_lines", (event) => this.handleSelectedLinesMessage(event));
         this.addEventListener("selected_line_elements", (event) => this.handleSelectedLineElementsMessage(event));
+        this.addEventListener("selected_concentrated_loads_points_numbers", 
+            (event) => this.handleSelectedConcentratedLoadsPointsNumbersMessage(event));
 
         this.addEventListener("toggleGeometryVisibility", (event) => this.handleToggleGeometryVisibilityMessage(event));
         this.addEventListener("toggleMeshVisibility", (event) => this.handleToggleMeshVisibilityMessage(event));
@@ -174,6 +184,10 @@ class FeaApp extends HTMLElement {
             (event) => this.handleRemoveBeamSectionLocalAxis1DirectionServerMessage(event));
         this.addEventListener("update_beam_section_orientation_data_server_message",
             (event) => this.handleUpdateBeamSectionOrientationDataServerMessage(event));
+
+        this.addEventListener("add_concentrated_load_server_message", (event) => this.handleAddConcentratedLoadServerMessage(event));
+        this.addEventListener("update_concentrated_load_server_message", (event) => this.handleUpdateConcentratedLoadServerMessage(event));
+        this.addEventListener("delete_concentrated_load_server_message", (event) => this.handleDeleteConcentratedLoadServerMessage(event));
 
         this.addEventListener("add_node_server_message", (event) => this.handleAddNodeServerMessage(event));
 
@@ -334,11 +348,9 @@ class FeaApp extends HTMLElement {
                     Object.entries(extractedAssignedPropertiesToLinesData.extracted_assigned_properties_to_lines);
                 for (let i = 0; i < extractedAssignedPropertiesToLines.length; i++) {
                     const relatedLinesData = extractedAssignedPropertiesToLines[i][1].related_lines_data;
-                    const relatedNodesNumbers = extractedAssignedPropertiesToLines[i][1].related_nodes_numbers;
                     const assignedPropertyToLines = { 
                         "name": extractedAssignedPropertiesToLines[i][0], 
                         "related_lines_data": relatedLinesData,
-                        "related_nodes_numbers": relatedNodesNumbers,
                     }
                     assignedPropertiesToLines.push(assignedPropertyToLines)
                 }
@@ -353,6 +365,19 @@ class FeaApp extends HTMLElement {
             (extractedBeamSectionsLocalAxis1DirectionsData) => {
                 this.querySelector(event.target.tagName.toLowerCase()).beamSectionsLocalAxis1Directions = 
                     extractedBeamSectionsLocalAxis1DirectionsData.extracted_beam_sections_local_axis_1_directions; 
+            }
+        );
+        event.stopPropagation();
+    }
+
+    getConcentratedLoads(event) {
+        this.state.actionsRouter.extract_concentrated_loads(
+            (extractedConcentratedLoadsData) => { 
+                const concentratedLoads = new Map(Array.from(
+                    Object.entries(extractedConcentratedLoadsData.extracted_concentrated_loads), 
+                    ([key, value]) => [parseInt(key), value]
+                ));
+                this.querySelector(event.target.tagName.toLowerCase()).concentratedLoads = concentratedLoads; 
             }
         );
         event.stopPropagation();
@@ -394,6 +419,20 @@ class FeaApp extends HTMLElement {
             if (this.querySelector("fea-preprocessor-menu") !== null) {
                 this.querySelector("fea-preprocessor-menu").selectLineInClient = lineNumber;
             }   
+        } else if ("concentrated_load_data" in objectInfo) {
+            const concentratedLoadpointNumber = objectInfo.concentrated_load_data.point_number;
+            const composedObjectInfo = `Concentrated load: 
+                applied to point: ${concentratedLoadpointNumber},
+                Fx: ${objectInfo.concentrated_load_data.fx},
+                Fy: ${objectInfo.concentrated_load_data.fy},
+                Fz: ${objectInfo.concentrated_load_data.fz},
+                Mx: ${objectInfo.concentrated_load_data.mx},
+                My: ${objectInfo.concentrated_load_data.my},
+                Mz: ${objectInfo.concentrated_load_data.mz}`;
+            this.shadowRoot.querySelector("fea-renderer").objectInfo = composedObjectInfo;          
+            if (this.querySelector("fea-preprocessor-menu") !== null) {
+                this.querySelector("fea-preprocessor-menu").selectConcentratedLoadInClient = concentratedLoadpointNumber;
+            }
         } else {
             throw "Fea-app: Unknown object!";
         }
@@ -425,6 +464,18 @@ class FeaApp extends HTMLElement {
                 cross section name: ${objectInfo.line_data_with_props.cross_section_name.replace(/['"]+/g, "")},
                 cross section type: ${objectInfo.line_data_with_props.cross_section_type},`;
             this.shadowRoot.querySelector("fea-renderer").objectInfo = composedObjectInfo;    
+        }
+        else if ("concentrated_load_data" in objectInfo) {
+            const concentratedLoadpointNumber = objectInfo.concentrated_load_data.point_number;
+            const composedObjectInfo = `Concentrated load: 
+                applied to point: ${concentratedLoadpointNumber},
+                Fx: ${objectInfo.concentrated_load_data.fx},
+                Fy: ${objectInfo.concentrated_load_data.fy},
+                Fz: ${objectInfo.concentrated_load_data.fz},
+                Mx: ${objectInfo.concentrated_load_data.mx},
+                My: ${objectInfo.concentrated_load_data.my},
+                Mz: ${objectInfo.concentrated_load_data.mz}`;
+            this.shadowRoot.querySelector("fea-renderer").objectInfo = composedObjectInfo;          
         } else {
             throw "Fea-app: Unknown object!";
         }
@@ -511,6 +562,27 @@ class FeaApp extends HTMLElement {
             console.log("Selected line element numbers: ", lineElementNumbers);
         } else {
             console.log("Selected line element number: ", lineElementNumbers[0]);
+        }
+        event.stopPropagation();
+    }
+
+    handleSelectedConcentratedLoadsPointsNumbersMessage(event) {
+        const concentratedLoadsPointsNumbers = event.detail.concentrated_loads_points_numbers;
+        if (concentratedLoadsPointsNumbers.length > 1) {
+            console.log("Selected concentrated loads points numbers: ", concentratedLoadsPointsNumbers);
+        } else {
+            const concentratedLoadPointNumber = concentratedLoadsPointsNumbers[0];
+            if (this.state.isLinesSelectionModeEnabled === false) {
+                this.state.actionsRouter.show_concentrated_load_info(
+                    BigInt(concentratedLoadPointNumber),
+                    (objectInfo) => this.showObjectInfoHandler(objectInfo),
+                );
+            } else {
+                this.state.actionsRouter.show_concentrated_load_info(
+                    BigInt(concentratedLoadPointNumber),
+                    (objectInfo) => this.showObjectInfoWithoutMenuOpeningHandler(objectInfo),
+                );
+            }
         }
         event.stopPropagation();
     }
@@ -1002,6 +1074,65 @@ class FeaApp extends HTMLElement {
                     .updateBeamSectionOrientationDataInClient = beamSectionOrientationData;
             }
         } 
+        event.stopPropagation();
+    }
+
+    handleAddConcentratedLoadServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;
+        }
+        const concentratedLoad = { 
+            point_number: event.detail.concentrated_load_data.point_number, 
+            fx: event.detail.concentrated_load_data.fx,
+            fy: event.detail.concentrated_load_data.fy, 
+            fz: event.detail.concentrated_load_data.fz,
+            mx: event.detail.concentrated_load_data.mx, 
+            my: event.detail.concentrated_load_data.my,
+            mz: event.detail.concentrated_load_data.mz };
+        for (let i = 0; i < this.state.concentratedLoadsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.concentratedLoadsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.concentratedLoadsDataDependentMenus[i])
+                    .addConcentratedLoadToClient = concentratedLoad;
+            }
+        } 
+        this.shadowRoot.querySelector("fea-renderer").addConcentratedLoadToRenderer = concentratedLoad;
+        event.stopPropagation();
+    }
+
+    handleUpdateConcentratedLoadServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;
+        }
+        const concentratedLoad = { 
+            point_number: event.detail.concentrated_load_data.point_number, 
+            fx: event.detail.concentrated_load_data.fx,
+            fy: event.detail.concentrated_load_data.fy, 
+            fz: event.detail.concentrated_load_data.fz,
+            mx: event.detail.concentrated_load_data.mx, 
+            my: event.detail.concentrated_load_data.my,
+            mz: event.detail.concentrated_load_data.mz };
+        for (let i = 0; i < this.state.concentratedLoadsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.concentratedLoadsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.concentratedLoadsDataDependentMenus[i])
+                    .updateConcentratedLoadInClient = concentratedLoad;
+            }
+        } 
+        this.shadowRoot.querySelector("fea-renderer").updateConcentratedLoadInRenderer = concentratedLoad;
+        event.stopPropagation();
+    }
+
+    handleDeleteConcentratedLoadServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;
+        }
+        const concentratedLoad = { point_number: event.detail.concentrated_load_data.point_number };
+        for (let i = 0; i < this.state.concentratedLoadsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.concentratedLoadsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.concentratedLoadsDataDependentMenus[i])
+                    .deleteConcentratedLoadFromClient = concentratedLoad;
+            }
+        } 
+        this.shadowRoot.querySelector("fea-renderer").deleteConcentratedLoadFromRenderer = concentratedLoad;
         event.stopPropagation();
     }
 

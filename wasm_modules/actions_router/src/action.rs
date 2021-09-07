@@ -4,9 +4,9 @@ use crate::types::{FEUInt, FEFloat};
 #[derive(Clone, Debug)]
 pub struct Coordinates
 {
-    x: FEFloat,
-    y: FEFloat,
-    z: FEFloat,
+    pub x: FEFloat,
+    pub y: FEFloat,
+    pub z: FEFloat,
 }
 
 
@@ -15,24 +15,6 @@ impl Coordinates
     pub fn create(x: FEFloat, y: FEFloat, z: FEFloat) -> Coordinates
     {
         Coordinates { x, y, z }
-    }
-
-
-    pub fn get_x(&self) -> FEFloat
-    {
-        self.x
-    }
-
-
-    pub fn get_y(&self) -> FEFloat
-    {
-        self.y
-    }
-
-
-    pub fn get_z(&self) -> FEFloat
-    {
-        self.z
     }
 }
 
@@ -151,11 +133,51 @@ pub enum PropertiesActionType
 }
 
 
+#[derive(Clone, Debug)]
+pub struct ConcentratedLoad
+{
+    pub fx: FEFloat,
+    pub fy: FEFloat,
+    pub fz: FEFloat,
+    pub mx: FEFloat,
+    pub my: FEFloat,
+    pub mz: FEFloat,
+}
+
+
+impl ConcentratedLoad
+{
+    pub fn create(fx: FEFloat, fy: FEFloat, fz: FEFloat, mx: FEFloat, my: FEFloat, mz: FEFloat)
+        -> ConcentratedLoad
+    {
+        ConcentratedLoad { fx, fy, fz, mx, my, mz }
+    }
+}
+
+
+#[derive(Debug, Clone)]
+pub enum LoadsActionType
+{
+    // ( point_number, ConcentratedLoad, is_action_id_should_be_increased )
+    AddConcentratedLoad(FEUInt, ConcentratedLoad, bool),
+
+    // ( point_number, ConcentratedLoad, ConcentratedLoad, is_action_id_should_be_increased )
+    UpdateConcentratedLoad(FEUInt, ConcentratedLoad, ConcentratedLoad, bool),
+
+    // ( point_number, is_action_id_should_be_increased )
+    DeleteConcentratedLoad(FEUInt, bool),
+
+    // ( point_number, is_action_id_should_be_increased )
+    RestoreConcentratedLoad(FEUInt, bool),
+}
+
+
 #[derive(Debug, Clone)]
 pub enum ActionType
 {
     GeometryActionType(GeometryActionType),
     PropertiesActionType(PropertiesActionType),
+    LoadsActionType(LoadsActionType),
 }
 
 
@@ -173,6 +195,15 @@ impl From<PropertiesActionType> for ActionType
     fn from(action_type: PropertiesActionType) -> Self
     {
         ActionType::PropertiesActionType(action_type)
+    }
+}
+
+
+impl From<LoadsActionType> for ActionType
+{
+    fn from(action_type: LoadsActionType) -> Self
+    {
+        ActionType::LoadsActionType(action_type)
     }
 }
 
@@ -199,14 +230,14 @@ impl Action
     }
 
 
-    pub fn action_id(&self) -> FEUInt
+    pub fn ref_action_id(&self) -> &FEUInt
     {
-        self.action_id
+        &self.action_id
     }
 
 
-    pub fn action_type(&self) -> ActionType
+    pub fn ref_action_type(&self) -> &ActionType
     {
-        self.action_type.clone()
+        &self.action_type
     }
 }

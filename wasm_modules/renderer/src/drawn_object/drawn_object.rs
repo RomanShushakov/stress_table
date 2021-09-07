@@ -5,7 +5,7 @@ use std::collections::{HashMap, HashSet};
 
 use extended_matrix::extended_matrix::ExtendedMatrix;
 use extended_matrix::basic_matrix::basic_matrix::MatrixElementPosition;
-use extended_matrix::functions::extract_element_value;
+use extended_matrix::functions::copy_element_value;
 
 use crate::point_object::{PointObjectKey, PointObject};
 use crate::point_object::{PointObjectType};
@@ -13,10 +13,13 @@ use crate::point_object::{PointObjectType};
 use crate::line_object::{LineObject, LineObjectKey, BeamSectionOrientation};
 use crate::line_object::{LineObjectType, LineObjectColorScheme};
 
+use crate::concentrated_load::{ConcentratedLoad, Sign, Direction};
+
 use crate::drawn_object::consts::
 {
     DRAWN_POINTS_COLOR, DRAWN_NODES_COLOR, DRAWN_LINES_DEFAULT_COLOR, DRAWN_LINES_TRUSS_PROPS_COLOR,
     DRAWN_LINES_BEAM_PROPS_COLOR, DRAWN_ELEMENTS_COLOR, DRAWN_BEAM_SECTION_ORIENTATION_COLOR,
+    DRAWN_CONCENTRATED_LOADS_COLOR
 };
 
 use crate::consts::TOLERANCE;
@@ -348,24 +351,24 @@ impl DrawnObject
                                 rotation_matrix.multiply_by_matrix(&point_object_coordinates_shift)
                                     .map_err(|e| JsValue::from(e))?;
                             let all_directional_vector_values =
-                                transformed_directional_vector.extract_all_elements_values();
+                                transformed_directional_vector.copy_all_elements_values();
                             let all_point_object_coordinates_shift_values =
-                                transformed_point_object_coordinates_shift.extract_all_elements_values();
+                                transformed_point_object_coordinates_shift.copy_all_elements_values();
                             let directional_vector_x_coordinate =
-                                extract_element_value(0, 0,
+                                copy_element_value(0, 0,
                                     &all_directional_vector_values);
                             let object_coordinates_shift_x_coordinate =
-                                extract_element_value(0, 0,
+                                copy_element_value(0, 0,
                                     &all_point_object_coordinates_shift_values);
-                            let directional_vector_y_coordinate = extract_element_value(1,
+                            let directional_vector_y_coordinate = copy_element_value(1,
                                 0,&all_directional_vector_values);
                             let object_coordinates_shift_y_coordinate =
-                                extract_element_value(1, 0,
+                                copy_element_value(1, 0,
                                     &all_point_object_coordinates_shift_values);
-                            let directional_vector_z_coordinate = extract_element_value(2,
+                            let directional_vector_z_coordinate = copy_element_value(2,
                                 0, &all_directional_vector_values);
                             let object_coordinates_shift_z_coordinate =
-                                extract_element_value(2, 0,
+                                copy_element_value(2, 0,
                                     &all_point_object_coordinates_shift_values);
                             directional_vector_start_point_object_coordinates[0] +=
                                 directional_vector_x_coordinate +
@@ -458,12 +461,12 @@ impl DrawnObject
                         .multiply_by_matrix(&a)
                         .map_err(|e| JsValue::from(e))?;
                 let local_axis_1_direction_projection_all_values =
-                    local_axis_1_direction_projection_matrix.extract_all_elements_values();
-                let local_axis_1_direction_projection_x_coord_value = extract_element_value(
+                    local_axis_1_direction_projection_matrix.copy_all_elements_values();
+                let local_axis_1_direction_projection_x_coord_value = copy_element_value(
                     0, 0, &local_axis_1_direction_projection_all_values);
-                let local_axis_1_direction_projection_y_coord_value = extract_element_value(
+                let local_axis_1_direction_projection_y_coord_value = copy_element_value(
                     1, 0, &local_axis_1_direction_projection_all_values);
-                let local_axis_1_direction_projection_z_coord_value = extract_element_value(
+                let local_axis_1_direction_projection_z_coord_value = copy_element_value(
                     2, 0, &local_axis_1_direction_projection_all_values);
                 let local_axis_1_direction_projection_length = f32::sqrt(
                     (local_axis_1_direction_projection_x_coord_value.powi(2) +
@@ -543,15 +546,15 @@ impl DrawnObject
                         .multiply_by_matrix(&local_coordinates)
                         .map_err(|e| JsValue::from(e))?;
                     let transformed_local_coordinates_values =
-                        transformed_local_coordinates.extract_all_elements_values();
+                        transformed_local_coordinates.copy_all_elements_values();
                     let coordinates = [
-                        extract_element_value(0, 0,
+                        copy_element_value(0, 0,
                             &transformed_local_coordinates_values) +
                             updated_local_axis_1_end_point_coordinates[0],
-                        extract_element_value(1, 0,
+                        copy_element_value(1, 0,
                             &transformed_local_coordinates_values) +
                             updated_local_axis_1_end_point_coordinates[1],
-                        extract_element_value(2, 0,
+                        copy_element_value(2, 0,
                             &transformed_local_coordinates_values) +
                             updated_local_axis_1_end_point_coordinates[2],
                     ];
@@ -584,6 +587,680 @@ impl DrawnObject
             {
                 let error_message = format!("Renderer: Add beam section orientation for \
                     preview action: Line number {} does not exist!", line_number);
+                return Err(JsValue::from(error_message));
+            }
+        }
+        Ok(())
+    }
+
+
+    fn add_concentrated_load_line_for_force(&mut self, gl_mode: &GLMode, sign: &Sign,
+        direction: &Direction, start_coordinates: &[f32; 3], line_length: f32,
+        base_points_number_for_lines: u32, base_radius: f32,
+        concentrated_load_color: &[f32; 4])
+    {
+        let start_index = if let Some(index) =
+            self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
+
+        let multiplier = match sign { Sign::Positive => 1f32, Sign::Negative => -1f32 };
+
+        let end_coordinates =
+            {
+                match direction
+                {
+                    Direction::X =>
+                        {
+                            [start_coordinates[0] + line_length * multiplier,
+                            start_coordinates[1],
+                            start_coordinates[2]]
+                        },
+                    Direction::Y =>
+                        {
+                            [start_coordinates[0],
+                            start_coordinates[1] + line_length * multiplier,
+                            start_coordinates[2]]
+                        },
+                    Direction::Z =>
+                        {
+                             [start_coordinates[0],
+                             start_coordinates[1],
+                            start_coordinates[2] + line_length * multiplier]
+                        }
+                }
+
+            };
+
+        let mut count = 0;
+        match gl_mode
+            {
+                GLMode::Selection =>
+                    {
+                        let coordinate_shift = base_radius * 4.0;
+
+                        let d_angle = 2.0 * PI / base_points_number_for_lines as f32;
+                        for point_number in 0..base_points_number_for_lines
+                        {
+                            let angle = d_angle * point_number as f32;
+                            let local_x = {
+                                let value = base_radius * 2.0 * angle.cos();
+                                if value.abs() < TOLERANCE { 0.0 } else { value }
+                            };
+                            let local_y =
+                                {
+                                    let value = base_radius * 2.0 * angle.sin();
+                                    if value.abs() < TOLERANCE { 0.0 } else { value }
+                                };
+                            let updated_start_point_coordinates =
+                                {
+                                    match direction
+                                    {
+                                        Direction::X =>
+                                            {
+                                                [start_coordinates[0] + coordinate_shift *
+                                                    multiplier,
+                                                start_coordinates[1] + local_y,
+                                                start_coordinates[2] + local_x]
+                                            },
+                                        Direction::Y =>
+                                            {
+                                                [start_coordinates[0] + local_y,
+                                                start_coordinates[1] + coordinate_shift *
+                                                    multiplier,
+                                                start_coordinates[2] + local_x]
+                                            },
+                                        Direction::Z =>
+                                            {
+                                                [start_coordinates[0] + local_x,
+                                                start_coordinates[1] + local_x,
+                                                start_coordinates[2] + coordinate_shift *
+                                                    multiplier]
+                                            }
+                                    }
+                                };
+
+                            let updated_end_point_coordinates =
+                                {
+                                    match direction
+                                    {
+                                        Direction::X =>
+                                            {
+                                                [end_coordinates[0] - coordinate_shift * multiplier,
+                                                end_coordinates[1] + local_y,
+                                                end_coordinates[2] + local_x]
+                                            },
+                                        Direction::Y =>
+                                            {
+                                                [end_coordinates[0] + local_y,
+                                                end_coordinates[1] - coordinate_shift * multiplier,
+                                                end_coordinates[2] + local_x]
+                                            },
+                                        Direction::Z =>
+                                            {
+                                                [end_coordinates[0] + local_x,
+                                                end_coordinates[1] + local_y,
+                                                end_coordinates[2] - coordinate_shift * multiplier]
+                                            },
+                                    }
+                                };
+
+                            self.vertices_coordinates.extend(&updated_start_point_coordinates);
+                            self.colors_values.extend(concentrated_load_color);
+                            self.indexes_numbers.push(start_index + count);
+                            count += 1;
+                            self.vertices_coordinates.extend(&updated_end_point_coordinates);
+                            self.colors_values.extend(concentrated_load_color);
+                            self.indexes_numbers.push(start_index + count);
+                            count += 1;
+                        }
+                    },
+                _ => ()
+            }
+        self.vertices_coordinates.extend(start_coordinates);
+        self.colors_values.extend(concentrated_load_color);
+        self.indexes_numbers.push(start_index + count);
+        count += 1;
+        self.vertices_coordinates.extend(&end_coordinates);
+        self.colors_values.extend(concentrated_load_color);
+        self.indexes_numbers.push(start_index + count);
+        count += 1;
+        self.modes.push(GLPrimitiveType::Lines);
+        self.elements_numbers.push(count as i32);
+        let offset = self.define_offset();
+        self.offsets.push(offset);
+    }
+
+
+    fn add_concentrated_load_cap_for_force(&mut self, sign: &Sign, direction: &Direction,
+        start_coordinates: &[f32; 3], line_length: f32, base_points_number_for_caps: u32,
+        base_radius: f32, height: f32, concentrated_load_color: &[f32; 4])
+    {
+        let multiplier = match sign { Sign::Positive => 1f32, Sign::Negative => -1f32 };
+
+        let cap_vertex_coordinates =
+            {
+                match direction
+                {
+                    Direction::X =>
+                        {
+                            [start_coordinates[0] + line_length * multiplier,
+                            start_coordinates[1],
+                            start_coordinates[2]]
+                        },
+                    Direction::Y =>
+                        {
+                            [start_coordinates[0],
+                            start_coordinates[1] + line_length * multiplier,
+                            start_coordinates[2]]
+                        },
+                    Direction::Z =>
+                        {
+                            [start_coordinates[0],
+                            start_coordinates[1],
+                            start_coordinates[2] + line_length * multiplier]
+                        },
+                }
+            };
+
+        let d_angle = 2.0 * PI / base_points_number_for_caps as f32;
+        let local_coordinates = (0..base_points_number_for_caps)
+            .map(|point_number|
+                {
+                    let angle = d_angle * point_number as f32;
+                    let local_x =
+                        {
+                            let value = base_radius * angle.cos();
+                            if value.abs() < TOLERANCE { 0.0 } else { value }
+                        };
+                    let local_y =
+                        {
+                            let value = base_radius * angle.sin();
+                            if value.abs() < TOLERANCE { 0.0 } else { value }
+                        };
+                    (local_x, local_y)
+                })
+            .collect::<Vec<(f32, f32)>>();
+
+        let start_index = if let Some(index) =
+            self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
+
+        self.vertices_coordinates.extend(cap_vertex_coordinates);
+
+        for (local_x, local_y) in &local_coordinates
+        {
+            let coordinates =
+                {
+                    match direction
+                    {
+                        Direction::X =>
+                            {
+                                [cap_vertex_coordinates[0] - height * multiplier,
+                                cap_vertex_coordinates[1] + local_y,
+                                cap_vertex_coordinates[2] + local_x]
+                            },
+                        Direction::Y =>
+                            {
+                                [cap_vertex_coordinates[0] + local_y,
+                                cap_vertex_coordinates[1] - height * multiplier,
+                                cap_vertex_coordinates[2] + local_x]
+                            },
+                        Direction::Z =>
+                            {
+                                [cap_vertex_coordinates[0] + local_x ,
+                                cap_vertex_coordinates[1] + local_y,
+                                cap_vertex_coordinates[2] - height * multiplier]
+                            },
+                    }
+                };
+            self.vertices_coordinates.extend(&coordinates);
+        }
+        for point_number in 1..base_points_number_for_caps
+        {
+            if point_number == 1
+            {
+                self.colors_values.extend(concentrated_load_color);
+                self.colors_values.extend(concentrated_load_color);
+                self.colors_values.extend(concentrated_load_color);
+            }
+            else
+            {
+                self.colors_values.extend(concentrated_load_color);
+            }
+            self.indexes_numbers.extend(&[start_index,
+                start_index + point_number, start_index + point_number + 1]);
+        }
+        self.indexes_numbers.extend(&[start_index,
+            start_index + 1, start_index + base_points_number_for_caps]);
+
+        self.modes.push(GLPrimitiveType::Triangles);
+        self.elements_numbers.push(base_points_number_for_caps as i32 * 3);
+        let offset = self.define_offset();
+        self.offsets.push(offset);
+    }
+
+
+    fn add_concentrated_load_line_for_moment(&mut self, gl_mode: &GLMode, sign: &Sign,
+        direction: &Direction, start_coordinates: &[f32; 3], line_length: f32,
+        base_points_number_for_lines: u32, base_radius: f32,
+        concentrated_load_color: &[f32; 4])
+    {
+        let start_index = if let Some(index) =
+            self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
+
+        let multiplier = match sign { Sign::Positive => 1f32, Sign::Negative => -1f32 };
+
+        let end_coordinates =
+            {
+                match direction
+                {
+                    Direction::X =>
+                        {
+                            [start_coordinates[0] + line_length * multiplier * 0.67,
+                            start_coordinates[1],
+                            start_coordinates[2]]
+                        },
+                    Direction::Y =>
+                        {
+                            [start_coordinates[0],
+                            start_coordinates[1] + line_length * multiplier * 0.67,
+                            start_coordinates[2]]
+                        },
+                    Direction::Z =>
+                        {
+                             [start_coordinates[0],
+                             start_coordinates[1],
+                            start_coordinates[2] + line_length * multiplier * 0.67]
+                        }
+                }
+
+            };
+
+        let mut count = 0;
+        match gl_mode
+            {
+                GLMode::Selection =>
+                    {
+                        let coordinate_shift = base_radius * 4.0;
+
+                        let d_angle = 2.0 * PI / base_points_number_for_lines as f32;
+                        for point_number in 0..base_points_number_for_lines
+                        {
+                            let angle = d_angle * point_number as f32;
+                            let local_x = {
+                                let value = base_radius * 2.0 * angle.cos();
+                                if value.abs() < TOLERANCE { 0.0 } else { value }
+                            };
+                            let local_y =
+                                {
+                                    let value = base_radius * 2.0 * angle.sin();
+                                    if value.abs() < TOLERANCE { 0.0 } else { value }
+                                };
+                            let updated_start_point_coordinates =
+                                {
+                                    match direction
+                                    {
+                                        Direction::X =>
+                                            {
+                                                [start_coordinates[0] + coordinate_shift *
+                                                    multiplier,
+                                                start_coordinates[1] + local_y,
+                                                start_coordinates[2] + local_x]
+                                            },
+                                        Direction::Y =>
+                                            {
+                                                [start_coordinates[0] + local_y,
+                                                start_coordinates[1] + coordinate_shift *
+                                                    multiplier,
+                                                start_coordinates[2] + local_x]
+                                            },
+                                        Direction::Z =>
+                                            {
+                                                [start_coordinates[0] + local_x,
+                                                start_coordinates[1] + local_x,
+                                                start_coordinates[2] + coordinate_shift *
+                                                    multiplier]
+                                            }
+                                    }
+                                };
+
+                            let updated_end_point_coordinates =
+                                {
+                                    match direction
+                                    {
+                                        Direction::X =>
+                                            {
+                                                [end_coordinates[0] - coordinate_shift *
+                                                    multiplier,
+                                                end_coordinates[1] + local_y,
+                                                end_coordinates[2] + local_x]
+                                            },
+                                        Direction::Y =>
+                                            {
+                                                [end_coordinates[0] + local_y,
+                                                end_coordinates[1] - coordinate_shift *
+                                                    multiplier,
+                                                end_coordinates[2] + local_x]
+                                            },
+                                        Direction::Z =>
+                                            {
+                                                [end_coordinates[0] + local_x,
+                                                end_coordinates[1] + local_y,
+                                                end_coordinates[2] - coordinate_shift *
+                                                    multiplier]
+                                            },
+                                    }
+                                };
+
+                            self.vertices_coordinates.extend(&updated_start_point_coordinates);
+                            self.colors_values.extend(concentrated_load_color);
+                            self.indexes_numbers.push(start_index + count);
+                            count += 1;
+                            self.vertices_coordinates.extend(&updated_end_point_coordinates);
+                            self.colors_values.extend(concentrated_load_color);
+                            self.indexes_numbers.push(start_index + count);
+                            count += 1;
+                        }
+                    },
+                _ => ()
+            }
+        self.vertices_coordinates.extend(start_coordinates);
+        self.colors_values.extend(concentrated_load_color);
+        self.indexes_numbers.push(start_index + count);
+        count += 1;
+        self.vertices_coordinates.extend(&end_coordinates);
+        self.colors_values.extend(concentrated_load_color);
+        self.indexes_numbers.push(start_index + count);
+        count += 1;
+        self.modes.push(GLPrimitiveType::Lines);
+        self.elements_numbers.push(count as i32);
+        let offset = self.define_offset();
+        self.offsets.push(offset);
+    }
+
+
+    fn add_concentrated_load_cap_for_moment(&mut self, sign: &Sign, direction: &Direction,
+        start_coordinates: &[f32; 3], line_length: f32, base_points_number_for_caps: u32,
+        base_radius: f32, height: f32, concentrated_load_color: &[f32; 4])
+    {
+        let multiplier = match sign { Sign::Positive => 1f32, Sign::Negative => -1f32 };
+
+        let first_cap_vertex_coordinates =
+            {
+                match direction
+                {
+                    Direction::X =>
+                        {
+                            [start_coordinates[0] + line_length * multiplier * 0.67,
+                            start_coordinates[1],
+                            start_coordinates[2]]
+                        },
+                    Direction::Y =>
+                        {
+                            [start_coordinates[0],
+                            start_coordinates[1] + line_length * multiplier * 0.67,
+                            start_coordinates[2]]
+                        },
+                    Direction::Z =>
+                        {
+                            [start_coordinates[0],
+                            start_coordinates[1],
+                            start_coordinates[2] + line_length * multiplier * 0.67]
+                        },
+                }
+            };
+
+        let d_angle = 2.0 * PI / base_points_number_for_caps as f32;
+        let local_coordinates = (0..base_points_number_for_caps)
+            .map(|point_number|
+                {
+                    let angle = d_angle * point_number as f32;
+                    let local_x =
+                        {
+                            let value = base_radius * angle.cos();
+                            if value.abs() < TOLERANCE { 0.0 } else { value }
+                        };
+                    let local_y =
+                        {
+                            let value = base_radius * angle.sin();
+                            if value.abs() < TOLERANCE { 0.0 } else { value }
+                        };
+                    (local_x, local_y)
+                })
+            .collect::<Vec<(f32, f32)>>();
+
+        let start_index = if let Some(index) =
+            self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
+
+        self.vertices_coordinates.extend(first_cap_vertex_coordinates);
+
+        for (local_x, local_y) in &local_coordinates
+        {
+            let coordinates =
+                {
+                    match direction
+                    {
+                        Direction::X =>
+                            {
+                                [first_cap_vertex_coordinates[0] - height * multiplier,
+                                first_cap_vertex_coordinates[1] + local_y,
+                                first_cap_vertex_coordinates[2] + local_x]
+                            },
+                        Direction::Y =>
+                            {
+                                [first_cap_vertex_coordinates[0] + local_y,
+                                first_cap_vertex_coordinates[1] - height * multiplier,
+                                first_cap_vertex_coordinates[2] + local_x]
+                            },
+                        Direction::Z =>
+                            {
+                                [first_cap_vertex_coordinates[0] + local_x ,
+                                first_cap_vertex_coordinates[1] + local_y,
+                                first_cap_vertex_coordinates[2] - height * multiplier]
+                            },
+                    }
+                };
+            self.vertices_coordinates.extend(&coordinates);
+        }
+
+        for point_number in 1..base_points_number_for_caps
+        {
+            if point_number == 1
+            {
+                self.colors_values.extend(concentrated_load_color);
+                self.colors_values.extend(concentrated_load_color);
+                self.colors_values.extend(concentrated_load_color);
+            }
+            else
+            {
+                self.colors_values.extend(concentrated_load_color);
+            }
+            self.indexes_numbers.extend(&[start_index,
+                start_index + point_number, start_index + point_number + 1]);
+        }
+        self.indexes_numbers.extend(&[start_index,
+            start_index + 1, start_index + base_points_number_for_caps]);
+
+        let second_cap_vertex_coordinates =
+            {
+                match direction
+                {
+                    Direction::X =>
+                        {
+                            [start_coordinates[0] + (line_length * 0.67 - height) * multiplier,
+                            start_coordinates[1],
+                            start_coordinates[2]]
+                        },
+                    Direction::Y =>
+                        {
+                            [start_coordinates[0],
+                            start_coordinates[1] + (line_length * 0.67 - height) * multiplier,
+                            start_coordinates[2]]
+                        },
+                    Direction::Z =>
+                        {
+                            [start_coordinates[0],
+                            start_coordinates[1],
+                            start_coordinates[2] + (line_length * 0.67 - height) * multiplier]
+                        },
+                }
+            };
+
+        let d_angle = 2.0 * PI / base_points_number_for_caps as f32;
+        let local_coordinates = (0..base_points_number_for_caps)
+            .map(|point_number|
+                {
+                    let angle = d_angle * point_number as f32;
+                    let local_x =
+                        {
+                            let value = base_radius * angle.cos();
+                            if value.abs() < TOLERANCE { 0.0 } else { value }
+                        };
+                    let local_y =
+                        {
+                            let value = base_radius * angle.sin();
+                            if value.abs() < TOLERANCE { 0.0 } else { value }
+                        };
+                    (local_x, local_y)
+                })
+            .collect::<Vec<(f32, f32)>>();
+
+        let start_index = if let Some(index) =
+            self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
+
+        self.vertices_coordinates.extend(second_cap_vertex_coordinates);
+
+        for (local_x, local_y) in &local_coordinates
+        {
+            let coordinates =
+                {
+                    match direction
+                    {
+                        Direction::X =>
+                            {
+                                [second_cap_vertex_coordinates[0] - height * multiplier,
+                                second_cap_vertex_coordinates[1] + local_y,
+                                second_cap_vertex_coordinates[2] + local_x]
+                            },
+                        Direction::Y =>
+                            {
+                                [second_cap_vertex_coordinates[0] + local_y,
+                                second_cap_vertex_coordinates[1] - height * multiplier,
+                                second_cap_vertex_coordinates[2] + local_x]
+                            },
+                        Direction::Z =>
+                            {
+                                [second_cap_vertex_coordinates[0] + local_x ,
+                                second_cap_vertex_coordinates[1] + local_y,
+                                second_cap_vertex_coordinates[2] - height * multiplier]
+                            },
+                    }
+                };
+            self.vertices_coordinates.extend(&coordinates);
+        }
+
+        for point_number in 1..base_points_number_for_caps
+        {
+            if point_number == 1
+            {
+                self.colors_values.extend(concentrated_load_color);
+                self.colors_values.extend(concentrated_load_color);
+                self.colors_values.extend(concentrated_load_color);
+            }
+            else
+            {
+                self.colors_values.extend(concentrated_load_color);
+            }
+            self.indexes_numbers.extend(&[start_index,
+                start_index + point_number, start_index + point_number + 1]);
+        }
+        self.indexes_numbers.extend(&[start_index,
+            start_index + 1, start_index + base_points_number_for_caps]);
+
+        self.modes.push(GLPrimitiveType::Triangles);
+        self.elements_numbers.push(base_points_number_for_caps as i32 * 6);
+        let offset = self.define_offset();
+        self.offsets.push(offset);
+    }
+
+
+    pub fn add_concentrated_loads(&mut self, point_objects: &HashMap<PointObjectKey, PointObject>,
+        concentrated_loads: &HashMap<u32, ConcentratedLoad>, gl_mode: GLMode,
+        under_selection_box_colors: &Vec<u8>, selected_colors: &HashSet<[u8; 4]>,
+        line_length: f32, base_points_number_for_lines: u32, base_points_number_for_caps: u32,
+        height: f32, base_radius: f32) -> Result<(), JsValue>
+    {
+        for (point_number, concentrated_load) in
+            concentrated_loads.iter()
+        {
+            let initial_color = DRAWN_CONCENTRATED_LOADS_COLOR;
+            let concentrated_load_color = define_drawn_object_color(&gl_mode,
+                concentrated_load.get_uid(), selected_colors, under_selection_box_colors,
+                &initial_color);
+
+            let point_object_key = PointObjectKey::create(*point_number,
+                PointObjectType::Point);
+            if let Some(point_object) = point_objects.get(&point_object_key)
+            {
+                let start_coordinates = [point_object.get_normalized_x()?,
+                    point_object.get_normalized_y()?, point_object.get_normalized_z()?];
+                if let Some(sign) = concentrated_load.optional_fx_sign()
+                {
+                    self.add_concentrated_load_line_for_force(&gl_mode, sign, &Direction::X,
+                        &start_coordinates, line_length, base_points_number_for_lines, base_radius,
+                        &concentrated_load_color);
+                    self.add_concentrated_load_cap_for_force(sign, &Direction::X,
+                                                             &start_coordinates, line_length, base_points_number_for_caps, base_radius,
+                                                             height, &concentrated_load_color);
+                }
+                if let Some(sign) = concentrated_load.optional_fy_sign()
+                {
+                    self.add_concentrated_load_line_for_force(&gl_mode, sign,
+                                                              &Direction::Y, &start_coordinates, line_length,
+                                                              base_points_number_for_lines, base_radius, &concentrated_load_color);
+                    self.add_concentrated_load_cap_for_force(sign, &Direction::Y,
+                                                             &start_coordinates, line_length, base_points_number_for_caps, base_radius,
+                                                             height, &concentrated_load_color);
+                }
+                if let Some(sign) = concentrated_load.optional_fz_sign()
+                {
+                    self.add_concentrated_load_line_for_force(&gl_mode, sign,
+                                                              &Direction::Z, &start_coordinates, line_length,
+                                                              base_points_number_for_lines, base_radius, &concentrated_load_color);
+                    self.add_concentrated_load_cap_for_force(sign, &Direction::Z,
+                                                             &start_coordinates, line_length, base_points_number_for_caps, base_radius,
+                                                             height, &concentrated_load_color);
+                }
+                if let Some(sign) = concentrated_load.optional_mx_sign()
+                {
+                    self.add_concentrated_load_line_for_moment(&gl_mode, sign,
+                                                               &Direction::X, &start_coordinates, line_length,
+                                                               base_points_number_for_lines, base_radius, &concentrated_load_color);
+                    self.add_concentrated_load_cap_for_moment(sign, &Direction::X,
+                                                              &start_coordinates, line_length, base_points_number_for_caps, base_radius,
+                                                              height, &concentrated_load_color);
+                }
+                if let Some(sign) = concentrated_load.optional_my_sign()
+                {
+                    self.add_concentrated_load_line_for_moment(&gl_mode, sign,
+                                                               &Direction::Y, &start_coordinates, line_length,
+                                                               base_points_number_for_lines, base_radius, &concentrated_load_color);
+                    self.add_concentrated_load_cap_for_moment(sign, &Direction::Y,
+                                                              &start_coordinates, line_length, base_points_number_for_caps, base_radius,
+                                                              height, &concentrated_load_color);
+                }
+                if let Some(sign) = concentrated_load.optional_mz_sign()
+                {
+                    self.add_concentrated_load_line_for_moment(&gl_mode, sign,
+                                                               &Direction::Z, &start_coordinates, line_length,
+                                                               base_points_number_for_lines, base_radius, &concentrated_load_color);
+                    self.add_concentrated_load_cap_for_moment(sign, &Direction::Z,
+                                                              &start_coordinates, line_length, base_points_number_for_caps, base_radius,
+                                                              height, &concentrated_load_color);
+                }
+            }
+            else
+            {
+                let error_message = format!("Renderer: Point object extraction: \
+                    Point with number {} does not exist!", point_number);
                 return Err(JsValue::from(error_message));
             }
         }

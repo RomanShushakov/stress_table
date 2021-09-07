@@ -4,21 +4,23 @@ use std::ops::{Add, Sub, Mul, Div, Rem, AddAssign, SubAssign, MulAssign};
 use std::hash::Hash;
 use std::fmt::Debug;
 use serde::Serialize;
+use std::collections::HashMap;
 
 use finite_element_method::my_float::MyFloatTrait;
 
 use crate::preprocessor::geometry::geometry::Geometry;
 use crate::preprocessor::properties::properties::Properties;
+use crate::preprocessor::loads::loads::Loads;
 
 use crate::preprocessor::functions::get_line_points_coordinates;
-
-use crate::PreprocessorMessage;
+use crate::traits::ClearByActionIdTrait;
 
 
 pub struct Preprocessor<T, V>
 {
     pub geometry: Geometry<T, V>,
     pub properties: Properties<T, V>,
+    pub loads: Loads<T, V>,
     pub tolerance: V,
 }
 
@@ -35,7 +37,8 @@ impl<T, V> Preprocessor<T, V>
     {
         let geometry = Geometry::<T, V>::create();
         let properties = Properties::<T, V>::create();
-        Preprocessor { geometry, properties, tolerance }
+        let loads = Loads::create();
+        Preprocessor { geometry, properties, loads, tolerance }
     }
 
 
@@ -72,7 +75,7 @@ impl<T, V> Preprocessor<T, V>
 
 
     pub fn update_point(&mut self, action_id: T, number: T, x: V, y: V,
-        z: V, is_action_id_should_be_increased: bool) -> Result<PreprocessorMessage<T, V>, JsValue>
+        z: V, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         let line_numbers_for_update =
             self.geometry.extract_line_numbers_for_update_or_delete(number);
@@ -80,39 +83,43 @@ impl<T, V> Preprocessor<T, V>
         self.geometry.update_point(action_id, number, x, y, z,
             is_action_id_should_be_increased)?;
 
-        let preprocessor_message = self.properties.update_lines_in_properties(
-            action_id, line_numbers_for_update, &self.geometry,
-            get_line_points_coordinates, self.tolerance)?;
+        self.loads.clear_by_action_id(action_id);
 
-        Ok(preprocessor_message)
+        self.properties.update_lines_in_properties(action_id, line_numbers_for_update,
+            &self.geometry, get_line_points_coordinates, self.tolerance)?;
+
+        Ok(())
     }
 
 
     pub fn delete_point(&mut self, action_id: T, number: T,
-        is_action_id_should_be_increased: bool) -> Result<PreprocessorMessage<T, V>, JsValue>
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         let line_numbers_for_delete =
             self.geometry.extract_line_numbers_for_update_or_delete(number);
 
-        let preprocessor_message =
-            self.properties.delete_line_numbers_from_properties(action_id,
+        self.properties.delete_line_numbers_from_properties(action_id,
             &line_numbers_for_delete)?;
+
+        self.loads.delete_concentrated_load_applied_to_point(action_id, number)?;
 
         self.geometry.delete_point(action_id, number, &line_numbers_for_delete,
             is_action_id_should_be_increased)?;
-        Ok(preprocessor_message)
+        Ok(())
     }
 
 
     pub fn restore_point(&mut self, action_id: T, number: T,
-        is_action_id_should_be_increased: bool) -> Result<PreprocessorMessage<T, V>, JsValue>
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         let restored_line_numbers =
             self.geometry.restore_point(action_id, number, is_action_id_should_be_increased)?;
 
-        let preprocessor_message =
-            self.properties.restore_line_numbers_in_properties(action_id, restored_line_numbers)?;
-        Ok(preprocessor_message)
+        self.properties.restore_line_numbers_in_properties(action_id, restored_line_numbers)?;
+
+        self.loads.restore_concentrated_load_applied_to_point(action_id, number)?;
+
+        Ok(())
     }
 
 
@@ -121,6 +128,8 @@ impl<T, V> Preprocessor<T, V>
     {
         self.geometry.update_line(action_id, number, start_point_number, end_point_number,
             is_action_id_should_be_increased)?;
+
+        self.loads.clear_by_action_id(action_id);
 
         self.properties.update_line_in_properties(action_id, number, &self.geometry,
             get_line_points_coordinates, self.tolerance)?;

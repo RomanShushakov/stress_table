@@ -2,8 +2,7 @@ use serde_json::Value;
 use wasm_bindgen::prelude::*;
 
 use crate::ActionsRouter;
-use crate::{Coordinates, Action};
-use crate::{ActionType, GeometryActionType};
+use crate::action::{Coordinates, Action, ActionType, GeometryActionType};
 
 use crate::types::{FEUInt, FEFloat};
 

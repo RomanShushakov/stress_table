@@ -315,7 +315,7 @@ impl FEModel
     }
 
 
-    pub fn delete_distributed_kine_load(&mut self, action_id: FEUInt, line_number: FEUInt,
+    pub fn delete_distributed_line_load(&mut self, action_id: FEUInt, line_number: FEUInt,
         is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.preprocessor.delete_distributed_line_load(action_id, line_number,

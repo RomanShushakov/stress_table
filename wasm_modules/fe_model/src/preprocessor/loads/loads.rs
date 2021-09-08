@@ -65,7 +65,7 @@ impl<T, V> Loads<T, V>
     pub fn logging(&self)
     {
         log(&format!("Loads: \n
-            Concentrated loads: {:?}, \n\
+            Concentrated loads: {:?}, \n
             Distributed line loads: {:?}, \n
             Deleted concentrated loads: {:?}, \n
             Deleted Distributed line loads: {:?}, \n",

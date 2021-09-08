@@ -136,6 +136,7 @@ class FeaApp extends HTMLElement {
         this.addEventListener("getBeamSectionsLocalAxis1Directions", (event) => this.getBeamSectionsLocalAxis1Directionsions(event));
 
         this.addEventListener("getConcentratedLoads", (event) => this.getConcentratedLoads(event));
+        this.addEventListener("getDistributedLineLoads", (event) => this.getDistributedLineLoads(event));
 
         this.addEventListener("selected_points", (event) => this.handleSelectedPointsMessage(event));
         this.addEventListener("selected_nodes", (event) => this.handleSelectedNodesMessage(event));
@@ -194,6 +195,13 @@ class FeaApp extends HTMLElement {
         this.addEventListener("add_concentrated_load_server_message", (event) => this.handleAddConcentratedLoadServerMessage(event));
         this.addEventListener("update_concentrated_load_server_message", (event) => this.handleUpdateConcentratedLoadServerMessage(event));
         this.addEventListener("delete_concentrated_load_server_message", (event) => this.handleDeleteConcentratedLoadServerMessage(event));
+
+        this.addEventListener("add_distributed_line_load_server_message", 
+            (event) => this.handleAddDistributedLineLoadServerMessage(event));
+        this.addEventListener("update_distributed_line_load_server_message", 
+            (event) => this.handleUpdateDistributedLineLoadServerMessage(event));
+        this.addEventListener("delete_distributed_line_load_server_message", 
+            (event) => this.handleDeleteDistributedLineLoadServerMessage(event));
 
         this.addEventListener("add_node_server_message", (event) => this.handleAddNodeServerMessage(event));
 
@@ -384,6 +392,19 @@ class FeaApp extends HTMLElement {
                     ([key, value]) => [parseInt(key), value]
                 ));
                 this.querySelector(event.target.tagName.toLowerCase()).concentratedLoads = concentratedLoads; 
+            }
+        );
+        event.stopPropagation();
+    }
+
+    getDistributedLineLoads(event) {
+        this.state.actionsRouter.extract_distributed_line_loads(
+            (extractedDistributedLineLoadsData) => { 
+                const distributedLineLoads = new Map(Array.from(
+                    Object.entries(extractedDistributedLineLoadsData.extracted_distributed_line_loads), 
+                    ([key, value]) => [parseInt(key), value]
+                ));
+                this.querySelector(event.target.tagName.toLowerCase()).distributedLineLoads = distributedLineLoads; 
             }
         );
         event.stopPropagation();
@@ -679,6 +700,7 @@ class FeaApp extends HTMLElement {
                 const errorData = { "message": message, "error": error };
                 this.querySelector(event.target.tagName.toLowerCase()).feModelError = errorData;
             } else {
+                console.log("Error!!!", error);
                 this.querySelector(event.target.tagName.toLowerCase()).feModelError = error;
             }
             throw error;
@@ -1139,6 +1161,59 @@ class FeaApp extends HTMLElement {
             }
         } 
         this.shadowRoot.querySelector("fea-renderer").deleteConcentratedLoadFromRenderer = concentratedLoad;
+        event.stopPropagation();
+    }
+
+    handleAddDistributedLineLoadServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;
+        }
+        const distributedLineLoad = { 
+            line_number: event.detail.distributed_line_load_data.line_number, 
+            qx: event.detail.distributed_line_load_data.qx,
+            qy: event.detail.distributed_line_load_data.qy, 
+            qz: event.detail.distributed_line_load_data.qz };
+        for (let i = 0; i < this.state.distributedLineLoadsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.distributedLineLoadsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.distributedLineLoadsDataDependentMenus[i])
+                    .addDistributedLineLoadToClient = distributedLineLoad;
+            }
+        } 
+        // this.shadowRoot.querySelector("fea-renderer").addConcentratedLoadToRenderer = concentratedLoad;
+        event.stopPropagation();
+    }
+
+    handleUpdateDistributedLineLoadServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;
+        }
+        const distributedLineLoad = { 
+            line_number: event.detail.distributed_line_load_data.line_number, 
+            qx: event.detail.distributed_line_load_data.qx,
+            qy: event.detail.distributed_line_load_data.qy, 
+            qz: event.detail.distributed_line_load_data.qz };
+        for (let i = 0; i < this.state.distributedLineLoadsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.distributedLineLoadsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.distributedLineLoadsDataDependentMenus[i])
+                    .updateDistributedLineLoadInClient = distributedLineLoad;
+            }
+        } 
+        // this.shadowRoot.querySelector("fea-renderer").updateConcentratedLoadInRenderer = concentratedLoad;
+        event.stopPropagation();
+    }
+
+    handleDeleteDistributedLineLoadServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;
+        }
+        const distributedLineLoad = { line_number: event.detail.distributed_line_load_data.line_number };
+        for (let i = 0; i < this.state.distributedLineLoadsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.distributedLineLoadsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.distributedLineLoadsDataDependentMenus[i])
+                    .deleteDistributedLineLoadFromClient = distributedLineLoad;
+            }
+        } 
+        // this.shadowRoot.querySelector("fea-renderer").deleteConcentratedLoadFromRenderer = concentratedLoad;
         event.stopPropagation();
     }
 

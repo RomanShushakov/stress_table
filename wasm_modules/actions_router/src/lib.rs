@@ -40,14 +40,17 @@ use external_functions::communication_with_loads::
 {
     add_concentrated_load_to_loads, update_concentrated_load_in_loads,
     delete_concentrated_load_from_loads, restore_concentrated_load_in_loads,
-    extract_concentrated_loads, show_concentrated_load_info,
+    add_distributed_line_load_to_loads, update_distributed_line_load_in_loads,
+    delete_distributed_line_load_from_loads, restore_distributed_line_load_in_loads,
+    extract_concentrated_loads, extract_distributed_line_loads,
+    show_concentrated_load_info, show_distributed_line_load_info,
 };
 
 mod action;
 use action::
 {
     Action, GeometryActionType, ActionType, PropertiesActionType, LoadsActionType, Coordinates,
-    ConcentratedLoad
+    ConcentratedLoad, DistributedLineLoad,
 };
 
 mod types;
@@ -70,7 +73,8 @@ use consts::
     REMOVE_BEAM_SECTION_LOCAL_AXIS_1_DIRECTION_MESSAGE_HEADER,
     UPDATE_BEAM_SECTION_ORIENTATION_DATA_MESSAGE_HEADER,
     ADD_CONCENTRATED_LOAD_MESSAGE_HEADER, UPDATE_CONCENTRATED_LOAD_MESSAGE_HEADER,
-    DELETE_CONCENTRATED_LOAD_MESSAGE_HEADER,
+    DELETE_CONCENTRATED_LOAD_MESSAGE_HEADER, ADD_DISTRIBUTED_LINE_LOAD_MESSAGE_HEADER,
+    UPDATE_DISTRIBUTED_LINE_LOAD_MESSAGE_HEADER, DELETE_DISTRIBUTED_LINE_LOAD_MESSAGE_HEADER,
     UNDO_MESSAGE_HEADER, REDO_MESSAGE_HEADER,
 };
 
@@ -607,6 +611,51 @@ impl ActionsRouter
                                     self.current_action = Some((action, add_to_active_actions));
                                 },
                             LoadsActionType::RestoreConcentratedLoad(_, _) => (),
+                            LoadsActionType::AddDistributedLineLoad(
+                                line_number,
+                                _distributed_line_load,
+                                _is_action_id_should_be_increased) =>
+                                {
+                                    let is_action_id_should_be_increased = false;
+                                    let action_type = ActionType::from(
+                                        LoadsActionType::DeleteDistributedLineLoad(
+                                            *line_number,
+                                            is_action_id_should_be_increased));
+                                    let action = Action::create(action_id, action_type);
+                                    let add_to_active_actions = false;
+                                    self.current_action = Some((action, add_to_active_actions));
+                                },
+                            LoadsActionType::UpdateDistributedLineLoad(
+                                line_number,
+                                old_distributed_line_load,
+                                new_distributed_line_load,
+                                _is_action_id_should_be_increased) =>
+                                {
+                                    let is_action_id_should_be_increased = false;
+                                    let action_type = ActionType::from(
+                                        LoadsActionType::UpdateDistributedLineLoad(
+                                            *line_number,
+                                            new_distributed_line_load.to_owned(),
+                                            old_distributed_line_load.to_owned(),
+                                            is_action_id_should_be_increased));
+                                    let action = Action::create(action_id, action_type);
+                                    let add_to_active_actions = false;
+                                    self.current_action = Some((action, add_to_active_actions));
+                                },
+                            LoadsActionType::DeleteDistributedLineLoad(
+                                line_number,
+                                _is_action_id_should_be_increased) =>
+                                {
+                                    let is_action_id_should_be_increased = false;
+                                    let action_type = ActionType::from(
+                                        LoadsActionType::RestoreDistributedLineLoad(
+                                            *line_number,
+                                            is_action_id_should_be_increased));
+                                    let action = Action::create(action_id, action_type);
+                                    let add_to_active_actions = false;
+                                    self.current_action = Some((action, add_to_active_actions));
+                                },
+                            LoadsActionType::RestoreDistributedLineLoad(_, _) => (),
                         }
                     }
             }
@@ -1138,6 +1187,58 @@ impl ActionsRouter
                                         self.active_actions.push(action.to_owned());
                                     }
                                 },
+                            LoadsActionType::AddDistributedLineLoad(
+                                line_number,
+                                distributed_line_load,
+                                is_action_id_should_be_increased) =>
+                                {
+                                    let DistributedLineLoad { qx, qy,
+                                        qz } = distributed_line_load;
+                                    add_distributed_line_load_to_loads(*ref_action_id, *line_number,
+                                        *qx, *qy, *qz, *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions
+                                    {
+                                        self.active_actions.push(action.to_owned());
+                                    }
+                                },
+                            LoadsActionType::UpdateDistributedLineLoad(
+                                line_number,
+                                _old_distributed_line_load,
+                                new_distributed_line_load,
+                                is_action_id_should_be_increased) =>
+                                {
+                                    let DistributedLineLoad { qx, qy,
+                                        qz } = new_distributed_line_load;
+                                    update_distributed_line_load_in_loads(*ref_action_id,
+                                        *line_number, *qx, *qy, *qz,
+                                        *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions
+                                    {
+                                        self.active_actions.push(action.to_owned());
+                                    }
+                                },
+                            LoadsActionType::DeleteDistributedLineLoad(
+                                line_number,
+                                is_action_id_should_be_increased) =>
+                                {
+                                    delete_distributed_line_load_from_loads(*ref_action_id,
+                                        *line_number, *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions
+                                    {
+                                        self.active_actions.push(action.to_owned());
+                                    }
+                                },
+                            LoadsActionType::RestoreDistributedLineLoad(
+                                line_number,
+                                is_action_id_should_be_increased) =>
+                                {
+                                    restore_distributed_line_load_in_loads(*ref_action_id,
+                                        *line_number, *is_action_id_should_be_increased)?;
+                                    if *add_to_active_actions
+                                    {
+                                        self.active_actions.push(action.to_owned());
+                                    }
+                                },
                         }
                     }
             }
@@ -1287,6 +1388,21 @@ impl ActionsRouter
         {
             self.handle_delete_concentrated_load_message(&concentrated_load_data)?;
         }
+        else if let Some(distributed_line_load_data) = serialized_message.get(
+            ADD_DISTRIBUTED_LINE_LOAD_MESSAGE_HEADER)
+        {
+            self.handle_add_distributed_line_load_message(&distributed_line_load_data)?;
+        }
+        else if let Some(distributed_line_load_data) = serialized_message.get(
+            UPDATE_DISTRIBUTED_LINE_LOAD_MESSAGE_HEADER)
+        {
+            self.handle_update_distributed_line_load_message(&distributed_line_load_data)?;
+        }
+        else if let Some(distributed_line_load_data) = serialized_message.get(
+            DELETE_DISTRIBUTED_LINE_LOAD_MESSAGE_HEADER)
+        {
+            self.handle_delete_distributed_line_load_message(&distributed_line_load_data)?;
+        }
         else if let Some(undo_data) = serialized_message.get(UNDO_MESSAGE_HEADER)
         {
             self.handle_undo_message(&undo_data)?;
@@ -1390,9 +1506,21 @@ impl ActionsRouter
     }
 
 
+    pub fn extract_distributed_line_loads(&self, handler: js_sys::Function)
+    {
+        extract_distributed_line_loads(handler);
+    }
+
+
     pub fn show_point_info(&self, number: FEUInt, handler: js_sys::Function) -> Result<(), JsValue>
     {
         show_point_info(number, handler)
+    }
+
+
+    pub fn show_line_info(&self, number: FEUInt, handler: js_sys::Function) -> Result<(), JsValue>
+    {
+        show_line_info(number, handler)
     }
 
 
@@ -1403,8 +1531,9 @@ impl ActionsRouter
     }
 
 
-    pub fn show_line_info(&self, number: FEUInt, handler: js_sys::Function) -> Result<(), JsValue>
+    pub fn show_distributed_line_load_info(&self, line_number: FEUInt, handler: js_sys::Function)
+        -> Result<(), JsValue>
     {
-        show_line_info(number, handler)
+        show_distributed_line_load_info(line_number, handler)
     }
 }

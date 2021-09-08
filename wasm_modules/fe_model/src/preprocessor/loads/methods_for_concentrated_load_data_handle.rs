@@ -32,15 +32,6 @@ impl<T, V> Loads<T, V>
                 Concentrated load was already applied to point with number {:?}!", point_number);
             return Err(JsValue::from(error_message));
         }
-        if self.concentrated_loads.values().position(|concentrated_load|
-            concentrated_load.are_load_components_same(fx, fy, fz) &&
-            concentrated_load.are_moment_components_same(mx, my, mz)).is_some()
-        {
-            let error_message = &format!("Loads: Add concentrated load action: Concentrated \
-                load with components {:?}, {:?}, {:?}, {:?}, {:?}, {:?} does already exist!",
-                fx, fy, fz, mx, my, mz);
-            return Err(JsValue::from(error_message));
-        }
         let concentrated_load = ConcentratedLoad::create(fx, fy, fz, mx, my, mz);
         self.concentrated_loads.insert(point_number, concentrated_load);
         let detail = json!({ "concentrated_load_data":
@@ -58,16 +49,6 @@ impl<T, V> Loads<T, V>
         mx: V, my: V, mz: V, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_by_action_id(action_id);
-
-        if self.concentrated_loads.values().position(|concentrated_load|
-            concentrated_load.are_load_components_same(fx, fy, fz) &&
-            concentrated_load.are_moment_components_same(mx, my, mz)).is_some()
-        {
-            let error_message = &format!("Loads: Update concentrated load action: \
-                Concentrated load with components {:?}, {:?}, {:?}, {:?}, {:?}, {:?} does already \
-                exist!", fx, fy, fz, mx, my, mz);
-            return Err(JsValue::from(error_message));
-        }
 
         if let Some(concentrated_load) = self.concentrated_loads
             .get_mut(&point_number)
@@ -160,8 +141,6 @@ impl<T, V> Loads<T, V>
     pub fn delete_concentrated_load_applied_to_point(&mut self, action_id: T, point_number: T)
         -> Result<(), JsValue>
     {
-        self.clear_by_action_id(action_id);
-
         if let Some((point_number, concentrated_load)) =
             self.concentrated_loads.remove_entry(&point_number)
         {
@@ -172,7 +151,6 @@ impl<T, V> Loads<T, V>
                 "is_action_id_should_be_increased": false });
             dispatch_custom_event(detail, DELETE_CONCENTRATED_LOAD_EVENT_NAME,
                 EVENT_TARGET)?;
-            self.logging();
         }
         Ok(())
     }
@@ -204,8 +182,6 @@ impl<T, V> Loads<T, V>
                 EVENT_TARGET)?;
             self.concentrated_loads.insert(deleted_concentrated_load_point_number,
                 ConcentratedLoad::create(fx, fy, fz, mx, my, mz));
-
-            self.logging();
         }
         Ok(())
     }

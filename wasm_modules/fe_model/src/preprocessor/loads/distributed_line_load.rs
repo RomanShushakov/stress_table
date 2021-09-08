@@ -19,12 +19,6 @@ impl<V> DistributedLineLoad<V>
     }
 
 
-    pub fn are_load_components_same(&self, qx: V, qy: V, qz: V) -> bool
-    {
-        self.qx == qx && self.qy == qy && self.qz == qz
-    }
-
-
     pub fn update(&mut self, qx: V, qy: V, qz: V)
     {
         self.qx = qx;

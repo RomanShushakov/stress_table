@@ -99,9 +99,11 @@ impl<T, V> Preprocessor<T, V>
         self.properties.delete_line_numbers_from_properties(action_id,
             &line_numbers_for_delete)?;
 
+        self.loads.clear_by_action_id(action_id);
         self.loads.delete_distributed_line_loads_applied_to_lines(action_id,
             &line_numbers_for_delete)?;
         self.loads.delete_concentrated_load_applied_to_point(action_id, number)?;
+        self.loads.logging();
 
         self.geometry.delete_point(action_id, number, &line_numbers_for_delete,
             is_action_id_should_be_increased)?;
@@ -120,6 +122,8 @@ impl<T, V> Preprocessor<T, V>
         self.loads.restore_concentrated_load_applied_to_point(action_id, number)?;
         self.loads.restore_distributed_line_loads_applied_to_lines(action_id,
             &restored_line_numbers)?;
+        self.loads.logging();
+
         Ok(())
     }
 
@@ -127,10 +131,10 @@ impl<T, V> Preprocessor<T, V>
     pub fn update_line(&mut self, action_id: T, number: T, start_point_number: T,
         end_point_number: T, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
+        self.loads.clear_by_action_id(action_id);
+
         self.geometry.update_line(action_id, number, start_point_number, end_point_number,
             is_action_id_should_be_increased)?;
-
-        self.loads.clear_by_action_id(action_id);
 
         self.properties.update_line_in_properties(action_id, number, &self.geometry,
             get_line_points_coordinates, self.tolerance)?;
@@ -143,8 +147,10 @@ impl<T, V> Preprocessor<T, V>
     {
         self.properties.delete_line_numbers_from_properties(action_id, &vec![number])?;
 
+        self.loads.clear_by_action_id(action_id);
         self.loads.delete_distributed_line_loads_applied_to_lines(action_id,
             &vec![number])?;
+        self.loads.logging();
 
         self.geometry.delete_line(action_id, number, is_action_id_should_be_increased)?;
         Ok(())
@@ -161,6 +167,7 @@ impl<T, V> Preprocessor<T, V>
 
         self.loads.restore_distributed_line_loads_applied_to_lines(action_id,
             &vec![number])?;
+        self.loads.logging();
         Ok(())
     }
 }

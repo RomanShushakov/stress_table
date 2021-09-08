@@ -2,7 +2,7 @@ use serde_json::Value;
 use wasm_bindgen::prelude::*;
 
 use crate::ActionsRouter;
-use crate::action::{Action, ActionType, LoadsActionType, ConcentratedLoad};
+use crate::action::{Action, ActionType, LoadsActionType, ConcentratedLoad, DistributedLineLoad};
 
 use crate::types::{FEUInt, FEFloat};
 
@@ -203,6 +203,158 @@ impl ActionsRouter
         let action_type = ActionType::from(
             LoadsActionType::DeleteConcentratedLoad(
                 point_number, is_action_id_should_be_increased));
+        let action = Action::create(action_id, action_type);
+        let add_to_active_actions = true;
+        self.current_action = Some((action, add_to_active_actions));
+        Ok(())
+    }
+
+
+    pub(super) fn handle_add_distributed_line_load_message(&mut self,
+        distributed_line_load_data: &Value) -> Result<(), JsValue>
+    {
+        let action_id = distributed_line_load_data["actionId"].to_string()
+            .parse::<FEUInt>()
+            .or(Err(JsValue::from(
+                "Actions router: Add distributed line load action: Action id could not be \
+                converted to FEUInt!")))?;
+        let line_number = distributed_line_load_data["line_number"].as_str()
+            .ok_or(JsValue::from("Actions router: Add distributed line load action: \
+                Line number could not be extracted!"))?
+            .parse::<FEUInt>()
+            .or(Err(JsValue::from("Actions router: Add distributed line load action: \
+                Line number could not be converted to FEUInt!")))?;
+
+        if line_number > 10000 as FEUInt
+        {
+            return Err(JsValue::from("Actions router: Add distributed line load action: Line \
+                number could not be greater than 10000!"));
+        }
+
+        let qx = distributed_line_load_data["qx"].as_str()
+            .ok_or(JsValue::from("Actions router: Add distributed line load action: \
+                Distributed line load x component could not be extracted!"))?
+            .parse::<FEFloat>()
+            .or(Err(JsValue::from("Actions router: Add distributed line load action: \
+                Distributed line load x component could not be converted to FEFloat!")))?;
+        let qy = distributed_line_load_data["qy"].as_str()
+            .ok_or(JsValue::from(
+                "Actions router: Add distributed line load action: Distributed line load y \
+                component could not be extracted!"))?
+            .parse::<FEFloat>()
+            .or(Err(JsValue::from("Actions router: Add distributed line load action: \
+                Distributed line load y component could not be converted to FEFloat!")))?;
+        let qz = distributed_line_load_data["qz"].as_str()
+            .ok_or(JsValue::from(
+                "Actions router: Add distributed line load action: Distributed line load z \
+                component could not be extracted!"))?
+            .parse::<FEFloat>()
+            .or(Err(JsValue::from("Actions router: Add distributed line load action: \
+                Distributed line load z component could not be converted to FEFloat!")))?;
+        self.undo_actions.clear();
+        let distributed_line_load = DistributedLineLoad::create(qx, qy, qz);
+        let is_action_id_should_be_increased = true;
+        let action_type = ActionType::from(
+            LoadsActionType::AddDistributedLineLoad(
+                line_number, distributed_line_load,
+                is_action_id_should_be_increased));
+        let action = Action::create(action_id, action_type);
+        let add_to_active_actions = true;
+        self.current_action = Some((action, add_to_active_actions));
+        Ok(())
+    }
+
+
+    pub(super) fn handle_update_distributed_line_load_message(&mut self,
+        distributed_line_load_data: &Value) -> Result<(), JsValue>
+    {
+        let action_id = distributed_line_load_data["actionId"].to_string()
+                .parse::<FEUInt>()
+                .or(Err(JsValue::from("Actions router: Update distributed line load action: \
+                    Action id could not be converted to FEUInt!")))?;
+        let line_number = distributed_line_load_data["line_number"].as_str()
+            .ok_or(JsValue::from(
+                "Actions router: Update distributed line load action: Line number could not be \
+                extracted!"))?
+            .parse::<FEUInt>()
+            .or(Err(JsValue::from("Actions router: Update distributed line load action: \
+                Line number could not be converted to FEUInt!")))?;
+        let old_qx_value =
+            distributed_line_load_data["old_distributed_line_load_values"]["qx"]
+            .to_string()
+            .parse::<FEFloat>()
+            .or(Err(JsValue::from("Actions router: Update distributed line load action: \
+                Distributed line load old Qx value could not be converted to FEFloat!")))?;
+        let old_qy_value =
+            distributed_line_load_data["old_distributed_line_load_values"]["qy"]
+            .to_string()
+            .parse::<FEFloat>()
+            .or(Err(JsValue::from("Actions router: Update distributed line load action: \
+                Distributed line load old Qy value could not be converted to FEFloat!")))?;
+        let old_qz_value =
+            distributed_line_load_data["old_distributed_line_load_values"]["qz"]
+            .to_string()
+            .parse::<FEFloat>()
+            .or(Err(JsValue::from(
+                "Actions router: Update distributed line load action: \
+                Distributed line load old Qz value could not be converted to FEFloat!")))?;
+        let new_qx_value =
+            distributed_line_load_data["new_distributed_line_load_values"]["qx"]
+            .as_str()
+            .ok_or(JsValue::from("Actions router: Update distributed line load action: \
+                Distributed line load new Qx value could not be extracted!"))?
+            .parse::<FEFloat>()
+            .or(Err(JsValue::from("Actions router: Update distributed line load action: \
+                Distributed line load new Qx value could not be converted to FEFloat!")))?;
+        let new_qy_value =
+            distributed_line_load_data["new_distributed_line_load_values"]["qy"]
+            .as_str()
+            .ok_or(JsValue::from("Actions router: Update distributed line load action: \
+                Distributed line load new Qy value could not be extracted!"))?
+            .parse::<FEFloat>()
+            .or(Err(JsValue::from("Actions router: Update distributed line load action: \
+                Distributed line load new Qy value could not be converted to FEFloat!")))?;
+        let new_qz_value =
+            distributed_line_load_data["new_distributed_line_load_values"]["qz"]
+            .as_str()
+            .ok_or(JsValue::from("Actions router: Update distributed line load action: \
+                Distributed line load new Qz value could not be extracted!"))?
+            .parse::<FEFloat>()
+            .or(Err(JsValue::from("Actions router: Update distributed line load action: \
+                Distributed line load new Qz value could not be converted to FEFloat!")))?;
+        self.undo_actions.clear();
+        let old_distributed_line_load = DistributedLineLoad::create(
+            old_qx_value, old_qy_value, old_qz_value);
+        let new_distributed_line_load = DistributedLineLoad::create(
+            new_qx_value, new_qy_value, new_qz_value);
+        let is_action_id_should_be_increased = true;
+        let action_type = ActionType::from(
+            LoadsActionType::UpdateDistributedLineLoad(line_number,
+            old_distributed_line_load, new_distributed_line_load,
+            is_action_id_should_be_increased));
+        let action = Action::create(action_id, action_type);
+        let add_to_active_actions = true;
+        self.current_action = Some((action, add_to_active_actions));
+        Ok(())
+    }
+
+
+    pub(super) fn handle_delete_distributed_line_load_message(&mut self,
+        distributed_line_load_data: &Value) -> Result<(), JsValue>
+    {
+        let action_id = distributed_line_load_data["actionId"].to_string()
+            .parse::<FEUInt>()
+            .or(Err(JsValue::from( "Actions router: Delete distributed line load action: \
+                Action id could not be converted to FEUInt!")))?;
+        let line_number = distributed_line_load_data["line_number"].to_string()
+            .parse::<FEUInt>()
+            .or(Err(JsValue::from("Actions router: Delete distributed line load action: \
+                Line number could not be converted to FEUInt!")))?;
+        self.undo_actions.clear();
+        let is_action_id_should_be_increased = true;
+        let action_type = ActionType::from(
+            LoadsActionType::DeleteDistributedLineLoad(
+                line_number, is_action_id_should_be_increased));
         let action = Action::create(action_id, action_type);
         let add_to_active_actions = true;
         self.current_action = Some((action, add_to_active_actions));

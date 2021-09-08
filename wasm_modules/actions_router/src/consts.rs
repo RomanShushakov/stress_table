@@ -41,5 +41,9 @@ pub const ADD_CONCENTRATED_LOAD_MESSAGE_HEADER: &str = "add_concentrated_load";
 pub const UPDATE_CONCENTRATED_LOAD_MESSAGE_HEADER: &str = "update_concentrated_load";
 pub const DELETE_CONCENTRATED_LOAD_MESSAGE_HEADER: &str = "delete_concentrated_load";
 
+pub const ADD_DISTRIBUTED_LINE_LOAD_MESSAGE_HEADER: &str = "add_distributed_line_load";
+pub const UPDATE_DISTRIBUTED_LINE_LOAD_MESSAGE_HEADER: &str = "update_distributed_line_load";
+pub const DELETE_DISTRIBUTED_LINE_LOAD_MESSAGE_HEADER: &str = "delete_distributed_line_load";
+
 pub const UNDO_MESSAGE_HEADER: &str = "undo";
 pub const REDO_MESSAGE_HEADER: &str = "redo";

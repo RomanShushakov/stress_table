@@ -382,32 +382,28 @@ impl Renderer
             dispatch_custom_event(detail, SELECTED_POINTS_EVENT_MAME,
                 EVENT_TARGET)?;
         }
-
-        if !selected_node_numbers.is_empty()
+        else if !selected_node_numbers.is_empty()
         {
             is_object_selected = true;
             let detail = json!({ "node_numbers": selected_node_numbers });
             dispatch_custom_event(detail, SELECTED_NODES_EVENT_MAME,
                 EVENT_TARGET)?;
         }
-
-        if !selected_line_numbers.is_empty()
+        else if !selected_line_numbers.is_empty()
         {
             is_object_selected = true;
             let detail = json!({ "line_numbers": selected_line_numbers });
             dispatch_custom_event(detail, SELECTED_LINES_EVENT_MAME,
                 EVENT_TARGET)?;
         }
-
-        if !selected_line_element_numbers.is_empty()
+        else if !selected_line_element_numbers.is_empty()
         {
             is_object_selected = true;
             let detail = json!({ "line_element_numbers": selected_line_element_numbers });
             dispatch_custom_event(detail, SELECTED_LINE_ELEMENTS_EVENT_MAME,
                 EVENT_TARGET)?;
         }
-
-        if !selected_concentrated_loads_points_numbers.is_empty()
+        else if !selected_concentrated_loads_points_numbers.is_empty()
         {
             is_object_selected = true;
             let detail = json!({
@@ -415,6 +411,10 @@ impl Renderer
             dispatch_custom_event(detail,
                 SELECTED_CONCENTRATED_LOADS_POINTS_NUMBERS_EVENT_MAME,
                 EVENT_TARGET)?;
+        }
+        else
+        {
+            is_object_selected = false;
         }
 
         self.state.beam_section_orientation_for_preview = None;

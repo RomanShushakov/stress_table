@@ -155,6 +155,24 @@ impl ConcentratedLoad
 }
 
 
+#[derive(Clone, Debug)]
+pub struct DistributedLineLoad
+{
+    pub qx: FEFloat,
+    pub qy: FEFloat,
+    pub qz: FEFloat,
+}
+
+
+impl DistributedLineLoad
+{
+    pub fn create(qx: FEFloat, qy: FEFloat, qz: FEFloat) -> DistributedLineLoad
+    {
+        DistributedLineLoad { qx, qy, qz }
+    }
+}
+
+
 #[derive(Debug, Clone)]
 pub enum LoadsActionType
 {
@@ -169,6 +187,18 @@ pub enum LoadsActionType
 
     // ( point_number, is_action_id_should_be_increased )
     RestoreConcentratedLoad(FEUInt, bool),
+
+    // ( line_number, DistributedLineLoad, is_action_id_should_be_increased )
+    AddDistributedLineLoad(FEUInt, DistributedLineLoad, bool),
+
+    // ( line_number, DistributedLineLoad, DistributedLineLoad, is_action_id_should_be_increased )
+    UpdateDistributedLineLoad(FEUInt, DistributedLineLoad, DistributedLineLoad, bool),
+
+    // ( line_number, is_action_id_should_be_increased )
+    DeleteDistributedLineLoad(FEUInt, bool),
+
+    // ( line_number, is_action_id_should_be_increased )
+    RestoreDistributedLineLoad(FEUInt, bool),
 }
 
 

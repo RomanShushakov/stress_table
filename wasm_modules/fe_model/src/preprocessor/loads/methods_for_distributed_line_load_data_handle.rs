@@ -17,7 +17,7 @@ use crate::preprocessor::loads::consts::
 
 use crate::traits::ClearByActionIdTrait;
 use crate::consts::EVENT_TARGET;
-use crate::functions::dispatch_custom_event;
+use crate::functions::{dispatch_custom_event};
 
 
 impl<T, V> Loads<T, V>
@@ -35,14 +35,7 @@ impl<T, V> Loads<T, V>
                 Distributed line load was already applied to line with number {:?}!", line_number);
             return Err(JsValue::from(error_message));
         }
-        if self.distributed_line_loads.values().position(|distributed_line_load|
-            distributed_line_load.are_load_components_same(qx, qy, qz)).is_some()
-        {
-            let error_message = &format!("Loads: Add distributed line load action: \
-                Distributed line load with components {:?}, {:?}, {:?} does already exist!",
-                qx, qy, qz);
-            return Err(JsValue::from(error_message));
-        }
+
         let distributed_line_load = DistributedLineLoad::create(qx, qy, qz);
         self.distributed_line_loads.insert(line_number, distributed_line_load);
         let detail = json!({ "distributed_line_load_data":
@@ -59,15 +52,6 @@ impl<T, V> Loads<T, V>
         qz: V, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
     {
         self.clear_by_action_id(action_id);
-
-        if self.distributed_line_loads.values().position(|distributed_line_load|
-            distributed_line_load.are_load_components_same(qx, qy, qz)).is_some()
-        {
-            let error_message = &format!("Loads: Update distributed line load action: \
-                Distributed line load with components {:?}, {:?}, {:?}, does already exist!",
-                qx, qy, qz);
-            return Err(JsValue::from(error_message));
-        }
 
         if let Some(distributed_line_load) =
             self.distributed_line_loads.get_mut(&line_number)
@@ -144,7 +128,7 @@ impl<T, V> Loads<T, V>
                     line_number);
                 return Err(JsValue::from(error_message));
             }
-            let detail = json!({ "distributed line_load_data":
+            let detail = json!({ "distributed_line_load_data":
                 {
                     "line_number": deleted_distributed_line_load_line_number,
                     "qx": qx, "qy": qy, "qz": qz,
@@ -170,8 +154,6 @@ impl<T, V> Loads<T, V>
     pub fn delete_distributed_line_loads_applied_to_lines(&mut self, action_id: T,
         line_numbers: &[T]) -> Result<(), JsValue>
     {
-        self.clear_by_action_id(action_id);
-
         let mut deleted_distributed_line_loads = Vec::new();
 
         for line_number in line_numbers
@@ -195,7 +177,6 @@ impl<T, V> Loads<T, V>
         {
             self.deleted_distributed_line_loads.insert(action_id,
                 deleted_distributed_line_loads);
-            self.logging();
         }
         Ok(())
     }
@@ -232,7 +213,6 @@ impl<T, V> Loads<T, V>
                     deleted_deleted_distributed_line_load_line_number,
                     DistributedLineLoad::create(qx, qy, qz));
             }
-            self.logging();
         }
         Ok(())
     }

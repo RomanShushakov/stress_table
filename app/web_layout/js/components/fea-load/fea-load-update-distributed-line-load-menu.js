@@ -540,7 +540,7 @@ class FeaLoadUpdateDistributedLineLoadMenu extends HTMLElement {
     }
 
     updateDistributedLineLoadValues() {
-        const selectedLineNumber = this.shadowRoot.querySelector(".point-number").value;
+        const selectedLineNumber = this.shadowRoot.querySelector(".line-number").value;
         this.shadowRoot.querySelector(".qx").value = this.props.distributedLineLoads.get(parseInt(selectedLineNumber)).qx;
         this.dropHighlight(this.shadowRoot.querySelector(".qx"));
         this.shadowRoot.querySelector(".qy").value = this.props.distributedLineLoads.get(parseInt(selectedLineNumber)).qy;
@@ -655,7 +655,7 @@ class FeaLoadUpdateDistributedLineLoadMenu extends HTMLElement {
         this.dropHighlight(inputtedQXField);
         const inputtedQYField = this.shadowRoot.querySelector(".qy");
         this.dropHighlight(inputtedQYField);
-        const inputtedQZField = this.shadowRoot.querySelector(".z");
+        const inputtedQZField = this.shadowRoot.querySelector(".qz");
         this.dropHighlight(inputtedQZField);
         this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
     }

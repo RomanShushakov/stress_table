@@ -7,3 +7,5 @@ pub const SELECTED_LINES_EVENT_MAME: &str = "selected_lines";
 pub const SELECTED_LINE_ELEMENTS_EVENT_MAME: &str = "selected_line_elements";
 pub const SELECTED_CONCENTRATED_LOADS_POINTS_NUMBERS_EVENT_MAME: &str =
     "selected_concentrated_loads_points_numbers";
+pub const SELECTED_DISTRIBUTED_LINE_LOADS_LINES_NUMBERS_EVENT_MAME: &str =
+    "selected_distributed_line_loads_lines_numbers";

@@ -52,17 +52,17 @@ fn find_object_min_max_coordinates(point_objects: &HashMap<PointObjectKey, Point
     -> (f32, f32, f32, f32, f32, f32)
 {
     let point_objects = point_objects.values().collect::<Vec<&PointObject>>();
-    let mut x_min = point_objects[0].get_x();
-    let mut x_max = point_objects[0].get_x();
-    let mut y_min = point_objects[0].get_y();
-    let mut y_max = point_objects[0].get_y();
-    let mut z_min = point_objects[0].get_z();
-    let mut z_max = point_objects[0].get_z();
+    let mut x_min = point_objects[0].copy_x();
+    let mut x_max = point_objects[0].copy_x();
+    let mut y_min = point_objects[0].copy_y();
+    let mut y_max = point_objects[0].copy_y();
+    let mut z_min = point_objects[0].copy_z();
+    let mut z_max = point_objects[0].copy_z();
     for i in 1..point_objects.len()
     {
-        let x = point_objects[i].get_x();
-        let y = point_objects[i].get_y();
-        let z = point_objects[i].get_z();
+        let x = point_objects[i].copy_x();
+        let y = point_objects[i].copy_y();
+        let z = point_objects[i].copy_z();
         if x < x_min
         {
             x_min = x;
@@ -161,21 +161,21 @@ pub fn normalize_point_objects_coordinates(point_objects: &mut HashMap<PointObje
     let point_objects_for_uid = point_objects.clone();
     for point_object in point_objects.values_mut()
     {
-        let mut x = (point_object.get_x() * multiplier -
+        let mut x = (point_object.copy_x() * multiplier -
             (x_max + x_min) * multiplier / 2.0) / (min_canvas_side  / 2.0) *
             min_drawn_object_to_canvas_scale;
         if x.is_nan()
         {
             x = 0.0;
         }
-        let mut y = (point_object.get_y() * multiplier -
+        let mut y = (point_object.copy_y() * multiplier -
             (y_max + y_min) * multiplier / 2.0) / (min_canvas_side / 2.0) *
             min_drawn_object_to_canvas_scale;
         if y.is_nan()
         {
             y = 0.0;
         }
-        let mut z = (point_object.get_z() * multiplier -
+        let mut z = (point_object.copy_z() * multiplier -
             (z_max + z_min) * multiplier / 2.0) / (min_canvas_side / 2.0) *
             min_drawn_object_to_canvas_scale;
         if z.is_nan()

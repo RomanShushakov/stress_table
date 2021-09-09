@@ -114,51 +114,51 @@ impl LineObject
     }
 
 
-    pub fn get_uid(&self) -> u32
+    pub fn copy_uid(&self) -> u32
     {
         self.uid
     }
 
 
-    pub fn get_start_point_object_coordinates(&self,
+    pub fn copy_start_point_object_coordinates(&self,
         point_objects: &HashMap<PointObjectKey, PointObject>) -> Result<[f32; 3], JsValue>
     {
         Ok([point_objects.get(&self.start_point_object_key)
             .ok_or(JsValue::from("Renderer: Start point object coordinates extraction: \
-                Point object does not exist!"))?.get_normalized_x()?,
+                Point object does not exist!"))?.copy_normalized_x()?,
         point_objects.get(&self.start_point_object_key)
             .ok_or(JsValue::from("Renderer: Start point object coordinates extraction: \
-                Point object does not exist!"))?.get_normalized_y()?,
+                Point object does not exist!"))?.copy_normalized_y()?,
         point_objects.get(&self.start_point_object_key)
             .ok_or(JsValue::from("Renderer: Start point object coordinates extraction: \
-                Point object does not exist!"))?.get_normalized_z()?])
+                Point object does not exist!"))?.copy_normalized_z()?])
     }
 
 
-    pub fn get_end_point_object_coordinates(&self,
+    pub fn copy_end_point_object_coordinates(&self,
         point_objects: &HashMap<PointObjectKey, PointObject>) -> Result<[f32; 3], JsValue>
     {
         Ok([point_objects.get(&self.end_point_object_key)
             .ok_or(JsValue::from("Renderer: End point object coordinates extraction: \
                 Point object does not exist!"))?
-            .get_normalized_x()?,
+            .copy_normalized_x()?,
         point_objects.get(&self.end_point_object_key)
             .ok_or(JsValue::from("Renderer: End point object coordinates extraction: \
                 Point object does not exist!"))?
-            .get_normalized_y()?,
+            .copy_normalized_y()?,
         point_objects.get(&self.end_point_object_key)
             .ok_or(JsValue::from("Renderer: End point object coordinates extraction: \
                 Point object does not exist!"))?
-            .get_normalized_z()?])
+            .copy_normalized_z()?])
     }
 
 
     pub fn length(&self, point_objects: &HashMap<PointObjectKey, PointObject>) -> Result<f32, JsValue>
     {
         let start_point_object_coordinates =
-            self.get_start_point_object_coordinates(point_objects)?;
+            self.copy_start_point_object_coordinates(point_objects)?;
         let end_point_object_coordinates =
-            self.get_end_point_object_coordinates(point_objects)?;
+            self.copy_end_point_object_coordinates(point_objects)?;
         Ok(((start_point_object_coordinates[0] - end_point_object_coordinates[0]).powi(2) +
         (start_point_object_coordinates[1] - end_point_object_coordinates[1]).powi(2) +
         (start_point_object_coordinates[2] - end_point_object_coordinates[2]).powi(2)).sqrt())
@@ -169,9 +169,9 @@ impl LineObject
         -> Result<ExtendedMatrix<u32, f32>, JsValue>
     {
         let start_point_object_coordinates =
-            self.get_start_point_object_coordinates(point_objects)?;
+            self.copy_start_point_object_coordinates(point_objects)?;
         let end_point_object_coordinates =
-            self.get_end_point_object_coordinates(point_objects)?;
+            self.copy_end_point_object_coordinates(point_objects)?;
         let rotation_matrix = compose_rotation_matrix_for_vector(
             start_point_object_coordinates,
             end_point_object_coordinates);
@@ -179,7 +179,7 @@ impl LineObject
     }
 
 
-    pub fn get_color_scheme(&self) -> LineObjectColorScheme
+    pub fn copy_color_scheme(&self) -> LineObjectColorScheme
     {
         self.line_object_color_scheme
     }
@@ -201,7 +201,7 @@ pub struct LineObjectNumbers
 
 impl LineObjectNumbers
 {
-    pub fn extract_line_numbers(&self) -> &[u32]
+    pub fn ref_line_numbers(&self) -> &[u32]
     {
         self.line_numbers.as_slice()
     }
@@ -219,13 +219,13 @@ pub struct BeamSectionOrientation
 
 impl BeamSectionOrientation
 {
-    pub fn extract_line_numbers(&self) -> &[u32]
+    pub fn ref_line_numbers(&self) -> &[u32]
     {
         self.line_numbers.as_slice()
     }
 
 
-    pub fn extract_local_axis_1_direction(&self) -> [f32; 3]
+    pub fn copy_local_axis_1_direction(&self) -> [f32; 3]
     {
         self.local_axis_1_direction
     }

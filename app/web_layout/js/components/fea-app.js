@@ -144,6 +144,8 @@ class FeaApp extends HTMLElement {
         this.addEventListener("selected_line_elements", (event) => this.handleSelectedLineElementsMessage(event));
         this.addEventListener("selected_concentrated_loads_points_numbers", 
             (event) => this.handleSelectedConcentratedLoadsPointsNumbersMessage(event));
+        this.addEventListener("selected_distributed_line_loads_lines_numbers", 
+            (event) => this.handleSelectedDistributedLineLoadsLinesNumbersMessage(event));
 
         this.addEventListener("toggleGeometryVisibility", (event) => this.handleToggleGeometryVisibilityMessage(event));
         this.addEventListener("toggleMeshVisibility", (event) => this.handleToggleMeshVisibilityMessage(event));
@@ -447,9 +449,9 @@ class FeaApp extends HTMLElement {
                 this.querySelector("fea-preprocessor-menu").selectLineInClient = lineNumber;
             }   
         } else if ("concentrated_load_data" in objectInfo) {
-            const concentratedLoadpointNumber = objectInfo.concentrated_load_data.point_number;
+            const concentratedLoadPointNumber = objectInfo.concentrated_load_data.point_number;
             const composedObjectInfo = `Concentrated load: 
-                applied to point: ${concentratedLoadpointNumber},
+                applied to point: ${concentratedLoadPointNumber},
                 Fx: ${objectInfo.concentrated_load_data.fx},
                 Fy: ${objectInfo.concentrated_load_data.fy},
                 Fz: ${objectInfo.concentrated_load_data.fz},
@@ -458,7 +460,18 @@ class FeaApp extends HTMLElement {
                 Mz: ${objectInfo.concentrated_load_data.mz}`;
             this.shadowRoot.querySelector("fea-renderer").objectInfo = composedObjectInfo;          
             if (this.querySelector("fea-preprocessor-menu") !== null) {
-                this.querySelector("fea-preprocessor-menu").selectConcentratedLoadInClient = concentratedLoadpointNumber;
+                this.querySelector("fea-preprocessor-menu").selectConcentratedLoadInClient = concentratedLoadPointNumber;
+            }
+        } else if ("distributed_line_load_data" in objectInfo) {
+            const distributedLoadLineNumber = objectInfo.distributed_line_load_data.line_number;
+            const composedObjectInfo = `Distributed line load: 
+                applied to line: ${distributedLoadLineNumber},
+                Qx: ${objectInfo.distributed_line_load_data.qx},
+                Qy: ${objectInfo.distributed_line_load_data.qy},
+                Qz: ${objectInfo.distributed_line_load_data.qz}`;
+            this.shadowRoot.querySelector("fea-renderer").objectInfo = composedObjectInfo;          
+            if (this.querySelector("fea-preprocessor-menu") !== null) {
+                this.querySelector("fea-preprocessor-menu").selectDistributedLineLoadInClient = distributedLoadLineNumber;
             }
         } else {
             throw "Fea-app: Unknown object!";
@@ -607,6 +620,27 @@ class FeaApp extends HTMLElement {
             } else {
                 this.state.actionsRouter.show_concentrated_load_info(
                     BigInt(concentratedLoadPointNumber),
+                    (objectInfo) => this.showObjectInfoWithoutMenuOpeningHandler(objectInfo),
+                );
+            }
+        }
+        event.stopPropagation();
+    }
+
+    handleSelectedDistributedLineLoadsLinesNumbersMessage(event) {
+        const distributedLineLoadsLinesNumbers = event.detail.distributed_line_loads_lines_numbers;
+        if (distributedLineLoadsLinesNumbers.length > 1) {
+            console.log("Selected distributed line loads lines numbers: ", distributedLineLoadsLinesNumbers);
+        } else {
+            const distributedLineLoadLineNumber = distributedLineLoadsLinesNumbers[0];
+            if (this.state.isLinesSelectionModeEnabled === false) {
+                this.state.actionsRouter.show_distributed_line_load_info(
+                    BigInt(distributedLineLoadLineNumber),
+                    (objectInfo) => this.showObjectInfoHandler(objectInfo),
+                );
+            } else {
+                this.state.actionsRouter.show_distributed_line_load_info(
+                    BigInt(distributedLineLoadLineNumber),
                     (objectInfo) => this.showObjectInfoWithoutMenuOpeningHandler(objectInfo),
                 );
             }
@@ -1179,7 +1213,7 @@ class FeaApp extends HTMLElement {
                     .addDistributedLineLoadToClient = distributedLineLoad;
             }
         } 
-        // this.shadowRoot.querySelector("fea-renderer").addConcentratedLoadToRenderer = concentratedLoad;
+        this.shadowRoot.querySelector("fea-renderer").addDistributedLineLoadToRenderer = distributedLineLoad;
         event.stopPropagation();
     }
 
@@ -1198,7 +1232,7 @@ class FeaApp extends HTMLElement {
                     .updateDistributedLineLoadInClient = distributedLineLoad;
             }
         } 
-        // this.shadowRoot.querySelector("fea-renderer").updateConcentratedLoadInRenderer = concentratedLoad;
+        this.shadowRoot.querySelector("fea-renderer").updateDistributedLineLoadInRenderer = distributedLineLoad;
         event.stopPropagation();
     }
 
@@ -1213,7 +1247,7 @@ class FeaApp extends HTMLElement {
                     .deleteDistributedLineLoadFromClient = distributedLineLoad;
             }
         } 
-        // this.shadowRoot.querySelector("fea-renderer").deleteConcentratedLoadFromRenderer = concentratedLoad;
+        this.shadowRoot.querySelector("fea-renderer").deleteDistributedLineLoadFromRenderer = distributedLineLoad;
         event.stopPropagation();
     }
 

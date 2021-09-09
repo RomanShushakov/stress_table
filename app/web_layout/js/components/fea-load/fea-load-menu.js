@@ -118,7 +118,7 @@ class FeaLoadMenu extends HTMLElement {
         this.shadowRoot.querySelector(".load-type").addEventListener("change", () => this.defineLoadTypeForLoadMenuButtons());
     }
 
-    set selectConcentratedLoadInClient(concentratedLoadpointNumber) {
+    set selectConcentratedLoadInClient(concentratedLoadPointNumber) {
         const loadTypeSelect = this.shadowRoot.querySelector(".load-type");
                 const loadTypeOptions = loadTypeSelect.options;
                 for (let option, i = 0; option = loadTypeOptions[i]; i++) {
@@ -130,7 +130,22 @@ class FeaLoadMenu extends HTMLElement {
         this.defineLoadTypeForLoadMenuButtons();
         this.shadowRoot.querySelector("fea-load-menu-buttons").activateButton = "load-update-load-menu-button";
         this.querySelector("fea-load-update-concentrated-load-menu").selectConcentratedLoadInClient = 
-            concentratedLoadpointNumber;
+            concentratedLoadPointNumber;
+    }
+
+    set selectDistributedLineLoadInClient(distributedLineLoadLineNumber) {
+        const loadTypeSelect = this.shadowRoot.querySelector(".load-type");
+                const loadTypeOptions = loadTypeSelect.options;
+                for (let option, i = 0; option = loadTypeOptions[i]; i++) {
+                    if (option.value == "Distributed load") {
+                        loadTypeSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+        this.defineLoadTypeForLoadMenuButtons();
+        this.shadowRoot.querySelector("fea-load-menu-buttons").activateButton = "load-update-load-menu-button";
+        this.querySelector("fea-load-update-distributed-line-load-menu").selectDistributedLineLoadInClient = 
+            distributedLineLoadLineNumber;
     }
 
     connectedCallback() {

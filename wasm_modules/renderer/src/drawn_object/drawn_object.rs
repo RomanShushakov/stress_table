@@ -15,11 +15,13 @@ use crate::line_object::{LineObjectType, LineObjectColorScheme};
 
 use crate::concentrated_load::{ConcentratedLoad, Sign, Direction};
 
-use crate::drawn_object::consts::
-{
+use crate::distributed_line_load::DistributedLineLoad;
+
+use crate::drawn_object::consts::{
     DRAWN_POINTS_COLOR, DRAWN_NODES_COLOR, DRAWN_LINES_DEFAULT_COLOR, DRAWN_LINES_TRUSS_PROPS_COLOR,
     DRAWN_LINES_BEAM_PROPS_COLOR, DRAWN_ELEMENTS_COLOR, DRAWN_BEAM_SECTION_ORIENTATION_COLOR,
-    DRAWN_CONCENTRATED_LOADS_COLOR
+    DRAWN_CONCENTRATED_LOADS_COLOR, DRAWN_DISTRIBUTED_LINE_LOADS_COLOR,
+    NUMBER_OF_DISTRIBUTED_LINE_LOAD_ARROWS
 };
 
 use crate::consts::TOLERANCE;
@@ -225,29 +227,29 @@ impl DrawnObject
         for (i, (point_object_key, point_object))  in
             point_objects.iter().enumerate()
         {
-            if !*is_geometry_visible && point_object_key.get_object_type() == PointObjectType::Point
+            if !*is_geometry_visible && point_object_key.copy_object_type() == PointObjectType::Point
             {
                 excluded_point_objects += 1i32;
                 continue;
             }
 
-            if !*is_mesh_visible && point_object_key.get_object_type() == PointObjectType::Node
+            if !*is_mesh_visible && point_object_key.copy_object_type() == PointObjectType::Node
             {
                 excluded_point_objects += 1i32;
                 continue;
             }
 
-            let initial_color = match point_object_key.get_object_type()
+            let initial_color = match point_object_key.copy_object_type()
                 {
                     PointObjectType::Point => DRAWN_POINTS_COLOR,
                     PointObjectType::Node => DRAWN_NODES_COLOR,
                 };
             self.vertices_coordinates.extend(
-                &[point_object.get_normalized_x()?,
-                    point_object.get_normalized_y()?,
-                    point_object.get_normalized_z()?]);
+                &[point_object.copy_normalized_x()?,
+                    point_object.copy_normalized_y()?,
+                    point_object.copy_normalized_z()?]);
             let point_object_color = define_drawn_object_color(
-                &gl_mode, point_object.get_uid()?,
+                &gl_mode, point_object.copy_uid()?,
                 selected_colors, under_selection_box_colors, &initial_color);
             self.colors_values.extend(&point_object_color);
             self.indexes_numbers.push(start_index + i as u32);
@@ -292,7 +294,7 @@ impl DrawnObject
                 {
                     LineObjectType::Line =>
                         {
-                            match line_object.get_color_scheme()
+                            match line_object.copy_color_scheme()
                             {
                                 LineObjectColorScheme::Default => DRAWN_LINES_DEFAULT_COLOR,
                                 LineObjectColorScheme::TrussProps => DRAWN_LINES_TRUSS_PROPS_COLOR,
@@ -302,12 +304,12 @@ impl DrawnObject
                     LineObjectType::Element => DRAWN_ELEMENTS_COLOR,
                 };
             let line_object_color = define_drawn_object_color(&gl_mode,
-                line_object.get_uid(), selected_colors, under_selection_box_colors,
+                line_object.copy_uid(), selected_colors, under_selection_box_colors,
                 &initial_color);
             let start_point_object_coordinates =
-                line_object.get_start_point_object_coordinates(point_objects)?;
+                line_object.copy_start_point_object_coordinates(point_objects)?;
             let end_point_object_coordinates =
-                line_object.get_end_point_object_coordinates(point_objects)?;
+                line_object.copy_end_point_object_coordinates(point_objects)?;
             match gl_mode
             {
                 GLMode::Selection =>
@@ -426,8 +428,8 @@ impl DrawnObject
         base_radius: f32) -> Result<(), JsValue>
     {
         let local_axis_1_direction =
-            beam_section_orientation.extract_local_axis_1_direction();
-        for line_number in beam_section_orientation.extract_line_numbers()
+            beam_section_orientation.copy_local_axis_1_direction();
+        for line_number in beam_section_orientation.ref_line_numbers()
         {
             let line_object_key = LineObjectKey::create(*line_number,
                 LineObjectType::Line);
@@ -440,9 +442,9 @@ impl DrawnObject
                 let a_y = - local_axis_1_direction[1];
                 let a_z = - local_axis_1_direction[2];
                 let line_start_point_coordinates =
-                    line_object.get_start_point_object_coordinates(point_objects)?;
+                    line_object.copy_start_point_object_coordinates(point_objects)?;
                 let line_end_point_coordinates =
-                    line_object.get_end_point_object_coordinates(point_objects)?;
+                    line_object.copy_end_point_object_coordinates(point_objects)?;
                 let b_x = line_end_point_coordinates[0] - line_start_point_coordinates[0];
                 let b_y = line_end_point_coordinates[1] - line_start_point_coordinates[1];
                 let b_z = line_end_point_coordinates[2] - line_start_point_coordinates[2];
@@ -1193,74 +1195,171 @@ impl DrawnObject
         {
             let initial_color = DRAWN_CONCENTRATED_LOADS_COLOR;
             let concentrated_load_color = define_drawn_object_color(&gl_mode,
-                concentrated_load.get_uid(), selected_colors, under_selection_box_colors,
+                concentrated_load.copy_uid(), selected_colors, under_selection_box_colors,
                 &initial_color);
 
             let point_object_key = PointObjectKey::create(*point_number,
                 PointObjectType::Point);
             if let Some(point_object) = point_objects.get(&point_object_key)
             {
-                let start_coordinates = [point_object.get_normalized_x()?,
-                    point_object.get_normalized_y()?, point_object.get_normalized_z()?];
-                if let Some(sign) = concentrated_load.optional_fx_sign()
+                let start_coordinates = [point_object.copy_normalized_x()?,
+                    point_object.copy_normalized_y()?, point_object.copy_normalized_z()?];
+                if let Some(sign) = concentrated_load.ref_optional_fx_sign()
                 {
                     self.add_concentrated_load_line_for_force(&gl_mode, sign, &Direction::X,
                         &start_coordinates, line_length, base_points_number_for_lines, base_radius,
                         &concentrated_load_color);
                     self.add_concentrated_load_cap_for_force(sign, &Direction::X,
-                                                             &start_coordinates, line_length, base_points_number_for_caps, base_radius,
-                                                             height, &concentrated_load_color);
+                        &start_coordinates, line_length, base_points_number_for_caps, base_radius,
+                        height, &concentrated_load_color);
                 }
-                if let Some(sign) = concentrated_load.optional_fy_sign()
+                if let Some(sign) = concentrated_load.ref_optional_fy_sign()
                 {
                     self.add_concentrated_load_line_for_force(&gl_mode, sign,
-                                                              &Direction::Y, &start_coordinates, line_length,
-                                                              base_points_number_for_lines, base_radius, &concentrated_load_color);
+                        &Direction::Y, &start_coordinates, line_length,
+                        base_points_number_for_lines, base_radius, &concentrated_load_color);
                     self.add_concentrated_load_cap_for_force(sign, &Direction::Y,
-                                                             &start_coordinates, line_length, base_points_number_for_caps, base_radius,
-                                                             height, &concentrated_load_color);
+                        &start_coordinates, line_length, base_points_number_for_caps, base_radius,
+                        height, &concentrated_load_color);
                 }
-                if let Some(sign) = concentrated_load.optional_fz_sign()
+                if let Some(sign) = concentrated_load.ref_optional_fz_sign()
                 {
                     self.add_concentrated_load_line_for_force(&gl_mode, sign,
-                                                              &Direction::Z, &start_coordinates, line_length,
-                                                              base_points_number_for_lines, base_radius, &concentrated_load_color);
+                        &Direction::Z, &start_coordinates, line_length,
+                        base_points_number_for_lines, base_radius, &concentrated_load_color);
                     self.add_concentrated_load_cap_for_force(sign, &Direction::Z,
-                                                             &start_coordinates, line_length, base_points_number_for_caps, base_radius,
-                                                             height, &concentrated_load_color);
+                        &start_coordinates, line_length, base_points_number_for_caps, base_radius,
+                        height, &concentrated_load_color);
                 }
-                if let Some(sign) = concentrated_load.optional_mx_sign()
+                if let Some(sign) = concentrated_load.ref_optional_mx_sign()
                 {
                     self.add_concentrated_load_line_for_moment(&gl_mode, sign,
-                                                               &Direction::X, &start_coordinates, line_length,
-                                                               base_points_number_for_lines, base_radius, &concentrated_load_color);
+                        &Direction::X, &start_coordinates, line_length,
+                        base_points_number_for_lines, base_radius, &concentrated_load_color);
                     self.add_concentrated_load_cap_for_moment(sign, &Direction::X,
-                                                              &start_coordinates, line_length, base_points_number_for_caps, base_radius,
-                                                              height, &concentrated_load_color);
+                        &start_coordinates, line_length, base_points_number_for_caps, base_radius,
+                        height, &concentrated_load_color);
                 }
-                if let Some(sign) = concentrated_load.optional_my_sign()
+                if let Some(sign) = concentrated_load.ref_optional_my_sign()
                 {
                     self.add_concentrated_load_line_for_moment(&gl_mode, sign,
-                                                               &Direction::Y, &start_coordinates, line_length,
-                                                               base_points_number_for_lines, base_radius, &concentrated_load_color);
+                        &Direction::Y, &start_coordinates, line_length,
+                        base_points_number_for_lines, base_radius, &concentrated_load_color);
                     self.add_concentrated_load_cap_for_moment(sign, &Direction::Y,
-                                                              &start_coordinates, line_length, base_points_number_for_caps, base_radius,
-                                                              height, &concentrated_load_color);
+                        &start_coordinates, line_length, base_points_number_for_caps, base_radius,
+                        height, &concentrated_load_color);
                 }
-                if let Some(sign) = concentrated_load.optional_mz_sign()
+                if let Some(sign) = concentrated_load.ref_optional_mz_sign()
                 {
                     self.add_concentrated_load_line_for_moment(&gl_mode, sign,
-                                                               &Direction::Z, &start_coordinates, line_length,
-                                                               base_points_number_for_lines, base_radius, &concentrated_load_color);
+                        &Direction::Z, &start_coordinates, line_length,
+                        base_points_number_for_lines, base_radius, &concentrated_load_color);
                     self.add_concentrated_load_cap_for_moment(sign, &Direction::Z,
-                                                              &start_coordinates, line_length, base_points_number_for_caps, base_radius,
-                                                              height, &concentrated_load_color);
+                        &start_coordinates, line_length, base_points_number_for_caps, base_radius,
+                        height, &concentrated_load_color);
                 }
             }
             else
             {
                 let error_message = format!("Renderer: Point object extraction: \
                     Point with number {} does not exist!", point_number);
+                return Err(JsValue::from(error_message));
+            }
+        }
+        Ok(())
+    }
+
+
+    pub fn add_distributed_line_loads(&mut self,
+        point_objects: &HashMap<PointObjectKey, PointObject>,
+        line_objects: &HashMap<LineObjectKey, LineObject>,
+        distributed_line_loads: &HashMap<u32, DistributedLineLoad>, gl_mode: GLMode,
+        under_selection_box_colors: &Vec<u8>, selected_colors: &HashSet<[u8; 4]>,
+        line_length: f32, base_points_number_for_lines: u32, base_points_number_for_caps: u32,
+        height: f32, base_radius: f32) -> Result<(), JsValue>
+    {
+        for (line_number, distributed_line_load) in
+            distributed_line_loads.iter()
+        {
+            let initial_color = DRAWN_DISTRIBUTED_LINE_LOADS_COLOR;
+            let distributed_line_load_color = define_drawn_object_color(
+                &gl_mode, distributed_line_load.copy_uid(), selected_colors,
+                under_selection_box_colors, &initial_color);
+
+            let line_object_key = LineObjectKey::create(*line_number,
+                LineObjectType::Line);
+            if let Some(line_object) = line_objects.get(&line_object_key)
+            {
+                let line_start_point_coordinates =
+                    line_object.copy_start_point_object_coordinates(point_objects)?;
+                let line_end_point_coordinates =
+                    line_object.copy_end_point_object_coordinates(point_objects)?;
+
+                for i in 0..=NUMBER_OF_DISTRIBUTED_LINE_LOAD_ARROWS
+                {
+                    let start_coordinates =
+                        {
+                            if i == 0
+                            {
+                                line_start_point_coordinates
+                            }
+                            else if i == NUMBER_OF_DISTRIBUTED_LINE_LOAD_ARROWS
+                            {
+                                line_end_point_coordinates
+                            }
+                            else
+                            {
+                                [line_start_point_coordinates[0] +
+                                    (line_end_point_coordinates[0] -
+                                        line_start_point_coordinates[0]) /
+                                    (NUMBER_OF_DISTRIBUTED_LINE_LOAD_ARROWS - 1) as f32 * i as f32,
+                                line_start_point_coordinates[1] +
+                                    (line_end_point_coordinates[1] -
+                                        line_start_point_coordinates[1]) /
+                                    (NUMBER_OF_DISTRIBUTED_LINE_LOAD_ARROWS - 1) as f32 * i as f32,
+                                line_start_point_coordinates[2] +
+                                    (line_end_point_coordinates[2] -
+                                        line_start_point_coordinates[2]) /
+                                    (NUMBER_OF_DISTRIBUTED_LINE_LOAD_ARROWS - 1) as f32 * i as f32,
+                                ]
+                            }
+                        };
+                    if let Some(sign) = distributed_line_load.ref_optional_qx_sign()
+                    {
+                        self.add_concentrated_load_line_for_force(&gl_mode, sign,
+                            &Direction::X, &start_coordinates, -1f32 * line_length,
+                            base_points_number_for_lines, base_radius,
+                            &distributed_line_load_color);
+                        self.add_concentrated_load_cap_for_force(sign, &Direction::X,
+                            &start_coordinates, 0f32, base_points_number_for_caps,
+                            base_radius, height, &distributed_line_load_color);
+                    }
+                    if let Some(sign) = distributed_line_load.ref_optional_qy_sign()
+                    {
+                        self.add_concentrated_load_line_for_force(&gl_mode, sign,
+                            &Direction::Y, &start_coordinates, -1f32 * line_length,
+                            base_points_number_for_lines, base_radius,
+                            &distributed_line_load_color);
+                        self.add_concentrated_load_cap_for_force(sign, &Direction::Y,
+                            &start_coordinates, 0f32, base_points_number_for_caps,
+                            base_radius, height, &distributed_line_load_color);
+                    }
+                    if let Some(sign) = distributed_line_load.ref_optional_qz_sign()
+                    {
+                        self.add_concentrated_load_line_for_force(&gl_mode, sign,
+                            &Direction::Z, &start_coordinates, -1f32 * line_length,
+                            base_points_number_for_lines, base_radius,
+                            &distributed_line_load_color);
+                        self.add_concentrated_load_cap_for_force(sign, &Direction::Z,
+                            &start_coordinates, 0f32, base_points_number_for_caps,
+                            base_radius, height, &distributed_line_load_color);
+                    }
+                }
+            }
+            else
+            {
+                let error_message = format!("Renderer: Line object extraction: \
+                    Line with number {} does not exist!", line_number);
                 return Err(JsValue::from(error_message));
             }
         }

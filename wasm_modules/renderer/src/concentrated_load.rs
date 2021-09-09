@@ -81,43 +81,43 @@ impl ConcentratedLoad
     }
 
 
-    pub fn get_uid(&self) -> u32
+    pub fn copy_uid(&self) -> u32
     {
         self.uid
     }
 
 
-    pub fn optional_fx_sign(&self) -> &Option<Sign>
+    pub fn ref_optional_fx_sign(&self) -> &Option<Sign>
     {
         &self.optional_fx_sign
     }
 
 
-    pub fn optional_fy_sign(&self) -> &Option<Sign>
+    pub fn ref_optional_fy_sign(&self) -> &Option<Sign>
     {
         &self.optional_fy_sign
     }
 
 
-    pub fn optional_fz_sign(&self) -> &Option<Sign>
+    pub fn ref_optional_fz_sign(&self) -> &Option<Sign>
     {
         &self.optional_fz_sign
     }
 
 
-        pub fn optional_mx_sign(&self) -> &Option<Sign>
+    pub fn ref_optional_mx_sign(&self) -> &Option<Sign>
     {
         &self.optional_mx_sign
     }
 
 
-    pub fn optional_my_sign(&self) -> &Option<Sign>
+    pub fn ref_optional_my_sign(&self) -> &Option<Sign>
     {
         &self.optional_my_sign
     }
 
 
-    pub fn optional_mz_sign(&self) -> &Option<Sign>
+    pub fn ref_optional_mz_sign(&self) -> &Option<Sign>
     {
         &self.optional_mz_sign
     }

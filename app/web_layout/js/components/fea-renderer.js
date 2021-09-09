@@ -162,6 +162,34 @@ class FeaRenderer extends HTMLElement {
         }
     }
 
+    set addDistributedLineLoadToRenderer(distributedLineLoad) {
+        this.state.renderer.add_distributed_line_load(
+            distributedLineLoad.line_number, 
+            distributedLineLoad.qx, distributedLineLoad.qy, distributedLineLoad.qz);
+        if (this.state.isPaused === true)
+        {
+            this.state.renderer.tick();
+        }
+    }
+
+    set updateDistributedLineLoadInRenderer(distributedLineLoad) {
+        this.state.renderer.update_distributed_line_load(
+            distributedLineLoad.line_number, 
+            distributedLineLoad.qx, distributedLineLoad.qy, distributedLineLoad.qz);
+        if (this.state.isPaused === true)
+        {
+            this.state.renderer.tick();
+        }
+    }
+
+    set deleteDistributedLineLoadFromRenderer(distributedLineLoad) {
+        this.state.renderer.delete_distributed_line_load(distributedLineLoad.line_number);
+        if (this.state.isPaused === true)
+        {
+            this.state.renderer.tick();
+        }
+    }
+
     set addNodeToRenderer(node) {
         this.state.renderer.add_point_object(node.number, node.x, node.y, node.z, PointObjectType.Node);
         if (this.state.isPaused === true)

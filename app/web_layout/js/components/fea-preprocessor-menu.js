@@ -11,6 +11,7 @@ class FeaPreprocessorMenu extends HTMLElement {
                 "section-menu": "fea-section-menu",
                 "properties-menu": "fea-properties-menu",
                 "load-menu": "fea-load-menu",
+                "boundary-condition-menu": "fea-boundary-condition-menu",
             },
         };
 

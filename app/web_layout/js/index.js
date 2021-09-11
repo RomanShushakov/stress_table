@@ -65,6 +65,10 @@ import FeaLoadAddDistributedLineLoadMenu from "./components/fea-load/fea-load-ad
 import FeaLoadUpdateDistributedLineLoadMenu from "./components/fea-load/fea-load-update-distributed-line-load-menu.js";
 import FeaLoadDeleteDistributedLineLoadMenu from "./components/fea-load/fea-load-delete-distributed-line-load-menu.js";
 
+import FeaBoundaryConditionMenu from "./components/fea-boundary-condition/fea-boundary-condition-menu.js";
+import FeaBoundaryConditionMenuButtons from "./components/fea-boundary-condition/fea-boundary-condition-menu-buttons.js";
+import FeaBoundaryConditionAddBoundaryConditionMenu from "./components/fea-boundary-condition/fea-boundary-condition-add-boundary-condition-menu.js";
+
 customElements.define("fea-app", FeaApp);
 customElements.define("fea-app-menu-bar", FeaAppMenuBar);
 customElements.define("fea-app-tool-bar", FeaAppToolBar);
@@ -131,3 +135,7 @@ customElements.define("fea-load-delete-concentrated-load-menu", FeaLoadDeleteCon
 customElements.define("fea-load-add-distributed-line-load-menu", FeaLoadAddDistributedLineLoadMenu);
 customElements.define("fea-load-update-distributed-line-load-menu", FeaLoadUpdateDistributedLineLoadMenu);
 customElements.define("fea-load-delete-distributed-line-load-menu", FeaLoadDeleteDistributedLineLoadMenu);
+
+customElements.define("fea-boundary-condition-menu", FeaBoundaryConditionMenu);
+customElements.define("fea-boundary-condition-menu-buttons", FeaBoundaryConditionMenuButtons);
+customElements.define("fea-boundary-condition-add-boundary-condition-menu", FeaBoundaryConditionAddBoundaryConditionMenu);

@@ -19,6 +19,7 @@ class FeaApp extends HTMLElement {
                 "fea-geometry-add-line-menu",
                 "fea-geometry-update-line-menu",
                 "fea-load-add-concentrated-load-menu",
+                "fea-boundary-condition-add-boundary-condition-menu",
             ],
             linesDataDependentMenus: [
                 "fea-geometry-add-line-menu",

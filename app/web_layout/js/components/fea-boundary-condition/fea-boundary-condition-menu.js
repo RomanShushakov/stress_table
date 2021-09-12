@@ -7,7 +7,7 @@ class FeaBoundaryConditionMenu extends HTMLElement {
         this.state = {
             menuNames: {
                 "boundary-condition-add-boundary-condition-menu": "fea-boundary-condition-add-boundary-condition-menu",
-                "boundary-condition-update-boundary-condition-menu": "fea-material-update-material-menu",
+                "boundary-condition-update-boundary-condition-menu": "fea-boundary-condition-update-boundary-condition-menu",
                 "boundary-condition-delete-boundary-condition-menu": "fea-material-delete-material-menu",
             },
         };

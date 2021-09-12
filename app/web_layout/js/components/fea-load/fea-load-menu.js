@@ -41,6 +41,7 @@ class FeaLoadMenu extends HTMLElement {
                     margin-bottom: 0;
                     margin-left: 0;
                     margin-right: 0;
+                    align-items: baseline;
                 }
 
                 .load-menu-caption {

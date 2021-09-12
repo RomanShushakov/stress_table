@@ -1,11 +1,10 @@
-class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
+class FeaBoundaryConditionUpdateBoundaryConditionMenu extends HTMLElement {
     constructor() {
         super();
 
         this.props = {
             actionId: null,                 // u32;
             isFEModelLoaded: false,         // load status of wasm module "fe_model";
-            points: new Map(),              // map: { number: u32, { x: f64, y: f64, z: f64}, ... };
             boundaryConditions: new Map(),  // map: { point_number: u32, { ux: f64, uy: f64, uz: f64, rx: f64, ry: f64, rz: f64 }, ... };
         };
 
@@ -527,9 +526,9 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
             </div>
         `;
 
-        this.shadowRoot.querySelector(".apply-button").addEventListener("click", () => this.addBoundaryCondition());
+        this.shadowRoot.querySelector(".apply-button").addEventListener("click", () => this.updateBoundaryCondition());
 
-        this.shadowRoot.querySelector(".cancel-button").addEventListener("click", () => this.cancelBoundaryConditionAddition());
+        this.shadowRoot.querySelector(".cancel-button").addEventListener("click", () => this.cancelBoundaryConditionUpdate());
 
         this.shadowRoot.querySelector(".point-number").addEventListener("change", () => this.updateBoundaryConditionValues());
 
@@ -584,27 +583,8 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
         this.props.isFEModelLoaded = value;
     }
 
-    set points(value) {
-        this.props.points = value;
-    }
-
     set boundaryConditions(value) {
         this.props.boundaryConditions = value;
-    }
-
-    set addPointToClient(point) {
-        this.props.points.set(point.number, {"x": point.x, "y": point.y, "z": point.z});
-        this.defineBoundaryConditionOptions();
-    }
-
-    set updatePointInClient(point) {
-        this.props.points.set(point.number, {"x": point.x, "y": point.y, "z": point.z});
-        this.defineBoundaryConditionOptions();
-    }
-
-    set deletePointFromClient(point) {
-        this.props.points.delete(point.number);
-        this.defineBoundaryConditionOptions();
     }
 
     set addBoundaryConditionToClient(boundaryCondition) {
@@ -636,6 +616,24 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
         }
     }
 
+    set selectBoundaryConditionInClient(pointNumber) {
+        const frame = () => {
+            if (this.props.isFEModelLoaded === true) {
+                clearInterval(id);
+                const pointNumberSelect = this.shadowRoot.querySelector(".point-number");
+                const pointNumberOptions = pointNumberSelect.options;
+                for (let option, i = 0; option = pointNumberOptions[i]; i++) {
+                    if (option.value == pointNumber) {
+                        pointNumberSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+                this.updateBoundaryConditionValues();
+            }
+        }
+        const id = setInterval(frame, 10);
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {
@@ -648,7 +646,6 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
             this.getFEModelLoadStatus();
             if (this.props.isFEModelLoaded === true) {
                 clearInterval(id);
-                this.getPoints();
                 this.getBoundaryConditions();
                 this.defineBoundaryConditionOptions();
             }
@@ -683,13 +680,6 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
         }));
     }
 
-    getPoints() {
-        this.dispatchEvent(new CustomEvent("getPoints", {
-            bubbles: true,
-            composed: true,
-        }));
-    }
-
     getBoundaryConditions() {
         this.dispatchEvent(new CustomEvent("getBoundaryConditions", {
             bubbles: true,
@@ -702,8 +692,8 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
         for (let i = pointNumberSelect.length - 1; i >= 0; i--) {
             pointNumberSelect.options[i] = null;
         }
-        if (this.props.points.size > 0) {
-            const pointsNumbers = Array.from(this.props.points.keys()).sort((a, b) => a - b);
+        if (this.props.boundaryConditions.size > 0) {
+            const pointsNumbers = Array.from(this.props.boundaryConditions.keys()).sort((a, b) => a - b);
             for (let i = 0; i < pointsNumbers.length; i++) {
                 let pointNumberOption = document.createElement("option");
                 pointNumberOption.value = pointsNumbers[i];
@@ -739,33 +729,18 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
 
     updateBoundaryConditionValues() {
         const selectedPointNumber = this.shadowRoot.querySelector(".point-number").value;
-        if (this.props.boundaryConditions.get(parseInt(selectedPointNumber)) !== undefined) {
-            this.shadowRoot.querySelector(".ux").value = this.props.boundaryConditions.get(parseInt(selectedPointNumber)).ux;
-            this.dropHighlight(this.shadowRoot.querySelector(".ux"));
-            this.shadowRoot.querySelector(".uy").value = this.props.boundaryConditions.get(parseInt(selectedPointNumber)).uy;
-            this.dropHighlight(this.shadowRoot.querySelector(".uy"));
-            this.shadowRoot.querySelector(".uz").value = this.props.boundaryConditions.get(parseInt(selectedPointNumber)).uz;
-            this.dropHighlight(this.shadowRoot.querySelector(".uz"));
-            this.shadowRoot.querySelector(".rx").value = this.props.boundaryConditions.get(parseInt(selectedPointNumber)).rx;
-            this.dropHighlight(this.shadowRoot.querySelector(".rx"));
-            this.shadowRoot.querySelector(".ry").value = this.props.boundaryConditions.get(parseInt(selectedPointNumber)).ry;
-            this.dropHighlight(this.shadowRoot.querySelector(".ry"));
-            this.shadowRoot.querySelector(".rz").value = this.props.boundaryConditions.get(parseInt(selectedPointNumber)).rz;
-            this.dropHighlight(this.shadowRoot.querySelector(".rz"));
-        } else {
-            this.shadowRoot.querySelector(".ux").value = "";
-            this.dropHighlight(this.shadowRoot.querySelector(".ux"));
-            this.shadowRoot.querySelector(".uy").value = "";
-            this.dropHighlight(this.shadowRoot.querySelector(".uy"));
-            this.shadowRoot.querySelector(".uz").value = "";
-            this.dropHighlight(this.shadowRoot.querySelector(".uz"));
-            this.shadowRoot.querySelector(".rx").value = "";
-            this.dropHighlight(this.shadowRoot.querySelector(".rx"));
-            this.shadowRoot.querySelector(".ry").value = "";
-            this.dropHighlight(this.shadowRoot.querySelector(".ry"));
-            this.shadowRoot.querySelector(".rz").value = "";
-            this.dropHighlight(this.shadowRoot.querySelector(".rz"));
-        }
+        this.shadowRoot.querySelector(".ux").value = this.props.boundaryConditions.get(parseInt(selectedPointNumber)).ux;
+        this.dropHighlight(this.shadowRoot.querySelector(".ux"));
+        this.shadowRoot.querySelector(".uy").value = this.props.boundaryConditions.get(parseInt(selectedPointNumber)).uy;
+        this.dropHighlight(this.shadowRoot.querySelector(".uy"));
+        this.shadowRoot.querySelector(".uz").value = this.props.boundaryConditions.get(parseInt(selectedPointNumber)).uz;
+        this.dropHighlight(this.shadowRoot.querySelector(".uz"));
+        this.shadowRoot.querySelector(".rx").value = this.props.boundaryConditions.get(parseInt(selectedPointNumber)).rx;
+        this.dropHighlight(this.shadowRoot.querySelector(".rx"));
+        this.shadowRoot.querySelector(".ry").value = this.props.boundaryConditions.get(parseInt(selectedPointNumber)).ry;
+        this.dropHighlight(this.shadowRoot.querySelector(".ry"));
+        this.shadowRoot.querySelector(".rz").value = this.props.boundaryConditions.get(parseInt(selectedPointNumber)).rz;
+        this.dropHighlight(this.shadowRoot.querySelector(".rz"));
         this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
     }
 
@@ -781,7 +756,7 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
         }
     }
 
-    addBoundaryCondition() {
+    updateBoundaryCondition() {
         const selectedPointNumberField = this.shadowRoot.querySelector(".point-number");
         if (selectedPointNumberField.value == "") {
             if (selectedPointNumberField.classList.contains("highlighted") === false) {
@@ -853,15 +828,26 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
 
         this.getActionId();
 
-        const message = {"add_boundary_condition": {
+        const oldBoundaryConditionValues = this.props.boundaryConditions.get(parseInt(selectedPointNumberField.value));
+
+        const message = {"update_boundary_condition": {
             "actionId": this.props.actionId,
             "point_number": selectedPointNumberField.value, 
-            "ux": inputtedUXField.value != "" ? inputtedUXField.value : null,
-            "uy": inputtedUYField.value != "" ? inputtedUYField.value : null,
-            "uz": inputtedUZField.value != "" ? inputtedUZField.value : null,
-            "rx": inputtedRXField.value != "" ? inputtedRXField.value : null,
-            "ry": inputtedRYField.value != "" ? inputtedRYField.value : null,
-            "rz": inputtedRZField.value != "" ? inputtedRZField.value : null,
+            "old_boundary_condition_values": 
+                { 
+                    "ux": oldBoundaryConditionValues.ux, "uy": oldBoundaryConditionValues.uy,
+                    "uz": oldBoundaryConditionValues.uz, "rx": oldBoundaryConditionValues.rx,
+                    "ry": oldBoundaryConditionValues.ry, "rz": oldBoundaryConditionValues.rz,   
+                },
+            "new_boundary_condition_values": 
+                { 
+                    "ux": inputtedUXField.value != "" ? inputtedUXField.value : null,
+                    "uy": inputtedUYField.value != "" ? inputtedUYField.value : null,
+                    "uz": inputtedUZField.value != "" ? inputtedUZField.value : null,
+                    "rx": inputtedRXField.value != "" ? inputtedRXField.value : null,
+                    "ry": inputtedRYField.value != "" ? inputtedRYField.value : null,
+                    "rz": inputtedRZField.value != "" ? inputtedRZField.value : null,
+                }
         }};
 
         this.dispatchEvent(new CustomEvent("clientMessage", {
@@ -875,13 +861,13 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
         this.shadowRoot.querySelector(".point-number-filter").value = null;
     }
 
-    cancelBoundaryConditionAddition() {
-        if (this.props.points.size > 0) {
+    cancelBoundaryConditionUpdate() {
+        if (this.props.boundaryConditions.size > 0) {
             this.defineBoundaryConditionOptions();
         }
         this.shadowRoot.querySelector(".point-number-filter").value = null;
-        const selectedPointNumberField = this.shadowRoot.querySelector(".point-number");
-        this.dropHighlight(selectedPointNumberField);
+        const selectedPointNumberForUpdateField = this.shadowRoot.querySelector(".point-number");
+        this.dropHighlight(selectedPointNumberForUpdateField);
         const inputtedUXField = this.shadowRoot.querySelector(".ux");
         this.dropHighlight(inputtedUXField);
         const inputtedUYField = this.shadowRoot.querySelector(".uy");
@@ -911,4 +897,4 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
       }
 }
 
-export default FeaBoundaryConditionAddBoundaryConditionMenu;
+export default FeaBoundaryConditionUpdateBoundaryConditionMenu;

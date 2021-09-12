@@ -77,7 +77,12 @@ class FeaApp extends HTMLElement {
                 "fea-load-add-distributed-line-load-menu",
                 "fea-load-update-distributed-line-load-menu",
                 "fea-load-delete-distributed-line-load-menu",
-            ]
+            ],
+            boundaryConditionsDataDependentMenus: [
+                "fea-boundary-condition-add-boundary-condition-menu",
+                "fea-boundary-condition-update-boundary-condition-menu",
+                "fea-boundary-condition-delete-boundary-condition-menu",
+            ],
         };
 
         this.attachShadow({ mode: "open" });

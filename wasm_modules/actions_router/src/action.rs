@@ -179,7 +179,7 @@ pub enum LoadsActionType
     // ( point_number, ConcentratedLoad, is_action_id_should_be_increased )
     AddConcentratedLoad(FEUInt, ConcentratedLoad, bool),
 
-    // ( point_number, ConcentratedLoad, ConcentratedLoad, is_action_id_should_be_increased )
+    // ( point_number, old ConcentratedLoad, new ConcentratedLoad, is_action_id_should_be_increased )
     UpdateConcentratedLoad(FEUInt, ConcentratedLoad, ConcentratedLoad, bool),
 
     // ( point_number, is_action_id_should_be_increased )
@@ -191,7 +191,7 @@ pub enum LoadsActionType
     // ( line_number, DistributedLineLoad, is_action_id_should_be_increased )
     AddDistributedLineLoad(FEUInt, DistributedLineLoad, bool),
 
-    // ( line_number, DistributedLineLoad, DistributedLineLoad, is_action_id_should_be_increased )
+    // ( line_number, old DistributedLineLoad, new DistributedLineLoad, is_action_id_should_be_increased )
     UpdateDistributedLineLoad(FEUInt, DistributedLineLoad, DistributedLineLoad, bool),
 
     // ( line_number, is_action_id_should_be_increased )
@@ -202,12 +202,54 @@ pub enum LoadsActionType
 }
 
 
+#[derive(Clone, Debug)]
+pub struct BoundaryCondition
+{
+    pub optional_ux: Option<FEFloat>,
+    pub optional_uy: Option<FEFloat>,
+    pub optional_uz: Option<FEFloat>,
+    pub optional_rx: Option<FEFloat>,
+    pub optional_ry: Option<FEFloat>,
+    pub optional_rz: Option<FEFloat>,
+}
+
+
+#[derive(Debug, Clone)]
+pub enum BoundaryConditionsActionType
+{
+    // ( point_number, BoundaryCondition, is_action_id_should_be_increased )
+    AddBoundaryCondition(FEUInt, BoundaryCondition, bool),
+
+    // ( point_number, old BoundaryCondition, new BoundaryCondition, is_action_id_should_be_increased )
+    UpdateBoundaryCondition(FEUInt, BoundaryCondition, BoundaryCondition, bool),
+
+    // ( point_number, is_action_id_should_be_increased )
+    DeleteBoundaryCondition(FEUInt, bool),
+
+    // ( point_number, is_action_id_should_be_increased )
+    RestoreBoundaryCondition(FEUInt, bool),
+}
+
+
+impl BoundaryCondition
+{
+    pub fn create(optional_ux: Option<FEFloat>, optional_uy: Option<FEFloat>,
+        optional_uz: Option<FEFloat>, optional_rx: Option<FEFloat>, optional_ry: Option<FEFloat>,
+        optional_rz: Option<FEFloat>) -> BoundaryCondition
+    {
+        BoundaryCondition { optional_ux, optional_uy, optional_uz, optional_rx, optional_ry,
+            optional_rz }
+    }
+}
+
+
 #[derive(Debug, Clone)]
 pub enum ActionType
 {
     GeometryActionType(GeometryActionType),
     PropertiesActionType(PropertiesActionType),
     LoadsActionType(LoadsActionType),
+    BoundaryConditionsActionType(BoundaryConditionsActionType),
 }
 
 
@@ -234,6 +276,15 @@ impl From<LoadsActionType> for ActionType
     fn from(action_type: LoadsActionType) -> Self
     {
         ActionType::LoadsActionType(action_type)
+    }
+}
+
+
+impl From<BoundaryConditionsActionType> for ActionType
+{
+    fn from(action_type: BoundaryConditionsActionType) -> Self
+    {
+        ActionType::BoundaryConditionsActionType(action_type)
     }
 }
 

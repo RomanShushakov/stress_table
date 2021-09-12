@@ -331,6 +331,17 @@ impl FEModel
     }
 
 
+    pub fn add_boundary_condition(&mut self, action_id: FEUInt, point_number: FEUInt,
+        optional_ux: Option<FEFloat>, optional_uy: Option<FEFloat>, optional_uz: Option<FEFloat>,
+        optional_rx: Option<FEFloat>, optional_ry: Option<FEFloat>, optional_rz: Option<FEFloat>,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        // self.preprocessor.add_concentrated_load(action_id, point_number, fx, fy, fz, mx, my, mz,
+        // is_action_id_should_be_increased)
+        Ok(())
+    }
+
+
     pub fn extract_points(&self, handler: js_sys::Function) -> Result<(), JsValue>
     {
         self.preprocessor.extract_points(handler)

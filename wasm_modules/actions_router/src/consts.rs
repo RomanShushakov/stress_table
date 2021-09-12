@@ -45,5 +45,9 @@ pub const ADD_DISTRIBUTED_LINE_LOAD_MESSAGE_HEADER: &str = "add_distributed_line
 pub const UPDATE_DISTRIBUTED_LINE_LOAD_MESSAGE_HEADER: &str = "update_distributed_line_load";
 pub const DELETE_DISTRIBUTED_LINE_LOAD_MESSAGE_HEADER: &str = "delete_distributed_line_load";
 
+pub const ADD_BOUNDARY_CONDITION_MESSAGE_HEADER: &str = "add_boundary_condition";
+pub const UPDATE_BOUNDARY_CONDITION_MESSAGE_HEADER: &str = "update_boundary_condition";
+pub const DELETE_BOUNDARY_CONDITION_MESSAGE_HEADER: &str = "delete_boundary_condition";
+
 pub const UNDO_MESSAGE_HEADER: &str = "undo";
 pub const REDO_MESSAGE_HEADER: &str = "redo";

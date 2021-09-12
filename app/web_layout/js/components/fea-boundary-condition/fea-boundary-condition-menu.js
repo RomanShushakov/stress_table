@@ -8,7 +8,7 @@ class FeaBoundaryConditionMenu extends HTMLElement {
             menuNames: {
                 "boundary-condition-add-boundary-condition-menu": "fea-boundary-condition-add-boundary-condition-menu",
                 "boundary-condition-update-boundary-condition-menu": "fea-boundary-condition-update-boundary-condition-menu",
-                "boundary-condition-delete-boundary-condition-menu": "fea-material-delete-material-menu",
+                "boundary-condition-delete-boundary-condition-menu": "fea-boundary-condition-delete-boundary-condition-menu",
             },
         };
 

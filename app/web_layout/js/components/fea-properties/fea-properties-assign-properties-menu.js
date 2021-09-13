@@ -888,9 +888,8 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
                     },
                 }));
             } else {
-                let selectedAssignedPropertiesLineNumbers = Array.from(
-                    Object.keys(selectedAssignedPropertiesToLinesInProps.related_lines_data));
-                selectedAssignedPropertiesLineNumbers = selectedAssignedPropertiesLineNumbers.map((item) => parseInt(item));
+                const selectedAssignedPropertiesLineNumbers = Array.from(
+                    selectedAssignedPropertiesToLinesInProps.related_lines_data, (item) => parseInt(item.line_number));
 
                 this.getActionId();
                 const message = {

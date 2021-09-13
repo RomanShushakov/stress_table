@@ -21,7 +21,7 @@ use line_object::{LineObjectType, LineObjectColorScheme};
 mod drawn_object;
 use drawn_object::drawn_object::DrawnObjectTrait;
 use drawn_object::drawn_object::DrawnObject;
-use drawn_object::drawn_object::{CSAxis, GLMode};
+use drawn_object::drawn_object::GLMode;
 use drawn_object::cs_axes_drawn_object::CSAxesDrawnObject;
 use drawn_object::consts::
 {
@@ -43,6 +43,8 @@ use drawn_object::consts::
     DRAWN_CONCENTRATED_LOADS_CAPS_WIDTH, DRAWN_CONCENTRATED_LOADS_CAPS_BASE_POINTS_NUMBER,
     DRAWN_DISTRIBUTED_LINE_LOADS_LINE_LENGTH, DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_BASE_POINTS_NUMBER,
     DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_HEIGHT, DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_WIDTH,
+    DRAWN_BOUNDARY_CONDITION_CAPS_BASE_POINTS_NUMBER, DRAWN_BOUNDARY_CONDITION_CAPS_HEIGHT,
+    DRAWN_BOUNDARY_CONDITION_CAPS_WIDTH,
 
 };
 
@@ -51,6 +53,9 @@ use concentrated_load::ConcentratedLoad;
 
 mod distributed_line_load;
 use distributed_line_load::DistributedLineLoad;
+
+mod boundary_condition;
+use boundary_condition::BoundaryCondition;
 
 mod buffer_objects;
 use crate::buffer_objects::BufferObjects;
@@ -127,7 +132,7 @@ struct State
     beam_section_orientation_for_preview: Option<BeamSectionOrientation>,
     concentrated_loads: HashMap<u32, ConcentratedLoad>,
     distributed_line_loads: HashMap<u32, DistributedLineLoad>,
-    boundary_conditions: Vec<u32>,
+    boundary_conditions: HashMap<u32, BoundaryCondition>,
     selection_box_start_x: Option<i32>,
     selection_box_start_y: Option<i32>,
 }
@@ -191,7 +196,7 @@ impl Renderer
             beam_section_orientation_for_preview: None,
             concentrated_loads: HashMap::new(),
             distributed_line_loads: HashMap::new(),
-            boundary_conditions: Vec::new(),
+            boundary_conditions: HashMap::new(),
             selection_box_start_x: None,
             selection_box_start_y: None,
         };
@@ -270,6 +275,18 @@ impl Renderer
                     DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_HEIGHT /
                         (1.0 + self.props.d_scale),
                     DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_WIDTH /
+                        (1.0 + self.props.d_scale))?;
+            }
+            if !self.state.boundary_conditions.is_empty()
+            {
+                drawn_object_for_selection.add_boundary_conditions(&self.props.point_objects,
+                    &self.state.boundary_conditions, GLMode::Selection,
+                    &self.state.under_selection_box_colors,
+                    &self.state.selected_colors,
+                    DRAWN_BOUNDARY_CONDITION_CAPS_BASE_POINTS_NUMBER,
+                    DRAWN_BOUNDARY_CONDITION_CAPS_HEIGHT /
+                        (1.0 + self.props.d_scale),
+                    DRAWN_BOUNDARY_CONDITION_CAPS_WIDTH /
                         (1.0 + self.props.d_scale))?;
             }
             self.state.drawn_object_for_selection = Some(drawn_object_for_selection);
@@ -356,6 +373,18 @@ impl Renderer
                     DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_HEIGHT /
                         (1.0 + self.props.d_scale),
                     DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_WIDTH /
+                        (1.0 + self.props.d_scale))?;
+            }
+            if !self.state.boundary_conditions.is_empty()
+            {
+                drawn_object_visible.add_boundary_conditions(&self.props.point_objects,
+                    &self.state.boundary_conditions, GLMode::Visible,
+                    &self.state.under_selection_box_colors,
+                    &self.state.selected_colors,
+                    DRAWN_BOUNDARY_CONDITION_CAPS_BASE_POINTS_NUMBER,
+                    DRAWN_BOUNDARY_CONDITION_CAPS_HEIGHT /
+                        (1.0 + self.props.d_scale),
+                    DRAWN_BOUNDARY_CONDITION_CAPS_WIDTH /
                         (1.0 + self.props.d_scale))?;
             }
             self.state.drawn_object_visible = Some(drawn_object_visible);

@@ -1300,7 +1300,7 @@ class FeaApp extends HTMLElement {
                     .addBoundaryConditionToClient = boundaryCondition;
             }
         } 
-        // this.shadowRoot.querySelector("fea-renderer").addConcentratedLoadToRenderer = concentratedLoad;
+        this.shadowRoot.querySelector("fea-renderer").addBoundaryConditionToRenderer = boundaryCondition;
         event.stopPropagation();
     }
 
@@ -1322,7 +1322,7 @@ class FeaApp extends HTMLElement {
                     .updateBoundaryConditionInClient = boundaryCondition;
             }
         } 
-        // this.shadowRoot.querySelector("fea-renderer").updateConcentratedLoadInRenderer = concentratedLoad;
+        this.shadowRoot.querySelector("fea-renderer").updateBoundaryConditionInRenderer = boundaryCondition;
         event.stopPropagation();
     }
 
@@ -1337,7 +1337,7 @@ class FeaApp extends HTMLElement {
                     .deleteBoundaryConditionFromClient = boundaryCondition;
             }
         } 
-        // this.shadowRoot.querySelector("fea-renderer").deleteConcentratedLoadFromRenderer = concentratedLoad;
+        this.shadowRoot.querySelector("fea-renderer").deleteBoundaryConditionFromRenderer = boundaryCondition;
         event.stopPropagation();
     }
 

@@ -13,15 +13,17 @@ use crate::point_object::{PointObjectType};
 use crate::line_object::{LineObject, LineObjectKey, BeamSectionOrientation};
 use crate::line_object::{LineObjectType, LineObjectColorScheme};
 
-use crate::concentrated_load::{ConcentratedLoad, Sign, Direction};
+use crate::concentrated_load::{ConcentratedLoad, Sign, CSAxis};
 
 use crate::distributed_line_load::DistributedLineLoad;
+
+use crate::boundary_condition::BoundaryCondition;
 
 use crate::drawn_object::consts::{
     DRAWN_POINTS_COLOR, DRAWN_NODES_COLOR, DRAWN_LINES_DEFAULT_COLOR, DRAWN_LINES_TRUSS_PROPS_COLOR,
     DRAWN_LINES_BEAM_PROPS_COLOR, DRAWN_ELEMENTS_COLOR, DRAWN_BEAM_SECTION_ORIENTATION_COLOR,
     DRAWN_CONCENTRATED_LOADS_COLOR, DRAWN_DISTRIBUTED_LINE_LOADS_COLOR,
-    NUMBER_OF_DISTRIBUTED_LINE_LOAD_ARROWS
+    NUMBER_OF_DISTRIBUTED_LINE_LOAD_ARROWS, DRAWN_BOUNDARY_CONDITION_COLOR,
 };
 
 use crate::consts::TOLERANCE;
@@ -29,7 +31,6 @@ use crate::consts::TOLERANCE;
 use crate::functions::{define_drawn_object_color, compose_rotation_matrix_for_vector};
 
 use crate::log;
-
 
 // pub const CANVAS_BACKGROUND_COLOR: &str = "black";
 
@@ -45,16 +46,6 @@ pub const DRAWN_DISPLACEMENTS_DENOTATION_SHIFT_Y: f32 = 0.015;
 
 pub const DRAWN_FORCES_COLOR: [f32; 4] = [1.0, 0.0, 1.0, 1.0]; // magenta
 pub const CANVAS_DRAWN_FORCES_DENOTATION_COLOR: &str = "magenta";
-
-pub const DRAWN_FORCES_LINE_LENGTH: f32 = 0.07; // line length
-pub const DRAWN_FORCES_CAPS_HEIGHT: f32 = 0.015; // arrow length
-pub const DRAWN_FORCES_CAPS_WIDTH: f32 = 0.007; // half of arrow width
-pub const DRAWN_FORCES_CAPS_BASE_POINTS_NUMBER: u32 = 12; // the number of points in cone circular base
-pub const DRAWN_FORCES_LINE_LENGTH_COEFFICIENT: f32 = 1.5; // line length coefficient for moments values
-pub const DRAWN_FORCES_CAPS_LENGTH_COEFFICIENT: f32 = 1.5; // line length coefficient for moments values
-
-pub const DRAWN_FORCES_DENOTATION_SHIFT_X: f32 = 0.01;
-pub const DRAWN_FORCES_DENOTATION_SHIFT_Y: f32 = 0.01;
 
 pub const HINT_SHIFT_X: f32 = 0.05;
 pub const ROTATION_HINT_SHIFT_Y: f32 = 0.85;
@@ -99,12 +90,6 @@ pub trait DrawnObjectTrait
     fn get_colors_values(&self) -> &[f32];
     fn get_indexes_numbers(&self) -> &[u32];
     fn draw(&self, gl: &GL);
-}
-
-
-pub enum CSAxis
-{
-    X, Y, Z,
 }
 
 
@@ -597,7 +582,7 @@ impl DrawnObject
 
 
     fn add_concentrated_load_line_for_force(&mut self, gl_mode: &GLMode, sign: &Sign,
-        direction: &Direction, start_coordinates: &[f32; 3], line_length: f32,
+        cs_axis: &CSAxis, start_coordinates: &[f32; 3], line_length: f32,
         base_points_number_for_lines: u32, base_radius: f32,
         concentrated_load_color: &[f32; 4])
     {
@@ -608,21 +593,21 @@ impl DrawnObject
 
         let end_coordinates =
             {
-                match direction
+                match cs_axis
                 {
-                    Direction::X =>
+                    CSAxis::X =>
                         {
                             [start_coordinates[0] + line_length * multiplier,
                             start_coordinates[1],
                             start_coordinates[2]]
                         },
-                    Direction::Y =>
+                    CSAxis::Y =>
                         {
                             [start_coordinates[0],
                             start_coordinates[1] + line_length * multiplier,
                             start_coordinates[2]]
                         },
-                    Direction::Z =>
+                    CSAxis::Z =>
                         {
                              [start_coordinates[0],
                              start_coordinates[1],
@@ -654,23 +639,23 @@ impl DrawnObject
                                 };
                             let updated_start_point_coordinates =
                                 {
-                                    match direction
+                                    match cs_axis
                                     {
-                                        Direction::X =>
+                                        CSAxis::X =>
                                             {
                                                 [start_coordinates[0] + coordinate_shift *
                                                     multiplier,
                                                 start_coordinates[1] + local_y,
                                                 start_coordinates[2] + local_x]
                                             },
-                                        Direction::Y =>
+                                        CSAxis::Y =>
                                             {
                                                 [start_coordinates[0] + local_y,
                                                 start_coordinates[1] + coordinate_shift *
                                                     multiplier,
                                                 start_coordinates[2] + local_x]
                                             },
-                                        Direction::Z =>
+                                        CSAxis::Z =>
                                             {
                                                 [start_coordinates[0] + local_x,
                                                 start_coordinates[1] + local_x,
@@ -682,21 +667,21 @@ impl DrawnObject
 
                             let updated_end_point_coordinates =
                                 {
-                                    match direction
+                                    match cs_axis
                                     {
-                                        Direction::X =>
+                                        CSAxis::X =>
                                             {
                                                 [end_coordinates[0] - coordinate_shift * multiplier,
                                                 end_coordinates[1] + local_y,
                                                 end_coordinates[2] + local_x]
                                             },
-                                        Direction::Y =>
+                                        CSAxis::Y =>
                                             {
                                                 [end_coordinates[0] + local_y,
                                                 end_coordinates[1] - coordinate_shift * multiplier,
                                                 end_coordinates[2] + local_x]
                                             },
-                                        Direction::Z =>
+                                        CSAxis::Z =>
                                             {
                                                 [end_coordinates[0] + local_x,
                                                 end_coordinates[1] + local_y,
@@ -732,7 +717,7 @@ impl DrawnObject
     }
 
 
-    fn add_concentrated_load_cap_for_force(&mut self, sign: &Sign, direction: &Direction,
+    fn add_concentrated_load_cap_for_force(&mut self, sign: &Sign, cs_axis: &CSAxis,
         start_coordinates: &[f32; 3], line_length: f32, base_points_number_for_caps: u32,
         base_radius: f32, height: f32, concentrated_load_color: &[f32; 4])
     {
@@ -740,21 +725,21 @@ impl DrawnObject
 
         let cap_vertex_coordinates =
             {
-                match direction
+                match cs_axis
                 {
-                    Direction::X =>
+                    CSAxis::X =>
                         {
                             [start_coordinates[0] + line_length * multiplier,
                             start_coordinates[1],
                             start_coordinates[2]]
                         },
-                    Direction::Y =>
+                    CSAxis::Y =>
                         {
                             [start_coordinates[0],
                             start_coordinates[1] + line_length * multiplier,
                             start_coordinates[2]]
                         },
-                    Direction::Z =>
+                    CSAxis::Z =>
                         {
                             [start_coordinates[0],
                             start_coordinates[1],
@@ -791,21 +776,21 @@ impl DrawnObject
         {
             let coordinates =
                 {
-                    match direction
+                    match cs_axis
                     {
-                        Direction::X =>
+                        CSAxis::X =>
                             {
                                 [cap_vertex_coordinates[0] - height * multiplier,
                                 cap_vertex_coordinates[1] + local_y,
                                 cap_vertex_coordinates[2] + local_x]
                             },
-                        Direction::Y =>
+                        CSAxis::Y =>
                             {
                                 [cap_vertex_coordinates[0] + local_y,
                                 cap_vertex_coordinates[1] - height * multiplier,
                                 cap_vertex_coordinates[2] + local_x]
                             },
-                        Direction::Z =>
+                        CSAxis::Z =>
                             {
                                 [cap_vertex_coordinates[0] + local_x ,
                                 cap_vertex_coordinates[1] + local_y,
@@ -841,7 +826,7 @@ impl DrawnObject
 
 
     fn add_concentrated_load_line_for_moment(&mut self, gl_mode: &GLMode, sign: &Sign,
-        direction: &Direction, start_coordinates: &[f32; 3], line_length: f32,
+        cs_axis: &CSAxis, start_coordinates: &[f32; 3], line_length: f32,
         base_points_number_for_lines: u32, base_radius: f32,
         concentrated_load_color: &[f32; 4])
     {
@@ -852,21 +837,21 @@ impl DrawnObject
 
         let end_coordinates =
             {
-                match direction
+                match cs_axis
                 {
-                    Direction::X =>
+                    CSAxis::X =>
                         {
                             [start_coordinates[0] + line_length * multiplier * 0.67,
                             start_coordinates[1],
                             start_coordinates[2]]
                         },
-                    Direction::Y =>
+                    CSAxis::Y =>
                         {
                             [start_coordinates[0],
                             start_coordinates[1] + line_length * multiplier * 0.67,
                             start_coordinates[2]]
                         },
-                    Direction::Z =>
+                    CSAxis::Z =>
                         {
                              [start_coordinates[0],
                              start_coordinates[1],
@@ -898,23 +883,23 @@ impl DrawnObject
                                 };
                             let updated_start_point_coordinates =
                                 {
-                                    match direction
+                                    match cs_axis
                                     {
-                                        Direction::X =>
+                                        CSAxis::X =>
                                             {
                                                 [start_coordinates[0] + coordinate_shift *
                                                     multiplier,
                                                 start_coordinates[1] + local_y,
                                                 start_coordinates[2] + local_x]
                                             },
-                                        Direction::Y =>
+                                        CSAxis::Y =>
                                             {
                                                 [start_coordinates[0] + local_y,
                                                 start_coordinates[1] + coordinate_shift *
                                                     multiplier,
                                                 start_coordinates[2] + local_x]
                                             },
-                                        Direction::Z =>
+                                        CSAxis::Z =>
                                             {
                                                 [start_coordinates[0] + local_x,
                                                 start_coordinates[1] + local_x,
@@ -926,23 +911,23 @@ impl DrawnObject
 
                             let updated_end_point_coordinates =
                                 {
-                                    match direction
+                                    match cs_axis
                                     {
-                                        Direction::X =>
+                                        CSAxis::X =>
                                             {
                                                 [end_coordinates[0] - coordinate_shift *
                                                     multiplier,
                                                 end_coordinates[1] + local_y,
                                                 end_coordinates[2] + local_x]
                                             },
-                                        Direction::Y =>
+                                        CSAxis::Y =>
                                             {
                                                 [end_coordinates[0] + local_y,
                                                 end_coordinates[1] - coordinate_shift *
                                                     multiplier,
                                                 end_coordinates[2] + local_x]
                                             },
-                                        Direction::Z =>
+                                        CSAxis::Z =>
                                             {
                                                 [end_coordinates[0] + local_x,
                                                 end_coordinates[1] + local_y,
@@ -979,7 +964,7 @@ impl DrawnObject
     }
 
 
-    fn add_concentrated_load_cap_for_moment(&mut self, sign: &Sign, direction: &Direction,
+    fn add_concentrated_load_cap_for_moment(&mut self, sign: &Sign, cs_axis: &CSAxis,
         start_coordinates: &[f32; 3], line_length: f32, base_points_number_for_caps: u32,
         base_radius: f32, height: f32, concentrated_load_color: &[f32; 4])
     {
@@ -987,21 +972,21 @@ impl DrawnObject
 
         let first_cap_vertex_coordinates =
             {
-                match direction
+                match cs_axis
                 {
-                    Direction::X =>
+                    CSAxis::X =>
                         {
                             [start_coordinates[0] + line_length * multiplier * 0.67,
                             start_coordinates[1],
                             start_coordinates[2]]
                         },
-                    Direction::Y =>
+                    CSAxis::Y =>
                         {
                             [start_coordinates[0],
                             start_coordinates[1] + line_length * multiplier * 0.67,
                             start_coordinates[2]]
                         },
-                    Direction::Z =>
+                    CSAxis::Z =>
                         {
                             [start_coordinates[0],
                             start_coordinates[1],
@@ -1038,21 +1023,21 @@ impl DrawnObject
         {
             let coordinates =
                 {
-                    match direction
+                    match cs_axis
                     {
-                        Direction::X =>
+                        CSAxis::X =>
                             {
                                 [first_cap_vertex_coordinates[0] - height * multiplier,
                                 first_cap_vertex_coordinates[1] + local_y,
                                 first_cap_vertex_coordinates[2] + local_x]
                             },
-                        Direction::Y =>
+                        CSAxis::Y =>
                             {
                                 [first_cap_vertex_coordinates[0] + local_y,
                                 first_cap_vertex_coordinates[1] - height * multiplier,
                                 first_cap_vertex_coordinates[2] + local_x]
                             },
-                        Direction::Z =>
+                        CSAxis::Z =>
                             {
                                 [first_cap_vertex_coordinates[0] + local_x ,
                                 first_cap_vertex_coordinates[1] + local_y,
@@ -1083,21 +1068,21 @@ impl DrawnObject
 
         let second_cap_vertex_coordinates =
             {
-                match direction
+                match cs_axis
                 {
-                    Direction::X =>
+                    CSAxis::X =>
                         {
                             [start_coordinates[0] + (line_length * 0.67 - height) * multiplier,
                             start_coordinates[1],
                             start_coordinates[2]]
                         },
-                    Direction::Y =>
+                    CSAxis::Y =>
                         {
                             [start_coordinates[0],
                             start_coordinates[1] + (line_length * 0.67 - height) * multiplier,
                             start_coordinates[2]]
                         },
-                    Direction::Z =>
+                    CSAxis::Z =>
                         {
                             [start_coordinates[0],
                             start_coordinates[1],
@@ -1134,21 +1119,21 @@ impl DrawnObject
         {
             let coordinates =
                 {
-                    match direction
+                    match cs_axis
                     {
-                        Direction::X =>
+                        CSAxis::X =>
                             {
                                 [second_cap_vertex_coordinates[0] - height * multiplier,
                                 second_cap_vertex_coordinates[1] + local_y,
                                 second_cap_vertex_coordinates[2] + local_x]
                             },
-                        Direction::Y =>
+                        CSAxis::Y =>
                             {
                                 [second_cap_vertex_coordinates[0] + local_y,
                                 second_cap_vertex_coordinates[1] - height * multiplier,
                                 second_cap_vertex_coordinates[2] + local_x]
                             },
-                        Direction::Z =>
+                        CSAxis::Z =>
                             {
                                 [second_cap_vertex_coordinates[0] + local_x ,
                                 second_cap_vertex_coordinates[1] + local_y,
@@ -1206,55 +1191,55 @@ impl DrawnObject
                     point_object.copy_normalized_y()?, point_object.copy_normalized_z()?];
                 if let Some(sign) = concentrated_load.ref_optional_fx_sign()
                 {
-                    self.add_concentrated_load_line_for_force(&gl_mode, sign, &Direction::X,
+                    self.add_concentrated_load_line_for_force(&gl_mode, sign, &CSAxis::X,
                         &start_coordinates, line_length, base_points_number_for_lines, base_radius,
                         &concentrated_load_color);
-                    self.add_concentrated_load_cap_for_force(sign, &Direction::X,
+                    self.add_concentrated_load_cap_for_force(sign, &CSAxis::X,
                         &start_coordinates, line_length, base_points_number_for_caps, base_radius,
                         height, &concentrated_load_color);
                 }
                 if let Some(sign) = concentrated_load.ref_optional_fy_sign()
                 {
                     self.add_concentrated_load_line_for_force(&gl_mode, sign,
-                        &Direction::Y, &start_coordinates, line_length,
+                        &CSAxis::Y, &start_coordinates, line_length,
                         base_points_number_for_lines, base_radius, &concentrated_load_color);
-                    self.add_concentrated_load_cap_for_force(sign, &Direction::Y,
+                    self.add_concentrated_load_cap_for_force(sign, &CSAxis::Y,
                         &start_coordinates, line_length, base_points_number_for_caps, base_radius,
                         height, &concentrated_load_color);
                 }
                 if let Some(sign) = concentrated_load.ref_optional_fz_sign()
                 {
                     self.add_concentrated_load_line_for_force(&gl_mode, sign,
-                        &Direction::Z, &start_coordinates, line_length,
+                        &CSAxis::Z, &start_coordinates, line_length,
                         base_points_number_for_lines, base_radius, &concentrated_load_color);
-                    self.add_concentrated_load_cap_for_force(sign, &Direction::Z,
+                    self.add_concentrated_load_cap_for_force(sign, &CSAxis::Z,
                         &start_coordinates, line_length, base_points_number_for_caps, base_radius,
                         height, &concentrated_load_color);
                 }
                 if let Some(sign) = concentrated_load.ref_optional_mx_sign()
                 {
                     self.add_concentrated_load_line_for_moment(&gl_mode, sign,
-                        &Direction::X, &start_coordinates, line_length,
+                        &CSAxis::X, &start_coordinates, line_length,
                         base_points_number_for_lines, base_radius, &concentrated_load_color);
-                    self.add_concentrated_load_cap_for_moment(sign, &Direction::X,
+                    self.add_concentrated_load_cap_for_moment(sign, &CSAxis::X,
                         &start_coordinates, line_length, base_points_number_for_caps, base_radius,
                         height, &concentrated_load_color);
                 }
                 if let Some(sign) = concentrated_load.ref_optional_my_sign()
                 {
                     self.add_concentrated_load_line_for_moment(&gl_mode, sign,
-                        &Direction::Y, &start_coordinates, line_length,
+                        &CSAxis::Y, &start_coordinates, line_length,
                         base_points_number_for_lines, base_radius, &concentrated_load_color);
-                    self.add_concentrated_load_cap_for_moment(sign, &Direction::Y,
+                    self.add_concentrated_load_cap_for_moment(sign, &CSAxis::Y,
                         &start_coordinates, line_length, base_points_number_for_caps, base_radius,
                         height, &concentrated_load_color);
                 }
                 if let Some(sign) = concentrated_load.ref_optional_mz_sign()
                 {
                     self.add_concentrated_load_line_for_moment(&gl_mode, sign,
-                        &Direction::Z, &start_coordinates, line_length,
+                        &CSAxis::Z, &start_coordinates, line_length,
                         base_points_number_for_lines, base_radius, &concentrated_load_color);
-                    self.add_concentrated_load_cap_for_moment(sign, &Direction::Z,
+                    self.add_concentrated_load_cap_for_moment(sign, &CSAxis::Z,
                         &start_coordinates, line_length, base_points_number_for_caps, base_radius,
                         height, &concentrated_load_color);
                 }
@@ -1327,30 +1312,30 @@ impl DrawnObject
                     if let Some(sign) = distributed_line_load.ref_optional_qx_sign()
                     {
                         self.add_concentrated_load_line_for_force(&gl_mode, sign,
-                            &Direction::X, &start_coordinates, -1f32 * line_length,
+                            &CSAxis::X, &start_coordinates, -1f32 * line_length,
                             base_points_number_for_lines, base_radius,
                             &distributed_line_load_color);
-                        self.add_concentrated_load_cap_for_force(sign, &Direction::X,
+                        self.add_concentrated_load_cap_for_force(sign, &CSAxis::X,
                             &start_coordinates, 0f32, base_points_number_for_caps,
                             base_radius, height, &distributed_line_load_color);
                     }
                     if let Some(sign) = distributed_line_load.ref_optional_qy_sign()
                     {
                         self.add_concentrated_load_line_for_force(&gl_mode, sign,
-                            &Direction::Y, &start_coordinates, -1f32 * line_length,
+                            &CSAxis::Y, &start_coordinates, -1f32 * line_length,
                             base_points_number_for_lines, base_radius,
                             &distributed_line_load_color);
-                        self.add_concentrated_load_cap_for_force(sign, &Direction::Y,
+                        self.add_concentrated_load_cap_for_force(sign, &CSAxis::Y,
                             &start_coordinates, 0f32, base_points_number_for_caps,
                             base_radius, height, &distributed_line_load_color);
                     }
                     if let Some(sign) = distributed_line_load.ref_optional_qz_sign()
                     {
                         self.add_concentrated_load_line_for_force(&gl_mode, sign,
-                            &Direction::Z, &start_coordinates, -1f32 * line_length,
+                            &CSAxis::Z, &start_coordinates, -1f32 * line_length,
                             base_points_number_for_lines, base_radius,
                             &distributed_line_load_color);
-                        self.add_concentrated_load_cap_for_force(sign, &Direction::Z,
+                        self.add_concentrated_load_cap_for_force(sign, &CSAxis::Z,
                             &start_coordinates, 0f32, base_points_number_for_caps,
                             base_radius, height, &distributed_line_load_color);
                     }
@@ -1360,6 +1345,102 @@ impl DrawnObject
             {
                 let error_message = format!("Renderer: Line object extraction: \
                     Line with number {} does not exist!", line_number);
+                return Err(JsValue::from(error_message));
+            }
+        }
+        Ok(())
+    }
+
+
+    fn add_boundary_condition_cap(&mut self, cap_vertex_coordinates: &[f32; 3],
+        base_points_number_for_caps: u32, base_radius: f32, height: f32,
+        boundary_condition_color: &[f32; 4])
+    {
+        let d_angle = 2.0 * PI / base_points_number_for_caps as f32;
+        let local_coordinates = (0..base_points_number_for_caps)
+            .map(|point_number|
+                {
+                    let angle = d_angle * point_number as f32;
+                    let local_x =
+                        {
+                            let value = base_radius * angle.cos();
+                            if value.abs() < TOLERANCE { 0.0 } else { value }
+                        };
+                    let local_y =
+                        {
+                            let value = base_radius * angle.sin();
+                            if value.abs() < TOLERANCE { 0.0 } else { value }
+                        };
+                    (local_x, local_y)
+                })
+            .collect::<Vec<(f32, f32)>>();
+
+        let start_index = if let Some(index) =
+            self.indexes_numbers.iter().max() { *index + 1 } else { 0 };
+
+        self.vertices_coordinates.extend(cap_vertex_coordinates);
+
+        for (local_x, local_y) in &local_coordinates
+        {
+            let coordinates =
+                [
+                    cap_vertex_coordinates[0] + local_y,
+                    cap_vertex_coordinates[1] - height,
+                    cap_vertex_coordinates[2] + local_x
+                ];
+            self.vertices_coordinates.extend(&coordinates);
+        }
+        for point_number in 1..base_points_number_for_caps
+        {
+            if point_number == 1
+            {
+                self.colors_values.extend(boundary_condition_color);
+                self.colors_values.extend(boundary_condition_color);
+                self.colors_values.extend(boundary_condition_color);
+            }
+            else
+            {
+                self.colors_values.extend(boundary_condition_color);
+            }
+            self.indexes_numbers.extend(&[start_index,
+                start_index + point_number, start_index + point_number + 1]);
+        }
+        self.indexes_numbers.extend(&[start_index,
+            start_index + 1, start_index + base_points_number_for_caps]);
+
+        self.modes.push(GLPrimitiveType::Triangles);
+        self.elements_numbers.push(base_points_number_for_caps as i32 * 3);
+        let offset = self.define_offset();
+        self.offsets.push(offset);
+    }
+
+
+    pub fn add_boundary_conditions(&mut self, point_objects: &HashMap<PointObjectKey, PointObject>,
+        boundary_conditions: &HashMap<u32, BoundaryCondition>, gl_mode: GLMode,
+        under_selection_box_colors: &Vec<u8>, selected_colors: &HashSet<[u8; 4]>,
+        base_points_number_for_caps: u32, height: f32, base_radius: f32) -> Result<(), JsValue>
+    {
+        for (point_number, boundary_condition) in boundary_conditions.iter()
+        {
+            let initial_color = DRAWN_BOUNDARY_CONDITION_COLOR;
+            let boundary_condition_color = define_drawn_object_color(&gl_mode,
+                boundary_condition.copy_uid(), selected_colors, under_selection_box_colors,
+                &initial_color);
+
+            let point_object_key = PointObjectKey::create(*point_number,
+                PointObjectType::Point);
+            if let Some(point_object) = point_objects.get(&point_object_key)
+            {
+                let cap_vertex_coordinates = [point_object.copy_normalized_x()?,
+                    point_object.copy_normalized_y()?, point_object.copy_normalized_z()?];
+
+                self.add_boundary_condition_cap(&cap_vertex_coordinates,
+                    base_points_number_for_caps, base_radius, height, &boundary_condition_color);
+            }
+            else
+            {
+                let error_message = format!("Renderer: Point object extraction: \
+                    Point with number {} does not exist!", point_number);
                 return Err(JsValue::from(error_message));
             }
         }

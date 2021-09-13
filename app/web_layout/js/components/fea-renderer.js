@@ -190,6 +190,30 @@ class FeaRenderer extends HTMLElement {
         }
     }
 
+    set addBoundaryConditionToRenderer(boundaryCondition) {
+        this.state.renderer.add_boundary_condition(boundaryCondition.point_number);
+        if (this.state.isPaused === true)
+        {
+            this.state.renderer.tick();
+        }
+    }
+
+    set updateBoundaryConditionInRenderer(boundaryCondition) {
+        this.state.renderer.update_boundary_condition(boundaryCondition.point_number);
+        if (this.state.isPaused === true)
+        {
+            this.state.renderer.tick();
+        }
+    }
+
+    set deleteBoundaryConditionFromRenderer(boundaryCondition) {
+        this.state.renderer.delete_boundary_condition(boundaryCondition.point_number);
+        if (this.state.isPaused === true)
+        {
+            this.state.renderer.tick();
+        }
+    }
+
     set addNodeToRenderer(node) {
         this.state.renderer.add_point_object(node.number, node.x, node.y, node.z, PointObjectType.Node);
         if (this.state.isPaused === true)

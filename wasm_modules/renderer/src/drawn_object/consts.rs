@@ -81,3 +81,8 @@ pub const DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_WIDTH: f32 = 0.00325; // half of arr
 pub const DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_BASE_POINTS_NUMBER: u32 = 12; // the number of points in cone circular base
 pub const DRAWN_DISTRIBUTED_LINE_LOADS_COLOR: [f32; 4] = [0.529, 0.807, 0.921, 1.0]; // SkyBlue
 pub const NUMBER_OF_DISTRIBUTED_LINE_LOAD_ARROWS: usize = 11;
+
+pub const DRAWN_BOUNDARY_CONDITION_CAPS_HEIGHT: f32 = 0.015; // arrow length
+pub const DRAWN_BOUNDARY_CONDITION_CAPS_WIDTH: f32 = 0.007; // half of arrow width
+pub const DRAWN_BOUNDARY_CONDITION_CAPS_BASE_POINTS_NUMBER: u32 = 12; // the number of points in cone circular base
+pub const DRAWN_BOUNDARY_CONDITION_COLOR: [f32; 4] = [1.0, 0.549, 0.0, 1.0]; // DarkOrange

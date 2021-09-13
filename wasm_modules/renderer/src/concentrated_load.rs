@@ -6,7 +6,7 @@ pub enum Sign
 }
 
 
-pub enum Direction
+pub enum CSAxis
 {
     X, Y, Z
 }

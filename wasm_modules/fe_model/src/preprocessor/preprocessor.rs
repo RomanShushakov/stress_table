@@ -11,6 +11,7 @@ use finite_element_method::my_float::MyFloatTrait;
 use crate::preprocessor::geometry::geometry::Geometry;
 use crate::preprocessor::properties::properties::Properties;
 use crate::preprocessor::loads::loads::Loads;
+use crate::preprocessor::boundary_conditions::boundary_conditions::BoundaryConditions;
 
 use crate::preprocessor::functions::get_line_points_coordinates;
 use crate::traits::ClearByActionIdTrait;
@@ -21,6 +22,7 @@ pub struct Preprocessor<T, V>
     pub geometry: Geometry<T, V>,
     pub properties: Properties<T, V>,
     pub loads: Loads<T, V>,
+    pub boundary_conditions: BoundaryConditions<T, V>,
     pub tolerance: V,
 }
 
@@ -38,7 +40,8 @@ impl<T, V> Preprocessor<T, V>
         let geometry = Geometry::<T, V>::create();
         let properties = Properties::<T, V>::create();
         let loads = Loads::create();
-        Preprocessor { geometry, properties, loads, tolerance }
+        let boundary_conditions = BoundaryConditions::create();
+        Preprocessor { geometry, properties, loads, boundary_conditions, tolerance }
     }
 
 
@@ -105,6 +108,11 @@ impl<T, V> Preprocessor<T, V>
         self.loads.delete_concentrated_load_applied_to_point(action_id, number)?;
         self.loads.logging();
 
+        self.boundary_conditions.clear_by_action_id(action_id);
+        self.boundary_conditions.delete_boundary_condition_applied_to_point(action_id,
+            number)?;
+        self.boundary_conditions.logging();
+
         self.geometry.delete_point(action_id, number, &line_numbers_for_delete,
             is_action_id_should_be_increased)?;
         Ok(())
@@ -123,6 +131,10 @@ impl<T, V> Preprocessor<T, V>
         self.loads.restore_distributed_line_loads_applied_to_lines(action_id,
             &restored_line_numbers)?;
         self.loads.logging();
+
+        self.boundary_conditions.restore_boundary_condition_applied_to_point(action_id,
+            number)?;
+        self.boundary_conditions.logging();
 
         Ok(())
     }

@@ -1542,6 +1542,11 @@ impl ActionsRouter
         {
             self.handle_update_boundary_condition_message(&boundary_condition_data)?;
         }
+        else if let Some(boundary_condition_data) = serialized_message.get(
+            DELETE_BOUNDARY_CONDITION_MESSAGE_HEADER)
+        {
+            self.handle_delete_boundary_condition_message(&boundary_condition_data)?;
+        }
         else if let Some(undo_data) = serialized_message.get(UNDO_MESSAGE_HEADER)
         {
             self.handle_undo_message(&undo_data)?;

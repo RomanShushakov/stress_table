@@ -68,7 +68,7 @@ impl<T, V> Loads<T, V>
             Concentrated loads: {:?}, \n
             Distributed line loads: {:?}, \n
             Deleted concentrated loads: {:?}, \n
-            Deleted Distributed line loads: {:?}, \n",
+            Deleted distributed line loads: {:?}, \n",
             self.concentrated_loads,
             self.distributed_line_loads,
             self.deleted_concentrated_loads,

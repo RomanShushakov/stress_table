@@ -18,6 +18,7 @@ impl<T, V> Preprocessor<T, V>
     {
         self.properties.clear_by_action_id(action_id);
         self.loads.clear_by_action_id(action_id);
+        self.boundary_conditions.clear_by_action_id(action_id);
 
         self.geometry.add_point(action_id, number, x, y, z, is_action_id_should_be_increased)
     }
@@ -28,6 +29,7 @@ impl<T, V> Preprocessor<T, V>
     {
         self.properties.clear_by_action_id(action_id);
         self.loads.clear_by_action_id(action_id);
+        self.boundary_conditions.clear_by_action_id(action_id);
 
         self.geometry.add_line(action_id, number, start_point_number, end_point_number,
             is_action_id_should_be_increased)

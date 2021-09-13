@@ -17,6 +17,7 @@ impl<T, V> Preprocessor<T, V>
     {
         self.geometry.clear_by_action_id(action_id);
         self.properties.clear_by_action_id(action_id);
+        self.boundary_conditions.clear_by_action_id(action_id);
 
         self.loads.add_concentrated_load(action_id, point_number, fx, fy, fz, mx, my, mz,
             is_action_id_should_be_increased)
@@ -28,6 +29,7 @@ impl<T, V> Preprocessor<T, V>
     {
         self.geometry.clear_by_action_id(action_id);
         self.properties.clear_by_action_id(action_id);
+        self.boundary_conditions.clear_by_action_id(action_id);
 
         self.loads.update_concentrated_load(action_id, point_number, fx, fy, fz, mx, my, mz,
             is_action_id_should_be_increased)
@@ -39,6 +41,7 @@ impl<T, V> Preprocessor<T, V>
     {
         self.geometry.clear_by_action_id(action_id);
         self.properties.clear_by_action_id(action_id);
+        self.boundary_conditions.clear_by_action_id(action_id);
 
         self.loads.delete_concentrated_load(action_id, point_number,
             is_action_id_should_be_increased)
@@ -58,6 +61,7 @@ impl<T, V> Preprocessor<T, V>
     {
         self.geometry.clear_by_action_id(action_id);
         self.properties.clear_by_action_id(action_id);
+        self.boundary_conditions.clear_by_action_id(action_id);
 
         self.loads.add_distributed_line_load(action_id, line_number, qx, qy, qz,
             is_action_id_should_be_increased)
@@ -69,6 +73,7 @@ impl<T, V> Preprocessor<T, V>
     {
         self.geometry.clear_by_action_id(action_id);
         self.properties.clear_by_action_id(action_id);
+        self.boundary_conditions.clear_by_action_id(action_id);
 
         self.loads.update_distributed_line_load(action_id, line_number, qx, qy, qz,
             is_action_id_should_be_increased)
@@ -80,6 +85,7 @@ impl<T, V> Preprocessor<T, V>
     {
         self.geometry.clear_by_action_id(action_id);
         self.properties.clear_by_action_id(action_id);
+        self.boundary_conditions.clear_by_action_id(action_id);
 
         self.loads.delete_distributed_line_load(action_id, line_number,
             is_action_id_should_be_increased)

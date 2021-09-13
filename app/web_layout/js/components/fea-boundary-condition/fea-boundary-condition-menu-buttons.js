@@ -98,6 +98,10 @@ class FeaBoundaryConditionMenuButtons extends HTMLElement {
             () => this.activate("boundary-condition-delete-boundary-condition-menu-button"));
     }
 
+    set activateButton(buttonName) {
+        this.activate(buttonName);
+    }
+
     connectedCallback() {
         this.activate("boundary-condition-add-boundary-condition-menu-button");
     }

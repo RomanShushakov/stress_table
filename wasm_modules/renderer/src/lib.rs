@@ -81,6 +81,7 @@ use consts::
     EVENT_TARGET, SELECTED_POINTS_EVENT_MAME, SELECTED_NODES_EVENT_MAME, SELECTED_LINES_EVENT_MAME,
     SELECTED_LINE_ELEMENTS_EVENT_MAME, SELECTED_CONCENTRATED_LOADS_POINTS_NUMBERS_EVENT_MAME,
     SELECTED_DISTRIBUTED_LINE_LOADS_LINES_NUMBERS_EVENT_MAME,
+    SELECTED_BOUNDARY_CONDITIONS_POINTS_NUMBERS_EVENT_MAME,
 };
 
 mod functions;
@@ -409,6 +410,7 @@ impl Renderer
         let mut selected_line_element_numbers = Vec::new();
         let mut selected_concentrated_loads_points_numbers = Vec::new();
         let mut selected_distributed_line_loads_lines_numbers = Vec::new();
+        let mut selected_boundary_conditions_points_numbers = Vec::new();
         let mut is_object_selected = false;
         for selected_color in self.state.selected_colors.iter()
         {
@@ -423,7 +425,7 @@ impl Renderer
                     match selected_point_object_type
                     {
                         PointObjectType::Point =>
-                            selected_point_numbers.push(selected_point_object_number),
+                                selected_point_numbers.push(selected_point_object_number),
                         PointObjectType::Node =>
                             selected_node_numbers.push(selected_point_object_number),
                     }
@@ -450,8 +452,7 @@ impl Renderer
             for (point_number, concentrated_load) in
                 self.state.concentrated_loads.iter()
             {
-                if concentrated_load.is_uid_same(
-                    u32::from_be_bytes(*selected_color))
+                if concentrated_load.is_uid_same(u32::from_be_bytes(*selected_color))
                 {
                     selected_concentrated_loads_points_numbers.push(point_number);
                 }
@@ -460,10 +461,18 @@ impl Renderer
             for (line_number, distributed_line_load) in
                 self.state.distributed_line_loads.iter()
             {
-                if distributed_line_load.is_uid_same(
-                    u32::from_be_bytes(*selected_color))
+                if distributed_line_load.is_uid_same(u32::from_be_bytes(*selected_color))
                 {
                     selected_distributed_line_loads_lines_numbers.push(line_number);
+                }
+            }
+
+            for (point_number, boundary_condition) in
+                self.state.boundary_conditions.iter()
+            {
+                if boundary_condition.is_uid_same(u32::from_be_bytes(*selected_color))
+                {
+                    selected_boundary_conditions_points_numbers.push(point_number);
                 }
             }
         }
@@ -513,6 +522,15 @@ impl Renderer
                 selected_distributed_line_loads_lines_numbers });
             dispatch_custom_event(detail,
                 SELECTED_DISTRIBUTED_LINE_LOADS_LINES_NUMBERS_EVENT_MAME,
+                EVENT_TARGET)?;
+        }
+        else if !selected_boundary_conditions_points_numbers.is_empty()
+        {
+            is_object_selected = true;
+            let detail = json!({
+                "boundary_conditions_points_numbers": selected_boundary_conditions_points_numbers });
+            dispatch_custom_event(detail,
+                SELECTED_BOUNDARY_CONDITIONS_POINTS_NUMBERS_EVENT_MAME,
                 EVENT_TARGET)?;
         }
         else

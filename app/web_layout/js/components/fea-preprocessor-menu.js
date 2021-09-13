@@ -106,6 +106,23 @@ class FeaPreprocessorMenu extends HTMLElement {
         }
     }
 
+    set selectBoundaryConditionInClient(boundaryConditionPointNumber) {
+        if (this.querySelector("fea-boundary-condition-menu") === null) {
+            this.delay(0)
+                .then(() => { 
+                    this.shadowRoot.querySelector("fea-preprocessor-menu-buttons").toggleButton = "boundary-condition-menu-button";
+                })
+                .then(async () => { this.querySelector("fea-boundary-condition-menu").selectBoundaryConditionInClient = 
+                    boundaryConditionPointNumber });
+        } else {
+            this.delay(0)
+                .then(() => { 
+                    this.querySelector("fea-boundary-condition-menu").selectBoundaryConditionInClient = 
+                        boundaryConditionPointNumber;
+                });
+        }
+    }
+
     connectedCallback() {
     }
 

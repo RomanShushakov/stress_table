@@ -48,6 +48,13 @@ class FeaBoundaryConditionMenu extends HTMLElement {
         this.addEventListener("deactivate-menu", (event) => this.deactivateMenu(event));
     }
 
+    set selectBoundaryConditionInClient(boundaryConditionPointNumber) {
+        this.shadowRoot.querySelector("fea-boundary-condition-menu-buttons").activateButton = 
+            "boundary-condition-update-boundary-condition-menu-button";
+        this.querySelector("fea-boundary-condition-update-boundary-condition-menu").selectBoundaryConditionInClient = 
+            boundaryConditionPointNumber;
+    }
+
     connectedCallback() {
     }
 

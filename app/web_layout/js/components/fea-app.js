@@ -154,6 +154,8 @@ class FeaApp extends HTMLElement {
             (event) => this.handleSelectedConcentratedLoadsPointsNumbersMessage(event));
         this.addEventListener("selected_distributed_line_loads_lines_numbers", 
             (event) => this.handleSelectedDistributedLineLoadsLinesNumbersMessage(event));
+        this.addEventListener("selected_boundary_conditions_points_numbers", 
+            (event) => this.handleSelectedBoundaryConditionsPointsNumbersMessage(event));
 
         this.addEventListener("toggleGeometryVisibility", (event) => this.handleToggleGeometryVisibilityMessage(event));
         this.addEventListener("toggleMeshVisibility", (event) => this.handleToggleMeshVisibilityMessage(event));
@@ -504,6 +506,30 @@ class FeaApp extends HTMLElement {
             if (this.querySelector("fea-preprocessor-menu") !== null) {
                 this.querySelector("fea-preprocessor-menu").selectDistributedLineLoadInClient = distributedLoadLineNumber;
             }
+        } else if ("boundary_condition_data" in objectInfo) {
+            const getBC = (bc) => {
+                if (bc == null) {
+                  return "Free";
+                } else if (bc == 0) {
+                  return "Restrained";
+                } else {
+                  return bc;
+                }
+            };
+            const boundaryConditionPointNumber = objectInfo.boundary_condition_data.point_number;
+            const composedObjectInfo = `Boundary condition: 
+                applied to point: ${boundaryConditionPointNumber},
+                Ux: ${getBC(objectInfo.boundary_condition_data.optional_ux)},
+                Uy: ${getBC(objectInfo.boundary_condition_data.optional_uy)},
+                Uz: ${getBC(objectInfo.boundary_condition_data.optional_uz)},
+                Rx: ${getBC(objectInfo.boundary_condition_data.optional_rx)},
+                Ry: ${getBC(objectInfo.boundary_condition_data.optional_ry)},
+                Rz: ${getBC(objectInfo.boundary_condition_data.optional_rz)}`;
+            this.shadowRoot.querySelector("fea-renderer").objectInfo = composedObjectInfo;
+            if (this.querySelector("fea-preprocessor-menu") !== null) {
+                this.querySelector("fea-preprocessor-menu").selectBoundaryConditionInClient = boundaryConditionPointNumber;
+            }   
+
         } else {
             throw "Fea-app: Unknown object!";
         }
@@ -535,8 +561,7 @@ class FeaApp extends HTMLElement {
                 cross section name: ${objectInfo.line_data_with_props.cross_section_name.replace(/['"]+/g, "")},
                 cross section type: ${objectInfo.line_data_with_props.cross_section_type},`;
             this.shadowRoot.querySelector("fea-renderer").objectInfo = composedObjectInfo;    
-        }
-        else if ("concentrated_load_data" in objectInfo) {
+        } else if ("concentrated_load_data" in objectInfo) {
             const concentratedLoadpointNumber = objectInfo.concentrated_load_data.point_number;
             const composedObjectInfo = `Concentrated load: 
                 applied to point: ${concentratedLoadpointNumber},
@@ -547,6 +572,34 @@ class FeaApp extends HTMLElement {
                 My: ${objectInfo.concentrated_load_data.my},
                 Mz: ${objectInfo.concentrated_load_data.mz}`;
             this.shadowRoot.querySelector("fea-renderer").objectInfo = composedObjectInfo;          
+        } else if ("distributed_line_load_data" in objectInfo) {
+            const distributedLoadLineNumber = objectInfo.distributed_line_load_data.line_number;
+            const composedObjectInfo = `Distributed line load: 
+                applied to line: ${distributedLoadLineNumber},
+                Qx: ${objectInfo.distributed_line_load_data.qx},
+                Qy: ${objectInfo.distributed_line_load_data.qy},
+                Qz: ${objectInfo.distributed_line_load_data.qz}`;
+            this.shadowRoot.querySelector("fea-renderer").objectInfo = composedObjectInfo;
+        } else if ("boundary_condition_data" in objectInfo) {
+            const getBC = (bc) => {
+                if (bc == null) {
+                  return "Free";
+                } else if (bc == 0) {
+                  return "Restrained";
+                } else {
+                  return bc;
+                }
+            };
+            const boundaryConditionPointNumber = objectInfo.boundary_condition_data.point_number;
+            const composedObjectInfo = `Boundary condition: 
+                applied to point: ${boundaryConditionPointNumber},
+                Ux: ${getBC(objectInfo.boundary_condition_data.optional_ux)},
+                Uy: ${getBC(objectInfo.boundary_condition_data.optional_uy)},
+                Uz: ${getBC(objectInfo.boundary_condition_data.optional_uz)},
+                Rx: ${getBC(objectInfo.boundary_condition_data.optional_rx)},
+                Ry: ${getBC(objectInfo.boundary_condition_data.optional_ry)},
+                Rz: ${getBC(objectInfo.boundary_condition_data.optional_rz)}`;
+            this.shadowRoot.querySelector("fea-renderer").objectInfo = composedObjectInfo;     
         } else {
             throw "Fea-app: Unknown object!";
         }
@@ -672,6 +725,27 @@ class FeaApp extends HTMLElement {
             } else {
                 this.state.actionsRouter.show_distributed_line_load_info(
                     BigInt(distributedLineLoadLineNumber),
+                    (objectInfo) => this.showObjectInfoWithoutMenuOpeningHandler(objectInfo),
+                );
+            }
+        }
+        event.stopPropagation();
+    }
+
+    handleSelectedBoundaryConditionsPointsNumbersMessage(event) {
+        const boundaryConditionsPointsNumbers = event.detail.boundary_conditions_points_numbers;
+        if (boundaryConditionsPointsNumbers.length > 1) {
+            console.log("Selected boundary conditions points numbers: ", boundaryConditionsPointsNumbers);
+        } else {
+            const boundaryConditionPointNumber = boundaryConditionsPointsNumbers[0];
+            if (this.state.isLinesSelectionModeEnabled === false) {
+                this.state.actionsRouter.show_boundary_condition_info(
+                    BigInt(boundaryConditionPointNumber),
+                    (objectInfo) => this.showObjectInfoHandler(objectInfo),
+                );
+            } else {
+                this.state.actionsRouter.show_boundary_condition_info(
+                    BigInt(boundaryConditionPointNumber),
                     (objectInfo) => this.showObjectInfoWithoutMenuOpeningHandler(objectInfo),
                 );
             }

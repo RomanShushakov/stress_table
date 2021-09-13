@@ -6,7 +6,10 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
             actionId: null,                 // u32;
             isFEModelLoaded: false,         // load status of wasm module "fe_model";
             points: new Map(),              // map: { number: u32, { x: f64, y: f64, z: f64}, ... };
-            boundaryConditions: new Map(),  // map: { point_number: u32, { ux: f64, uy: f64, uz: f64, rx: f64, ry: f64, rz: f64 }, ... };
+            boundaryConditions: new Map(),  // map: { point_number: u32, 
+                                            //      { optional_ux: f64 or null, optional_uy: f64 or null, 
+                                            //        optional_uz: f64 or null, optional_rx: f64 or null, 
+                                            //        optional_ry: f64 or null, optional_rz: f64 or null }, ... };
         };
 
         this.state = {};
@@ -126,7 +129,7 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
-                .ux-field-content {
+                .optional-ux-field-content {
                     display: flex;
                     flex-direction: row;
                     background-color: #3b4453;
@@ -134,7 +137,7 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
                     margin-top: 1rem;
                 }
 
-                .ux-caption {
+                .optional-ux-caption {
                     margin: 0rem;
                     padding: 0rem;
                     color: #D9D9D9;
@@ -142,7 +145,7 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
                     width: 6rem;
                 }
 
-                .ux {
+                .optional-ux {
                     margin-top: 0rem;
                     margin-bottom: 0rem;
                     margin-left: 1rem;
@@ -156,25 +159,25 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
                     color: #D9D9D9;
                 }
 
-                .ux[type=number]::-webkit-outer-spin-button,
-                .ux[type=number]::-webkit-inner-spin-button {
+                .optional-ux[type=number]::-webkit-outer-spin-button,
+                .optional-ux[type=number]::-webkit-inner-spin-button {
                     -webkit-appearance: none;
                     margin: 0;
                 }
 
-                .ux[type=number] {
+                .optional-ux[type=number] {
                     -moz-appearance: textfield;
                 }
 
-                .ux:hover {
+                .optional-ux:hover {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
-                .ux:focus {
+                .optional-ux:focus {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
-                .uy-field-content {
+                .optional-uy-field-content {
                     display: flex;
                     flex-direction: row;
                     background-color: #3b4453;
@@ -182,7 +185,7 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
                     margin-top: 1rem;
                 }
 
-                .uy-caption {
+                .optional-uy-caption {
                     margin: 0rem;
                     padding: 0rem;
                     color: #D9D9D9;
@@ -190,7 +193,7 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
                     width: 6rem;
                 }
 
-                .uy {
+                .optional-uy {
                     margin-top: 0rem;
                     margin-bottom: 0rem;
                     margin-left: 1rem;
@@ -204,25 +207,25 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
                     color: #D9D9D9;
                 }
 
-                .uy[type=number]::-webkit-outer-spin-button,
-                .uy[type=number]::-webkit-inner-spin-button {
+                .optional-uy[type=number]::-webkit-outer-spin-button,
+                .optional-uy[type=number]::-webkit-inner-spin-button {
                     -webkit-appearance: none;
                     margin: 0;
                 }
 
-                .uy[type=number] {
+                .optional-uy[type=number] {
                     -moz-appearance: textfield;
                 }
 
-                .uy:hover {
+                .optional-uy:hover {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
-                .uy:focus {
+                .optional-uy:focus {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
-                .uz-field-content {
+                .optional-uz-field-content {
                     display: flex;
                     flex-direction: row;
                     background-color: #3b4453;
@@ -230,7 +233,7 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
                     margin-top: 1rem;
                 }
 
-                .uz-caption {
+                .optional-uz-caption {
                     margin: 0rem;
                     padding: 0rem;
                     color: #D9D9D9;
@@ -238,7 +241,7 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
                     width: 6rem;
                 }
 
-                .uz {
+                .optional-uz {
                     margin-top: 0rem;
                     margin-bottom: 0rem;
                     margin-left: 1rem;
@@ -252,25 +255,25 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
                     color: #D9D9D9;
                 }
 
-                .uz[type=number]::-webkit-outer-spin-button,
-                .uz[type=number]::-webkit-inner-spin-button {
+                .optional-uz[type=number]::-webkit-outer-spin-button,
+                .optional-uz[type=number]::-webkit-inner-spin-button {
                     -webkit-appearance: none;
                     margin: 0;
                 }
 
-                .uz[type=number] {
+                .optional-uz[type=number] {
                     -moz-appearance: textfield;
                 }
 
-                .uz:hover {
+                .optional-uz:hover {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
-                .uz:focus {
+                .optional-uz:focus {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
-                .rx-field-content {
+                .optional-rx-field-content {
                     display: flex;
                     flex-direction: row;
                     background-color: #3b4453;
@@ -278,7 +281,7 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
                     margin-top: 1rem;
                 }
 
-                .rx-caption {
+                .optional-rx-caption {
                     margin: 0rem;
                     padding: 0rem;
                     color: #D9D9D9;
@@ -286,7 +289,7 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
                     width: 6rem;
                 }
 
-                .rx {
+                .optional-rx {
                     margin-top: 0rem;
                     margin-bottom: 0rem;
                     margin-left: 1rem;
@@ -300,25 +303,25 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
                     color: #D9D9D9;
                 }
 
-                .rx[type=number]::-webkit-outer-spin-button,
-                .rx[type=number]::-webkit-inner-spin-button {
+                .optional-rx[type=number]::-webkit-outer-spin-button,
+                .optional-rx[type=number]::-webkit-inner-spin-button {
                     -webkit-appearance: none;
                     margin: 0;
                 }
 
-                .rx[type=number] {
+                .optional-rx[type=number] {
                     -moz-appearance: textfield;
                 }
 
-                .rx:hover {
+                .optional-rx:hover {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
-                .rx:focus {
+                .optional-rx:focus {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
-                .ry-field-content {
+                .optional-ry-field-content {
                     display: flex;
                     flex-direction: row;
                     background-color: #3b4453;
@@ -326,7 +329,7 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
                     margin-top: 1rem;
                 }
 
-                .ry-caption {
+                .optional-ry-caption {
                     margin: 0rem;
                     padding: 0rem;
                     color: #D9D9D9;
@@ -334,7 +337,7 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
                     width: 6rem;
                 }
 
-                .ry {
+                .optional-ry {
                     margin-top: 0rem;
                     margin-bottom: 0rem;
                     margin-left: 1rem;
@@ -348,25 +351,25 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
                     color: #D9D9D9;
                 }
 
-                .ry[type=number]::-webkit-outer-spin-button,
-                .ry[type=number]::-webkit-inner-spin-button {
+                .optional-ry[type=number]::-webkit-outer-spin-button,
+                .optional-ry[type=number]::-webkit-inner-spin-button {
                     -webkit-appearance: none;
                     margin: 0;
                 }
 
-                .ry[type=number] {
+                .optional-ry[type=number] {
                     -moz-appearance: textfield;
                 }
 
-                .ry:hover {
+                .optional-ry:hover {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
-                .ry:focus {
+                .optional-ry:focus {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
-                .rz-field-content {
+                .optional-rz-field-content {
                     display: flex;
                     flex-direction: row;
                     background-color: #3b4453;
@@ -374,7 +377,7 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
                     margin-top: 1rem;
                 }
 
-                .rz-caption {
+                .optional-rz-caption {
                     margin: 0rem;
                     padding: 0rem;
                     color: #D9D9D9;
@@ -382,7 +385,7 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
                     width: 6rem;
                 }
 
-                .rz {
+                .optional-rz {
                     margin-top: 0rem;
                     margin-bottom: 0rem;
                     margin-left: 1rem;
@@ -396,21 +399,21 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
                     color: #D9D9D9;
                 }
 
-                .rz[type=number]::-webkit-outer-spin-button,
-                .rz[type=number]::-webkit-inner-spin-button {
+                .optional-rz[type=number]::-webkit-outer-spin-button,
+                .optional-rz[type=number]::-webkit-inner-spin-button {
                     -webkit-appearance: none;
                     margin: 0;
                 }
 
-                .rz[type=number] {
+                .optional-rz[type=number] {
                     -moz-appearance: textfield;
                 }
 
-                .rz:hover {
+                .optional-rz:hover {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
-                .rz:focus {
+                .optional-rz:focus {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
 
@@ -486,34 +489,34 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
                     </div>
                 </div>
 
-                <div class="ux-field-content">
-                    <p class="ux-caption">Ux</p>
-                    <input class="ux" type="number"/>
+                <div class="optional-ux-field-content">
+                    <p class="optional-ux-caption">Ux</p>
+                    <input class="optional-ux" type="number"/>
                 </div>
 
-                <div class="uy-field-content">
-                    <p class="uy-caption">Uy</p>
-                    <input class="uy" type="number"/>
+                <div class="optional-uy-field-content">
+                    <p class="optional-uy-caption">Uy</p>
+                    <input class="optional-uy" type="number"/>
                 </div>
 
-                <div class="uz-field-content">
-                    <p class="uz-caption">Uz</p>
-                    <input class="uz" type="number"/>
+                <div class="optional-uz-field-content">
+                    <p class="optional-uz-caption">Uz</p>
+                    <input class="optional-uz" type="number"/>
                 </div>
 
-                <div class="rx-field-content">
-                    <p class="rx-caption">Rx</p>
-                    <input class="rx" type="number"/>
+                <div class="optional-rx-field-content">
+                    <p class="optional-rx-caption">Rx</p>
+                    <input class="optional-rx" type="number"/>
                 </div>
 
-                <div class="ry-field-content">
-                    <p class="ry-caption">Ry</p>
-                    <input class="ry" type="number"/>
+                <div class="optional-ry-field-content">
+                    <p class="optional-ry-caption">Ry</p>
+                    <input class="optional-ry" type="number"/>
                 </div>
 
-                <div class="rz-field-content">
-                    <p class="rz-caption">Rz</p>
-                    <input class="rz" type="number"/>
+                <div class="optional-rz-field-content">
+                    <p class="optional-rz-caption">Rz</p>
+                    <input class="optional-rz" type="number"/>
                 </div>
                 
                 <div class="apply-cancel-buttons">
@@ -539,38 +542,38 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
                 this.shadowRoot.querySelector(".point-number"));
         });
 
-        this.shadowRoot.querySelector(".ux").addEventListener("click", () => {
-            const inputtedUXField = this.shadowRoot.querySelector(".ux");
+        this.shadowRoot.querySelector(".optional-ux").addEventListener("click", () => {
+            const inputtedUXField = this.shadowRoot.querySelector(".optional-ux");
             this.dropHighlight(inputtedUXField);
             this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
         });
 
-        this.shadowRoot.querySelector(".uy").addEventListener("click", () => {
-            const inputtedUYField = this.shadowRoot.querySelector(".uy");
+        this.shadowRoot.querySelector(".optional-uy").addEventListener("click", () => {
+            const inputtedUYField = this.shadowRoot.querySelector(".optional-uy");
             this.dropHighlight(inputtedUYField);
             this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
         });
 
-        this.shadowRoot.querySelector(".uz").addEventListener("click", () => {
-            const inputtedUZField = this.shadowRoot.querySelector(".uz");
+        this.shadowRoot.querySelector(".optional-uz").addEventListener("click", () => {
+            const inputtedUZField = this.shadowRoot.querySelector(".optional-uz");
             this.dropHighlight(inputtedUZField);
             this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
         });
 
-        this.shadowRoot.querySelector(".rx").addEventListener("click", () => {
-            const inputtedRXField = this.shadowRoot.querySelector(".rx");
+        this.shadowRoot.querySelector(".optional-rx").addEventListener("click", () => {
+            const inputtedRXField = this.shadowRoot.querySelector(".optional-rx");
             this.dropHighlight(inputtedRXField);
             this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
         });
 
-        this.shadowRoot.querySelector(".ry").addEventListener("click", () => {
-            const inputtedRYField = this.shadowRoot.querySelector(".ry");
+        this.shadowRoot.querySelector(".optional-ry").addEventListener("click", () => {
+            const inputtedRYField = this.shadowRoot.querySelector(".optional-ry");
             this.dropHighlight(inputtedRYField);
             this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
         });
 
-        this.shadowRoot.querySelector(".rz").addEventListener("click", () => {
-            const inputtedRZField = this.shadowRoot.querySelector(".rz");
+        this.shadowRoot.querySelector(".optional-rz").addEventListener("click", () => {
+            const inputtedRZField = this.shadowRoot.querySelector(".optional-rz");
             this.dropHighlight(inputtedRZField);
             this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
         });
@@ -610,8 +613,9 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
     set addBoundaryConditionToClient(boundaryCondition) {
         this.props.boundaryConditions.set(boundaryCondition.point_number, 
             {
-                "ux": boundaryCondition.ux, "uy": boundaryCondition.uy, "uz": boundaryCondition.uz,
-                "rx": boundaryCondition.rx, "ry": boundaryCondition.ry, "rz": boundaryCondition.rz,
+                "optional_ux": boundaryCondition.optional_ux, "optional_uy": boundaryCondition.optional_uy, 
+                "optional_uz": boundaryCondition.optional_uz, "optional_rx": boundaryCondition.optional_rx, 
+                "optional_ry": boundaryCondition.optional_ry, "optional_rz": boundaryCondition.optional_rz,
             });
         this.defineBoundaryConditionOptions();
     }
@@ -619,8 +623,9 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
     set updateBoundaryConditionInClient(boundaryCondition) {
         this.props.boundaryConditions.set(boundaryCondition.point_number, 
             {
-                "ux": boundaryCondition.ux, "uy": boundaryCondition.uy, "uz": boundaryCondition.uz,
-                "rx": boundaryCondition.rx, "ry": boundaryCondition.ry, "rz": boundaryCondition.rz,
+                "optional_ux": boundaryCondition.optional_ux, "optional_uy": boundaryCondition.optional_uy, 
+                "optional_uz": boundaryCondition.optional_uz, "optional_rx": boundaryCondition.optional_rx, 
+                "optional_ry": boundaryCondition.optional_ry, "optional_rz": boundaryCondition.optional_rz,
             });
         this.defineBoundaryConditionOptions();
     }
@@ -712,59 +717,59 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
             }
 
             if (this.props.boundaryConditions.get(pointsNumbers[0]) !== undefined) {
-                this.shadowRoot.querySelector(".ux").value = this.props.boundaryConditions.get(pointsNumbers[0]).ux;
-                this.shadowRoot.querySelector(".uy").value = this.props.boundaryConditions.get(pointsNumbers[0]).uy;
-                this.shadowRoot.querySelector(".uz").value = this.props.boundaryConditions.get(pointsNumbers[0]).uz;
-                this.shadowRoot.querySelector(".rx").value = this.props.boundaryConditions.get(pointsNumbers[0]).rx;
-                this.shadowRoot.querySelector(".ry").value = this.props.boundaryConditions.get(pointsNumbers[0]).ry;
-                this.shadowRoot.querySelector(".rz").value = this.props.boundaryConditions.get(pointsNumbers[0]).rz;
+                this.shadowRoot.querySelector(".optional-ux").value = this.props.boundaryConditions.get(pointsNumbers[0]).optional_ux;
+                this.shadowRoot.querySelector(".optional-uy").value = this.props.boundaryConditions.get(pointsNumbers[0]).optional_uy;
+                this.shadowRoot.querySelector(".optional-uz").value = this.props.boundaryConditions.get(pointsNumbers[0]).optional_uz;
+                this.shadowRoot.querySelector(".optional-rx").value = this.props.boundaryConditions.get(pointsNumbers[0]).optional_rx;
+                this.shadowRoot.querySelector(".optional-ry").value = this.props.boundaryConditions.get(pointsNumbers[0]).optional_ry;
+                this.shadowRoot.querySelector(".optional-rz").value = this.props.boundaryConditions.get(pointsNumbers[0]).optional_rz;
             } else {
-                this.shadowRoot.querySelector(".ux").value = "";
-                this.shadowRoot.querySelector(".uy").value = "";
-                this.shadowRoot.querySelector(".uz").value = "";
-                this.shadowRoot.querySelector(".rx").value = "";
-                this.shadowRoot.querySelector(".ry").value = "";
-                this.shadowRoot.querySelector(".rz").value = "";
+                this.shadowRoot.querySelector(".optional-ux").value = "";
+                this.shadowRoot.querySelector(".optional-uy").value = "";
+                this.shadowRoot.querySelector(".optional-uz").value = "";
+                this.shadowRoot.querySelector(".optional-rx").value = "";
+                this.shadowRoot.querySelector(".optional-ry").value = "";
+                this.shadowRoot.querySelector(".optional-rz").value = "";
             }
 
         } else {
-            this.shadowRoot.querySelector(".ux").value = "";
-            this.shadowRoot.querySelector(".uy").value = "";
-            this.shadowRoot.querySelector(".uz").value = "";
-            this.shadowRoot.querySelector(".rx").value = "";
-            this.shadowRoot.querySelector(".ry").value = "";
-            this.shadowRoot.querySelector(".rz").value = "";
+            this.shadowRoot.querySelector(".optional-ux").value = "";
+            this.shadowRoot.querySelector(".optional-uy").value = "";
+            this.shadowRoot.querySelector(".optional-uz").value = "";
+            this.shadowRoot.querySelector(".optional-rx").value = "";
+            this.shadowRoot.querySelector(".optional-ry").value = "";
+            this.shadowRoot.querySelector(".optional-rz").value = "";
         }
     }
 
     updateBoundaryConditionValues() {
         const selectedPointNumber = this.shadowRoot.querySelector(".point-number").value;
         if (this.props.boundaryConditions.get(parseInt(selectedPointNumber)) !== undefined) {
-            this.shadowRoot.querySelector(".ux").value = this.props.boundaryConditions.get(parseInt(selectedPointNumber)).ux;
-            this.dropHighlight(this.shadowRoot.querySelector(".ux"));
-            this.shadowRoot.querySelector(".uy").value = this.props.boundaryConditions.get(parseInt(selectedPointNumber)).uy;
-            this.dropHighlight(this.shadowRoot.querySelector(".uy"));
-            this.shadowRoot.querySelector(".uz").value = this.props.boundaryConditions.get(parseInt(selectedPointNumber)).uz;
-            this.dropHighlight(this.shadowRoot.querySelector(".uz"));
-            this.shadowRoot.querySelector(".rx").value = this.props.boundaryConditions.get(parseInt(selectedPointNumber)).rx;
-            this.dropHighlight(this.shadowRoot.querySelector(".rx"));
-            this.shadowRoot.querySelector(".ry").value = this.props.boundaryConditions.get(parseInt(selectedPointNumber)).ry;
-            this.dropHighlight(this.shadowRoot.querySelector(".ry"));
-            this.shadowRoot.querySelector(".rz").value = this.props.boundaryConditions.get(parseInt(selectedPointNumber)).rz;
-            this.dropHighlight(this.shadowRoot.querySelector(".rz"));
+            this.shadowRoot.querySelector(".optional-ux").value = this.props.boundaryConditions.get(parseInt(selectedPointNumber)).optional_ux;
+            this.dropHighlight(this.shadowRoot.querySelector(".optional-ux"));
+            this.shadowRoot.querySelector(".optional-uy").value = this.props.boundaryConditions.get(parseInt(selectedPointNumber)).optional_uy;
+            this.dropHighlight(this.shadowRoot.querySelector(".optional-uy"));
+            this.shadowRoot.querySelector(".optional-uz").value = this.props.boundaryConditions.get(parseInt(selectedPointNumber)).optional_uz;
+            this.dropHighlight(this.shadowRoot.querySelector(".optional-uz"));
+            this.shadowRoot.querySelector(".optional-rx").value = this.props.boundaryConditions.get(parseInt(selectedPointNumber)).optional_rx;
+            this.dropHighlight(this.shadowRoot.querySelector(".optional-rx"));
+            this.shadowRoot.querySelector(".optional-ry").value = this.props.boundaryConditions.get(parseInt(selectedPointNumber)).optional_ry;
+            this.dropHighlight(this.shadowRoot.querySelector(".optional-ry"));
+            this.shadowRoot.querySelector(".optional-rz").value = this.props.boundaryConditions.get(parseInt(selectedPointNumber)).optional_rz;
+            this.dropHighlight(this.shadowRoot.querySelector(".optional-rz"));
         } else {
-            this.shadowRoot.querySelector(".ux").value = "";
-            this.dropHighlight(this.shadowRoot.querySelector(".ux"));
-            this.shadowRoot.querySelector(".uy").value = "";
-            this.dropHighlight(this.shadowRoot.querySelector(".uy"));
-            this.shadowRoot.querySelector(".uz").value = "";
-            this.dropHighlight(this.shadowRoot.querySelector(".uz"));
-            this.shadowRoot.querySelector(".rx").value = "";
-            this.dropHighlight(this.shadowRoot.querySelector(".rx"));
-            this.shadowRoot.querySelector(".ry").value = "";
-            this.dropHighlight(this.shadowRoot.querySelector(".ry"));
-            this.shadowRoot.querySelector(".rz").value = "";
-            this.dropHighlight(this.shadowRoot.querySelector(".rz"));
+            this.shadowRoot.querySelector(".optional-ux").value = "";
+            this.dropHighlight(this.shadowRoot.querySelector(".optional-ux"));
+            this.shadowRoot.querySelector(".optional-uy").value = "";
+            this.dropHighlight(this.shadowRoot.querySelector(".optional-uy"));
+            this.shadowRoot.querySelector(".optional-uz").value = "";
+            this.dropHighlight(this.shadowRoot.querySelector(".optional-uz"));
+            this.shadowRoot.querySelector(".optional-rx").value = "";
+            this.dropHighlight(this.shadowRoot.querySelector(".optional-rx"));
+            this.shadowRoot.querySelector(".optional-ry").value = "";
+            this.dropHighlight(this.shadowRoot.querySelector(".optional-ry"));
+            this.shadowRoot.querySelector(".optional-rz").value = "";
+            this.dropHighlight(this.shadowRoot.querySelector(".optional-rz"));
         }
         this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
     }
@@ -789,12 +794,12 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
             }
         }
 
-        const inputtedUXField = this.shadowRoot.querySelector(".ux");
-        const inputtedUYField = this.shadowRoot.querySelector(".uy");
-        const inputtedUZField = this.shadowRoot.querySelector(".uz");
-        const inputtedRXField = this.shadowRoot.querySelector(".rx");
-        const inputtedRYField = this.shadowRoot.querySelector(".ry");
-        const inputtedRZField = this.shadowRoot.querySelector(".rz");
+        const inputtedUXField = this.shadowRoot.querySelector(".optional-ux");
+        const inputtedUYField = this.shadowRoot.querySelector(".optional-uy");
+        const inputtedUZField = this.shadowRoot.querySelector(".optional-uz");
+        const inputtedRXField = this.shadowRoot.querySelector(".optional-rx");
+        const inputtedRYField = this.shadowRoot.querySelector(".optional-ry");
+        const inputtedRZField = this.shadowRoot.querySelector(".optional-rz");
 
         if (selectedPointNumberField.value === "") {
             if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
@@ -856,12 +861,12 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
         const message = {"add_boundary_condition": {
             "actionId": this.props.actionId,
             "point_number": selectedPointNumberField.value, 
-            "ux": inputtedUXField.value != "" ? inputtedUXField.value : null,
-            "uy": inputtedUYField.value != "" ? inputtedUYField.value : null,
-            "uz": inputtedUZField.value != "" ? inputtedUZField.value : null,
-            "rx": inputtedRXField.value != "" ? inputtedRXField.value : null,
-            "ry": inputtedRYField.value != "" ? inputtedRYField.value : null,
-            "rz": inputtedRZField.value != "" ? inputtedRZField.value : null,
+            "optional_ux": inputtedUXField.value != "" ? inputtedUXField.value : null,
+            "optional_uy": inputtedUYField.value != "" ? inputtedUYField.value : null,
+            "optional_uz": inputtedUZField.value != "" ? inputtedUZField.value : null,
+            "optional_rx": inputtedRXField.value != "" ? inputtedRXField.value : null,
+            "optional_ry": inputtedRYField.value != "" ? inputtedRYField.value : null,
+            "optional_rz": inputtedRZField.value != "" ? inputtedRZField.value : null,
         }};
 
         this.dispatchEvent(new CustomEvent("clientMessage", {
@@ -882,17 +887,17 @@ class FeaBoundaryConditionAddBoundaryConditionMenu extends HTMLElement {
         this.shadowRoot.querySelector(".point-number-filter").value = null;
         const selectedPointNumberField = this.shadowRoot.querySelector(".point-number");
         this.dropHighlight(selectedPointNumberField);
-        const inputtedUXField = this.shadowRoot.querySelector(".ux");
+        const inputtedUXField = this.shadowRoot.querySelector(".optional-ux");
         this.dropHighlight(inputtedUXField);
-        const inputtedUYField = this.shadowRoot.querySelector(".uy");
+        const inputtedUYField = this.shadowRoot.querySelector(".optional-uy");
         this.dropHighlight(inputtedUYField);
-        const inputtedUZField = this.shadowRoot.querySelector(".uz");
+        const inputtedUZField = this.shadowRoot.querySelector(".optional-uz");
         this.dropHighlight(inputtedUZField);
-        const inputtedRXField = this.shadowRoot.querySelector(".rx");
+        const inputtedRXField = this.shadowRoot.querySelector(".optional-rx");
         this.dropHighlight(inputtedRXField);
-        const inputtedRYField = this.shadowRoot.querySelector(".ry");
+        const inputtedRYField = this.shadowRoot.querySelector(".optional-ry");
         this.dropHighlight(inputtedRYField);
-        const inputtedRZField = this.shadowRoot.querySelector(".rz");
+        const inputtedRZField = this.shadowRoot.querySelector(".optional-rz");
         this.dropHighlight(inputtedRZField);
         this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
     }

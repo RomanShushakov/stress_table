@@ -32,13 +32,13 @@ impl ActionsRouter
 
         let optional_ux =
             {
-                if boundary_condition_data["ux"].is_null()
+                if boundary_condition_data["optional_ux"].is_null()
                 {
                     None
                 }
                 else
                 {
-                    Some(boundary_condition_data["ux"].as_str()
+                    Some(boundary_condition_data["optional_ux"].as_str()
                         .ok_or(JsValue::from("Actions router: Add boundary condition \
                             action: Displacement x component could not be extracted!"))?
                         .parse::<FEFloat>()
@@ -49,13 +49,13 @@ impl ActionsRouter
             };
         let optional_uy =
             {
-                if boundary_condition_data["uy"].is_null()
+                if boundary_condition_data["optional_uy"].is_null()
                 {
                     None
                 }
                 else
                 {
-                    Some(boundary_condition_data["uy"].as_str()
+                    Some(boundary_condition_data["optional_uy"].as_str()
                         .ok_or(JsValue::from(
                             "Actions router: Add boundary condition action: Displacement y \
                             component could not be extracted!"))?
@@ -67,13 +67,13 @@ impl ActionsRouter
             };
         let optional_uz =
             {
-                if boundary_condition_data["uz"].is_null()
+                if boundary_condition_data["optional_uz"].is_null()
                 {
                     None
                 }
                 else
                 {
-                    Some(boundary_condition_data["uz"].as_str()
+                    Some(boundary_condition_data["optional_uz"].as_str()
                         .ok_or(JsValue::from(
                             "Actions router: Add boundary condition action: Displacement z \
                             component could not be extracted!"))?
@@ -85,13 +85,13 @@ impl ActionsRouter
             };
         let optional_rx =
             {
-                if boundary_condition_data["rx"].is_null()
+                if boundary_condition_data["optional_rx"].is_null()
                 {
                     None
                 }
                 else
                 {
-                    Some(boundary_condition_data["rx"].as_str()
+                    Some(boundary_condition_data["optional_rx"].as_str()
                         .ok_or(JsValue::from(
                             "Actions router: Add boundary condition action: Rotation x \
                             component could not be extracted!"))?
@@ -103,13 +103,13 @@ impl ActionsRouter
             };
         let optional_ry =
             {
-                if boundary_condition_data["ry"].is_null()
+                if boundary_condition_data["optional_ry"].is_null()
                 {
                     None
                 }
                 else
                 {
-                    Some(boundary_condition_data["ry"].as_str()
+                    Some(boundary_condition_data["optional_ry"].as_str()
                         .ok_or(JsValue::from(
                             "Actions router: Add boundary condition action: Rotation y \
                             component could not be extracted!"))?
@@ -121,13 +121,13 @@ impl ActionsRouter
             };
         let optional_rz =
             {
-                if boundary_condition_data["rz"].is_null()
+                if boundary_condition_data["optional_rz"].is_null()
                 {
                     None
                 }
                 else
                 {
-                    Some(boundary_condition_data["rz"].as_str()
+                    Some(boundary_condition_data["optional_rz"].as_str()
                         .ok_or(JsValue::from(
                             "Actions router: Add boundary condition action: Rotation z \
                             component could not be extracted!"))?
@@ -170,13 +170,13 @@ impl ActionsRouter
 
         let old_optional_ux_value =
             {
-                if boundary_condition_data["old_boundary_condition_values"]["ux"].is_null()
+                if boundary_condition_data["old_boundary_condition_values"]["optional_ux"].is_null()
                 {
                     None
                 }
                 else
                 {
-                    Some(boundary_condition_data["old_boundary_condition_values"]["ux"]
+                    Some(boundary_condition_data["old_boundary_condition_values"]["optional_ux"]
                         .to_string()
                         .parse::<FEFloat>()
                         .or(Err(JsValue::from("Actions router: Update boundary condition \
@@ -186,13 +186,13 @@ impl ActionsRouter
             };
         let old_optional_uy_value =
             {
-                if boundary_condition_data["old_boundary_condition_values"]["uy"].is_null()
+                if boundary_condition_data["old_boundary_condition_values"]["optional_uy"].is_null()
                 {
                     None
                 }
                 else
                 {
-                    Some(boundary_condition_data["old_boundary_condition_values"]["uy"]
+                    Some(boundary_condition_data["old_boundary_condition_values"]["optional_uy"]
                         .to_string()
                         .parse::<FEFloat>()
                         .or(Err(JsValue::from("Actions router: Update boundary condition \
@@ -202,13 +202,13 @@ impl ActionsRouter
             };
         let old_optional_uz_value =
             {
-                if boundary_condition_data["old_boundary_condition_values"]["uz"].is_null()
+                if boundary_condition_data["old_boundary_condition_values"]["optional_uz"].is_null()
                 {
                     None
                 }
                 else
                 {
-                    Some(boundary_condition_data["old_boundary_condition_values"]["uz"]
+                    Some(boundary_condition_data["old_boundary_condition_values"]["optional_uz"]
                         .to_string()
                         .parse::<FEFloat>()
                         .or(Err(JsValue::from("Actions router: Update boundary condition \
@@ -218,13 +218,13 @@ impl ActionsRouter
             };
         let old_optional_rx_value =
             {
-                if boundary_condition_data["old_boundary_condition_values"]["rx"].is_null()
+                if boundary_condition_data["old_boundary_condition_values"]["optional_rx"].is_null()
                 {
                     None
                 }
                 else
                 {
-                    Some(boundary_condition_data["old_boundary_condition_values"]["rx"]
+                    Some(boundary_condition_data["old_boundary_condition_values"]["optional_rx"]
                         .to_string()
                         .parse::<FEFloat>()
                         .or(Err(JsValue::from("Actions router: Update boundary condition \
@@ -234,13 +234,13 @@ impl ActionsRouter
             };
         let old_optional_ry_value =
             {
-                if boundary_condition_data["old_boundary_condition_values"]["ry"].is_null()
+                if boundary_condition_data["old_boundary_condition_values"]["optional_ry"].is_null()
                 {
                     None
                 }
                 else
                 {
-                    Some(boundary_condition_data["old_boundary_condition_values"]["ry"]
+                    Some(boundary_condition_data["old_boundary_condition_values"]["optional_ry"]
                         .to_string()
                         .parse::<FEFloat>()
                         .or(Err(JsValue::from("Actions router: Update boundary condition \
@@ -250,13 +250,13 @@ impl ActionsRouter
             };
         let old_optional_rz_value =
             {
-                if boundary_condition_data["old_boundary_condition_values"]["rz"].is_null()
+                if boundary_condition_data["old_boundary_condition_values"]["optional_rz"].is_null()
                 {
                     None
                 }
                 else
                 {
-                    Some(boundary_condition_data["old_boundary_condition_values"]["rz"]
+                    Some(boundary_condition_data["old_boundary_condition_values"]["optional_rz"]
                         .to_string()
                         .parse::<FEFloat>()
                         .or(Err(JsValue::from("Actions router: Update boundary condition \
@@ -267,13 +267,14 @@ impl ActionsRouter
 
         let new_optional_ux_value =
             {
-                if boundary_condition_data["new_boundary_condition_values"]["ux"].is_null()
+                if boundary_condition_data["new_boundary_condition_values"]["optional_ux"].is_null()
                 {
                     None
                 }
                 else
                 {
-                    Some(boundary_condition_data["new_boundary_condition_values"]["ux"].as_str()
+                    Some(boundary_condition_data["new_boundary_condition_values"]["optional_ux"]
+                        .as_str()
                         .ok_or(JsValue::from("Actions router: Update boundary condition \
                             action: New displacement x component value could not be extracted!"))?
                         .parse::<FEFloat>()
@@ -284,13 +285,14 @@ impl ActionsRouter
             };
         let new_optional_uy_value =
             {
-                if boundary_condition_data["new_boundary_condition_values"]["uy"].is_null()
+                if boundary_condition_data["new_boundary_condition_values"]["optional_uy"].is_null()
                 {
                     None
                 }
                 else
                 {
-                    Some(boundary_condition_data["new_boundary_condition_values"]["uy"].as_str()
+                    Some(boundary_condition_data["new_boundary_condition_values"]["optional_uy"]
+                        .as_str()
                         .ok_or(JsValue::from("Actions router: Update boundary condition \
                             action: New displacement y component value could not be extracted!"))?
                         .parse::<FEFloat>()
@@ -301,13 +303,14 @@ impl ActionsRouter
             };
         let new_optional_uz_value =
             {
-                if boundary_condition_data["new_boundary_condition_values"]["uz"].is_null()
+                if boundary_condition_data["new_boundary_condition_values"]["optional_uz"].is_null()
                 {
                     None
                 }
                 else
                 {
-                    Some(boundary_condition_data["new_boundary_condition_values"]["fx"].as_str()
+                    Some(boundary_condition_data["new_boundary_condition_values"]["optional_uz"]
+                        .as_str()
                         .ok_or(JsValue::from("Actions router: Update boundary condition \
                             action: New displacement z component value could not be extracted!"))?
                         .parse::<FEFloat>()
@@ -318,13 +321,14 @@ impl ActionsRouter
             };
         let new_optional_rx_value =
             {
-                if boundary_condition_data["new_boundary_condition_values"]["rx"].is_null()
+                if boundary_condition_data["new_boundary_condition_values"]["optional_rx"].is_null()
                 {
                     None
                 }
                 else
                 {
-                    Some(boundary_condition_data["new_boundary_condition_values"]["rx"].as_str()
+                    Some(boundary_condition_data["new_boundary_condition_values"]["optional_rx"]
+                        .as_str()
                         .ok_or(JsValue::from("Actions router: Update boundary condition \
                             action: New rotation x component value could not be extracted!"))?
                         .parse::<FEFloat>()
@@ -335,13 +339,14 @@ impl ActionsRouter
             };
         let new_optional_ry_value =
             {
-                if boundary_condition_data["new_boundary_condition_values"]["ry"].is_null()
+                if boundary_condition_data["new_boundary_condition_values"]["optional_ry"].is_null()
                 {
                     None
                 }
                 else
                 {
-                    Some(boundary_condition_data["new_boundary_condition_values"]["ry"].as_str()
+                    Some(boundary_condition_data["new_boundary_condition_values"]["optional_ry"]
+                        .as_str()
                         .ok_or(JsValue::from("Actions router: Update boundary condition \
                             action: New rotation y component value could not be extracted!"))?
                         .parse::<FEFloat>()
@@ -352,13 +357,14 @@ impl ActionsRouter
             };
         let new_optional_rz_value =
             {
-                if boundary_condition_data["new_boundary_condition_values"]["rz"].is_null()
+                if boundary_condition_data["new_boundary_condition_values"]["optional_rz"].is_null()
                 {
                     None
                 }
                 else
                 {
-                    Some(boundary_condition_data["new_boundary_condition_values"]["rz"].as_str()
+                    Some(boundary_condition_data["new_boundary_condition_values"]["optional_rz"]
+                        .as_str()
                         .ok_or(JsValue::from("Actions router: Update boundary condition \
                             action: New rotation z component value could not be extracted!"))?
                         .parse::<FEFloat>()

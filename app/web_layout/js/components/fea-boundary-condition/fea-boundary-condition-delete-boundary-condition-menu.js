@@ -5,7 +5,10 @@ class FeaBoundaryConditionDeleteBoundaryConditionMenu extends HTMLElement {
         this.props = {
             actionId: null,                 // u32;
             isFEModelLoaded: false,         // load status of wasm module "fe_model";
-            boundaryConditions: new Map(),  // map: { point_number: u32, { ux: f64, uy: f64, uz: f64, rx: f64, ry: f64, rz: f64 }, ... };
+            boundaryConditions: new Map(),  // map: { point_number: u32, 
+                                            //      { optional_ux: f64 or null, optional_uy: f64 or null, 
+                                            //        optional_uz: f64 or null, optional_rx: f64 or null, 
+                                            //        optional_ry: f64 or null, optional_rz: f64 or null }, ... };
         };
 
         this.state = {};
@@ -231,11 +234,12 @@ class FeaBoundaryConditionDeleteBoundaryConditionMenu extends HTMLElement {
         this.props.boundaryConditions = value;
     }
 
-    set addConcentratedLoadToClient(boundaryCondition) {
+    set addBoundaryConditionToClient(boundaryCondition) {
         this.props.boundaryConditions.set(boundaryCondition.point_number, 
             {
-                "ux": boundaryCondition.ux, "uy": boundaryCondition.uy, "uz": boundaryCondition.uz,
-                "rx": boundaryCondition.rx, "ry": boundaryCondition.ry, "rz": boundaryCondition.rz,
+                "optional_ux": boundaryCondition.optional_ux, "optional_uy": boundaryCondition.optional_uy, 
+                "optional_uz": boundaryCondition.optional_uz, "optional_rx": boundaryCondition.optional_rx, 
+                "optional_ry": boundaryCondition.optional_ry, "optional_rz": boundaryCondition.optional_rz,
             });
         this.defineBoundaryConditionOptions();
     }

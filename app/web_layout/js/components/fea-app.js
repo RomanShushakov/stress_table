@@ -144,6 +144,8 @@ class FeaApp extends HTMLElement {
         this.addEventListener("getConcentratedLoads", (event) => this.getConcentratedLoads(event));
         this.addEventListener("getDistributedLineLoads", (event) => this.getDistributedLineLoads(event));
 
+        this.addEventListener("getBoundaryConditions", (event) => this.getBoundaryConditions(event));
+
         this.addEventListener("selected_points", (event) => this.handleSelectedPointsMessage(event));
         this.addEventListener("selected_nodes", (event) => this.handleSelectedNodesMessage(event));
         this.addEventListener("selected_lines", (event) => this.handleSelectedLinesMessage(event));
@@ -200,9 +202,12 @@ class FeaApp extends HTMLElement {
         this.addEventListener("update_beam_section_orientation_data_server_message",
             (event) => this.handleUpdateBeamSectionOrientationDataServerMessage(event));
 
-        this.addEventListener("add_concentrated_load_server_message", (event) => this.handleAddConcentratedLoadServerMessage(event));
-        this.addEventListener("update_concentrated_load_server_message", (event) => this.handleUpdateConcentratedLoadServerMessage(event));
-        this.addEventListener("delete_concentrated_load_server_message", (event) => this.handleDeleteConcentratedLoadServerMessage(event));
+        this.addEventListener("add_concentrated_load_server_message", 
+            (event) => this.handleAddConcentratedLoadServerMessage(event));
+        this.addEventListener("update_concentrated_load_server_message", 
+            (event) => this.handleUpdateConcentratedLoadServerMessage(event));
+        this.addEventListener("delete_concentrated_load_server_message", 
+            (event) => this.handleDeleteConcentratedLoadServerMessage(event));
 
         this.addEventListener("add_distributed_line_load_server_message", 
             (event) => this.handleAddDistributedLineLoadServerMessage(event));
@@ -210,6 +215,13 @@ class FeaApp extends HTMLElement {
             (event) => this.handleUpdateDistributedLineLoadServerMessage(event));
         this.addEventListener("delete_distributed_line_load_server_message", 
             (event) => this.handleDeleteDistributedLineLoadServerMessage(event));
+
+        this.addEventListener("add_boundary_condition_server_message", 
+            (event) => this.handleAddBoundaryConditionServerMessage(event));
+        this.addEventListener("update_boundary_condition_server_message", 
+            (event) => this.handleUpdateBoundaryConditionServerMessage(event));
+        this.addEventListener("delete_boundary_condition_server_message", 
+            (event) => this.handleDeleteBoundaryConditionServerMessage(event));
 
         this.addEventListener("add_node_server_message", (event) => this.handleAddNodeServerMessage(event));
 
@@ -413,6 +425,19 @@ class FeaApp extends HTMLElement {
                     ([key, value]) => [parseInt(key), value]
                 ));
                 this.querySelector(event.target.tagName.toLowerCase()).distributedLineLoads = distributedLineLoads; 
+            }
+        );
+        event.stopPropagation();
+    }
+
+    getBoundaryConditions(event) {
+        this.state.actionsRouter.extract_boundary_conditions(
+            (extractedBoundaryConditionsData) => { 
+                const boundaryConditions = new Map(Array.from(
+                    Object.entries(extractedBoundaryConditionsData.extracted_boundary_conditions), 
+                    ([key, value]) => [parseInt(key), value]
+                ));
+                this.querySelector(event.target.tagName.toLowerCase()).boundaryConditions = boundaryConditions; 
             }
         );
         event.stopPropagation();
@@ -1254,6 +1279,65 @@ class FeaApp extends HTMLElement {
             }
         } 
         this.shadowRoot.querySelector("fea-renderer").deleteDistributedLineLoadFromRenderer = distributedLineLoad;
+        event.stopPropagation();
+    }
+
+    handleAddBoundaryConditionServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;
+        }
+        const boundaryCondition = { 
+            point_number: event.detail.boundary_condition_data.point_number, 
+            optional_ux: event.detail.boundary_condition_data.optional_ux,
+            optional_uy: event.detail.boundary_condition_data.optional_uy, 
+            optional_uz: event.detail.boundary_condition_data.optional_uz,
+            optional_rx: event.detail.boundary_condition_data.optional_rx, 
+            optional_ry: event.detail.boundary_condition_data.optional_ry,
+            optional_rz: event.detail.boundary_condition_data.optional_rz };
+        for (let i = 0; i < this.state.boundaryConditionsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.boundaryConditionsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.boundaryConditionsDataDependentMenus[i])
+                    .addBoundaryConditionToClient = boundaryCondition;
+            }
+        } 
+        // this.shadowRoot.querySelector("fea-renderer").addConcentratedLoadToRenderer = concentratedLoad;
+        event.stopPropagation();
+    }
+
+    handleUpdateBoundaryConditionServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;
+        }
+        const boundaryCondition = { 
+            point_number: event.detail.boundary_condition_data.point_number, 
+            optional_ux: event.detail.boundary_condition_data.optional_ux,
+            optional_uy: event.detail.boundary_condition_data.optional_uy, 
+            optional_uz: event.detail.boundary_condition_data.optional_uz,
+            optional_rx: event.detail.boundary_condition_data.optional_rx, 
+            optional_ry: event.detail.boundary_condition_data.optional_ry,
+            optional_rz: event.detail.boundary_condition_data.optional_rz };
+        for (let i = 0; i < this.state.boundaryConditionsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.boundaryConditionsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.boundaryConditionsDataDependentMenus[i])
+                    .updateBoundaryConditionInClient = boundaryCondition;
+            }
+        } 
+        // this.shadowRoot.querySelector("fea-renderer").updateConcentratedLoadInRenderer = concentratedLoad;
+        event.stopPropagation();
+    }
+
+    handleDeleteBoundaryConditionServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;
+        }
+        const boundaryCondition = { point_number: event.detail.boundary_condition_data.point_number };
+        for (let i = 0; i < this.state.boundaryConditionsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.boundaryConditionsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.boundaryConditionsDataDependentMenus[i])
+                    .deleteBoundaryConditionFromClient = boundaryCondition;
+            }
+        } 
+        // this.shadowRoot.querySelector("fea-renderer").deleteConcentratedLoadFromRenderer = concentratedLoad;
         event.stopPropagation();
     }
 

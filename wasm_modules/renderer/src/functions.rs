@@ -24,6 +24,10 @@ use crate::drawn_object::consts::
     DRAWN_OBJECT_TO_CANVAS_WIDTH_SCALE, DRAWN_OBJECT_TO_CANVAS_HEIGHT_SCALE,
 };
 
+use crate::concentrated_load::ConcentratedLoad;
+
+use crate::distributed_line_load::DistributedLineLoad;
+
 use crate::consts::TOLERANCE;
 
 use crate::log;
@@ -148,7 +152,10 @@ fn find_max_object_side(x_min: f32, x_max: f32, y_min: f32,
 
 
 pub fn normalize_point_objects_coordinates(point_objects: &mut HashMap<PointObjectKey, PointObject>,
-    line_objects: &HashMap<LineObjectKey, LineObject>, canvas_width: f32, canvas_height: f32)
+    line_objects: &HashMap<LineObjectKey, LineObject>,
+    concentrated_loads: &HashMap<u32, ConcentratedLoad>,
+    distributed_line_loads: &HashMap<u32, DistributedLineLoad>,
+    canvas_width: f32, canvas_height: f32)
 {
     let aspect = canvas_width / canvas_height;
 
@@ -194,7 +201,12 @@ pub fn normalize_point_objects_coordinates(point_objects: &mut HashMap<PointObje
                 while point_objects_for_uid.values().position(|point_object|
                         point_object.is_uid_same(current_uid)).is_some() ||
                     line_objects.values().position(|line_object|
-                        line_object.is_uid_same(current_uid)).is_some() || current_uid == 255
+                        line_object.is_uid_same(current_uid)).is_some() ||
+                    concentrated_loads.values().position(|concentrated_load|
+                        concentrated_load.is_uid_same(current_uid)).is_some() ||
+                    distributed_line_loads.values().position(|distributed_line_load|
+                        distributed_line_load.is_uid_same(current_uid)).is_some() ||
+                    current_uid == 255
                 {
                     current_uid = rand::random::<u32>();
                 }

@@ -68,6 +68,8 @@ mod methods_for_concentrated_load_crud;
 
 mod methods_for_distributed_line_load_crud;
 
+mod methods_for_boundary_condition_crud;
+
 mod consts;
 use consts::
 {
@@ -125,6 +127,7 @@ struct State
     beam_section_orientation_for_preview: Option<BeamSectionOrientation>,
     concentrated_loads: HashMap<u32, ConcentratedLoad>,
     distributed_line_loads: HashMap<u32, DistributedLineLoad>,
+    boundary_conditions: Vec<u32>,
     selection_box_start_x: Option<i32>,
     selection_box_start_y: Option<i32>,
 }
@@ -188,6 +191,7 @@ impl Renderer
             beam_section_orientation_for_preview: None,
             concentrated_loads: HashMap::new(),
             distributed_line_loads: HashMap::new(),
+            boundary_conditions: Vec::new(),
             selection_box_start_x: None,
             selection_box_start_y: None,
         };
@@ -198,7 +202,10 @@ impl Renderer
 
     fn update_point_objects_normalized_coordinates(&mut self)
     {
-        normalize_point_objects_coordinates(&mut self.props.point_objects, &self.state.line_objects,
+        normalize_point_objects_coordinates(&mut self.props.point_objects,
+            &self.state.line_objects,
+            &self.state.concentrated_loads,
+            &self.state.distributed_line_loads,
             self.props.canvas_gl.width() as f32,
             self.props.canvas_gl.height() as f32);
         log(&format!("{:?}", self.props.point_objects));

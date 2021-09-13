@@ -29,13 +29,14 @@ impl Renderer
                 while self.props.point_objects.values().position(|point_object|
                         point_object.is_uid_same(current_uid)).is_some() ||
                     self.state.line_objects.values().position(|line_object|
-                        line_object.is_uid_same(current_uid)).is_some() || current_uid == 255 ||
+                        line_object.is_uid_same(current_uid)).is_some() ||
                     self.state.concentrated_loads.values()
                         .position(|concentrated_load|
                             concentrated_load.is_uid_same(current_uid)).is_some() ||
                     self.state.distributed_line_loads.values()
                         .position(|distributed_line_load|
-                            distributed_line_load.is_uid_same(current_uid)).is_some()
+                            distributed_line_load.is_uid_same(current_uid)).is_some() ||
+                    current_uid == 255
                 {
                     current_uid = rand::random::<u32>();
                 }

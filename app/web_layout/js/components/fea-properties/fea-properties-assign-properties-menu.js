@@ -790,9 +790,8 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
             .find(existedAssignedPropertiesToLines => existedAssignedPropertiesToLines.name == `"${selectedPropertiesName}"`);
         let assignToLinesFieldValue = "";
         if (selectedAssignedPropertiesToLinesInProps !== undefined) {
-            let assignedToLines = new Array();
-            selectedAssignedPropertiesToLinesInProps.related_lines_data.forEach(
-                relatedLineData => assignedToLines.push(parseInt(relatedLineData.line_number)));
+            let assignedToLines = Array.from(selectedAssignedPropertiesToLinesInProps.related_lines_data, 
+                (item) => parseInt(item.line_number));
             assignedToLines.sort();
             this.state.assignToLines = new Set(assignedToLines);
             for (let i = 0; i < assignedToLines.length; i++) {
@@ -888,9 +887,8 @@ class FeaPropertiesAssignPropertiesMenu extends HTMLElement {
                     },
                 }));
             } else {
-                let selectedAssignedPropertiesLineNumbers = Array.from(
-                    Object.keys(selectedAssignedPropertiesToLinesInProps.related_lines_data));
-                selectedAssignedPropertiesLineNumbers = selectedAssignedPropertiesLineNumbers.map((item) => parseInt(item));
+                const selectedAssignedPropertiesLineNumbers = Array.from(
+                    selectedAssignedPropertiesToLinesInProps.related_lines_data, (item) => parseInt(item.line_number));
 
                 this.getActionId();
                 const message = {

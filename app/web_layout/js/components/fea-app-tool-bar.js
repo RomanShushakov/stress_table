@@ -93,7 +93,7 @@ class FeaAppToolBar extends HTMLElement {
                     border: #1b1f25;
                 }
 
-                .show-hide-geometry-button :hover {
+                .show-hide-geometry-button:hover .show-hide-geometry-button-icon {
                     background: #20232a;
                     border: #20232a;
                 }
@@ -104,12 +104,17 @@ class FeaAppToolBar extends HTMLElement {
                     padding: 0.25rem;
                 }
 
+                .active:hover .show-hide-geometry-button-icon {
+                    background: #335061;
+                    border: #335061;
+                }
+
                 .show-hide-mesh-button {
                     background: #1b1f25;
                     border: #1b1f25;
                 }
 
-                .show-hide-mesh-button :hover {
+                .show-hide-mesh-button:hover .show-hide-mesh-button-icon {
                     background: #20232a;
                     border: #20232a;
                 }
@@ -118,6 +123,53 @@ class FeaAppToolBar extends HTMLElement {
                     width: 1.7rem;
                     height: 1.7rem;
                     padding: 0.25rem;
+                }
+
+                .active:hover .show-hide-mesh-button-icon {
+                    background: #335061;
+                    border: #335061;
+                }
+
+                .show-hide-load-button {
+                    background: #1b1f25;
+                    border: #1b1f25;
+                }
+
+                .show-hide-load-button:hover .show-hide-load-button-icon {
+                    background: #20232a;
+                    border: #20232a;
+                }
+
+                .show-hide-load-button-icon {
+                    width: 1.7rem;
+                    height: 1.7rem;
+                    padding: 0.25rem;
+                }
+
+                .active:hover .show-hide-load-button-icon {
+                    background: #335061;
+                    border: #335061;
+                }
+
+                .show-hide-boundary-condition-button {
+                    background: #1b1f25;
+                    border: #1b1f25;
+                }
+
+                .show-hide-boundary-condition-button:hover .show-hide-boundary-condition-button-icon {
+                    background: #20232a;
+                    border: #20232a;
+                }
+
+                .show-hide-boundary-condition-button-icon {
+                    width: 1.7rem;
+                    height: 1.7rem;
+                    padding: 0.25rem;
+                }
+
+                .active:hover .show-hide-boundary-condition-button-icon {
+                    background: #335061;
+                    border: #335061;
                 }
 
                 .x-y-view-button {
@@ -176,6 +228,11 @@ class FeaAppToolBar extends HTMLElement {
                     list-style-type: none;
                     padding: 0rem;
                     margin: 0rem;
+                }
+
+                .active-icon {
+                    background: #254354;
+                    border: #254354;
                 }
             </style>
             <div class="wrapper">
@@ -328,6 +385,73 @@ class FeaAppToolBar extends HTMLElement {
                             </button>
                         </li>
                         <li>
+                            <button class="show-hide-load-button">
+
+                                <svg class="show-hide-load-button-icon" width="26" height="24" viewBox="0 0 26 24" fill="none" 
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <title>Show/Hide load</title>
+                                    <path d="M9.91153 14.003L1.01688 22.983C1.01062 22.9893 1.01509 23 1.02398 23H15.8905C15.8932 23 
+                                        15.8957 22.9989 15.8976 22.997L24.7923 14.017C24.7985 14.0107 24.794 14 24.7852 
+                                        14H9.91863C9.91597 14 9.91341 14.0011 9.91153 14.003Z" stroke="#D9D9D9"
+                                    />
+                                    <path d="M13 16L11.2679 11.5H14.7321L13 16Z" fill="#7475E6" stroke="#7475E6" stroke-width="2"/>
+                                    <path d="M13 0L13 13" stroke="#7475E6" stroke-width="2"/>
+                                </svg>
+                            </button>
+                        </li>
+                        <li>
+                            <button class="show-hide-boundary-condition-button">
+
+                                <svg class="show-hide-boundary-condition-button-icon" width="26" height="27" 
+                                    viewBox="0 0 26 27" fill="none" xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <title>Show/Hide boundary condition</title>
+                                    <path d="M10.1909 9.3133L1.84461 17.6726C1.83832 17.6789 1.84279 17.6897 1.85169 
+                                        17.6897H15.802C15.8047 17.6897 15.8073 17.6886 15.8091 17.6867L24.1554 9.32743C24.1617 
+                                        9.32113 24.1572 9.31036 24.1483 9.31036H10.1979C10.1953 9.31036 10.1927 9.31142 
+                                        10.1909 9.3133Z" stroke="#D9D9D9"
+                                    />
+                                    <path d="M12.5345 7.4483L10.5187 3.95692L14.5502 3.95692L12.5345 7.4483Z" fill="#7475E6" 
+                                        stroke="#7475E6" stroke-width="2"
+                                    />
+                                    <ellipse cx="14.3965" cy="1.39655" rx="1.39655" ry="1.39655" 
+                                        transform="rotate(90 14.3965 1.39655)" fill="#7475E6"
+                                    />
+                                    <ellipse cx="10.6724" cy="1.39655" rx="1.39655" ry="1.39655" 
+                                        transform="rotate(90 10.6724 1.39655)" fill="#7475E6"
+                                    />
+                                    <path d="M21.8448 7.4483L19.8291 3.95692L23.8606 3.95692L21.8448 7.4483Z" 
+                                        fill="#7475E6" stroke="#7475E6" stroke-width="2"
+                                    />
+                                    <ellipse cx="23.7069" cy="1.39655" rx="1.39655" ry="1.39655" 
+                                        transform="rotate(90 23.7069 1.39655)" fill="#7475E6"
+                                    />
+                                    <ellipse cx="19.9828" cy="1.39655" rx="1.39655" ry="1.39655" 
+                                        transform="rotate(90 19.9828 1.39655)" fill="#7475E6"
+                                    />
+                                    <path d="M4.15516 19.5517L6.17091 23.0431L2.13941 23.0431L4.15516 19.5517Z" 
+                                        fill="#7475E6" stroke="#7475E6" stroke-width="2"
+                                    />
+                                    <ellipse cx="2.2931" cy="25.6034" rx="1.39655" ry="1.39655" 
+                                        transform="rotate(-90 2.2931 25.6034)" fill="#7475E6"
+                                    />
+                                    <ellipse cx="6.01725" cy="25.6034" rx="1.39655" ry="1.39655" 
+                                        transform="rotate(-90 6.01725 25.6034)" fill="#7475E6"
+                                    />
+                                    <path d="M13.4655 19.5517L15.4813 23.0431L11.4498 23.0431L13.4655 19.5517Z" 
+                                        fill="#7475E6" stroke="#7475E6" stroke-width="2"
+                                    />
+                                    <ellipse cx="11.6034" cy="25.6034" rx="1.39655" ry="1.39655" 
+                                        transform="rotate(-90 11.6034 25.6034)" fill="#7475E6"
+                                    />
+                                    <ellipse cx="15.3276" cy="25.6034" rx="1.39655" ry="1.39655" 
+                                        transform="rotate(-90 15.3276 25.6034)" fill="#7475E6"
+                                    />
+                                </svg>
+                            </button>
+                        </li>
+                        <li>
                             <button class="x-y-view-button">
                                 <svg class="view-button-icon" width="67" height="64" viewBox="0 0 67 64" fill="none" 
                                     xmlns="http://www.w3.org/2000/svg"
@@ -426,6 +550,9 @@ class FeaAppToolBar extends HTMLElement {
         this.shadowRoot.querySelector(".redo-button").addEventListener("click", () => this.redo());
         this.shadowRoot.querySelector(".show-hide-geometry-button").addEventListener("click", () => this.toggleGeometryVisibility());
         this.shadowRoot.querySelector(".show-hide-mesh-button").addEventListener("click", () => this.toggleMeshVisibility());
+        this.shadowRoot.querySelector(".show-hide-load-button").addEventListener("click", () => this.toggleLoadVisibility());
+        this.shadowRoot.querySelector(".show-hide-boundary-condition-button").addEventListener("click", 
+            () => this.toggleBoundaryConditionVisibility());
         this.shadowRoot.querySelector(".x-y-view-button").addEventListener("click", () => this.changeView("planeXY"));
         this.shadowRoot.querySelector(".z-y-view-button").addEventListener("click", () => this.changeView("planeZY"));
         this.shadowRoot.querySelector(".x-z-view-button").addEventListener("click", () => this.changeView("planeXZ"));
@@ -500,6 +627,15 @@ class FeaAppToolBar extends HTMLElement {
     }
 
     toggleGeometryVisibility() {
+        if (this.shadowRoot.querySelector(".show-hide-geometry-button").classList.contains("active")) {
+            this.shadowRoot.querySelector(".show-hide-geometry-button").classList.remove("active");
+            this.shadowRoot.querySelector(".show-hide-geometry-button-icon").classList.remove("active-icon");
+
+        } else {
+            this.shadowRoot.querySelector(".show-hide-geometry-button").classList.add("active");
+            this.shadowRoot.querySelector(".show-hide-geometry-button-icon").classList.add("active-icon");
+        }
+
         this.dispatchEvent(new CustomEvent("toggleGeometryVisibility", {
             bubbles: true,
             composed: true,
@@ -507,7 +643,48 @@ class FeaAppToolBar extends HTMLElement {
     }
 
     toggleMeshVisibility() {
+        if (this.shadowRoot.querySelector(".show-hide-mesh-button").classList.contains("active")) {
+            this.shadowRoot.querySelector(".show-hide-mesh-button").classList.remove("active");
+            this.shadowRoot.querySelector(".show-hide-mesh-button-icon").classList.remove("active-icon");
+
+        } else {
+            this.shadowRoot.querySelector(".show-hide-mesh-button").classList.add("active");
+            this.shadowRoot.querySelector(".show-hide-mesh-button-icon").classList.add("active-icon");
+        }
+
         this.dispatchEvent(new CustomEvent("toggleMeshVisibility", {
+            bubbles: true,
+            composed: true,
+        }));   
+    }
+
+    toggleLoadVisibility() {
+        if (this.shadowRoot.querySelector(".show-hide-load-button").classList.contains("active")) {
+            this.shadowRoot.querySelector(".show-hide-load-button").classList.remove("active");
+            this.shadowRoot.querySelector(".show-hide-load-button-icon").classList.remove("active-icon");
+
+        } else {
+            this.shadowRoot.querySelector(".show-hide-load-button").classList.add("active");
+            this.shadowRoot.querySelector(".show-hide-load-button-icon").classList.add("active-icon");
+        }
+
+        this.dispatchEvent(new CustomEvent("toggleLoadVisibility", {
+            bubbles: true,
+            composed: true,
+        }));   
+    }
+
+    toggleBoundaryConditionVisibility() {
+        if (this.shadowRoot.querySelector(".show-hide-boundary-condition-button").classList.contains("active")) {
+            this.shadowRoot.querySelector(".show-hide-boundary-condition-button").classList.remove("active");
+            this.shadowRoot.querySelector(".show-hide-boundary-condition-button-icon").classList.remove("active-icon");
+
+        } else {
+            this.shadowRoot.querySelector(".show-hide-boundary-condition-button").classList.add("active");
+            this.shadowRoot.querySelector(".show-hide-boundary-condition-button-icon").classList.add("active-icon");
+        }
+
+        this.dispatchEvent(new CustomEvent("toggleBoundaryConditionVisibility", {
             bubbles: true,
             composed: true,
         }));   

@@ -21,7 +21,7 @@ use line_object::{LineObjectType, LineObjectColorScheme};
 mod drawn_object;
 use drawn_object::drawn_object::DrawnObjectTrait;
 use drawn_object::drawn_object::DrawnObject;
-use drawn_object::drawn_object::{CSAxis, GLMode};
+use drawn_object::drawn_object::GLMode;
 use drawn_object::cs_axes_drawn_object::CSAxesDrawnObject;
 use drawn_object::consts::
 {
@@ -40,12 +40,22 @@ use drawn_object::consts::
     CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR, DRAWN_LINE_OBJECTS_DENOTATION_SHIFT, HINTS_COLOR,
     SELECTION_RECTANGLE_STROKE_COLOR, SELECTION_RECTANGLE_FILL_COLOR,
     DRAWN_CONCENTRATED_LOADS_LINE_LENGTH, DRAWN_CONCENTRATED_LOADS_CAPS_HEIGHT,
-    DRAWN_CONCENTRATED_LOADS_CAPS_WIDTH,
-    DRAWN_CONCENTRATED_LOADS_CAPS_BASE_POINTS_NUMBER,
+    DRAWN_CONCENTRATED_LOADS_CAPS_WIDTH, DRAWN_CONCENTRATED_LOADS_CAPS_BASE_POINTS_NUMBER,
+    DRAWN_DISTRIBUTED_LINE_LOADS_LINE_LENGTH, DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_BASE_POINTS_NUMBER,
+    DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_HEIGHT, DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_WIDTH,
+    DRAWN_BOUNDARY_CONDITION_CAPS_BASE_POINTS_NUMBER, DRAWN_BOUNDARY_CONDITION_CAPS_HEIGHT,
+    DRAWN_BOUNDARY_CONDITION_CAPS_WIDTH,
+
 };
 
 mod concentrated_load;
 use concentrated_load::ConcentratedLoad;
+
+mod distributed_line_load;
+use distributed_line_load::DistributedLineLoad;
+
+mod boundary_condition;
+use boundary_condition::BoundaryCondition;
 
 mod buffer_objects;
 use crate::buffer_objects::BufferObjects;
@@ -61,11 +71,17 @@ mod methods_for_line_object_crud;
 
 mod methods_for_concentrated_load_crud;
 
+mod methods_for_distributed_line_load_crud;
+
+mod methods_for_boundary_condition_crud;
+
 mod consts;
 use consts::
 {
     EVENT_TARGET, SELECTED_POINTS_EVENT_MAME, SELECTED_NODES_EVENT_MAME, SELECTED_LINES_EVENT_MAME,
     SELECTED_LINE_ELEMENTS_EVENT_MAME, SELECTED_CONCENTRATED_LOADS_POINTS_NUMBERS_EVENT_MAME,
+    SELECTED_DISTRIBUTED_LINE_LOADS_LINES_NUMBERS_EVENT_MAME,
+    SELECTED_BOUNDARY_CONDITIONS_POINTS_NUMBERS_EVENT_MAME,
 };
 
 mod functions;
@@ -99,6 +115,8 @@ struct Props
     point_objects: HashMap<PointObjectKey, PointObject>,
     is_geometry_visible: bool,
     is_mesh_visible: bool,
+    is_load_visible: bool,
+    is_boundary_condition_visible: bool,
 }
 
 
@@ -116,6 +134,8 @@ struct State
     line_objects: HashMap<LineObjectKey, LineObject>,
     beam_section_orientation_for_preview: Option<BeamSectionOrientation>,
     concentrated_loads: HashMap<u32, ConcentratedLoad>,
+    distributed_line_loads: HashMap<u32, DistributedLineLoad>,
+    boundary_conditions: HashMap<u32, BoundaryCondition>,
     selection_box_start_x: Option<i32>,
     selection_box_start_y: Option<i32>,
 }
@@ -140,8 +160,9 @@ impl Renderer
             canvas_text: canvas_text.clone(), canvas_gl: canvas_gl.clone(),
             cursor_coord_x: -1, cursor_coord_y: -1,
             theta: 0.0, phi: 0.0, dx: 0.0, dy: 0.0, d_scale: 0.0,
-            point_objects: HashMap::new(), is_geometry_visible: true,
-            is_mesh_visible: true,
+            point_objects: HashMap::new(),
+            is_geometry_visible: true, is_mesh_visible: true,
+            is_load_visible: true, is_boundary_condition_visible: true,
         };
 
         let ctx: CTX = canvas_text
@@ -178,6 +199,8 @@ impl Renderer
             line_objects: HashMap::new(),
             beam_section_orientation_for_preview: None,
             concentrated_loads: HashMap::new(),
+            distributed_line_loads: HashMap::new(),
+            boundary_conditions: HashMap::new(),
             selection_box_start_x: None,
             selection_box_start_y: None,
         };
@@ -188,7 +211,10 @@ impl Renderer
 
     fn update_point_objects_normalized_coordinates(&mut self)
     {
-        normalize_point_objects_coordinates(&mut self.props.point_objects, &self.state.line_objects,
+        normalize_point_objects_coordinates(&mut self.props.point_objects,
+            &self.state.line_objects,
+            &self.state.concentrated_loads,
+            &self.state.distributed_line_loads,
             self.props.canvas_gl.width() as f32,
             self.props.canvas_gl.height() as f32);
         log(&format!("{:?}", self.props.point_objects));
@@ -235,7 +261,40 @@ impl Renderer
                     DRAWN_CONCENTRATED_LOADS_CAPS_HEIGHT /
                         (1.0 + self.props.d_scale),
                     DRAWN_CONCENTRATED_LOADS_CAPS_WIDTH /
-                        (1.0 + self.props.d_scale))?;
+                        (1.0 + self.props.d_scale),
+                    &self.props.is_load_visible)?;
+            }
+            if !self.state.distributed_line_loads.is_empty()
+            {
+                drawn_object_for_selection.add_distributed_line_loads(
+                    &self.props.point_objects,
+                    &self.state.line_objects,
+                    &mut self.state.distributed_line_loads,
+                    GLMode::Selection,
+                    &self.state.under_selection_box_colors,
+                    &self.state.selected_colors,
+                    DRAWN_DISTRIBUTED_LINE_LOADS_LINE_LENGTH /
+                            (1.0 + self.props.d_scale),
+                    DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
+                    DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_BASE_POINTS_NUMBER,
+                    DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_HEIGHT /
+                        (1.0 + self.props.d_scale),
+                    DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_WIDTH /
+                        (1.0 + self.props.d_scale),
+                    &self.props.is_load_visible)?;
+            }
+            if !self.state.boundary_conditions.is_empty()
+            {
+                drawn_object_for_selection.add_boundary_conditions(&self.props.point_objects,
+                    &self.state.boundary_conditions, GLMode::Selection,
+                    &self.state.under_selection_box_colors,
+                    &self.state.selected_colors,
+                    DRAWN_BOUNDARY_CONDITION_CAPS_BASE_POINTS_NUMBER,
+                    DRAWN_BOUNDARY_CONDITION_CAPS_HEIGHT /
+                        (1.0 + self.props.d_scale),
+                    DRAWN_BOUNDARY_CONDITION_CAPS_WIDTH /
+                        (1.0 + self.props.d_scale),
+                    &self.props.is_boundary_condition_visible)?;
             }
             self.state.drawn_object_for_selection = Some(drawn_object_for_selection);
         }
@@ -303,7 +362,40 @@ impl Renderer
                     DRAWN_CONCENTRATED_LOADS_CAPS_HEIGHT /
                         (1.0 + self.props.d_scale),
                     DRAWN_CONCENTRATED_LOADS_CAPS_WIDTH /
-                        (1.0 + self.props.d_scale))?;
+                        (1.0 + self.props.d_scale),
+                    &self.props.is_load_visible)?;
+            }
+            if !self.state.distributed_line_loads.is_empty()
+            {
+                drawn_object_visible.add_distributed_line_loads(
+                    &self.props.point_objects,
+                    &self.state.line_objects,
+                    &mut self.state.distributed_line_loads,
+                    GLMode::Visible,
+                    &self.state.under_selection_box_colors,
+                    &self.state.selected_colors,
+                    DRAWN_DISTRIBUTED_LINE_LOADS_LINE_LENGTH /
+                            (1.0 + self.props.d_scale),
+                    DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
+                    DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_BASE_POINTS_NUMBER,
+                    DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_HEIGHT /
+                        (1.0 + self.props.d_scale),
+                    DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_WIDTH /
+                        (1.0 + self.props.d_scale),
+                    &self.props.is_load_visible)?;
+            }
+            if !self.state.boundary_conditions.is_empty()
+            {
+                drawn_object_visible.add_boundary_conditions(&self.props.point_objects,
+                    &self.state.boundary_conditions, GLMode::Visible,
+                    &self.state.under_selection_box_colors,
+                    &self.state.selected_colors,
+                    DRAWN_BOUNDARY_CONDITION_CAPS_BASE_POINTS_NUMBER,
+                    DRAWN_BOUNDARY_CONDITION_CAPS_HEIGHT /
+                        (1.0 + self.props.d_scale),
+                    DRAWN_BOUNDARY_CONDITION_CAPS_WIDTH /
+                        (1.0 + self.props.d_scale),
+                    &self.props.is_boundary_condition_visible)?;
             }
             self.state.drawn_object_visible = Some(drawn_object_visible);
         }
@@ -326,6 +418,8 @@ impl Renderer
         let mut selected_line_numbers = Vec::new();
         let mut selected_line_element_numbers = Vec::new();
         let mut selected_concentrated_loads_points_numbers = Vec::new();
+        let mut selected_distributed_line_loads_lines_numbers = Vec::new();
+        let mut selected_boundary_conditions_points_numbers = Vec::new();
         let mut is_object_selected = false;
         for selected_color in self.state.selected_colors.iter()
         {
@@ -334,13 +428,13 @@ impl Renderer
             {
                 if point_object.is_uid_same(u32::from_be_bytes(*selected_color))
                 {
-                    let selected_point_object_number = point_object_key.get_number();
+                    let selected_point_object_number = point_object_key.copy_number();
                     let selected_point_object_type =
-                        point_object_key.get_object_type();
+                        point_object_key.copy_object_type();
                     match selected_point_object_type
                     {
                         PointObjectType::Point =>
-                            selected_point_numbers.push(selected_point_object_number),
+                                selected_point_numbers.push(selected_point_object_number),
                         PointObjectType::Node =>
                             selected_node_numbers.push(selected_point_object_number),
                     }
@@ -367,10 +461,27 @@ impl Renderer
             for (point_number, concentrated_load) in
                 self.state.concentrated_loads.iter()
             {
-                if concentrated_load.is_uid_same(
-                    u32::from_be_bytes(*selected_color))
+                if concentrated_load.is_uid_same(u32::from_be_bytes(*selected_color))
                 {
                     selected_concentrated_loads_points_numbers.push(point_number);
+                }
+            }
+
+            for (line_number, distributed_line_load) in
+                self.state.distributed_line_loads.iter()
+            {
+                if distributed_line_load.is_uid_same(u32::from_be_bytes(*selected_color))
+                {
+                    selected_distributed_line_loads_lines_numbers.push(line_number);
+                }
+            }
+
+            for (point_number, boundary_condition) in
+                self.state.boundary_conditions.iter()
+            {
+                if boundary_condition.is_uid_same(u32::from_be_bytes(*selected_color))
+                {
+                    selected_boundary_conditions_points_numbers.push(point_number);
                 }
             }
         }
@@ -382,32 +493,28 @@ impl Renderer
             dispatch_custom_event(detail, SELECTED_POINTS_EVENT_MAME,
                 EVENT_TARGET)?;
         }
-
-        if !selected_node_numbers.is_empty()
+        else if !selected_node_numbers.is_empty()
         {
             is_object_selected = true;
             let detail = json!({ "node_numbers": selected_node_numbers });
             dispatch_custom_event(detail, SELECTED_NODES_EVENT_MAME,
                 EVENT_TARGET)?;
         }
-
-        if !selected_line_numbers.is_empty()
+        else if !selected_line_numbers.is_empty()
         {
             is_object_selected = true;
             let detail = json!({ "line_numbers": selected_line_numbers });
             dispatch_custom_event(detail, SELECTED_LINES_EVENT_MAME,
                 EVENT_TARGET)?;
         }
-
-        if !selected_line_element_numbers.is_empty()
+        else if !selected_line_element_numbers.is_empty()
         {
             is_object_selected = true;
             let detail = json!({ "line_element_numbers": selected_line_element_numbers });
             dispatch_custom_event(detail, SELECTED_LINE_ELEMENTS_EVENT_MAME,
                 EVENT_TARGET)?;
         }
-
-        if !selected_concentrated_loads_points_numbers.is_empty()
+        else if !selected_concentrated_loads_points_numbers.is_empty()
         {
             is_object_selected = true;
             let detail = json!({
@@ -415,6 +522,29 @@ impl Renderer
             dispatch_custom_event(detail,
                 SELECTED_CONCENTRATED_LOADS_POINTS_NUMBERS_EVENT_MAME,
                 EVENT_TARGET)?;
+        }
+        else if !selected_distributed_line_loads_lines_numbers.is_empty()
+        {
+            is_object_selected = true;
+            let detail = json!({
+                "distributed_line_loads_lines_numbers":
+                selected_distributed_line_loads_lines_numbers });
+            dispatch_custom_event(detail,
+                SELECTED_DISTRIBUTED_LINE_LOADS_LINES_NUMBERS_EVENT_MAME,
+                EVENT_TARGET)?;
+        }
+        else if !selected_boundary_conditions_points_numbers.is_empty()
+        {
+            is_object_selected = true;
+            let detail = json!({
+                "boundary_conditions_points_numbers": selected_boundary_conditions_points_numbers });
+            dispatch_custom_event(detail,
+                SELECTED_BOUNDARY_CONDITIONS_POINTS_NUMBERS_EVENT_MAME,
+                EVENT_TARGET)?;
+        }
+        else
+        {
+            is_object_selected = false;
         }
 
         self.state.beam_section_orientation_for_preview = None;
@@ -441,14 +571,14 @@ impl Renderer
             .into_serde::<LineObjectNumbers>()
             .or(Err(JsValue::from("Renderer: Preview selected line object numbers action: \
                 Line object numbers could not be serialized!")))?
-            .extract_line_numbers()
+            .ref_line_numbers()
         {
             let current_line_object_key =
                 LineObjectKey::create(*line_object_number, line_object_type);
             if let Some(line_object) =
                 self.state.line_objects.get(&current_line_object_key)
             {
-                let current_uid = line_object.get_uid();
+                let current_uid = line_object.copy_uid();
                 let current_color = transform_u32_to_array_of_u8(current_uid);
                 self.state.selected_colors.insert(current_color);
             }
@@ -474,14 +604,14 @@ impl Renderer
                 .into_serde::<BeamSectionOrientation>()
                 .or(Err(JsValue::from("Renderer: Preview beam section orientation action: \
                     Beam section orientation could not be serialized!")))?;
-        for line_object_number in beam_section_orientation_for_preview.extract_line_numbers()
+        for line_object_number in beam_section_orientation_for_preview.ref_line_numbers()
         {
             let current_line_object_key =
                 LineObjectKey::create(*line_object_number, line_object_type);
             if let Some(line_object) =
                 self.state.line_objects.get(&current_line_object_key)
             {
-                let current_uid = line_object.get_uid();
+                let current_uid = line_object.copy_uid();
                 let current_color = transform_u32_to_array_of_u8(current_uid);
                 self.state.selected_colors.insert(current_color);
             }
@@ -524,6 +654,38 @@ impl Renderer
         else
         {
             self.props.is_mesh_visible = true;
+        }
+        self.update_drawn_object_for_selection()?;
+        self.update_drawn_object_visible()?;
+        Ok(())
+    }
+
+
+    pub fn toggle_load_visibility(&mut self) -> Result<(), JsValue>
+    {
+        if self.props.is_load_visible
+        {
+            self.props.is_load_visible = false;
+        }
+        else
+        {
+            self.props.is_load_visible = true;
+        }
+        self.update_drawn_object_for_selection()?;
+        self.update_drawn_object_visible()?;
+        Ok(())
+    }
+
+
+    pub fn toggle_boundary_condition_visibility(&mut self) -> Result<(), JsValue>
+    {
+        if self.props.is_boundary_condition_visible
+        {
+            self.props.is_boundary_condition_visible = false;
+        }
+        else
+        {
+            self.props.is_boundary_condition_visible = true;
         }
         self.update_drawn_object_for_selection()?;
         self.update_drawn_object_visible()?;
@@ -735,36 +897,36 @@ impl Renderer
                 }
 
                 if !self.props.is_geometry_visible &&
-                    point_object_key.get_object_type() == PointObjectType::Point
+                    point_object_key.copy_object_type() == PointObjectType::Point
                 {
                     continue;
                 }
 
                 if !self.props.is_mesh_visible &&
-                    point_object_key.get_object_type() == PointObjectType::Node
+                    point_object_key.copy_object_type() == PointObjectType::Node
                 {
                     continue;
                 }
 
-                let initial_color = match point_object_key.get_object_type()
+                let initial_color = match point_object_key.copy_object_type()
                     {
                         PointObjectType::Point => CANVAS_DRAWN_POINTS_DENOTATION_COLOR,
                         PointObjectType::Node => CANVAS_DRAWN_NODES_DENOTATION_COLOR,
                     };
                 let denotation_color = define_drawn_object_denotation_color(
-                    point_object.get_uid().unwrap(), &self.state.selected_colors,
+                    point_object.copy_uid().unwrap(), &self.state.selected_colors,
                     &self.state.under_selection_box_colors, initial_color);
                 self.state.ctx.set_fill_style(&denotation_color.into());
                 add_denotation(&self.state.ctx,
-                &[point_object.get_normalized_x()? -
+                &[point_object.copy_normalized_x()? -
                     DRAWN_POINT_OBJECT_DENOTATION_SHIFT / (1.0 + self.props.d_scale),
-                    point_object.get_normalized_y()? - DRAWN_POINT_OBJECT_DENOTATION_SHIFT /
+                    point_object.copy_normalized_y()? - DRAWN_POINT_OBJECT_DENOTATION_SHIFT /
                         (1.0 + self.props.d_scale),
-                    point_object.get_normalized_z()?,
+                    point_object.copy_normalized_z()?,
                     1.0],
                 &matrix,
                 width as f32, height as f32,
-                &point_object_key.get_number().to_string());
+                &point_object_key.copy_number().to_string());
                 self.state.ctx.stroke();
             }
 
@@ -794,7 +956,7 @@ impl Renderer
                     {
                         LineObjectType::Line =>
                             {
-                                match line_object.get_color_scheme()
+                                match line_object.copy_color_scheme()
                                 {
                                     LineObjectColorScheme::Default =>
                                         CANVAS_DRAWN_LINES_DEFAULT_DENOTATION_COLOR,
@@ -808,15 +970,15 @@ impl Renderer
                     };
 
                     let denotation_color = define_drawn_object_denotation_color(
-                        line_object.get_uid(),
+                        line_object.copy_uid(),
                         &self.state.selected_colors, &self.state.under_selection_box_colors,
                         initial_color);
                     let denotation_coordinates =
                         {
                             let start_point_object_coordinates = line_object
-                                .get_start_point_object_coordinates(&self.props.point_objects)?;
+                                .copy_start_point_object_coordinates(&self.props.point_objects)?;
                             let end_point_object_coordinates = line_object
-                                .get_end_point_object_coordinates(&self.props.point_objects)?;
+                                .copy_end_point_object_coordinates(&self.props.point_objects)?;
                             [(start_point_object_coordinates[0] +
                                 end_point_object_coordinates[0]) / 2.0,
                             (start_point_object_coordinates[1] +

@@ -297,6 +297,78 @@ impl FEModel
     }
 
 
+    pub fn add_distributed_line_load(&mut self, action_id: FEUInt, line_number: FEUInt,
+        qx: FEFloat, qy: FEFloat, qz: FEFloat, is_action_id_should_be_increased: bool)
+        -> Result<(), JsValue>
+    {
+        self.preprocessor.add_distributed_line_load(action_id, line_number, qx, qy, qz,
+        is_action_id_should_be_increased)
+    }
+
+
+    pub fn update_distributed_line_load(&mut self, action_id: FEUInt, line_number: FEUInt,
+        qx: FEFloat, qy: FEFloat, qz: FEFloat, is_action_id_should_be_increased: bool)
+        -> Result<(), JsValue>
+    {
+        self.preprocessor.update_distributed_line_load(action_id, line_number, qx, qy, qz,
+            is_action_id_should_be_increased)
+    }
+
+
+    pub fn delete_distributed_line_load(&mut self, action_id: FEUInt, line_number: FEUInt,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.preprocessor.delete_distributed_line_load(action_id, line_number,
+            is_action_id_should_be_increased)
+    }
+
+
+    pub fn restore_distributed_line_load(&mut self, action_id: FEUInt, line_number: FEUInt,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.preprocessor.restore_distributed_line_load(action_id, line_number,
+            is_action_id_should_be_increased)
+    }
+
+
+    pub fn add_boundary_condition(&mut self, action_id: FEUInt, point_number: FEUInt,
+        optional_ux: Option<FEFloat>, optional_uy: Option<FEFloat>, optional_uz: Option<FEFloat>,
+        optional_rx: Option<FEFloat>, optional_ry: Option<FEFloat>, optional_rz: Option<FEFloat>,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.preprocessor.add_boundary_condition(action_id, point_number,
+        optional_ux, optional_uy, optional_uz, optional_rx, optional_ry, optional_rz,
+        is_action_id_should_be_increased)
+    }
+
+
+    pub fn update_boundary_condition(&mut self, action_id: FEUInt, point_number: FEUInt,
+        optional_ux: Option<FEFloat>, optional_uy: Option<FEFloat>, optional_uz: Option<FEFloat>,
+        optional_rx: Option<FEFloat>, optional_ry: Option<FEFloat>, optional_rz: Option<FEFloat>,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.preprocessor.update_boundary_condition(action_id, point_number,
+        optional_ux, optional_uy, optional_uz, optional_rx, optional_ry, optional_rz,
+        is_action_id_should_be_increased)
+    }
+
+
+    pub fn delete_boundary_condition(&mut self, action_id: FEUInt, point_number: FEUInt,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.preprocessor.delete_boundary_condition(action_id, point_number,
+            is_action_id_should_be_increased)
+    }
+
+
+    pub fn restore_boundary_condition(&mut self, action_id: FEUInt, point_number: FEUInt,
+        is_action_id_should_be_increased: bool) -> Result<(), JsValue>
+    {
+        self.preprocessor.restore_boundary_condition(action_id, point_number,
+            is_action_id_should_be_increased)
+    }
+
+
     pub fn extract_points(&self, handler: js_sys::Function) -> Result<(), JsValue>
     {
         self.preprocessor.extract_points(handler)
@@ -354,6 +426,20 @@ impl FEModel
     }
 
 
+    pub fn extract_distributed_line_loads(&self, handler: js_sys::Function)
+        -> Result<(), JsValue>
+    {
+        self.preprocessor.extract_distributed_line_loads(handler)
+    }
+
+
+    pub fn extract_boundary_conditions(&self, handler: js_sys::Function)
+        -> Result<(), JsValue>
+    {
+        self.preprocessor.extract_boundary_conditions(handler)
+    }
+
+
     pub fn show_point_info(&mut self, number: FEUInt, handler: js_sys::Function)
         -> Result<(), JsValue>
     {
@@ -368,9 +454,23 @@ impl FEModel
     }
 
 
-    pub fn show_concentrated_load_info(&mut self, number: FEUInt, handler: js_sys::Function)
+    pub fn show_concentrated_load_info(&mut self, point_number: FEUInt, handler: js_sys::Function)
         -> Result<(), JsValue>
     {
-        self.preprocessor.show_concentrated_load_info(number, handler)
+        self.preprocessor.show_concentrated_load_info(point_number, handler)
+    }
+
+
+    pub fn show_distributed_line_load_info(&mut self, line_number: FEUInt,
+        handler: js_sys::Function) -> Result<(), JsValue>
+    {
+        self.preprocessor.show_distributed_line_load_info(line_number, handler)
+    }
+
+
+    pub fn show_boundary_condition_info(&mut self, point_number: FEUInt, handler: js_sys::Function)
+        -> Result<(), JsValue>
+    {
+        self.preprocessor.show_boundary_condition_info(point_number, handler)
     }
 }

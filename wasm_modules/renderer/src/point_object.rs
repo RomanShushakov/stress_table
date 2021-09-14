@@ -41,19 +41,19 @@ impl Coordinates
     }
 
 
-    fn get_x(&self) -> f32
+    fn copy_x(&self) -> f32
     {
         self.x
     }
 
 
-    fn get_y(&self) -> f32
+    fn copy_y(&self) -> f32
     {
         self.y
     }
 
 
-    fn get_z(&self) -> f32
+    fn copy_z(&self) -> f32
     {
         self.z
     }
@@ -84,13 +84,13 @@ impl PointObjectKey
     }
 
 
-    pub fn get_number(&self) -> u32
+    pub fn copy_number(&self) -> u32
     {
         self.number
     }
 
 
-    pub fn get_object_type(&self) -> PointObjectType
+    pub fn copy_object_type(&self) -> PointObjectType
     {
         self.object_type
     }
@@ -114,21 +114,21 @@ impl PointObject
     }
 
 
-    pub fn get_x(&self) -> f32
+    pub fn copy_x(&self) -> f32
     {
-        self.coordinates.get_x()
+        self.coordinates.copy_x()
     }
 
 
-    pub fn get_y(&self) -> f32
+    pub fn copy_y(&self) -> f32
     {
-        self.coordinates.get_y()
+        self.coordinates.copy_y()
     }
 
 
-    pub fn get_z(&self) -> f32
+    pub fn copy_z(&self) -> f32
     {
-        self.coordinates.get_z()
+        self.coordinates.copy_z()
     }
 
 
@@ -138,11 +138,11 @@ impl PointObject
     }
 
 
-    pub fn get_normalized_x(&self) -> Result<f32, JsValue>
+    pub fn copy_normalized_x(&self) -> Result<f32, JsValue>
     {
         if let Some(coordinates) = &self.normalized_coordinates
         {
-            Ok(coordinates.get_x())
+            Ok(coordinates.copy_x())
         }
         else
         {
@@ -153,11 +153,11 @@ impl PointObject
     }
 
 
-    pub fn get_normalized_y(&self) -> Result<f32, JsValue>
+    pub fn copy_normalized_y(&self) -> Result<f32, JsValue>
     {
         if let Some(coordinates) = &self.normalized_coordinates
         {
-            Ok(coordinates.get_y())
+            Ok(coordinates.copy_y())
         }
         else
         {
@@ -168,11 +168,11 @@ impl PointObject
     }
 
 
-    pub fn get_normalized_z(&self) -> Result<f32, JsValue>
+    pub fn copy_normalized_z(&self) -> Result<f32, JsValue>
     {
         if let Some(coordinates) =  &self.normalized_coordinates
         {
-            Ok(coordinates.get_z())
+            Ok(coordinates.copy_z())
         }
         else
         {
@@ -229,7 +229,7 @@ impl PointObject
     }
 
 
-    pub fn get_uid(&self) -> Result<u32, JsValue>
+    pub fn copy_uid(&self) -> Result<u32, JsValue>
     {
         if let Some(current_uid) = self.uid
         {

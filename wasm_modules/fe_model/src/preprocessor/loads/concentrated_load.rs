@@ -22,18 +22,6 @@ impl<V> ConcentratedLoad<V>
     }
 
 
-    pub fn are_load_components_same(&self, fx: V, fy: V, fz: V) -> bool
-    {
-        self.fx == fx && self.fy == fy && self.fz == fz
-    }
-
-
-    pub fn are_moment_components_same(&self, mx: V, my: V, mz: V) -> bool
-    {
-        self.mx == mx && self.my == my && self.mz == mz
-    }
-
-
     pub fn update(&mut self, fx: V, fy: V, fz: V, mx: V, my: V, mz: V)
     {
         self.fx = fx;

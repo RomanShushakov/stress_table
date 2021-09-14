@@ -24,6 +24,10 @@ use crate::drawn_object::consts::
     DRAWN_OBJECT_TO_CANVAS_WIDTH_SCALE, DRAWN_OBJECT_TO_CANVAS_HEIGHT_SCALE,
 };
 
+use crate::concentrated_load::ConcentratedLoad;
+
+use crate::distributed_line_load::DistributedLineLoad;
+
 use crate::consts::TOLERANCE;
 
 use crate::log;
@@ -52,17 +56,17 @@ fn find_object_min_max_coordinates(point_objects: &HashMap<PointObjectKey, Point
     -> (f32, f32, f32, f32, f32, f32)
 {
     let point_objects = point_objects.values().collect::<Vec<&PointObject>>();
-    let mut x_min = point_objects[0].get_x();
-    let mut x_max = point_objects[0].get_x();
-    let mut y_min = point_objects[0].get_y();
-    let mut y_max = point_objects[0].get_y();
-    let mut z_min = point_objects[0].get_z();
-    let mut z_max = point_objects[0].get_z();
+    let mut x_min = point_objects[0].copy_x();
+    let mut x_max = point_objects[0].copy_x();
+    let mut y_min = point_objects[0].copy_y();
+    let mut y_max = point_objects[0].copy_y();
+    let mut z_min = point_objects[0].copy_z();
+    let mut z_max = point_objects[0].copy_z();
     for i in 1..point_objects.len()
     {
-        let x = point_objects[i].get_x();
-        let y = point_objects[i].get_y();
-        let z = point_objects[i].get_z();
+        let x = point_objects[i].copy_x();
+        let y = point_objects[i].copy_y();
+        let z = point_objects[i].copy_z();
         if x < x_min
         {
             x_min = x;
@@ -148,7 +152,10 @@ fn find_max_object_side(x_min: f32, x_max: f32, y_min: f32,
 
 
 pub fn normalize_point_objects_coordinates(point_objects: &mut HashMap<PointObjectKey, PointObject>,
-    line_objects: &HashMap<LineObjectKey, LineObject>, canvas_width: f32, canvas_height: f32)
+    line_objects: &HashMap<LineObjectKey, LineObject>,
+    concentrated_loads: &HashMap<u32, ConcentratedLoad>,
+    distributed_line_loads: &HashMap<u32, DistributedLineLoad>,
+    canvas_width: f32, canvas_height: f32)
 {
     let aspect = canvas_width / canvas_height;
 
@@ -161,21 +168,21 @@ pub fn normalize_point_objects_coordinates(point_objects: &mut HashMap<PointObje
     let point_objects_for_uid = point_objects.clone();
     for point_object in point_objects.values_mut()
     {
-        let mut x = (point_object.get_x() * multiplier -
+        let mut x = (point_object.copy_x() * multiplier -
             (x_max + x_min) * multiplier / 2.0) / (min_canvas_side  / 2.0) *
             min_drawn_object_to_canvas_scale;
         if x.is_nan()
         {
             x = 0.0;
         }
-        let mut y = (point_object.get_y() * multiplier -
+        let mut y = (point_object.copy_y() * multiplier -
             (y_max + y_min) * multiplier / 2.0) / (min_canvas_side / 2.0) *
             min_drawn_object_to_canvas_scale;
         if y.is_nan()
         {
             y = 0.0;
         }
-        let mut z = (point_object.get_z() * multiplier -
+        let mut z = (point_object.copy_z() * multiplier -
             (z_max + z_min) * multiplier / 2.0) / (min_canvas_side / 2.0) *
             min_drawn_object_to_canvas_scale;
         if z.is_nan()
@@ -194,7 +201,12 @@ pub fn normalize_point_objects_coordinates(point_objects: &mut HashMap<PointObje
                 while point_objects_for_uid.values().position(|point_object|
                         point_object.is_uid_same(current_uid)).is_some() ||
                     line_objects.values().position(|line_object|
-                        line_object.is_uid_same(current_uid)).is_some() || current_uid == 255
+                        line_object.is_uid_same(current_uid)).is_some() ||
+                    concentrated_loads.values().position(|concentrated_load|
+                        concentrated_load.is_uid_same(current_uid)).is_some() ||
+                    distributed_line_loads.values().position(|distributed_line_load|
+                        distributed_line_load.is_uid_same(current_uid)).is_some() ||
+                    current_uid == 255
                 {
                     current_uid = rand::random::<u32>();
                 }

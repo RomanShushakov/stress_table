@@ -162,6 +162,58 @@ class FeaRenderer extends HTMLElement {
         }
     }
 
+    set addDistributedLineLoadToRenderer(distributedLineLoad) {
+        this.state.renderer.add_distributed_line_load(
+            distributedLineLoad.line_number, 
+            distributedLineLoad.qx, distributedLineLoad.qy, distributedLineLoad.qz);
+        if (this.state.isPaused === true)
+        {
+            this.state.renderer.tick();
+        }
+    }
+
+    set updateDistributedLineLoadInRenderer(distributedLineLoad) {
+        this.state.renderer.update_distributed_line_load(
+            distributedLineLoad.line_number, 
+            distributedLineLoad.qx, distributedLineLoad.qy, distributedLineLoad.qz);
+        if (this.state.isPaused === true)
+        {
+            this.state.renderer.tick();
+        }
+    }
+
+    set deleteDistributedLineLoadFromRenderer(distributedLineLoad) {
+        this.state.renderer.delete_distributed_line_load(distributedLineLoad.line_number);
+        if (this.state.isPaused === true)
+        {
+            this.state.renderer.tick();
+        }
+    }
+
+    set addBoundaryConditionToRenderer(boundaryCondition) {
+        this.state.renderer.add_boundary_condition(boundaryCondition.point_number);
+        if (this.state.isPaused === true)
+        {
+            this.state.renderer.tick();
+        }
+    }
+
+    set updateBoundaryConditionInRenderer(boundaryCondition) {
+        this.state.renderer.update_boundary_condition(boundaryCondition.point_number);
+        if (this.state.isPaused === true)
+        {
+            this.state.renderer.tick();
+        }
+    }
+
+    set deleteBoundaryConditionFromRenderer(boundaryCondition) {
+        this.state.renderer.delete_boundary_condition(boundaryCondition.point_number);
+        if (this.state.isPaused === true)
+        {
+            this.state.renderer.tick();
+        }
+    }
+
     set addNodeToRenderer(node) {
         this.state.renderer.add_point_object(node.number, node.x, node.y, node.z, PointObjectType.Node);
         if (this.state.isPaused === true)
@@ -189,6 +241,20 @@ class FeaRenderer extends HTMLElement {
 
     set toggleMeshVisibility(_data) {
         this.state.renderer.toggle_mesh_visibility();
+        if (this.state.isPaused === true) {
+            this.state.renderer.tick();
+        }
+    }
+
+    set toggleLoadVisibility(_data) {
+        this.state.renderer.toggle_load_visibility();
+        if (this.state.isPaused === true) {
+            this.state.renderer.tick();
+        }
+    }
+
+    set toggleBoundaryConditionVisibility(_data) {
+        this.state.renderer.toggle_boundary_condition_visibility();
         if (this.state.isPaused === true) {
             this.state.renderer.tick();
         }

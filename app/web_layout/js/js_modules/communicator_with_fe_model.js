@@ -358,6 +358,87 @@ class CommunicatorWithFEModel {
         }
     }
 
+    set addDistributedLineLoadToLoads(distributedLineLoadData) {
+        try {
+            this.state.feModel.add_distributed_line_load(distributedLineLoadData.action_id, 
+                distributedLineLoadData.line_number, distributedLineLoadData.qx, distributedLineLoadData.qy, 
+                distributedLineLoadData.qz, distributedLineLoadData.is_action_id_should_be_increased);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    set updateDistributedLineLoadInLoads(distributedLineLoadData) {
+        try {
+            this.state.feModel.update_distributed_line_load(distributedLineLoadData.action_id, 
+                distributedLineLoadData.line_number, distributedLineLoadData.qx, distributedLineLoadData.qy, 
+                distributedLineLoadData.qz, distributedLineLoadData.is_action_id_should_be_increased);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    set deleteDistributedLineLoadFromLoads(distributedLineLoadData) {
+        try {
+            this.state.feModel.delete_distributed_line_load(distributedLineLoadData.action_id,
+                distributedLineLoadData.line_number, distributedLineLoadData.is_action_id_should_be_increased);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    set restoreDistributedLineLoadInLoads(distributedLineLoadData) {
+        try {
+            this.state.feModel.restore_distributed_line_load(distributedLineLoadData.action_id,
+                distributedLineLoadData.line_number, distributedLineLoadData.is_action_id_should_be_increased);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    set addBoundaryConditionToBoundaryConditions(boundaryConditionData) {
+        try {
+            this.state.feModel.add_boundary_condition(boundaryConditionData.action_id, 
+                boundaryConditionData.point_number, boundaryConditionData.optional_ux, 
+                boundaryConditionData.optional_uy, boundaryConditionData.optional_uz, 
+                boundaryConditionData.optional_rx, boundaryConditionData.optional_ry,
+                boundaryConditionData.optional_rz, boundaryConditionData.is_action_id_should_be_increased);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    set updateBoundaryConditionInBoundaryConditions(boundaryConditionData) {
+        try {
+            this.state.feModel.update_boundary_condition(boundaryConditionData.action_id, 
+                boundaryConditionData.point_number, boundaryConditionData.optional_ux, 
+                boundaryConditionData.optional_uy, boundaryConditionData.optional_uz, 
+                boundaryConditionData.optional_rx, boundaryConditionData.optional_ry,
+                boundaryConditionData.optional_rz, boundaryConditionData.is_action_id_should_be_increased);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+
+    set deleteBoundaryConditionFromBoundaryConditions(boundaryConditionData) {
+        try {
+            this.state.feModel.delete_boundary_condition(boundaryConditionData.action_id,
+                boundaryConditionData.point_number, boundaryConditionData.is_action_id_should_be_increased);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    set restoreBoundaryConditionInBoundaryConditions(boundaryConditionData) {
+        try {
+            this.state.feModel.restore_boundary_condition(boundaryConditionData.action_id,
+                boundaryConditionData.point_number, boundaryConditionData.is_action_id_should_be_increased);
+        } catch (error) {
+            throw error;
+        }
+    }
+
     set showPointInfo(pointInfoData) {
         try {
             this.state.feModel.show_point_info(pointInfoData.number, pointInfoData.handler);
@@ -377,6 +458,23 @@ class CommunicatorWithFEModel {
     set showConcentratedLoadInfo(concentratedLoadInfoData) {
         try {
             this.state.feModel.show_concentrated_load_info(concentratedLoadInfoData.point_number, concentratedLoadInfoData.handler);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    set showDistributedLineLoadInfo(distributedLineLoadInfoData) {
+        try {
+            this.state.feModel.show_distributed_line_load_info(distributedLineLoadInfoData.line_number, 
+                distributedLineLoadInfoData.handler);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    set showBoundaryConditionInfo(boundaryConditionInfoData) {
+        try {
+            this.state.feModel.show_boundary_condition_info(boundaryConditionInfoData.point_number, boundaryConditionInfoData.handler);
         } catch (error) {
             throw error;
         }
@@ -420,6 +518,14 @@ class CommunicatorWithFEModel {
 
     set extractConcentratedLoads(handler) {
         this.state.feModel.extract_concentrated_loads(handler);
+    }
+
+    set extractDistributedLineLoads(handler) {
+        this.state.feModel.extract_distributed_line_loads(handler);
+    }
+
+    set extractBoundaryConditions(handler) {
+        this.state.feModel.extract_boundary_conditions(handler);
     }
 }
 

@@ -19,6 +19,7 @@ class FeaApp extends HTMLElement {
                 "fea-geometry-add-line-menu",
                 "fea-geometry-update-line-menu",
                 "fea-load-add-concentrated-load-menu",
+                "fea-boundary-condition-add-boundary-condition-menu",
             ],
             linesDataDependentMenus: [
                 "fea-geometry-add-line-menu",
@@ -26,6 +27,7 @@ class FeaApp extends HTMLElement {
                 "fea-geometry-delete-line-menu",
                 "fea-properties-assign-properties-menu",
                 "fea-properties-beam-section-orientation-menu",
+                "fea-load-add-distributed-line-load-menu",
             ],
             materialsDataDependentMenus: [
                 "fea-material-add-material-menu",
@@ -70,7 +72,17 @@ class FeaApp extends HTMLElement {
                 "fea-load-add-concentrated-load-menu",
                 "fea-load-update-concentrated-load-menu",
                 "fea-load-delete-concentrated-load-menu",
-            ]
+            ],
+            distributedLineLoadsDataDependentMenus: [
+                "fea-load-add-distributed-line-load-menu",
+                "fea-load-update-distributed-line-load-menu",
+                "fea-load-delete-distributed-line-load-menu",
+            ],
+            boundaryConditionsDataDependentMenus: [
+                "fea-boundary-condition-add-boundary-condition-menu",
+                "fea-boundary-condition-update-boundary-condition-menu",
+                "fea-boundary-condition-delete-boundary-condition-menu",
+            ],
         };
 
         this.attachShadow({ mode: "open" });
@@ -130,6 +142,9 @@ class FeaApp extends HTMLElement {
         this.addEventListener("getBeamSectionsLocalAxis1Directions", (event) => this.getBeamSectionsLocalAxis1Directionsions(event));
 
         this.addEventListener("getConcentratedLoads", (event) => this.getConcentratedLoads(event));
+        this.addEventListener("getDistributedLineLoads", (event) => this.getDistributedLineLoads(event));
+
+        this.addEventListener("getBoundaryConditions", (event) => this.getBoundaryConditions(event));
 
         this.addEventListener("selected_points", (event) => this.handleSelectedPointsMessage(event));
         this.addEventListener("selected_nodes", (event) => this.handleSelectedNodesMessage(event));
@@ -137,9 +152,16 @@ class FeaApp extends HTMLElement {
         this.addEventListener("selected_line_elements", (event) => this.handleSelectedLineElementsMessage(event));
         this.addEventListener("selected_concentrated_loads_points_numbers", 
             (event) => this.handleSelectedConcentratedLoadsPointsNumbersMessage(event));
+        this.addEventListener("selected_distributed_line_loads_lines_numbers", 
+            (event) => this.handleSelectedDistributedLineLoadsLinesNumbersMessage(event));
+        this.addEventListener("selected_boundary_conditions_points_numbers", 
+            (event) => this.handleSelectedBoundaryConditionsPointsNumbersMessage(event));
 
         this.addEventListener("toggleGeometryVisibility", (event) => this.handleToggleGeometryVisibilityMessage(event));
         this.addEventListener("toggleMeshVisibility", (event) => this.handleToggleMeshVisibilityMessage(event));
+        this.addEventListener("toggleLoadVisibility", (event) => this.handleToggleLoadVisibilityMessage(event));
+        this.addEventListener("toggleBoundaryConditionVisibility", 
+            (event) => this.handleToggleBoundaryConditionVisibilityMessage(event));
         this.addEventListener("changeView", (event) => this.handleChangeViewMessage(event));
 
         this.addEventListener("previewSelectedLineNumbers", (event) => this.handlePreviewSelectedLineNumbersMessage(event));
@@ -185,9 +207,26 @@ class FeaApp extends HTMLElement {
         this.addEventListener("update_beam_section_orientation_data_server_message",
             (event) => this.handleUpdateBeamSectionOrientationDataServerMessage(event));
 
-        this.addEventListener("add_concentrated_load_server_message", (event) => this.handleAddConcentratedLoadServerMessage(event));
-        this.addEventListener("update_concentrated_load_server_message", (event) => this.handleUpdateConcentratedLoadServerMessage(event));
-        this.addEventListener("delete_concentrated_load_server_message", (event) => this.handleDeleteConcentratedLoadServerMessage(event));
+        this.addEventListener("add_concentrated_load_server_message", 
+            (event) => this.handleAddConcentratedLoadServerMessage(event));
+        this.addEventListener("update_concentrated_load_server_message", 
+            (event) => this.handleUpdateConcentratedLoadServerMessage(event));
+        this.addEventListener("delete_concentrated_load_server_message", 
+            (event) => this.handleDeleteConcentratedLoadServerMessage(event));
+
+        this.addEventListener("add_distributed_line_load_server_message", 
+            (event) => this.handleAddDistributedLineLoadServerMessage(event));
+        this.addEventListener("update_distributed_line_load_server_message", 
+            (event) => this.handleUpdateDistributedLineLoadServerMessage(event));
+        this.addEventListener("delete_distributed_line_load_server_message", 
+            (event) => this.handleDeleteDistributedLineLoadServerMessage(event));
+
+        this.addEventListener("add_boundary_condition_server_message", 
+            (event) => this.handleAddBoundaryConditionServerMessage(event));
+        this.addEventListener("update_boundary_condition_server_message", 
+            (event) => this.handleUpdateBoundaryConditionServerMessage(event));
+        this.addEventListener("delete_boundary_condition_server_message", 
+            (event) => this.handleDeleteBoundaryConditionServerMessage(event));
 
         this.addEventListener("add_node_server_message", (event) => this.handleAddNodeServerMessage(event));
 
@@ -383,6 +422,32 @@ class FeaApp extends HTMLElement {
         event.stopPropagation();
     }
 
+    getDistributedLineLoads(event) {
+        this.state.actionsRouter.extract_distributed_line_loads(
+            (extractedDistributedLineLoadsData) => { 
+                const distributedLineLoads = new Map(Array.from(
+                    Object.entries(extractedDistributedLineLoadsData.extracted_distributed_line_loads), 
+                    ([key, value]) => [parseInt(key), value]
+                ));
+                this.querySelector(event.target.tagName.toLowerCase()).distributedLineLoads = distributedLineLoads; 
+            }
+        );
+        event.stopPropagation();
+    }
+
+    getBoundaryConditions(event) {
+        this.state.actionsRouter.extract_boundary_conditions(
+            (extractedBoundaryConditionsData) => { 
+                const boundaryConditions = new Map(Array.from(
+                    Object.entries(extractedBoundaryConditionsData.extracted_boundary_conditions), 
+                    ([key, value]) => [parseInt(key), value]
+                ));
+                this.querySelector(event.target.tagName.toLowerCase()).boundaryConditions = boundaryConditions; 
+            }
+        );
+        event.stopPropagation();
+    }
+
     showObjectInfoHandler(objectInfo) {
         if ("point_data" in objectInfo) {
             const pointNumber = objectInfo.point_data.number;
@@ -420,9 +485,9 @@ class FeaApp extends HTMLElement {
                 this.querySelector("fea-preprocessor-menu").selectLineInClient = lineNumber;
             }   
         } else if ("concentrated_load_data" in objectInfo) {
-            const concentratedLoadpointNumber = objectInfo.concentrated_load_data.point_number;
+            const concentratedLoadPointNumber = objectInfo.concentrated_load_data.point_number;
             const composedObjectInfo = `Concentrated load: 
-                applied to point: ${concentratedLoadpointNumber},
+                applied to point: ${concentratedLoadPointNumber},
                 Fx: ${objectInfo.concentrated_load_data.fx},
                 Fy: ${objectInfo.concentrated_load_data.fy},
                 Fz: ${objectInfo.concentrated_load_data.fz},
@@ -431,8 +496,43 @@ class FeaApp extends HTMLElement {
                 Mz: ${objectInfo.concentrated_load_data.mz}`;
             this.shadowRoot.querySelector("fea-renderer").objectInfo = composedObjectInfo;          
             if (this.querySelector("fea-preprocessor-menu") !== null) {
-                this.querySelector("fea-preprocessor-menu").selectConcentratedLoadInClient = concentratedLoadpointNumber;
+                this.querySelector("fea-preprocessor-menu").selectConcentratedLoadInClient = concentratedLoadPointNumber;
             }
+        } else if ("distributed_line_load_data" in objectInfo) {
+            const distributedLoadLineNumber = objectInfo.distributed_line_load_data.line_number;
+            const composedObjectInfo = `Distributed line load: 
+                applied to line: ${distributedLoadLineNumber},
+                Qx: ${objectInfo.distributed_line_load_data.qx},
+                Qy: ${objectInfo.distributed_line_load_data.qy},
+                Qz: ${objectInfo.distributed_line_load_data.qz}`;
+            this.shadowRoot.querySelector("fea-renderer").objectInfo = composedObjectInfo;          
+            if (this.querySelector("fea-preprocessor-menu") !== null) {
+                this.querySelector("fea-preprocessor-menu").selectDistributedLineLoadInClient = distributedLoadLineNumber;
+            }
+        } else if ("boundary_condition_data" in objectInfo) {
+            const getBC = (bc) => {
+                if (bc == null) {
+                  return "Free";
+                } else if (bc == 0) {
+                  return "Restrained";
+                } else {
+                  return bc;
+                }
+            };
+            const boundaryConditionPointNumber = objectInfo.boundary_condition_data.point_number;
+            const composedObjectInfo = `Boundary condition: 
+                applied to point: ${boundaryConditionPointNumber},
+                Ux: ${getBC(objectInfo.boundary_condition_data.optional_ux)},
+                Uy: ${getBC(objectInfo.boundary_condition_data.optional_uy)},
+                Uz: ${getBC(objectInfo.boundary_condition_data.optional_uz)},
+                Rx: ${getBC(objectInfo.boundary_condition_data.optional_rx)},
+                Ry: ${getBC(objectInfo.boundary_condition_data.optional_ry)},
+                Rz: ${getBC(objectInfo.boundary_condition_data.optional_rz)}`;
+            this.shadowRoot.querySelector("fea-renderer").objectInfo = composedObjectInfo;
+            if (this.querySelector("fea-preprocessor-menu") !== null) {
+                this.querySelector("fea-preprocessor-menu").selectBoundaryConditionInClient = boundaryConditionPointNumber;
+            }   
+
         } else {
             throw "Fea-app: Unknown object!";
         }
@@ -464,8 +564,7 @@ class FeaApp extends HTMLElement {
                 cross section name: ${objectInfo.line_data_with_props.cross_section_name.replace(/['"]+/g, "")},
                 cross section type: ${objectInfo.line_data_with_props.cross_section_type},`;
             this.shadowRoot.querySelector("fea-renderer").objectInfo = composedObjectInfo;    
-        }
-        else if ("concentrated_load_data" in objectInfo) {
+        } else if ("concentrated_load_data" in objectInfo) {
             const concentratedLoadpointNumber = objectInfo.concentrated_load_data.point_number;
             const composedObjectInfo = `Concentrated load: 
                 applied to point: ${concentratedLoadpointNumber},
@@ -476,6 +575,34 @@ class FeaApp extends HTMLElement {
                 My: ${objectInfo.concentrated_load_data.my},
                 Mz: ${objectInfo.concentrated_load_data.mz}`;
             this.shadowRoot.querySelector("fea-renderer").objectInfo = composedObjectInfo;          
+        } else if ("distributed_line_load_data" in objectInfo) {
+            const distributedLoadLineNumber = objectInfo.distributed_line_load_data.line_number;
+            const composedObjectInfo = `Distributed line load: 
+                applied to line: ${distributedLoadLineNumber},
+                Qx: ${objectInfo.distributed_line_load_data.qx},
+                Qy: ${objectInfo.distributed_line_load_data.qy},
+                Qz: ${objectInfo.distributed_line_load_data.qz}`;
+            this.shadowRoot.querySelector("fea-renderer").objectInfo = composedObjectInfo;
+        } else if ("boundary_condition_data" in objectInfo) {
+            const getBC = (bc) => {
+                if (bc == null) {
+                  return "Free";
+                } else if (bc == 0) {
+                  return "Restrained";
+                } else {
+                  return bc;
+                }
+            };
+            const boundaryConditionPointNumber = objectInfo.boundary_condition_data.point_number;
+            const composedObjectInfo = `Boundary condition: 
+                applied to point: ${boundaryConditionPointNumber},
+                Ux: ${getBC(objectInfo.boundary_condition_data.optional_ux)},
+                Uy: ${getBC(objectInfo.boundary_condition_data.optional_uy)},
+                Uz: ${getBC(objectInfo.boundary_condition_data.optional_uz)},
+                Rx: ${getBC(objectInfo.boundary_condition_data.optional_rx)},
+                Ry: ${getBC(objectInfo.boundary_condition_data.optional_ry)},
+                Rz: ${getBC(objectInfo.boundary_condition_data.optional_rz)}`;
+            this.shadowRoot.querySelector("fea-renderer").objectInfo = composedObjectInfo;     
         } else {
             throw "Fea-app: Unknown object!";
         }
@@ -587,6 +714,48 @@ class FeaApp extends HTMLElement {
         event.stopPropagation();
     }
 
+    handleSelectedDistributedLineLoadsLinesNumbersMessage(event) {
+        const distributedLineLoadsLinesNumbers = event.detail.distributed_line_loads_lines_numbers;
+        if (distributedLineLoadsLinesNumbers.length > 1) {
+            console.log("Selected distributed line loads lines numbers: ", distributedLineLoadsLinesNumbers);
+        } else {
+            const distributedLineLoadLineNumber = distributedLineLoadsLinesNumbers[0];
+            if (this.state.isLinesSelectionModeEnabled === false) {
+                this.state.actionsRouter.show_distributed_line_load_info(
+                    BigInt(distributedLineLoadLineNumber),
+                    (objectInfo) => this.showObjectInfoHandler(objectInfo),
+                );
+            } else {
+                this.state.actionsRouter.show_distributed_line_load_info(
+                    BigInt(distributedLineLoadLineNumber),
+                    (objectInfo) => this.showObjectInfoWithoutMenuOpeningHandler(objectInfo),
+                );
+            }
+        }
+        event.stopPropagation();
+    }
+
+    handleSelectedBoundaryConditionsPointsNumbersMessage(event) {
+        const boundaryConditionsPointsNumbers = event.detail.boundary_conditions_points_numbers;
+        if (boundaryConditionsPointsNumbers.length > 1) {
+            console.log("Selected boundary conditions points numbers: ", boundaryConditionsPointsNumbers);
+        } else {
+            const boundaryConditionPointNumber = boundaryConditionsPointsNumbers[0];
+            if (this.state.isLinesSelectionModeEnabled === false) {
+                this.state.actionsRouter.show_boundary_condition_info(
+                    BigInt(boundaryConditionPointNumber),
+                    (objectInfo) => this.showObjectInfoHandler(objectInfo),
+                );
+            } else {
+                this.state.actionsRouter.show_boundary_condition_info(
+                    BigInt(boundaryConditionPointNumber),
+                    (objectInfo) => this.showObjectInfoWithoutMenuOpeningHandler(objectInfo),
+                );
+            }
+        }
+        event.stopPropagation();
+    }
+
     handleToggleGeometryVisibilityMessage(event) {
         const data = true;
         this.shadowRoot.querySelector("fea-renderer").toggleGeometryVisibility = data;
@@ -596,6 +765,18 @@ class FeaApp extends HTMLElement {
     handleToggleMeshVisibilityMessage(event) {
         const data = true;
         this.shadowRoot.querySelector("fea-renderer").toggleMeshVisibility = data;
+        event.stopPropagation();
+    }
+
+    handleToggleLoadVisibilityMessage(event) {
+        const data = true;
+        this.shadowRoot.querySelector("fea-renderer").toggleLoadVisibility = data;
+        event.stopPropagation();
+    }
+
+    handleToggleBoundaryConditionVisibilityMessage(event) {
+        const data = true;
+        this.shadowRoot.querySelector("fea-renderer").toggleBoundaryConditionVisibility = data;
         event.stopPropagation();
     }
 
@@ -673,6 +854,7 @@ class FeaApp extends HTMLElement {
                 const errorData = { "message": message, "error": error };
                 this.querySelector(event.target.tagName.toLowerCase()).feModelError = errorData;
             } else {
+                console.log("Error!!!", error);
                 this.querySelector(event.target.tagName.toLowerCase()).feModelError = error;
             }
             throw error;
@@ -1133,6 +1315,118 @@ class FeaApp extends HTMLElement {
             }
         } 
         this.shadowRoot.querySelector("fea-renderer").deleteConcentratedLoadFromRenderer = concentratedLoad;
+        event.stopPropagation();
+    }
+
+    handleAddDistributedLineLoadServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;
+        }
+        const distributedLineLoad = { 
+            line_number: event.detail.distributed_line_load_data.line_number, 
+            qx: event.detail.distributed_line_load_data.qx,
+            qy: event.detail.distributed_line_load_data.qy, 
+            qz: event.detail.distributed_line_load_data.qz };
+        for (let i = 0; i < this.state.distributedLineLoadsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.distributedLineLoadsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.distributedLineLoadsDataDependentMenus[i])
+                    .addDistributedLineLoadToClient = distributedLineLoad;
+            }
+        } 
+        this.shadowRoot.querySelector("fea-renderer").addDistributedLineLoadToRenderer = distributedLineLoad;
+        event.stopPropagation();
+    }
+
+    handleUpdateDistributedLineLoadServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;
+        }
+        const distributedLineLoad = { 
+            line_number: event.detail.distributed_line_load_data.line_number, 
+            qx: event.detail.distributed_line_load_data.qx,
+            qy: event.detail.distributed_line_load_data.qy, 
+            qz: event.detail.distributed_line_load_data.qz };
+        for (let i = 0; i < this.state.distributedLineLoadsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.distributedLineLoadsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.distributedLineLoadsDataDependentMenus[i])
+                    .updateDistributedLineLoadInClient = distributedLineLoad;
+            }
+        } 
+        this.shadowRoot.querySelector("fea-renderer").updateDistributedLineLoadInRenderer = distributedLineLoad;
+        event.stopPropagation();
+    }
+
+    handleDeleteDistributedLineLoadServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;
+        }
+        const distributedLineLoad = { line_number: event.detail.distributed_line_load_data.line_number };
+        for (let i = 0; i < this.state.distributedLineLoadsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.distributedLineLoadsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.distributedLineLoadsDataDependentMenus[i])
+                    .deleteDistributedLineLoadFromClient = distributedLineLoad;
+            }
+        } 
+        this.shadowRoot.querySelector("fea-renderer").deleteDistributedLineLoadFromRenderer = distributedLineLoad;
+        event.stopPropagation();
+    }
+
+    handleAddBoundaryConditionServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;
+        }
+        const boundaryCondition = { 
+            point_number: event.detail.boundary_condition_data.point_number, 
+            optional_ux: event.detail.boundary_condition_data.optional_ux,
+            optional_uy: event.detail.boundary_condition_data.optional_uy, 
+            optional_uz: event.detail.boundary_condition_data.optional_uz,
+            optional_rx: event.detail.boundary_condition_data.optional_rx, 
+            optional_ry: event.detail.boundary_condition_data.optional_ry,
+            optional_rz: event.detail.boundary_condition_data.optional_rz };
+        for (let i = 0; i < this.state.boundaryConditionsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.boundaryConditionsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.boundaryConditionsDataDependentMenus[i])
+                    .addBoundaryConditionToClient = boundaryCondition;
+            }
+        } 
+        this.shadowRoot.querySelector("fea-renderer").addBoundaryConditionToRenderer = boundaryCondition;
+        event.stopPropagation();
+    }
+
+    handleUpdateBoundaryConditionServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;
+        }
+        const boundaryCondition = { 
+            point_number: event.detail.boundary_condition_data.point_number, 
+            optional_ux: event.detail.boundary_condition_data.optional_ux,
+            optional_uy: event.detail.boundary_condition_data.optional_uy, 
+            optional_uz: event.detail.boundary_condition_data.optional_uz,
+            optional_rx: event.detail.boundary_condition_data.optional_rx, 
+            optional_ry: event.detail.boundary_condition_data.optional_ry,
+            optional_rz: event.detail.boundary_condition_data.optional_rz };
+        for (let i = 0; i < this.state.boundaryConditionsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.boundaryConditionsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.boundaryConditionsDataDependentMenus[i])
+                    .updateBoundaryConditionInClient = boundaryCondition;
+            }
+        } 
+        this.shadowRoot.querySelector("fea-renderer").updateBoundaryConditionInRenderer = boundaryCondition;
+        event.stopPropagation();
+    }
+
+    handleDeleteBoundaryConditionServerMessage(event) {
+        if (event.detail.is_action_id_should_be_increased === true) {
+            this.state.actionId += 1;
+        }
+        const boundaryCondition = { point_number: event.detail.boundary_condition_data.point_number };
+        for (let i = 0; i < this.state.boundaryConditionsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.boundaryConditionsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.boundaryConditionsDataDependentMenus[i])
+                    .deleteBoundaryConditionFromClient = boundaryCondition;
+            }
+        } 
+        this.shadowRoot.querySelector("fea-renderer").deleteBoundaryConditionFromRenderer = boundaryCondition;
         event.stopPropagation();
     }
 

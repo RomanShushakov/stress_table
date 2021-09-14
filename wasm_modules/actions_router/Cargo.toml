@@ -14,16 +14,16 @@ lto = true
 crate-type = ["cdylib"]
 
 [dependencies]
-wasm-bindgen = { version = "0.2.76", features = ["serde-serialize"] }
-js-sys = "0.3.53"
+wasm-bindgen = { version = "0.2.77", features = ["serde-serialize"] }
+js-sys = "0.3.54"
 serde = { version = "1.0.130", features = ["derive"] }
 serde_json = "1.0.67"
-wasm-bindgen-futures = "0.4.26"
+wasm-bindgen-futures = "0.4.27"
 serde_derive = "1.0.130"
 
 
 [dependencies.web-sys]
-version = "0.3.53"
+version = "0.3.54"
 features = [
   "Headers",
   "Request",

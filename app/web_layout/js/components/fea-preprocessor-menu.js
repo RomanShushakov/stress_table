@@ -11,6 +11,7 @@ class FeaPreprocessorMenu extends HTMLElement {
                 "section-menu": "fea-section-menu",
                 "properties-menu": "fea-properties-menu",
                 "load-menu": "fea-load-menu",
+                "boundary-condition-menu": "fea-boundary-condition-menu",
             },
         };
 
@@ -75,17 +76,49 @@ class FeaPreprocessorMenu extends HTMLElement {
         }
     }
 
-    set selectConcentratedLoadInClient(concentratedLoadpointNumber) {
+    set selectConcentratedLoadInClient(concentratedLoadPointNumber) {
         if (this.querySelector("fea-load-menu") === null) {
             this.delay(0)
                 .then(() => { 
                     this.shadowRoot.querySelector("fea-preprocessor-menu-buttons").toggleButton = "load-menu-button";
                 })
-                .then(async () => { this.querySelector("fea-load-menu").selectConcentratedLoadInClient = concentratedLoadpointNumber });
+                .then(async () => { this.querySelector("fea-load-menu").selectConcentratedLoadInClient = concentratedLoadPointNumber });
         } else {
             this.delay(0)
                 .then(() => { 
-                    this.querySelector("fea-load-menu").selectConcentratedLoadInClient = concentratedLoadpointNumber;
+                    this.querySelector("fea-load-menu").selectConcentratedLoadInClient = concentratedLoadPointNumber;
+                });
+        }
+    }
+
+    set selectDistributedLineLoadInClient(distributedLineLoadLineNumber) {
+        if (this.querySelector("fea-load-menu") === null) {
+            this.delay(0)
+                .then(() => { 
+                    this.shadowRoot.querySelector("fea-preprocessor-menu-buttons").toggleButton = "load-menu-button";
+                })
+                .then(async () => { this.querySelector("fea-load-menu").selectDistributedLineLoadInClient = distributedLineLoadLineNumber });
+        } else {
+            this.delay(0)
+                .then(() => { 
+                    this.querySelector("fea-load-menu").selectDistributedLineLoadInClient = distributedLineLoadLineNumber;
+                });
+        }
+    }
+
+    set selectBoundaryConditionInClient(boundaryConditionPointNumber) {
+        if (this.querySelector("fea-boundary-condition-menu") === null) {
+            this.delay(0)
+                .then(() => { 
+                    this.shadowRoot.querySelector("fea-preprocessor-menu-buttons").toggleButton = "boundary-condition-menu-button";
+                })
+                .then(async () => { this.querySelector("fea-boundary-condition-menu").selectBoundaryConditionInClient = 
+                    boundaryConditionPointNumber });
+        } else {
+            this.delay(0)
+                .then(() => { 
+                    this.querySelector("fea-boundary-condition-menu").selectBoundaryConditionInClient = 
+                        boundaryConditionPointNumber;
                 });
         }
     }

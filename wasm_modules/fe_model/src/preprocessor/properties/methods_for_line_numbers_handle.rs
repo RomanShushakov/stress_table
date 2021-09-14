@@ -133,10 +133,10 @@ impl<T, V> Properties<T, V>
 
 
     pub fn restore_line_numbers_in_properties(&mut self, action_id: T,
-        restored_line_numbers: Vec<T>) -> Result<(), JsValue>
+        restored_line_numbers: &[T]) -> Result<(), JsValue>
     {
         let mut is_appropriate_data_exist = false;
-        let mut restored_line_numbers_for_check = restored_line_numbers.clone();
+        let mut restored_line_numbers_for_check = restored_line_numbers.to_vec();
 
         if let Some(changed_assigned_properties_to_lines) =
             self.changed_assigned_properties_to_lines.remove(&action_id)

@@ -61,6 +61,15 @@ import FeaLoadMenuButtons from "./components/fea-load/fea-load-menu-buttons.js";
 import FeaLoadAddConcentratedLoadMenu from "./components/fea-load/fea-load-add-concentrated-load-menu.js";
 import FeaLoadUpdateConcentratedLoadMenu from "./components/fea-load/fea-load-update-concentrated-load-menu.js";
 import FeaLoadDeleteConcentratedLoadMenu from "./components/fea-load/fea-load-delete-concentrated-load-menu.js";
+import FeaLoadAddDistributedLineLoadMenu from "./components/fea-load/fea-load-add-distributed-line-load-menu.js";
+import FeaLoadUpdateDistributedLineLoadMenu from "./components/fea-load/fea-load-update-distributed-line-load-menu.js";
+import FeaLoadDeleteDistributedLineLoadMenu from "./components/fea-load/fea-load-delete-distributed-line-load-menu.js";
+
+import FeaBoundaryConditionMenu from "./components/fea-boundary-condition/fea-boundary-condition-menu.js";
+import FeaBoundaryConditionMenuButtons from "./components/fea-boundary-condition/fea-boundary-condition-menu-buttons.js";
+import FeaBoundaryConditionAddBoundaryConditionMenu from "./components/fea-boundary-condition/fea-boundary-condition-add-boundary-condition-menu.js";
+import FeaBoundaryConditionUpdateBoundaryConditionMenu from "./components/fea-boundary-condition/fea-boundary-condition-update-boundary-condition-menu.js";
+import FeaBoundaryConditionDeleteBoundaryConditionMenu from "./components/fea-boundary-condition/fea-boundary-condition-delete-boundary-condition-menu.js";
 
 customElements.define("fea-app", FeaApp);
 customElements.define("fea-app-menu-bar", FeaAppMenuBar);
@@ -125,3 +134,12 @@ customElements.define("fea-load-menu-buttons", FeaLoadMenuButtons);
 customElements.define("fea-load-add-concentrated-load-menu", FeaLoadAddConcentratedLoadMenu);
 customElements.define("fea-load-update-concentrated-load-menu", FeaLoadUpdateConcentratedLoadMenu);
 customElements.define("fea-load-delete-concentrated-load-menu", FeaLoadDeleteConcentratedLoadMenu);
+customElements.define("fea-load-add-distributed-line-load-menu", FeaLoadAddDistributedLineLoadMenu);
+customElements.define("fea-load-update-distributed-line-load-menu", FeaLoadUpdateDistributedLineLoadMenu);
+customElements.define("fea-load-delete-distributed-line-load-menu", FeaLoadDeleteDistributedLineLoadMenu);
+
+customElements.define("fea-boundary-condition-menu", FeaBoundaryConditionMenu);
+customElements.define("fea-boundary-condition-menu-buttons", FeaBoundaryConditionMenuButtons);
+customElements.define("fea-boundary-condition-add-boundary-condition-menu", FeaBoundaryConditionAddBoundaryConditionMenu);
+customElements.define("fea-boundary-condition-update-boundary-condition-menu", FeaBoundaryConditionUpdateBoundaryConditionMenu);
+customElements.define("fea-boundary-condition-delete-boundary-condition-menu", FeaBoundaryConditionDeleteBoundaryConditionMenu);

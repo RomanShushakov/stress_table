@@ -9,9 +9,9 @@ class FeaLoadMenu extends HTMLElement {
                 "load-add-load-menu-concentrated-load": "fea-load-add-concentrated-load-menu",
                 "load-update-load-menu-concentrated-load": "fea-load-update-concentrated-load-menu",
                 "load-delete-load-menu-concentrated-load": "fea-load-delete-concentrated-load-menu",
-                "load-add-load-menu-distributed-load": "fea-properties-assign-properties-menu",
-                "load-update-load-menu-distributed-load": "fea-properties-beam-section-orientation-menu",
-                "load-delete-load-menu-distributed-load": "fea-properties-add-properties-menu",
+                "load-add-load-menu-distributed-line-load": "fea-load-add-distributed-line-load-menu",
+                "load-update-load-menu-distributed-line-load": "fea-load-update-distributed-line-load-menu",
+                "load-delete-load-menu-distributed-line-load": "fea-load-delete-distributed-line-load-menu",
             },
 
             loadTypes: ["Concentrated load", "Distributed load"],
@@ -41,6 +41,7 @@ class FeaLoadMenu extends HTMLElement {
                     margin-bottom: 0;
                     margin-left: 0;
                     margin-right: 0;
+                    align-items: baseline;
                 }
 
                 .load-menu-caption {
@@ -118,7 +119,7 @@ class FeaLoadMenu extends HTMLElement {
         this.shadowRoot.querySelector(".load-type").addEventListener("change", () => this.defineLoadTypeForLoadMenuButtons());
     }
 
-    set selectConcentratedLoadInClient(concentratedLoadpointNumber) {
+    set selectConcentratedLoadInClient(concentratedLoadPointNumber) {
         const loadTypeSelect = this.shadowRoot.querySelector(".load-type");
                 const loadTypeOptions = loadTypeSelect.options;
                 for (let option, i = 0; option = loadTypeOptions[i]; i++) {
@@ -130,7 +131,22 @@ class FeaLoadMenu extends HTMLElement {
         this.defineLoadTypeForLoadMenuButtons();
         this.shadowRoot.querySelector("fea-load-menu-buttons").activateButton = "load-update-load-menu-button";
         this.querySelector("fea-load-update-concentrated-load-menu").selectConcentratedLoadInClient = 
-            concentratedLoadpointNumber;
+            concentratedLoadPointNumber;
+    }
+
+    set selectDistributedLineLoadInClient(distributedLineLoadLineNumber) {
+        const loadTypeSelect = this.shadowRoot.querySelector(".load-type");
+                const loadTypeOptions = loadTypeSelect.options;
+                for (let option, i = 0; option = loadTypeOptions[i]; i++) {
+                    if (option.value == "Distributed load") {
+                        loadTypeSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+        this.defineLoadTypeForLoadMenuButtons();
+        this.shadowRoot.querySelector("fea-load-menu-buttons").activateButton = "load-update-load-menu-button";
+        this.querySelector("fea-load-update-distributed-line-load-menu").selectDistributedLineLoadInClient = 
+            distributedLineLoadLineNumber;
     }
 
     connectedCallback() {
@@ -171,7 +187,7 @@ class FeaLoadMenu extends HTMLElement {
                 this.shadowRoot.querySelector("fea-load-menu-buttons").setAttribute("load-type", "concentrated-load");
                 break;
             case "Distributed load":
-                this.shadowRoot.querySelector("fea-load-menu-buttons").setAttribute("load-type", "distributed-load");
+                this.shadowRoot.querySelector("fea-load-menu-buttons").setAttribute("load-type", "distributed-line-load");
                 break;
         }
     }

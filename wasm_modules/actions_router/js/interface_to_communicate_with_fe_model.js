@@ -407,6 +407,106 @@ export function restoreConcentratedLoadInLoads(action_id, point_number, is_actio
     }
 }
 
+export function addDistributedLineLoadToLoads(action_id, line_number, 
+    qx, qy, qz, is_action_id_should_be_increased) 
+{
+    const distributedLineLoadData = { "action_id": action_id, "line_number": line_number, 
+        "qx": qx, "qy": qy, "qz": qz, "is_action_id_should_be_increased": is_action_id_should_be_increased };
+    try {
+        communicatorWithFEModel.addDistributedLineLoadToLoads = distributedLineLoadData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function updateDistributedLineLoadInLoads(action_id, line_number, 
+    qx, qy, qz, is_action_id_should_be_increased) 
+{
+    const distributedLineLoadData = { "action_id": action_id, "line_number": line_number, 
+        "qx": qx, "qy": qy, "qz": qz, "is_action_id_should_be_increased": is_action_id_should_be_increased };
+    try {
+        communicatorWithFEModel.updateDistributedLineLoadInLoads = distributedLineLoadData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function deleteDistributedLineLoadFromLoads(action_id, line_number, is_action_id_should_be_increased) 
+{
+    const distributedLineLoadData = { "action_id": action_id, 
+        "line_number": line_number, "is_action_id_should_be_increased": is_action_id_should_be_increased };
+    try {
+        communicatorWithFEModel.deleteDistributedLineLoadFromLoads = distributedLineLoadData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function restoreDistributedLineLoadInLoads(action_id, line_number, is_action_id_should_be_increased) 
+{
+    const distributedLineLoadData = { "action_id": action_id, 
+        "line_number": line_number, "is_action_id_should_be_increased": is_action_id_should_be_increased };
+    try {
+        communicatorWithFEModel.restoreDistributedLineLoadInLoads = distributedLineLoadData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function addBoundaryConditionToBoundaryConditions(action_id, point_number, 
+    optional_ux, optional_uy, optional_uz, optional_rx, optional_ry, optional_rz, 
+    is_action_id_should_be_increased) 
+{
+    const boundaryConditionData = { "action_id": action_id, "point_number": point_number, 
+        "optional_ux": optional_ux, "optional_uy": optional_uy, "optional_uz": optional_uz,
+        "optional_rx": optional_rx, "optional_ry": optional_ry, "optional_rz": optional_rz, 
+        "is_action_id_should_be_increased": is_action_id_should_be_increased };
+    try {
+        communicatorWithFEModel.addBoundaryConditionToBoundaryConditions = boundaryConditionData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function updateBoundaryConditionInBoundaryConditions(action_id, point_number, 
+    optional_ux, optional_uy, optional_uz, optional_rx, optional_ry, optional_rz, 
+    is_action_id_should_be_increased) 
+{
+    const boundaryConditionData = { "action_id": action_id, "point_number": point_number, 
+        "optional_ux": optional_ux, "optional_uy": optional_uy, "optional_uz": optional_uz,
+        "optional_rx": optional_rx, "optional_ry": optional_ry, "optional_rz": optional_rz, 
+        "is_action_id_should_be_increased": is_action_id_should_be_increased };
+    try {
+        communicatorWithFEModel.updateBoundaryConditionInBoundaryConditions = boundaryConditionData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function deleteBoundaryConditionFromBoundaryConditions(action_id, point_number, 
+    is_action_id_should_be_increased) 
+{
+    const boundaryConditionData = { "action_id": action_id, 
+        "point_number": point_number, "is_action_id_should_be_increased": is_action_id_should_be_increased };
+    try {
+        communicatorWithFEModel.deleteBoundaryConditionFromBoundaryConditions = boundaryConditionData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function restoreBoundaryConditionInBoundaryConditions(action_id, point_number, 
+    is_action_id_should_be_increased) 
+{
+    const boundaryConditionData = { "action_id": action_id, 
+        "point_number": point_number, "is_action_id_should_be_increased": is_action_id_should_be_increased };
+    try {
+        communicatorWithFEModel.restoreBoundaryConditionInBoundaryConditions = boundaryConditionData;
+    } catch (error) {
+        throw error;
+    }
+}
+
 export function showPointInfo(number, handler) 
 {
     const pointInfoData = {"number": number, "handler": handler};
@@ -427,11 +527,31 @@ export function showLineInfo(number, handler)
     }
 }
 
-export function showConcentratedLoadInfo(pointNumber, handler) 
+export function showConcentratedLoadInfo(point_number, handler) 
 {
-    const concentratedLoadInfoData = {"point_number": pointNumber, "handler": handler};
+    const concentratedLoadInfoData = {"point_number": point_number, "handler": handler};
     try {
         communicatorWithFEModel.showConcentratedLoadInfo = concentratedLoadInfoData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function showDistributedLineLoadInfo(line_number, handler) 
+{
+    const distributedLineLoadInfoData = {"line_number": line_number, "handler": handler};
+    try {
+        communicatorWithFEModel.showDistributedLineLoadInfo = distributedLineLoadInfoData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function showBoundaryConditionInfo(point_number, handler) 
+{
+    const boundaryConditionInfoData = {"point_number": point_number, "handler": handler};
+    try {
+        communicatorWithFEModel.showBoundaryConditionInfo = boundaryConditionInfoData;
     } catch (error) {
         throw error;
     }
@@ -477,12 +597,22 @@ export function extractAssignedPropertiesToLines(handler)
     communicatorWithFEModel.extractAssignedPropertiesToLines = handler;
 }
 
+export function extractBeamSectionsLocalAxis1Directions(handler) 
+{
+    communicatorWithFEModel.extractBeamSectionsLocalAxis1Directions = handler;
+}
+
 export function extractConcentratedLoads(handler) 
 {
     communicatorWithFEModel.extractConcentratedLoads = handler;
 }
 
-export function extractBeamSectionsLocalAxis1Directions(handler) 
+export function extractDistributedLineLoads(handler) 
 {
-    communicatorWithFEModel.extractBeamSectionsLocalAxis1Directions = handler;
+    communicatorWithFEModel.extractDistributedLineLoads = handler;
+}
+
+export function extractBoundaryConditions(handler) 
+{
+    communicatorWithFEModel.extractBoundaryConditions = handler;
 }

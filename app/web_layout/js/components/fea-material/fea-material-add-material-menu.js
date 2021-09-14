@@ -248,11 +248,11 @@ class FeaMaterialAddMaterialMenu extends HTMLElement {
             </div>
         `;
 
-         this.shadowRoot.querySelector(".apply-button").addEventListener("click", () => this.addMaterial());
+        this.shadowRoot.querySelector(".apply-button").addEventListener("click", () => this.addMaterial());
 
-         this.shadowRoot.querySelector(".cancel-button").addEventListener("click", () => this.cancelMaterialAddition());
+        this.shadowRoot.querySelector(".cancel-button").addEventListener("click", () => this.cancelMaterialAddition());
 
-         this.shadowRoot.querySelector(".material-name").addEventListener("click", () => {
+        this.shadowRoot.querySelector(".material-name").addEventListener("click", () => {
             const highlightedElement = this.shadowRoot.querySelector(".material-name");
             this.dropHighlight(highlightedElement);
             this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";

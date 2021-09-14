@@ -42,7 +42,7 @@ class FeaPostprocessorMenu extends HTMLElement {
     }
 
     activatePreprocessor() {
-        this.dispatchEvent(new CustomEvent("activate-preprocessor", {
+        this.dispatchEvent(new CustomEvent("activatePreprocessorMenu", {
             bubbles: true,
             composed: true,
         }));

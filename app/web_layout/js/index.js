@@ -73,6 +73,8 @@ import FeaBoundaryConditionDeleteBoundaryConditionMenu from "./components/fea-bo
 
 import FeaAnalysisMenu from "./components/fea-analysis/fea-analysis-menu.js";
 
+import FeaPostprocessorMenu from "./components/fea-postprocessor-menu.js";
+
 customElements.define("fea-app", FeaApp);
 customElements.define("fea-app-menu-bar", FeaAppMenuBar);
 customElements.define("fea-app-tool-bar", FeaAppToolBar);
@@ -147,3 +149,5 @@ customElements.define("fea-boundary-condition-update-boundary-condition-menu", F
 customElements.define("fea-boundary-condition-delete-boundary-condition-menu", FeaBoundaryConditionDeleteBoundaryConditionMenu);
 
 customElements.define("fea-analysis-menu", FeaAnalysisMenu);
+
+customElements.define("fea-postprocessor-menu", FeaPostprocessorMenu);

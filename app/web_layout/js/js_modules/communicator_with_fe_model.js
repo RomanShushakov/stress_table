@@ -439,6 +439,22 @@ class CommunicatorWithFEModel {
         }
     }
 
+    set checkModel(_message) {
+        try {
+            this.state.feModel.check_model();
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    set analyzeModel(_message) {
+        try {
+            this.state.feModel.analyze_model();
+        } catch (error) {
+            throw error;
+        }
+    }
+
     set showPointInfo(pointInfoData) {
         try {
             this.state.feModel.show_point_info(pointInfoData.number, pointInfoData.handler);

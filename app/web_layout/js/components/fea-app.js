@@ -124,7 +124,7 @@ class FeaApp extends HTMLElement {
         window.addEventListener("resize", () => this.updateCanvasSize());
 
         this.addEventListener("activatePreprocessorMenu", () => this.activatePreprocessorMenu());
-        this.addEventListener("activate-postprocessor", () => this.activatePostprocessor());
+        this.addEventListener("activatePosprocessorMenu", () => this.activatePostprocessorMenu());
 
         this.addEventListener("getActionId", (event) => this.getActionId(event));
         this.addEventListener("getActionIdForToolBar", (event) => this.getActionIdForToolBar(event));
@@ -168,6 +168,9 @@ class FeaApp extends HTMLElement {
         this.addEventListener("previewBeamSectionOrientation", (event) => this.handlePreviewBeamSectionOrientationMessage(event));
 
         this.addEventListener("clientMessage", (event) => this.handleClientMessage(event));
+
+        this.addEventListener("checkModel", (event) => this.handleCheckModelMessage(event));
+        this.addEventListener("analyzeModel", (event) => this.handleAnalyzeModelMessage(event));
 
         this.addEventListener("add_point_server_message", (event) => this.handleAddPointServerMessage(event));
         this.addEventListener("update_point_server_message", (event) => this.handleUpdatePointServerMessage(event));
@@ -264,17 +267,18 @@ class FeaApp extends HTMLElement {
 
     activatePreprocessorMenu() {
         if (this.querySelector("fea-postprocessor-menu") !== null) {
-            this.querySelector("fea-postprocessor").remove();
+            this.querySelector("fea-postprocessor-menu").remove();
         }
         const feaPreprocessorMenu = document.createElement("fea-preprocessor-menu");
         this.append(feaPreprocessorMenu);
         this.updateCanvasSize();
     }
 
-    activatePostprocessor() {
+    activatePostprocessorMenu() {
+        console.log("postprocessor");
         this.querySelector("fea-preprocessor-menu").remove();
-        const feaPostprocessor = document.createElement("fea-postprocessor");
-        this.append(feaPostprocessor);
+        const feaPostprocessorMenu = document.createElement("fea-postprocessor-menu");
+        this.append(feaPostprocessorMenu);
         this.updateCanvasSize();
     }
 
@@ -854,11 +858,37 @@ class FeaApp extends HTMLElement {
                 const errorData = { "message": message, "error": error };
                 this.querySelector(event.target.tagName.toLowerCase()).feModelError = errorData;
             } else {
-                console.log("Error!!!", error);
                 this.querySelector(event.target.tagName.toLowerCase()).feModelError = error;
             }
+            event.stopPropagation();
             throw error;
         }
+        event.stopPropagation();
+    }
+
+    handleCheckModelMessage(event) {
+        try {
+            this.state.actionsRouter.check_model();
+        } catch (error) {
+            this.querySelector(event.target.tagName.toLowerCase()).feModelError = error;
+            event.stopPropagation();
+            throw error;
+        }
+        this.querySelector(event.target.tagName.toLowerCase()).feModelCheckSuccess = 
+            "Check was successfully completed!";
+        event.stopPropagation();
+    }
+
+    handleAnalyzeModelMessage(event) {
+        try {
+            this.state.actionsRouter.analyze_model();
+        } catch (error) {
+            this.querySelector(event.target.tagName.toLowerCase()).feModelError = error;
+            event.stopPropagation();
+            throw error;
+        }
+        this.querySelector(event.target.tagName.toLowerCase()).feModelAnalysisSuccess = 
+            "Analysis was successfully completed!";
         event.stopPropagation();
     }
 

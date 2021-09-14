@@ -507,6 +507,24 @@ export function restoreBoundaryConditionInBoundaryConditions(action_id, point_nu
     }
 }
 
+export function checkModel() 
+{
+    try {
+        communicatorWithFEModel.checkModel = "_check";
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function analyzeModel() 
+{
+    try {
+        communicatorWithFEModel.analyzeModel = "_analyze";
+    } catch (error) {
+        throw error;
+    }
+}
+
 export function showPointInfo(number, handler) 
 {
     const pointInfoData = {"number": number, "handler": handler};

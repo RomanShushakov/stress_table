@@ -369,6 +369,19 @@ impl FEModel
     }
 
 
+    pub fn check_model(&self) -> Result<(), JsValue>
+    {
+        let error_message = "check was failed!";
+        Err(JsValue::from(error_message))
+    }
+
+
+    pub fn analyze_model(&self) -> Result<(), JsValue>
+    {
+        Ok(())
+    }
+
+
     pub fn extract_points(&self, handler: js_sys::Function) -> Result<(), JsValue>
     {
         self.preprocessor.extract_points(handler)

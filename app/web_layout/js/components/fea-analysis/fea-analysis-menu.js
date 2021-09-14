@@ -108,6 +108,22 @@ class FeaAnalysisMenu extends HTMLElement {
                     border: 0.2rem solid #4a5060;
                 }
 
+                .show-result-button {
+                    background: #3d5d78;
+                    border: 0.2rem solid #3b4453;
+                    border-radius: 0.3rem;
+                    color: #D9D9D9;
+                    padding: 0rem;
+                    margin: 0rem;
+                    width: 6rem;
+                    height: 1.7rem;
+                    font-size: 70%;
+                }
+
+                .show-result-button:hover {
+                    border: 0.2rem solid #4a5060;
+                }
+
             </style>
             <div class=wrapper>
                 <p class="analysis-menu-caption">Analysis</p>
@@ -133,17 +149,80 @@ class FeaAnalysisMenu extends HTMLElement {
     }
 
     set feModelError(error) {
+        if (this.shadowRoot.querySelector(".hide-message-button") != undefined) {
+            this.shadowRoot.querySelector(".hide-message-button").remove();
+        }
+        if (this.shadowRoot.querySelector(".show-result-button") != undefined) {
+            this.shadowRoot.querySelector(".show-result-button").remove();
+        }
+
         if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
             this.shadowRoot.querySelector(".analysis-info-message").innerHTML = error;
-            const hideMessageButton = document.createElement("button");
-            hideMessageButton.className = "hide-message-button";
-            hideMessageButton.innerHTML = "Hide message";
-            hideMessageButton.addEventListener("click", () => {
-                this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
-                this.shadowRoot.querySelector(".hide-message-button").remove()
-            });
-            this.shadowRoot.querySelector(".analysis-info").append(hideMessageButton);
+        } else {
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = error;
         }
+        const hideMessageButton = document.createElement("button");
+        hideMessageButton.className = "hide-message-button";
+        hideMessageButton.innerHTML = "Hide message";
+        hideMessageButton.addEventListener("click", () => {
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+            this.shadowRoot.querySelector(".hide-message-button").remove();
+        });
+        this.shadowRoot.querySelector(".analysis-info").append(hideMessageButton);
+    }
+
+    set feModelCheckSuccess(message) {
+        if (this.shadowRoot.querySelector(".hide-message-button") != undefined) {
+            this.shadowRoot.querySelector(".hide-message-button").remove();
+        }
+        if (this.shadowRoot.querySelector(".show-result-button") != undefined) {
+            this.shadowRoot.querySelector(".show-result-button").remove();
+        }
+
+        if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = message;
+        } else {
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = message;
+        }
+        const hideMessageButton = document.createElement("button");
+        hideMessageButton.className = "hide-message-button";
+        hideMessageButton.innerHTML = "Hide message";
+        hideMessageButton.addEventListener("click", () => {
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+            this.shadowRoot.querySelector(".hide-message-button").remove();
+        });
+        this.shadowRoot.querySelector(".analysis-info").append(hideMessageButton);
+    }
+
+    set feModelAnalysisSuccess(message) {
+        if (this.shadowRoot.querySelector(".hide-message-button") != undefined) {
+            this.shadowRoot.querySelector(".hide-message-button").remove();
+        }
+        if (this.shadowRoot.querySelector(".show-result-button") != undefined) {
+            this.shadowRoot.querySelector(".show-result-button").remove();
+        }
+
+        if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = message;
+        } else {
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = message;
+        }
+        const showResultButton = document.createElement("button");
+        showResultButton.className = "show-result-button";
+        showResultButton.innerHTML = "Show result";
+        showResultButton.addEventListener("click", () => {
+            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
+            this.shadowRoot.querySelector(".show-result-button").remove();
+            
+            this.dispatchEvent(new CustomEvent("activatePosprocessorMenu", {
+                bubbles: true,
+                composed: true,
+            }));
+        });
+        this.shadowRoot.querySelector(".analysis-info").append(showResultButton);
     }
 
     connectedCallback() {
@@ -184,13 +263,16 @@ class FeaAnalysisMenu extends HTMLElement {
     }
 
     checkModel() {
-        const message = "check_model"
-        this.dispatchEvent(new CustomEvent("clientMessage", {
+        this.dispatchEvent(new CustomEvent("checkModel", {
             bubbles: true,
             composed: true,
-            detail: {
-                message: message,
-            },
+        }));
+    }
+
+    analyzeModel() {
+        this.dispatchEvent(new CustomEvent("analyzeModel", {
+            bubbles: true,
+            composed: true,
         }));
     }
 }

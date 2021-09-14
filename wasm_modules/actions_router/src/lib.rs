@@ -52,6 +52,7 @@ use external_functions::communication_with_boundary_conditions::
     restore_boundary_condition_in_boundary_conditions, extract_boundary_conditions,
     show_boundary_condition_info,
 };
+use external_functions::communication_with_preprocessor::{check_model, analyze_model};
 
 mod action;
 use action::
@@ -1593,6 +1594,18 @@ impl ActionsRouter
             self.undo_actions.len()));
 
         Ok(())
+    }
+
+
+    pub fn check_model(&self) -> Result<(), JsValue>
+    {
+        check_model()
+    }
+
+
+    pub fn analyze_model(&self) -> Result<(), JsValue>
+    {
+        analyze_model()
     }
 
 

@@ -246,6 +246,20 @@ class FeaRenderer extends HTMLElement {
         }
     }
 
+    set toggleLoadVisibility(_data) {
+        this.state.renderer.toggle_load_visibility();
+        if (this.state.isPaused === true) {
+            this.state.renderer.tick();
+        }
+    }
+
+    set toggleBoundaryConditionVisibility(_data) {
+        this.state.renderer.toggle_boundary_condition_visibility();
+        if (this.state.isPaused === true) {
+            this.state.renderer.tick();
+        }
+    }
+
     set selectedView(view) {
         switch (view) {
             case "planeXY":

@@ -115,6 +115,8 @@ struct Props
     point_objects: HashMap<PointObjectKey, PointObject>,
     is_geometry_visible: bool,
     is_mesh_visible: bool,
+    is_load_visible: bool,
+    is_boundary_condition_visible: bool,
 }
 
 
@@ -158,8 +160,9 @@ impl Renderer
             canvas_text: canvas_text.clone(), canvas_gl: canvas_gl.clone(),
             cursor_coord_x: -1, cursor_coord_y: -1,
             theta: 0.0, phi: 0.0, dx: 0.0, dy: 0.0, d_scale: 0.0,
-            point_objects: HashMap::new(), is_geometry_visible: true,
-            is_mesh_visible: true,
+            point_objects: HashMap::new(),
+            is_geometry_visible: true, is_mesh_visible: true,
+            is_load_visible: true, is_boundary_condition_visible: true,
         };
 
         let ctx: CTX = canvas_text
@@ -258,7 +261,8 @@ impl Renderer
                     DRAWN_CONCENTRATED_LOADS_CAPS_HEIGHT /
                         (1.0 + self.props.d_scale),
                     DRAWN_CONCENTRATED_LOADS_CAPS_WIDTH /
-                        (1.0 + self.props.d_scale))?;
+                        (1.0 + self.props.d_scale),
+                    &self.props.is_load_visible)?;
             }
             if !self.state.distributed_line_loads.is_empty()
             {
@@ -276,7 +280,8 @@ impl Renderer
                     DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_HEIGHT /
                         (1.0 + self.props.d_scale),
                     DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_WIDTH /
-                        (1.0 + self.props.d_scale))?;
+                        (1.0 + self.props.d_scale),
+                    &self.props.is_load_visible)?;
             }
             if !self.state.boundary_conditions.is_empty()
             {
@@ -288,7 +293,8 @@ impl Renderer
                     DRAWN_BOUNDARY_CONDITION_CAPS_HEIGHT /
                         (1.0 + self.props.d_scale),
                     DRAWN_BOUNDARY_CONDITION_CAPS_WIDTH /
-                        (1.0 + self.props.d_scale))?;
+                        (1.0 + self.props.d_scale),
+                    &self.props.is_boundary_condition_visible)?;
             }
             self.state.drawn_object_for_selection = Some(drawn_object_for_selection);
         }
@@ -356,7 +362,8 @@ impl Renderer
                     DRAWN_CONCENTRATED_LOADS_CAPS_HEIGHT /
                         (1.0 + self.props.d_scale),
                     DRAWN_CONCENTRATED_LOADS_CAPS_WIDTH /
-                        (1.0 + self.props.d_scale))?;
+                        (1.0 + self.props.d_scale),
+                    &self.props.is_load_visible)?;
             }
             if !self.state.distributed_line_loads.is_empty()
             {
@@ -374,7 +381,8 @@ impl Renderer
                     DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_HEIGHT /
                         (1.0 + self.props.d_scale),
                     DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_WIDTH /
-                        (1.0 + self.props.d_scale))?;
+                        (1.0 + self.props.d_scale),
+                    &self.props.is_load_visible)?;
             }
             if !self.state.boundary_conditions.is_empty()
             {
@@ -386,7 +394,8 @@ impl Renderer
                     DRAWN_BOUNDARY_CONDITION_CAPS_HEIGHT /
                         (1.0 + self.props.d_scale),
                     DRAWN_BOUNDARY_CONDITION_CAPS_WIDTH /
-                        (1.0 + self.props.d_scale))?;
+                        (1.0 + self.props.d_scale),
+                    &self.props.is_boundary_condition_visible)?;
             }
             self.state.drawn_object_visible = Some(drawn_object_visible);
         }
@@ -645,6 +654,38 @@ impl Renderer
         else
         {
             self.props.is_mesh_visible = true;
+        }
+        self.update_drawn_object_for_selection()?;
+        self.update_drawn_object_visible()?;
+        Ok(())
+    }
+
+
+    pub fn toggle_load_visibility(&mut self) -> Result<(), JsValue>
+    {
+        if self.props.is_load_visible
+        {
+            self.props.is_load_visible = false;
+        }
+        else
+        {
+            self.props.is_load_visible = true;
+        }
+        self.update_drawn_object_for_selection()?;
+        self.update_drawn_object_visible()?;
+        Ok(())
+    }
+
+
+    pub fn toggle_boundary_condition_visibility(&mut self) -> Result<(), JsValue>
+    {
+        if self.props.is_boundary_condition_visible
+        {
+            self.props.is_boundary_condition_visible = false;
+        }
+        else
+        {
+            self.props.is_boundary_condition_visible = true;
         }
         self.update_drawn_object_for_selection()?;
         self.update_drawn_object_visible()?;

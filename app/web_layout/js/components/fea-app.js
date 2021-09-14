@@ -159,6 +159,9 @@ class FeaApp extends HTMLElement {
 
         this.addEventListener("toggleGeometryVisibility", (event) => this.handleToggleGeometryVisibilityMessage(event));
         this.addEventListener("toggleMeshVisibility", (event) => this.handleToggleMeshVisibilityMessage(event));
+        this.addEventListener("toggleLoadVisibility", (event) => this.handleToggleLoadVisibilityMessage(event));
+        this.addEventListener("toggleBoundaryConditionVisibility", 
+            (event) => this.handleToggleBoundaryConditionVisibilityMessage(event));
         this.addEventListener("changeView", (event) => this.handleChangeViewMessage(event));
 
         this.addEventListener("previewSelectedLineNumbers", (event) => this.handlePreviewSelectedLineNumbersMessage(event));
@@ -762,6 +765,18 @@ class FeaApp extends HTMLElement {
     handleToggleMeshVisibilityMessage(event) {
         const data = true;
         this.shadowRoot.querySelector("fea-renderer").toggleMeshVisibility = data;
+        event.stopPropagation();
+    }
+
+    handleToggleLoadVisibilityMessage(event) {
+        const data = true;
+        this.shadowRoot.querySelector("fea-renderer").toggleLoadVisibility = data;
+        event.stopPropagation();
+    }
+
+    handleToggleBoundaryConditionVisibilityMessage(event) {
+        const data = true;
+        this.shadowRoot.querySelector("fea-renderer").toggleBoundaryConditionVisibility = data;
         event.stopPropagation();
     }
 

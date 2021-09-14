@@ -1173,8 +1173,13 @@ impl DrawnObject
         concentrated_loads: &HashMap<u32, ConcentratedLoad>, gl_mode: GLMode,
         under_selection_box_colors: &Vec<u8>, selected_colors: &HashSet<[u8; 4]>,
         line_length: f32, base_points_number_for_lines: u32, base_points_number_for_caps: u32,
-        height: f32, base_radius: f32) -> Result<(), JsValue>
+        height: f32, base_radius: f32, is_load_visible: &bool) -> Result<(), JsValue>
     {
+        if !*is_load_visible
+        {
+            return Ok(())
+        }
+
         for (point_number, concentrated_load) in
             concentrated_loads.iter()
         {
@@ -1261,8 +1266,13 @@ impl DrawnObject
         distributed_line_loads: &HashMap<u32, DistributedLineLoad>, gl_mode: GLMode,
         under_selection_box_colors: &Vec<u8>, selected_colors: &HashSet<[u8; 4]>,
         line_length: f32, base_points_number_for_lines: u32, base_points_number_for_caps: u32,
-        height: f32, base_radius: f32) -> Result<(), JsValue>
+        height: f32, base_radius: f32, is_load_visible: &bool) -> Result<(), JsValue>
     {
+        if !*is_load_visible
+        {
+            return Ok(())
+        }
+
         for (line_number, distributed_line_load) in
             distributed_line_loads.iter()
         {
@@ -1418,8 +1428,14 @@ impl DrawnObject
     pub fn add_boundary_conditions(&mut self, point_objects: &HashMap<PointObjectKey, PointObject>,
         boundary_conditions: &HashMap<u32, BoundaryCondition>, gl_mode: GLMode,
         under_selection_box_colors: &Vec<u8>, selected_colors: &HashSet<[u8; 4]>,
-        base_points_number_for_caps: u32, height: f32, base_radius: f32) -> Result<(), JsValue>
+        base_points_number_for_caps: u32, height: f32, base_radius: f32,
+        is_boundary_condition_visible: &bool) -> Result<(), JsValue>
     {
+        if !*is_boundary_condition_visible
+        {
+            return Ok(())
+        }
+
         for (point_number, boundary_condition) in boundary_conditions.iter()
         {
             let initial_color = DRAWN_BOUNDARY_CONDITION_COLOR;

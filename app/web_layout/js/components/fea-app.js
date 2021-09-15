@@ -171,6 +171,7 @@ class FeaApp extends HTMLElement {
 
         this.addEventListener("checkModel", (event) => this.handleCheckModelMessage(event));
         this.addEventListener("analyzeModel", (event) => this.handleAnalyzeModelMessage(event));
+        this.addEventListener("submitJob", (event) => this.handleSubmitJobMessage(event));
 
         this.addEventListener("add_point_server_message", (event) => this.handleAddPointServerMessage(event));
         this.addEventListener("update_point_server_message", (event) => this.handleUpdatePointServerMessage(event));
@@ -889,6 +890,24 @@ class FeaApp extends HTMLElement {
         }
         this.querySelector(event.target.tagName.toLowerCase()).feModelAnalysisSuccess = 
             "Analysis was successfully completed!";
+        event.stopPropagation();
+    }
+
+    handleSubmitJobMessage(event) {
+        const message = event.detail.message;
+        console.log(message);
+        // try {
+        //     this.state.actionsRouter.handle_message(message, toCache);
+        // } catch (error) {
+        //     if (event.target.tagName.toLowerCase() == "fea-properties-beam-section-orientation-menu") {
+        //         const errorData = { "message": message, "error": error };
+        //         this.querySelector(event.target.tagName.toLowerCase()).feModelError = errorData;
+        //     } else {
+        //         this.querySelector(event.target.tagName.toLowerCase()).feModelError = error;
+        //     }
+        //     event.stopPropagation();
+        //     throw error;
+        // }
         event.stopPropagation();
     }
 

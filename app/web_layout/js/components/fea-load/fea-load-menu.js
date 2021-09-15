@@ -93,9 +93,6 @@ class FeaLoadMenu extends HTMLElement {
                 .load-type:hover {
                     box-shadow: 0rem 0.15rem 0rem #4a5060;
                 }
-
-
-
             </style>
 
             <div class=wrapper>

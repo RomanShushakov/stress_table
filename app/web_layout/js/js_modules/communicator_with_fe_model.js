@@ -439,17 +439,9 @@ class CommunicatorWithFEModel {
         }
     }
 
-    set checkModel(_message) {
+    set submitJob(jobName) {
         try {
-            this.state.feModel.check_model();
-        } catch (error) {
-            throw error;
-        }
-    }
-
-    set analyzeModel(_message) {
-        try {
-            this.state.feModel.analyze_model();
+            this.state.feModel.submit_job(jobName);
         } catch (error) {
             throw error;
         }
@@ -542,6 +534,10 @@ class CommunicatorWithFEModel {
 
     set extractBoundaryConditions(handler) {
         this.state.feModel.extract_boundary_conditions(handler);
+    }
+
+    set extractJobNames(handler) {
+        this.state.feModel.extract_job_names(handler);
     }
 }
 

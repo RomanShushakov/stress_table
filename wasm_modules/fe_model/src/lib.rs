@@ -9,7 +9,7 @@ mod fe_solver;
 use fe_solver::fe_solver::FESolver;
 
 mod postprocessor;
-use postprocessor::postprocessor::Postprocessor;
+use postprocessor::postprocessor::{Postprocessor, AnalysisResult};
 
 mod traits;
 
@@ -23,7 +23,7 @@ mod functions;
 
 mod methods_for_preprocessor_data_handle;
 
-
+mod methods_for_postprocessor_data_handle;
 
 
 #[wasm_bindgen]
@@ -44,5 +44,12 @@ impl FEModel
         let fe_solver = FESolver::create(TOLERANCE);
         let postprocessor = Postprocessor::create();
         FEModel { preprocessor, fe_solver, postprocessor }
+    }
+
+
+    pub fn submit_job(&mut self, job_name: &str) -> Result<(), JsValue>
+    {
+        let analysis_result = AnalysisResult::create();
+        self.postprocessor.add_analysis_result(job_name, analysis_result)
     }
 }

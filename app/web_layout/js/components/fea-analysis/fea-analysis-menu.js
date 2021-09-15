@@ -4,7 +4,7 @@ class FeaAnalysisMenu extends HTMLElement {
 
         this.props = {
             isFEModelLoaded: false,     // load status of wasm module "fe_model";
-            jobNames: new Set(["job1"]),        // set of: [String, ...];
+            jobNames: [],               // array of: [String, ...];
         };
 
         this.state = {};
@@ -187,7 +187,7 @@ class FeaAnalysisMenu extends HTMLElement {
                     flex-direction: row;
                     background-color: #3b4453;
                     padding: 0rem;
-                    margin-top: 1rem;
+                    margin-top: 5rem;
                     margin-bottom: 0rem;
                     margin-left: 0rem;
                     margin-right: 0rem;
@@ -416,52 +416,54 @@ class FeaAnalysisMenu extends HTMLElement {
         this.props.isFEModelLoaded = value;
     }
 
-    set feModelError(error) {
-        if (this.shadowRoot.querySelector(".hide-message-button") != undefined) {
-            this.shadowRoot.querySelector(".hide-message-button").remove();
-        }
-        if (this.shadowRoot.querySelector(".show-result-button") != undefined) {
-            this.shadowRoot.querySelector(".show-result-button").remove();
-        }
-
-        if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = error;
-        } else {
-            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
-            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = error;
-        }
-        const hideMessageButton = document.createElement("button");
-        hideMessageButton.className = "hide-message-button";
-        hideMessageButton.innerHTML = "Hide message";
-        hideMessageButton.addEventListener("click", () => {
-            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
-            this.shadowRoot.querySelector(".hide-message-button").remove();
-        });
-        this.shadowRoot.querySelector(".analysis-info").append(hideMessageButton);
+    set jobNames(value) {
+        this.props.jobNames = value;
     }
 
-    set feModelCheckSuccess(message) {
-        if (this.shadowRoot.querySelector(".hide-message-button") != undefined) {
-            this.shadowRoot.querySelector(".hide-message-button").remove();
+    set submitJobError(error) {
+        this.shadowRoot.querySelector(".new-job-info-message").innerHTML = error;
+        if (this.shadowRoot.querySelector(".new-job-hide-message-button") == undefined) {
+            const newJobHideMessageButton = document.createElement("button");
+            newJobHideMessageButton.className = "new-job-hide-message-button";
+            newJobHideMessageButton.innerHTML = "Hide message";
+            newJobHideMessageButton.addEventListener("click", () => {
+                this.shadowRoot.querySelector(".new-job-info-message").innerHTML = "";
+                if (this.shadowRoot.querySelector(".new-job-hide-message-button") != undefined) {
+                    this.shadowRoot.querySelector(".new-job-hide-message-button").remove();
+                }
+                if (this.shadowRoot.querySelector(".new-job-yes-button") != undefined) {
+                    this.shadowRoot.querySelector(".new-job-yes-button").remove();
+                }
+                if (this.shadowRoot.querySelector(".new-job-no-button") != undefined) {
+                    this.shadowRoot.querySelector(".new-job-no-button").remove();
+                }
+                this.dropHighlight(this.shadowRoot.querySelector(".new-job-name"));
+            });
+            this.shadowRoot.querySelector(".new-job-info").append(newJobHideMessageButton);
         }
-        if (this.shadowRoot.querySelector(".show-result-button") != undefined) {
-            this.shadowRoot.querySelector(".show-result-button").remove();
-        }
+    }
 
-        if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = message;
-        } else {
-            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
-            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = message;
+    set submitJobSuccess(message) {
+        this.shadowRoot.querySelector(".new-job-info-message").innerHTML = message;
+        if (this.shadowRoot.querySelector(".new-job-hide-message-button") == undefined) {
+            const newJobHideMessageButton = document.createElement("button");
+            newJobHideMessageButton.className = "new-job-hide-message-button";
+            newJobHideMessageButton.innerHTML = "Hide message";
+            newJobHideMessageButton.addEventListener("click", () => {
+                this.shadowRoot.querySelector(".new-job-info-message").innerHTML = "";
+                if (this.shadowRoot.querySelector(".new-job-hide-message-button") != undefined) {
+                    this.shadowRoot.querySelector(".new-job-hide-message-button").remove();
+                }
+                if (this.shadowRoot.querySelector(".new-job-yes-button") != undefined) {
+                    this.shadowRoot.querySelector(".new-job-yes-button").remove();
+                }
+                if (this.shadowRoot.querySelector(".new-job-no-button") != undefined) {
+                    this.shadowRoot.querySelector(".new-job-no-button").remove();
+                }
+                this.dropHighlight(this.shadowRoot.querySelector(".new-job-name"));
+            });
+            this.shadowRoot.querySelector(".new-job-info").append(newJobHideMessageButton);
         }
-        const hideMessageButton = document.createElement("button");
-        hideMessageButton.className = "hide-message-button";
-        hideMessageButton.innerHTML = "Hide message";
-        hideMessageButton.addEventListener("click", () => {
-            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
-            this.shadowRoot.querySelector(".hide-message-button").remove();
-        });
-        this.shadowRoot.querySelector(".analysis-info").append(hideMessageButton);
     }
 
     set feModelAnalysisSuccess(message) {
@@ -493,6 +495,14 @@ class FeaAnalysisMenu extends HTMLElement {
         this.shadowRoot.querySelector(".analysis-info").append(showResultButton);
     }
 
+    set addJobNameToClient(jobName) {
+        if (!this.props.jobNames.includes(jobName)) {
+            this.props.jobNames.push(jobName);
+        }
+        this.shadowRoot.querySelector(".new-job-name").value = "";
+        this.defineJobNameOptions();
+    }
+
     connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {
@@ -504,6 +514,8 @@ class FeaAnalysisMenu extends HTMLElement {
         const frame = () => {
             this.getFEModelLoadStatus();
             if (this.props.isFEModelLoaded === true) {
+                this.getJobNames();
+                this.defineJobNameOptions();
                 clearInterval(id);
             }
         }
@@ -528,6 +540,26 @@ class FeaAnalysisMenu extends HTMLElement {
             bubbles: true,
             composed: true,
         }));
+    }
+
+    getJobNames() {
+        this.dispatchEvent(new CustomEvent("getJobNames", {
+            bubbles: true,
+            composed: true,
+        }));
+    }
+
+    defineJobNameOptions() {
+        const jobNameSelect = this.shadowRoot.querySelector(".job-name");
+        for (let i = jobNameSelect.length - 1; i >= 0; i--) {
+            jobNameSelect.options[i] = null;
+        }
+        for (let i = 0; i < this.props.jobNames.length; i++) {
+            let option = document.createElement("option");
+            option.value = this.props.jobNames[i].replace(/['"]+/g, "");
+            option.innerHTML = this.props.jobNames[i].replace(/['"]+/g, "");
+            jobNameSelect.appendChild(option);
+        }
     }
 
 
@@ -570,7 +602,7 @@ class FeaAnalysisMenu extends HTMLElement {
 
         const newJobName = newJobNameField.value;
 
-        if (this.props.jobNames.has(newJobName)) {
+        if (this.props.jobNames.includes(newJobName)) {
             if (newJobNameField.classList.contains("highlighted") === false) {
                 newJobNameField.classList.add("highlighted");
             }

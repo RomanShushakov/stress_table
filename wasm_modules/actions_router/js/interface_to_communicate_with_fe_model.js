@@ -507,19 +507,10 @@ export function restoreBoundaryConditionInBoundaryConditions(action_id, point_nu
     }
 }
 
-export function checkModel() 
+export function submitJob(jobName) 
 {
     try {
-        communicatorWithFEModel.checkModel = "_check";
-    } catch (error) {
-        throw error;
-    }
-}
-
-export function analyzeModel() 
-{
-    try {
-        communicatorWithFEModel.analyzeModel = "_analyze";
+        communicatorWithFEModel.submitJob = jobName;
     } catch (error) {
         throw error;
     }
@@ -633,4 +624,9 @@ export function extractDistributedLineLoads(handler)
 export function extractBoundaryConditions(handler) 
 {
     communicatorWithFEModel.extractBoundaryConditions = handler;
+}
+
+export function extractJobNames(handler) 
+{
+    communicatorWithFEModel.extractJobNames = handler;
 }

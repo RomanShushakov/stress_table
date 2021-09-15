@@ -3,7 +3,6 @@ use wasm_bindgen::prelude::*;
 use crate::FEModel;
 
 use crate::types::{FEUInt, FEFloat};
-use crate::functions::log;
 
 
 #[wasm_bindgen]
@@ -366,19 +365,6 @@ impl FEModel
     {
         self.preprocessor.restore_boundary_condition(action_id, point_number,
             is_action_id_should_be_increased)
-    }
-
-
-    pub fn check_model(&self) -> Result<(), JsValue>
-    {
-        let error_message = "check was failed!";
-        Err(JsValue::from(error_message))
-    }
-
-
-    pub fn analyze_model(&self) -> Result<(), JsValue>
-    {
-        Ok(())
     }
 
 

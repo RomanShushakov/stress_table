@@ -52,7 +52,7 @@ use external_functions::communication_with_boundary_conditions::
     restore_boundary_condition_in_boundary_conditions, extract_boundary_conditions,
     show_boundary_condition_info,
 };
-use external_functions::communication_with_preprocessor::{check_model, analyze_model};
+use external_functions::communication_with_preprocessor::{submit_job, extract_job_names};
 
 mod action;
 use action::
@@ -1597,15 +1597,10 @@ impl ActionsRouter
     }
 
 
-    pub fn check_model(&self) -> Result<(), JsValue>
-    {
-        check_model()
-    }
 
-
-    pub fn analyze_model(&self) -> Result<(), JsValue>
+    pub fn submit_job(&self, job_name: &str) -> Result<(), JsValue>
     {
-        analyze_model()
+        submit_job(job_name)
     }
 
 
@@ -1672,6 +1667,12 @@ impl ActionsRouter
     pub fn extract_boundary_conditions(&self, handler: js_sys::Function)
     {
         extract_boundary_conditions(handler);
+    }
+
+
+    pub fn extract_job_names(&self, handler: js_sys::Function)
+    {
+        extract_job_names(handler);
     }
 
 

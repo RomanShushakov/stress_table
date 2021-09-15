@@ -83,6 +83,9 @@ class FeaApp extends HTMLElement {
                 "fea-boundary-condition-update-boundary-condition-menu",
                 "fea-boundary-condition-delete-boundary-condition-menu",
             ],
+            analysisResultsDataDependentMenus: [
+                "fea-analysis-menu",
+            ],
         };
 
         this.attachShadow({ mode: "open" });
@@ -146,6 +149,8 @@ class FeaApp extends HTMLElement {
 
         this.addEventListener("getBoundaryConditions", (event) => this.getBoundaryConditions(event));
 
+        this.addEventListener("getJobNames", (event) => this.getJobNames(event));
+
         this.addEventListener("selected_points", (event) => this.handleSelectedPointsMessage(event));
         this.addEventListener("selected_nodes", (event) => this.handleSelectedNodesMessage(event));
         this.addEventListener("selected_lines", (event) => this.handleSelectedLinesMessage(event));
@@ -169,8 +174,6 @@ class FeaApp extends HTMLElement {
 
         this.addEventListener("clientMessage", (event) => this.handleClientMessage(event));
 
-        this.addEventListener("checkModel", (event) => this.handleCheckModelMessage(event));
-        this.addEventListener("analyzeModel", (event) => this.handleAnalyzeModelMessage(event));
         this.addEventListener("submitJob", (event) => this.handleSubmitJobMessage(event));
 
         this.addEventListener("add_point_server_message", (event) => this.handleAddPointServerMessage(event));
@@ -231,6 +234,9 @@ class FeaApp extends HTMLElement {
             (event) => this.handleUpdateBoundaryConditionServerMessage(event));
         this.addEventListener("delete_boundary_condition_server_message", 
             (event) => this.handleDeleteBoundaryConditionServerMessage(event));
+
+        this.addEventListener("add_analysis_result_server_message", 
+            (event) => this.handleAddAnalysisResultServerMessage(event));
 
         this.addEventListener("add_node_server_message", (event) => this.handleAddNodeServerMessage(event));
 
@@ -448,6 +454,16 @@ class FeaApp extends HTMLElement {
                     ([key, value]) => [parseInt(key), value]
                 ));
                 this.querySelector(event.target.tagName.toLowerCase()).boundaryConditions = boundaryConditions; 
+            }
+        );
+        event.stopPropagation();
+    }
+
+    getJobNames(event) {
+        this.state.actionsRouter.extract_job_names(
+            (extractedJobNamesData) => { 
+                const jobNames = Array.from(extractedJobNamesData.extracted_job_names);
+                this.querySelector(event.target.tagName.toLowerCase()).jobNames = jobNames; 
             }
         );
         event.stopPropagation();
@@ -867,47 +883,17 @@ class FeaApp extends HTMLElement {
         event.stopPropagation();
     }
 
-    handleCheckModelMessage(event) {
-        try {
-            this.state.actionsRouter.check_model();
-        } catch (error) {
-            this.querySelector(event.target.tagName.toLowerCase()).feModelError = error;
-            event.stopPropagation();
-            throw error;
-        }
-        this.querySelector(event.target.tagName.toLowerCase()).feModelCheckSuccess = 
-            "Check was successfully completed!";
-        event.stopPropagation();
-    }
-
-    handleAnalyzeModelMessage(event) {
-        try {
-            this.state.actionsRouter.analyze_model();
-        } catch (error) {
-            this.querySelector(event.target.tagName.toLowerCase()).feModelError = error;
-            event.stopPropagation();
-            throw error;
-        }
-        this.querySelector(event.target.tagName.toLowerCase()).feModelAnalysisSuccess = 
-            "Analysis was successfully completed!";
-        event.stopPropagation();
-    }
-
     handleSubmitJobMessage(event) {
-        const message = event.detail.message;
-        console.log(message);
-        // try {
-        //     this.state.actionsRouter.handle_message(message, toCache);
-        // } catch (error) {
-        //     if (event.target.tagName.toLowerCase() == "fea-properties-beam-section-orientation-menu") {
-        //         const errorData = { "message": message, "error": error };
-        //         this.querySelector(event.target.tagName.toLowerCase()).feModelError = errorData;
-        //     } else {
-        //         this.querySelector(event.target.tagName.toLowerCase()).feModelError = error;
-        //     }
-        //     event.stopPropagation();
-        //     throw error;
-        // }
+        const jobName = event.detail.message;
+        try {
+            this.state.actionsRouter.submit_job(jobName);
+        } catch (error) {
+            this.querySelector(event.target.tagName.toLowerCase()).submitJobError = error;
+            event.stopPropagation();
+            throw error;
+        }
+        this.querySelector(event.target.tagName.toLowerCase()).submitJobSuccess = 
+            "Analysis was successfully completed!";
         event.stopPropagation();
     }
 
@@ -1476,6 +1462,16 @@ class FeaApp extends HTMLElement {
             }
         } 
         this.shadowRoot.querySelector("fea-renderer").deleteBoundaryConditionFromRenderer = boundaryCondition;
+        event.stopPropagation();
+    }
+
+    handleAddAnalysisResultServerMessage(event) {
+        const jobName = event.detail.analysis_result_data.job_name;
+        for (let i = 0; i < this.state.analysisResultsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.analysisResultsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.analysisResultsDataDependentMenus[i]).addJobNameToClient = jobName;
+            }
+        } 
         event.stopPropagation();
     }
 

@@ -442,7 +442,7 @@ class FeaAnalysisMenu extends HTMLElement {
                 this.shadowRoot.querySelector(".job-name-filter").value,
                 this.shadowRoot.querySelector(".job-name"));
         });
-
+        this.shadowRoot.querySelector(".show-result-button").addEventListener("click", () => this.showJobAnalysisResult());
         this.shadowRoot.querySelector(".delete-job-button").addEventListener("click", () => this.deleteJob());
     }
 
@@ -516,35 +516,6 @@ class FeaAnalysisMenu extends HTMLElement {
             });
             this.shadowRoot.querySelector(".job-info").append(jobHideMessageButton);
         }
-    }
-
-    set feModelAnalysisSuccess(message) {
-        if (this.shadowRoot.querySelector(".hide-message-button") != undefined) {
-            this.shadowRoot.querySelector(".hide-message-button").remove();
-        }
-        if (this.shadowRoot.querySelector(".show-result-button") != undefined) {
-            this.shadowRoot.querySelector(".show-result-button").remove();
-        }
-
-        if (this.shadowRoot.querySelector(".analysis-info-message").innerHTML === "") {
-            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = message;
-        } else {
-            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
-            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = message;
-        }
-        const showResultButton = document.createElement("button");
-        showResultButton.className = "show-result-button";
-        showResultButton.innerHTML = "Show result";
-        showResultButton.addEventListener("click", () => {
-            this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
-            this.shadowRoot.querySelector(".show-result-button").remove();
-            
-            this.dispatchEvent(new CustomEvent("activatePosprocessorMenu", {
-                bubbles: true,
-                composed: true,
-            }));
-        });
-        this.shadowRoot.querySelector(".analysis-info").append(showResultButton);
     }
 
     set addJobNameToClient(jobName) {
@@ -724,6 +695,47 @@ class FeaAnalysisMenu extends HTMLElement {
                     message: newJobName,
                 },        
             }));
+    }
+
+    showJobAnalysisResult() {
+        const selectedJobNameField = this.shadowRoot.querySelector(".job-name");
+        if (selectedJobNameField.value == "") {
+            if (selectedJobNameField.classList.contains("highlighted") === false) {
+                selectedJobNameField.classList.add("highlighted");
+            }
+        }
+
+        if (selectedJobNameField.value === "") {
+            if (this.shadowRoot.querySelector(".job-info-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".job-info-message").innerHTML = 
+                    "Note: The highlighted fields should be filled!";
+                if (this.shadowRoot.querySelector(".job-hide-message-button") == undefined) {
+                    const jobHideMessageButton = document.createElement("button");
+                    jobHideMessageButton.className = "job-hide-message-button";
+                    jobHideMessageButton.innerHTML = "Hide message";
+                    jobHideMessageButton.addEventListener("click", () => {
+                        this.shadowRoot.querySelector(".job-info-message").innerHTML = "";
+                        if (this.shadowRoot.querySelector(".job-hide-message-button") != undefined) {
+                            this.shadowRoot.querySelector(".job-hide-message-button").remove();
+                        }
+                        this.dropHighlight(this.shadowRoot.querySelector(".job-name"));
+                    });
+                    this.shadowRoot.querySelector(".job-info").append(jobHideMessageButton);
+                }
+                return;
+            } else {
+                return;
+            }
+        }
+        this.dispatchEvent(new CustomEvent("showJobAnalysisResult", 
+            {
+                bubbles: true,
+                composed: true,
+                detail: {
+                    message: selectedJobNameField.value,
+                },
+            }));
+        this.shadowRoot.querySelector(".job-name-filter").value = null;
     }
 
     deleteJob() {

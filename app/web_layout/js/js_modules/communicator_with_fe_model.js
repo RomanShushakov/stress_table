@@ -447,6 +447,14 @@ class CommunicatorWithFEModel {
         }
     }
 
+    set showJobAnalysisResult(jobName) {
+        try {
+            this.state.feModel.show_job_analysis_result(jobName);
+        } catch (error) {
+            throw error;
+        }
+    }
+
     set deleteJob(jobName) {
         try {
             this.state.feModel.delete_job(jobName);

@@ -175,6 +175,7 @@ class FeaApp extends HTMLElement {
         this.addEventListener("clientMessage", (event) => this.handleClientMessage(event));
 
         this.addEventListener("submitJob", (event) => this.handleSubmitJobMessage(event));
+        this.addEventListener("showJobAnalysisResult", (event) => this.handleShowJobAnalysisResultMessage(event));
         this.addEventListener("deleteJob", (event) => this.handleDeleteJobMessage(event));
 
         this.addEventListener("add_point_server_message", (event) => this.handleAddPointServerMessage(event));
@@ -281,14 +282,19 @@ class FeaApp extends HTMLElement {
         }
         const feaPreprocessorMenu = document.createElement("fea-preprocessor-menu");
         this.append(feaPreprocessorMenu);
+        this.shadowRoot.querySelector("fea-app-tool-bar").setAttribute("is-postprocessor-active", false);
+        this.shadowRoot.querySelector("fea-app-tool-bar").setAttribute("is-preprocessor-active", true);
         this.updateCanvasSize();
     }
 
     activatePostprocessorMenu() {
-        console.log("postprocessor");
-        this.querySelector("fea-preprocessor-menu").remove();
+        if (this.querySelector("fea-preprocessor-menu") !== null) {
+            this.querySelector("fea-preprocessor-menu").remove();
+        }
         const feaPostprocessorMenu = document.createElement("fea-postprocessor-menu");
         this.append(feaPostprocessorMenu);
+        this.shadowRoot.querySelector("fea-app-tool-bar").setAttribute("is-preprocessor-active", false);
+        this.shadowRoot.querySelector("fea-app-tool-bar").setAttribute("is-postprocessor-active", true);
         this.updateCanvasSize();
     }
 
@@ -897,6 +903,19 @@ class FeaApp extends HTMLElement {
         }
         this.querySelector(event.target.tagName.toLowerCase()).submitJobSuccess = 
             "Analysis was successfully completed!";
+        event.stopPropagation();
+    }
+
+    handleShowJobAnalysisResultMessage(event) {
+        const jobName = event.detail.message;
+        try {
+            this.state.actionsRouter.show_job_analysis_result(jobName);
+        } catch (error) {
+            this.querySelector(event.target.tagName.toLowerCase()).jobError = error;
+            event.stopPropagation();
+            throw error;
+        }
+        this.activatePostprocessorMenu()
         event.stopPropagation();
     }
 
@@ -1516,8 +1535,8 @@ class FeaApp extends HTMLElement {
     }
 
     updateCanvasSize() {
-        if (this.querySelector("fea-postprocessor") !== null) {
-            const canvasWidth = window.innerWidth - this.querySelector("fea-postprocessor").offsetWidth - 15;
+        if (this.querySelector("fea-postprocessor-menu") !== null) {
+            const canvasWidth = window.innerWidth - this.querySelector("fea-postprocessor-menu").offsetWidth - 15;
             const canvasHeight = window.innerHeight - this.shadowRoot.querySelector("fea-app-menu-bar").offsetHeight - 
                 this.shadowRoot.querySelector("fea-app-tool-bar").offsetHeight - 40;
             this.shadowRoot.querySelector("fea-renderer").canvasSize = { "width": canvasWidth, "height": canvasHeight };

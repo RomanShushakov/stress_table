@@ -516,6 +516,15 @@ export function submitJob(jobName)
     }
 }
 
+export function showJobAnalysisResult(jobName) 
+{
+    try {
+        communicatorWithFEModel.showJobAnalysisResult = jobName;
+    } catch (error) {
+        throw error;
+    }
+}
+
 export function deleteJob(jobName) 
 {
     try {

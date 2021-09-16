@@ -333,58 +333,6 @@ class FeaAppToolBar extends HTMLElement {
                             </button>
                         </li>
                         <li>
-                            <button class="show-hide-mesh-button">
-                                <svg class="show-hide-mesh-button-icon" width="26" height="26" viewBox="0 0 26 26" fill="none" 
-                                    xmlns="http://www.w3.org/2000/svg"
-                                >
-                                    <title>Show/Hide mesh</title>
-                                    <rect x="11" y="20" width="5" height="5" rx="0.01" stroke="#D9D9D9"/>
-                                    <rect x="1" y="20" width="5" height="5" stroke="#D9D9D9"/>
-                                    <rect x="6" y="20" width="5" height="5" stroke="#D9D9D9"/>
-                                    <rect x="11" y="10" width="5" height="5" stroke="#D9D9D9"/>
-                                    <rect x="1" y="10" width="5" height="5" rx="0.01" stroke="#D9D9D9"/>
-                                    <rect x="6" y="10" width="5" height="5" stroke="#D9D9D9"/>
-                                    <rect x="11" y="15" width="5" height="5" stroke="#D9D9D9"/>
-                                    <rect x="1" y="15" width="5" height="5" stroke="#D9D9D9"/>
-                                    <rect x="6" y="15" width="5" height="5" stroke="#D9D9D9"/>
-                                    <path d="M11 10L14 7H19L16 10H11Z" stroke="#D9D9D9"/>
-                                    <path d="M1.02414 10C1.01523 10 1.01077 9.98923 1.01707 9.98293L3.99707 
-                                        7.00293C3.99895 7.00105 4.00149 7 4.00414 7H8.97586C8.98477 7 8.98923 
-                                        7.01077 8.98293 7.01707L6.00293 9.99707C6.00105 9.99895 5.99851
-                                        10 5.99586 10H1.02414Z" stroke="#D9D9D9"
-                                    />
-                                    <path d="M6 10L9 7H14L11 10H6Z" stroke="#D9D9D9"/>
-                                    <path d="M17.0241 4C17.0152 4 17.0108 3.98923 17.0171 3.98293L19.9971 
-                                        1.00293C19.9989 1.00105 20.0015 1 20.0041 1H24.9759C24.9848 
-                                        1 24.9892 1.01077 24.9829 1.01707L22.0029 3.99707C22.0011 3.99895 
-                                        21.9985 4 21.9959 4H17.0241Z" stroke="#D9D9D9"
-                                    />
-                                    <path d="M7 4L10 1H15L12 4H7Z" stroke="#D9D9D9"/>
-                                    <path d="M12 4L15 1H20L17 4H12Z" stroke="#D9D9D9"/>
-                                    <path d="M14 7L17 4H22L19 7H14Z" stroke="#D9D9D9"/>
-                                    <path d="M4 7L7 4H12L9 7H4Z" stroke="#D9D9D9"/>
-                                    <path d="M9 7L12 4H17L14 7H9Z" stroke="#D9D9D9"/>
-                                    <path d="M16 20.0041C16 20.0015 16.0011 19.9989 16.0029 
-                                        19.9971L18.9829 17.0171C18.9892 17.0108 19 17.0152 19 
-                                        17.0241V21.9959C19 21.9985 18.9989 22.0011 18.9971 22.0029L16.0171 
-                                        24.9829C16.0108 24.9892 16 24.9848 16 24.9759V20.0041Z" stroke="#D9D9D9"
-                                    />
-                                    <path d="M22 14L25 11V16L22 19V14Z" stroke="#D9D9D9"/>
-                                    <path d="M19 17L22 14V19L19 22V17Z" stroke="#D9D9D9"/>
-                                    <path d="M16 10L19 7V12L16 15V10Z" stroke="#D9D9D9"/>
-                                    <path d="M22 4.00414C22 4.00149 22.0011 3.99895 22.0029 3.99707L24.9829 
-                                        1.01707C24.9892 1.01077 25 1.01523 25 1.02414V5.99586C25 5.99851 
-                                        24.9989 6.00105 24.9971 6.00293L22.0171 8.98293C22.0108 8.98923
-                                        22 8.98477 22 8.97586V4.00414Z" stroke="#D9D9D9"
-                                    />
-                                    <path d="M19 7L22 4V9L19 12V7Z" stroke="#D9D9D9"/>
-                                    <path d="M16 15L19 12V17L16 20V15Z" stroke="#D9D9D9"/>
-                                    <path d="M22 9L25 6V11L22 14V9Z" stroke="#D9D9D9"/>
-                                    <path d="M19 12L22 9V14L19 17V12Z" stroke="#D9D9D9"/>
-                                </svg>
-                            </button>
-                        </li>
-                        <li>
                             <button class="show-hide-load-button">
 
                                 <svg class="show-hide-load-button-icon" width="26" height="24" viewBox="0 0 26 24" fill="none" 
@@ -448,6 +396,58 @@ class FeaAppToolBar extends HTMLElement {
                                     <ellipse cx="15.3276" cy="25.6034" rx="1.39655" ry="1.39655" 
                                         transform="rotate(-90 15.3276 25.6034)" fill="#7475E6"
                                     />
+                                </svg>
+                            </button>
+                        </li>
+                        <li>
+                            <button class="show-hide-mesh-button">
+                                <svg class="show-hide-mesh-button-icon" width="26" height="26" viewBox="0 0 26 26" fill="none" 
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <title>Show/Hide mesh</title>
+                                    <rect x="11" y="20" width="5" height="5" rx="0.01" stroke="#D9D9D9"/>
+                                    <rect x="1" y="20" width="5" height="5" stroke="#D9D9D9"/>
+                                    <rect x="6" y="20" width="5" height="5" stroke="#D9D9D9"/>
+                                    <rect x="11" y="10" width="5" height="5" stroke="#D9D9D9"/>
+                                    <rect x="1" y="10" width="5" height="5" rx="0.01" stroke="#D9D9D9"/>
+                                    <rect x="6" y="10" width="5" height="5" stroke="#D9D9D9"/>
+                                    <rect x="11" y="15" width="5" height="5" stroke="#D9D9D9"/>
+                                    <rect x="1" y="15" width="5" height="5" stroke="#D9D9D9"/>
+                                    <rect x="6" y="15" width="5" height="5" stroke="#D9D9D9"/>
+                                    <path d="M11 10L14 7H19L16 10H11Z" stroke="#D9D9D9"/>
+                                    <path d="M1.02414 10C1.01523 10 1.01077 9.98923 1.01707 9.98293L3.99707 
+                                        7.00293C3.99895 7.00105 4.00149 7 4.00414 7H8.97586C8.98477 7 8.98923 
+                                        7.01077 8.98293 7.01707L6.00293 9.99707C6.00105 9.99895 5.99851
+                                        10 5.99586 10H1.02414Z" stroke="#D9D9D9"
+                                    />
+                                    <path d="M6 10L9 7H14L11 10H6Z" stroke="#D9D9D9"/>
+                                    <path d="M17.0241 4C17.0152 4 17.0108 3.98923 17.0171 3.98293L19.9971 
+                                        1.00293C19.9989 1.00105 20.0015 1 20.0041 1H24.9759C24.9848 
+                                        1 24.9892 1.01077 24.9829 1.01707L22.0029 3.99707C22.0011 3.99895 
+                                        21.9985 4 21.9959 4H17.0241Z" stroke="#D9D9D9"
+                                    />
+                                    <path d="M7 4L10 1H15L12 4H7Z" stroke="#D9D9D9"/>
+                                    <path d="M12 4L15 1H20L17 4H12Z" stroke="#D9D9D9"/>
+                                    <path d="M14 7L17 4H22L19 7H14Z" stroke="#D9D9D9"/>
+                                    <path d="M4 7L7 4H12L9 7H4Z" stroke="#D9D9D9"/>
+                                    <path d="M9 7L12 4H17L14 7H9Z" stroke="#D9D9D9"/>
+                                    <path d="M16 20.0041C16 20.0015 16.0011 19.9989 16.0029 
+                                        19.9971L18.9829 17.0171C18.9892 17.0108 19 17.0152 19 
+                                        17.0241V21.9959C19 21.9985 18.9989 22.0011 18.9971 22.0029L16.0171 
+                                        24.9829C16.0108 24.9892 16 24.9848 16 24.9759V20.0041Z" stroke="#D9D9D9"
+                                    />
+                                    <path d="M22 14L25 11V16L22 19V14Z" stroke="#D9D9D9"/>
+                                    <path d="M19 17L22 14V19L19 22V17Z" stroke="#D9D9D9"/>
+                                    <path d="M16 10L19 7V12L16 15V10Z" stroke="#D9D9D9"/>
+                                    <path d="M22 4.00414C22 4.00149 22.0011 3.99895 22.0029 3.99707L24.9829 
+                                        1.01707C24.9892 1.01077 25 1.01523 25 1.02414V5.99586C25 5.99851 
+                                        24.9989 6.00105 24.9971 6.00293L22.0171 8.98293C22.0108 8.98923
+                                        22 8.98477 22 8.97586V4.00414Z" stroke="#D9D9D9"
+                                    />
+                                    <path d="M19 7L22 4V9L19 12V7Z" stroke="#D9D9D9"/>
+                                    <path d="M16 15L19 12V17L16 20V15Z" stroke="#D9D9D9"/>
+                                    <path d="M22 9L25 6V11L22 14V9Z" stroke="#D9D9D9"/>
+                                    <path d="M19 12L22 9V14L19 17V12Z" stroke="#D9D9D9"/>
                                 </svg>
                             </button>
                         </li>
@@ -577,10 +577,28 @@ class FeaAppToolBar extends HTMLElement {
     }
     
     static get observedAttributes() {
-        return [];
+        return ["is-preprocessor-active", "is-postprocessor-active"];
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
+        const showHideGeometryButton = this.shadowRoot.querySelector(".show-hide-geometry-button");
+        const showHideLoadButton = this.shadowRoot.querySelector(".show-hide-load-button");
+        const showHideBoundaryConditionButton = this.shadowRoot.querySelector(".show-hide-boundary-condition-button");
+        const showHideMeshButton = this.shadowRoot.querySelector(".show-hide-mesh-button");
+        const isPreprocessorActive = this.getAttribute("is-preprocessor-active");
+        const isPostprocessorActive = this.getAttribute("is-postprocessor-active");
+        if (isPreprocessorActive === "true") {
+            showHideGeometryButton.disabled = false;
+            showHideLoadButton.disabled = false;
+            showHideBoundaryConditionButton.disabled = false;
+            showHideMeshButton.disabled = true;
+        }
+        if (isPostprocessorActive === "true") {
+            showHideGeometryButton.disabled = true;
+            showHideLoadButton.disabled = true;
+            showHideBoundaryConditionButton.disabled = true;
+            showHideMeshButton.disabled = false;
+        }
     }
 
     adoptedCallback() {

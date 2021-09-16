@@ -50,6 +50,21 @@ impl Postprocessor
     }
 
 
+    pub fn show_job_analysis_result(&mut self, job_name: &str) -> Result<(), JsValue>
+    {
+        if self.analysis_results.contains_key(job_name)
+        {
+            Ok(())
+        }
+        else
+        {
+            let error_message = &format!("Postprocessor: Show analysis result action: \
+                Analysis result for job with name {} does not exist!", job_name);
+            return Err(JsValue::from(error_message));
+        }
+    }
+
+
     pub fn delete_analysis_result(&mut self, job_name: &str) -> Result<(), JsValue>
     {
         if self.analysis_results.remove(job_name).is_some()

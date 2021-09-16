@@ -2,6 +2,8 @@ use wasm_bindgen::JsValue;
 use serde_json::json;
 use std::collections::HashMap;
 
+use crate::postprocessor::analysis_result::AnalysisResult;
+
 use crate::postprocessor::consts::
 {
     ADD_ANALYSIS_RESULT_EVENT_NAME, DELETE_ANALYSIS_RESULT_EVENT_NAME
@@ -12,25 +14,13 @@ use crate::consts::EVENT_TARGET;
 use crate::functions::dispatch_custom_event;
 
 
-pub struct AnalysisResult;
-
-
-impl AnalysisResult
+pub struct Postprocessor<T, V>
 {
-    pub fn create() -> Self
-    {
-        AnalysisResult
-    }
+    analysis_results: HashMap<String, AnalysisResult<T, V>>   // { job_name, AnalysisResult }
 }
 
 
-pub struct Postprocessor
-{
-    analysis_results: HashMap<String, AnalysisResult>
-}
-
-
-impl Postprocessor
+impl<T, V> Postprocessor<T, V>
 {
     pub fn create() -> Self
     {
@@ -39,7 +29,7 @@ impl Postprocessor
     }
 
 
-    pub fn add_analysis_result(&mut self, job_name: &str, analysis_result: AnalysisResult)
+    pub fn add_analysis_result(&mut self, job_name: &str, analysis_result: AnalysisResult<T, V>)
         -> Result<(), JsValue>
     {
         self.analysis_results.insert(job_name.to_owned(), analysis_result);

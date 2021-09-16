@@ -165,12 +165,12 @@ impl<T, V> Properties<T, V>
         for (assigned_property_to_lines_name, assigned_property_to_lines) in
             self.assigned_properties_to_lines.iter()
         {
-            if assigned_property_to_lines.extract_related_lines_numbers().iter()
+            if assigned_property_to_lines.copy_related_lines_numbers().iter()
                 .position(|line_number| *line_number == number).is_some()
             {
                 let property = self.properties.get(assigned_property_to_lines_name).unwrap();
                 let (material_name, cross_section_name, cross_section_type) =
-                    property.extract_data();
+                    property.clone_data();
                 return Some((material_name.to_owned(), cross_section_name.to_owned(),
                     cross_section_type.as_str().to_lowercase().to_owned()));
             }
@@ -294,13 +294,13 @@ impl<T, V> Properties<T, V>
         for (assigned_property_to_lines_name, assigned_property_to_lines) in
             self.assigned_properties_to_lines.iter()
         {
-            if assigned_property_to_lines.extract_related_lines_numbers()
+            if assigned_property_to_lines.copy_related_lines_numbers()
                 .contains(line_number)
             {
                 let (_, _, cross_section_type) = self.properties
                     .get(assigned_property_to_lines_name)
                     .unwrap()
-                    .extract_data();
+                    .clone_data();
                 return match cross_section_type
                 {
                     CrossSectionType::Truss =>

@@ -100,7 +100,7 @@ impl<T, V> Properties<T, V>
         for (property_name, property) in self.properties.iter()
         {
             let (_extracted_material_name, extracted_cross_section_name,
-                extracted_cross_section_type) = property.extract_data();
+                extracted_cross_section_type) = property.clone_data();
             if extracted_cross_section_name == truss_section_name &&
                 extracted_cross_section_type == CrossSectionType::Truss
             {
@@ -152,7 +152,7 @@ impl<T, V> Properties<T, V>
             self.deleted_truss_sections.remove(&action_id)
         {
             let (deleted_truss_section_name, area, area2) =
-                deleted_truss_section.extract_name_and_data();
+                deleted_truss_section.copy_name_and_data();
             if deleted_truss_section_name != name
             {
                 let error_message = &format!("Properties: Restore truss section \

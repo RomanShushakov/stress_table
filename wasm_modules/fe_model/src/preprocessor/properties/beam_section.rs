@@ -41,7 +41,7 @@ impl<V> BeamSection<V>
     }
 
 
-    pub fn extract_data(&self) -> (V, V, V, V, V, V)
+    pub fn copy_data(&self) -> (V, V, V, V, V, V)
     {
         (self.area, self.i11, self.i22, self.i12, self.it, self.shear_factor)
     }
@@ -65,10 +65,10 @@ impl<V> DeletedBeamSection<V>
     }
 
 
-    pub fn extract_name_and_data(&self) -> (&str, V, V, V, V, V, V)
+    pub fn copy_name_and_data(&self) -> (&str, V, V, V, V, V, V)
     {
         let (area, i11, i22, i12, it, shear_factor) =
-            self.beam_section.extract_data();
+            self.beam_section.copy_data();
         (&self.name, area, i11, i22, i12, it, shear_factor)
     }
 }

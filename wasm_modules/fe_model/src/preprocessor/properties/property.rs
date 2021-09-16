@@ -5,7 +5,7 @@ use serde::Serialize;
 
 #[wasm_bindgen]
 #[repr(u8)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize)]
 pub enum CrossSectionType
 {
     Truss,
@@ -88,7 +88,7 @@ impl Property
     }
 
 
-    pub fn extract_data(&self) -> (&str, &str, CrossSectionType)
+    pub fn clone_data(&self) -> (&str, &str, CrossSectionType)
     {
         (&self.material_name, &self.cross_section_name, self.cross_section_type.clone())
     }
@@ -111,10 +111,10 @@ impl DeletedProperty
     }
 
 
-    pub fn extract_name_and_data(&self) -> (&str, &str, &str, CrossSectionType)
+    pub fn clone_name_and_data(&self) -> (&str, &str, &str, CrossSectionType)
     {
         let (material_name, cross_section_name, cross_section_type) =
-            self.property.extract_data();
+            self.property.clone_data();
         (&self.name, material_name, cross_section_name, cross_section_type)
     }
 }

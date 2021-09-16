@@ -97,7 +97,7 @@ impl<T, V> Properties<T, V>
         for (property_name, property) in self.properties.iter()
         {
             let (extracted_material_name, _extracted_cross_section_name,
-                _extracted_cross_section_type) = property.extract_data();
+                _extracted_cross_section_type) = property.clone_data();
             if extracted_material_name == material_name
             {
                 property_names_for_delete.push(property_name.clone());
@@ -149,7 +149,7 @@ impl<T, V> Properties<T, V>
         if let Some(deleted_material) = self.deleted_materials.remove(&action_id)
         {
             let (deleted_material_name, young_modulus, poisson_ratio) =
-                deleted_material.extract_name_and_data();
+                deleted_material.copy_name_and_data();
             if deleted_material_name != name
             {
                 let error_message = &format!("{}: Material with name {} does not exist!",

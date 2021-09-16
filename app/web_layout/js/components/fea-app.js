@@ -664,12 +664,14 @@ class FeaApp extends HTMLElement {
             const pointNumber = pointNumbers[0];
             if (this.state.isLinesSelectionModeEnabled === false) {
                 this.state.actionsRouter.show_point_info(
-                    BigInt(pointNumber),
+                    // BigInt(pointNumber),
+                    pointNumber,
                     (objectInfo) => this.showObjectInfoHandler(objectInfo),
                 );
             } else {
                 this.state.actionsRouter.show_point_info(
-                    BigInt(pointNumber),
+                    // BigInt(pointNumber),
+                    pointNumber,
                     (objectInfo) => this.showObjectInfoWithoutMenuOpeningHandler(objectInfo),
                 );
             }
@@ -699,13 +701,15 @@ class FeaApp extends HTMLElement {
             const lineNumber = lineNumbers[0];
             if (this.state.isLinesSelectionModeEnabled === false) {
                 this.state.actionsRouter.show_line_info(
-                    BigInt(lineNumber),
+                    // BigInt(lineNumber),
+                    lineNumber,
                     (objectInfo) => this.showObjectInfoHandler(objectInfo),
                 );
             } else {
                 this.selectLinesInClientForDataAssign(lineNumber);
                 this.state.actionsRouter.show_line_info(
-                    BigInt(lineNumber),
+                    // BigInt(lineNumber),
+                    lineNumber,
                     (objectInfo) => this.showObjectInfoWithoutMenuOpeningHandler(objectInfo),
                 );
             }
@@ -731,12 +735,14 @@ class FeaApp extends HTMLElement {
             const concentratedLoadPointNumber = concentratedLoadsPointsNumbers[0];
             if (this.state.isLinesSelectionModeEnabled === false) {
                 this.state.actionsRouter.show_concentrated_load_info(
-                    BigInt(concentratedLoadPointNumber),
+                    // BigInt(concentratedLoadPointNumber),
+                    concentratedLoadPointNumber,
                     (objectInfo) => this.showObjectInfoHandler(objectInfo),
                 );
             } else {
                 this.state.actionsRouter.show_concentrated_load_info(
-                    BigInt(concentratedLoadPointNumber),
+                    // BigInt(concentratedLoadPointNumber),
+                    concentratedLoadPointNumber,
                     (objectInfo) => this.showObjectInfoWithoutMenuOpeningHandler(objectInfo),
                 );
             }
@@ -752,12 +758,14 @@ class FeaApp extends HTMLElement {
             const distributedLineLoadLineNumber = distributedLineLoadsLinesNumbers[0];
             if (this.state.isLinesSelectionModeEnabled === false) {
                 this.state.actionsRouter.show_distributed_line_load_info(
-                    BigInt(distributedLineLoadLineNumber),
+                    // BigInt(distributedLineLoadLineNumber),
+                    distributedLineLoadLineNumber,
                     (objectInfo) => this.showObjectInfoHandler(objectInfo),
                 );
             } else {
                 this.state.actionsRouter.show_distributed_line_load_info(
-                    BigInt(distributedLineLoadLineNumber),
+                    // BigInt(distributedLineLoadLineNumber),
+                    distributedLineLoadLineNumber,
                     (objectInfo) => this.showObjectInfoWithoutMenuOpeningHandler(objectInfo),
                 );
             }
@@ -773,12 +781,14 @@ class FeaApp extends HTMLElement {
             const boundaryConditionPointNumber = boundaryConditionsPointsNumbers[0];
             if (this.state.isLinesSelectionModeEnabled === false) {
                 this.state.actionsRouter.show_boundary_condition_info(
-                    BigInt(boundaryConditionPointNumber),
+                    // BigInt(boundaryConditionPointNumber),
+                    boundaryConditionPointNumber,
                     (objectInfo) => this.showObjectInfoHandler(objectInfo),
                 );
             } else {
                 this.state.actionsRouter.show_boundary_condition_info(
-                    BigInt(boundaryConditionPointNumber),
+                    // BigInt(boundaryConditionPointNumber),
+                    boundaryConditionPointNumber,
                     (objectInfo) => this.showObjectInfoWithoutMenuOpeningHandler(objectInfo),
                 );
             }

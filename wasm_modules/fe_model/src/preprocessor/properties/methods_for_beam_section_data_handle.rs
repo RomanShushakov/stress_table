@@ -99,7 +99,7 @@ impl<T, V> Properties<T, V>
         for (property_name, property) in self.properties.iter()
         {
             let (_extracted_material_name, extracted_cross_section_name,
-                extracted_cross_section_type) = property.extract_data();
+                extracted_cross_section_type) = property.clone_data();
             if extracted_cross_section_name == beam_section_name &&
                 extracted_cross_section_type == CrossSectionType::Beam
             {
@@ -151,7 +151,7 @@ impl<T, V> Properties<T, V>
             self.deleted_beam_sections.remove(&action_id)
         {
             let (deleted_beam_section_name, area, i11, i22, i12, it,
-                shear_factor) = deleted_beam_section.extract_name_and_data();
+                shear_factor) = deleted_beam_section.copy_name_and_data();
             if deleted_beam_section_name != name
             {
                 let error_message = &format!("Properties: Restore beam section \

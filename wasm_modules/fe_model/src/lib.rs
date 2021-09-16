@@ -9,7 +9,7 @@ mod fe_solver;
 use fe_solver::fe_solver::FESolver;
 
 mod postprocessor;
-use postprocessor::postprocessor::{Postprocessor, AnalysisResult};
+use postprocessor::postprocessor::Postprocessor;
 
 mod traits;
 
@@ -31,7 +31,7 @@ pub struct FEModel
 {
     preprocessor: Preprocessor<FEUInt, FEFloat>,
     fe_solver: FESolver<FEUInt, FEFloat>,
-    postprocessor: Postprocessor,
+    postprocessor: Postprocessor<FEUInt, FEFloat>,
 }
 
 
@@ -49,7 +49,8 @@ impl FEModel
 
     pub fn submit_job(&mut self, job_name: &str) -> Result<(), JsValue>
     {
-        let analysis_result = AnalysisResult::create();
+        let analysis_result =
+            self.fe_solver.submit_job(&self.preprocessor)?;
         self.postprocessor.add_analysis_result(job_name, analysis_result)
     }
 }

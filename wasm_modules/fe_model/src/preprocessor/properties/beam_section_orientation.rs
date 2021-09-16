@@ -4,7 +4,7 @@ use std::fmt::Debug;
 use serde::Serialize;
 
 
-#[derive(Debug, Clone, Serialize, PartialEq)]
+#[derive(Debug, Copy, Clone, Serialize, PartialEq)]
 pub struct LocalAxis1Direction<V>(V, V, V);
 
 
@@ -28,7 +28,7 @@ impl<V> LocalAxis1Direction<V>
     }
 
 
-    pub fn extract(&self) -> [V; 3]
+    pub fn copy_direction(&self) -> [V; 3]
     {
         [self.0, self.1, self.2]
     }

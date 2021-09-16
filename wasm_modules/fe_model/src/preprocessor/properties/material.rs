@@ -31,7 +31,7 @@ impl<V> Material<V>
     }
 
 
-    pub fn extract_data(&self) -> (V, V)
+    pub fn copy_data(&self) -> (V, V)
     {
         (self.young_modulus, self.poisson_ratio)
     }
@@ -55,9 +55,9 @@ impl<V> DeletedMaterial<V>
     }
 
 
-    pub fn extract_name_and_data(&self) -> (&str, V, V)
+    pub fn copy_name_and_data(&self) -> (&str, V, V)
     {
-        let (young_modulus, poisson_ratio) = self.material.extract_data();
+        let (young_modulus, poisson_ratio) = self.material.copy_data();
         (&self.name, young_modulus, poisson_ratio)
     }
 }

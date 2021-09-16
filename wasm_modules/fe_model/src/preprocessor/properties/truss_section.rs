@@ -31,7 +31,7 @@ impl<V> TrussSection<V>
     }
 
 
-    pub fn extract_data(&self) -> (V, Option<V>)
+    pub fn copy_data(&self) -> (V, Option<V>)
     {
         (self.area, self.area2)
     }
@@ -55,9 +55,9 @@ impl<V> DeletedTrussSection<V>
     }
 
 
-    pub fn extract_name_and_data(&self) -> (&str, V, Option<V>)
+    pub fn copy_name_and_data(&self) -> (&str, V, Option<V>)
     {
-        let (area, area2) = self.truss_section.extract_data();
+        let (area, area2) = self.truss_section.copy_data();
         (&self.name, area, area2)
     }
 }

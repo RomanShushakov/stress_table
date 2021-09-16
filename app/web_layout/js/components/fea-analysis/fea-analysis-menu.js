@@ -347,6 +347,38 @@ class FeaAnalysisMenu extends HTMLElement {
                     border: 0.2rem solid #4a5060;
                 }
 
+                .job-yes-button {
+                    background: #3d5d78;
+                    border: 0.2rem solid #3b4453;
+                    border-radius: 0.3rem;
+                    color: #D9D9D9;
+                    padding: 0rem;
+                    margin: 0rem;
+                    width: 4rem;
+                    height: 1.7rem;
+                    font-size: 70%;
+                }
+
+                .job-yes-button:hover {
+                    border: 0.2rem solid #4a5060;
+                }
+
+                .job-no-button {
+                    background: #3d5d78;
+                    border: 0.2rem solid #3b4453;
+                    border-radius: 0.3rem;
+                    color: #D9D9D9;
+                    padding: 0rem;
+                    margin: 0rem;
+                    width: 4rem;
+                    height: 1.7rem;
+                    font-size: 70%;
+                }
+
+                .job-no-button:hover {
+                    border: 0.2rem solid #4a5060;
+                }
+
                 .highlighted {
                     box-shadow: 0rem 0.1rem 0rem #72C5FF;
                 }
@@ -410,6 +442,8 @@ class FeaAnalysisMenu extends HTMLElement {
                 this.shadowRoot.querySelector(".job-name-filter").value,
                 this.shadowRoot.querySelector(".job-name"));
         });
+
+        this.shadowRoot.querySelector(".delete-job-button").addEventListener("click", () => this.deleteJob());
     }
 
     set isFEModelLoaded(value) {
@@ -418,6 +452,7 @@ class FeaAnalysisMenu extends HTMLElement {
 
     set jobNames(value) {
         this.props.jobNames = value;
+        this.props.jobNames.sort((a, b) => a.name - b.name);
     }
 
     set submitJobError(error) {
@@ -466,6 +501,23 @@ class FeaAnalysisMenu extends HTMLElement {
         }
     }
 
+    set jobError(error) {
+        this.shadowRoot.querySelector(".job-info-message").innerHTML = error;
+        if (this.shadowRoot.querySelector(".job-hide-message-button") == undefined) {
+            const jobHideMessageButton = document.createElement("button");
+            jobHideMessageButton.className = "job-hide-message-button";
+            jobHideMessageButton.innerHTML = "Hide message";
+            jobHideMessageButton.addEventListener("click", () => {
+                this.shadowRoot.querySelector(".job-info-message").innerHTML = "";
+                if (this.shadowRoot.querySelector(".job-hide-message-button") != undefined) {
+                    this.shadowRoot.querySelector(".job-hide-message-button").remove();
+                }
+                this.dropHighlight(this.shadowRoot.querySelector(".job-name"));
+            });
+            this.shadowRoot.querySelector(".job-info").append(jobHideMessageButton);
+        }
+    }
+
     set feModelAnalysisSuccess(message) {
         if (this.shadowRoot.querySelector(".hide-message-button") != undefined) {
             this.shadowRoot.querySelector(".hide-message-button").remove();
@@ -498,8 +550,16 @@ class FeaAnalysisMenu extends HTMLElement {
     set addJobNameToClient(jobName) {
         if (!this.props.jobNames.includes(jobName)) {
             this.props.jobNames.push(jobName);
+            this.props.jobNames.sort((a, b) => a.name - b.name);
         }
         this.shadowRoot.querySelector(".new-job-name").value = "";
+        this.defineJobNameOptions();
+    }
+
+    set deleteJobNameFromClient(jobName) {
+        let jobNameIndexInProps = this.props.jobNames.findIndex(existedJobName => existedJobName == jobName);
+        this.props.jobNames.splice(jobNameIndexInProps, 1);
+        this.props.jobNames.sort((a, b) => a.name - b.name);
         this.defineJobNameOptions();
     }
 
@@ -561,7 +621,6 @@ class FeaAnalysisMenu extends HTMLElement {
             jobNameSelect.appendChild(option);
         }
     }
-
 
     submitJob() {
         const newJobNameField = this.shadowRoot.querySelector(".new-job-name");
@@ -665,6 +724,78 @@ class FeaAnalysisMenu extends HTMLElement {
                     message: newJobName,
                 },        
             }));
+    }
+
+    deleteJob() {
+        const selectedJobNameField = this.shadowRoot.querySelector(".job-name");
+        if (selectedJobNameField.value == "") {
+            if (selectedJobNameField.classList.contains("highlighted") === false) {
+                selectedJobNameField.classList.add("highlighted");
+            }
+        }
+
+        if (selectedJobNameField.value === "") {
+            if (this.shadowRoot.querySelector(".job-info-message").innerHTML === "") {
+                this.shadowRoot.querySelector(".job-info-message").innerHTML = 
+                    "Note: The highlighted fields should be filled!";
+                if (this.shadowRoot.querySelector(".job-hide-message-button") == undefined) {
+                    const jobHideMessageButton = document.createElement("button");
+                    jobHideMessageButton.className = "job-hide-message-button";
+                    jobHideMessageButton.innerHTML = "Hide message";
+                    jobHideMessageButton.addEventListener("click", () => {
+                        this.shadowRoot.querySelector(".job-info-message").innerHTML = "";
+                        if (this.shadowRoot.querySelector(".job-hide-message-button") != undefined) {
+                            this.shadowRoot.querySelector(".job-hide-message-button").remove();
+                        }
+                        this.dropHighlight(this.shadowRoot.querySelector(".job-name"));
+                    });
+                    this.shadowRoot.querySelector(".job-info").append(jobHideMessageButton);
+                }
+                return;
+            } else {
+                return;
+            }
+        }
+
+        this.shadowRoot.querySelector(".job-info-message").innerHTML = 
+            `Note: Do you really want to delete analysis result for ${selectedJobNameField.value}?`;
+        const jobYesButton = document.createElement("button");
+        jobYesButton.className = "job-yes-button";
+        jobYesButton.innerHTML = "Yes";
+        jobYesButton.addEventListener("click", () => {
+            this.shadowRoot.querySelector(".job-info-message").innerHTML = "";
+            if (this.shadowRoot.querySelector(".job-yes-button") != undefined) {
+                this.shadowRoot.querySelector(".job-yes-button").remove();
+            }
+            if (this.shadowRoot.querySelector(".job-no-button") != undefined) {
+                this.shadowRoot.querySelector(".job-no-button").remove();
+            }
+            
+            this.dispatchEvent(new CustomEvent("deleteJob", 
+                {
+                    bubbles: true,
+                    composed: true,
+                    detail: {
+                        message: selectedJobNameField.value,
+                    },
+                }));
+            });
+        const jobNoButton = document.createElement("button");
+        jobNoButton.className = "job-no-button";
+        jobNoButton.innerHTML = "No";
+        jobNoButton.addEventListener("click", () => {
+            this.shadowRoot.querySelector(".job-info-message").innerHTML = "";
+            if (this.shadowRoot.querySelector(".job-yes-button") != undefined) {
+                this.shadowRoot.querySelector(".job-yes-button").remove();
+            }
+            if (this.shadowRoot.querySelector(".job-no-button") != undefined) {
+                this.shadowRoot.querySelector(".job-no-button").remove();
+            }
+        });
+        this.shadowRoot.querySelector(".job-info").append(jobYesButton);
+        this.shadowRoot.querySelector(".job-info").append(jobNoButton);
+
+        this.shadowRoot.querySelector(".job-name-filter").value = null;
     }
 
     filter(keywordField, selectField) {

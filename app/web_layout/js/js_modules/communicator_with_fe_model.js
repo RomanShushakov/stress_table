@@ -447,6 +447,14 @@ class CommunicatorWithFEModel {
         }
     }
 
+    set deleteJob(jobName) {
+        try {
+            this.state.feModel.delete_job(jobName);
+        } catch (error) {
+            throw error;
+        }
+    }
+
     set showPointInfo(pointInfoData) {
         try {
             this.state.feModel.show_point_info(pointInfoData.number, pointInfoData.handler);

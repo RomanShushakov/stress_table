@@ -2,7 +2,10 @@ use wasm_bindgen::JsValue;
 use serde_json::json;
 use std::collections::HashMap;
 
-use crate::postprocessor::consts::ADD_ANALYSIS_RESULT_EVENT_NAME;
+use crate::postprocessor::consts::
+{
+    ADD_ANALYSIS_RESULT_EVENT_NAME, DELETE_ANALYSIS_RESULT_EVENT_NAME
+};
 
 use crate::consts::EVENT_TARGET;
 
@@ -44,6 +47,24 @@ impl Postprocessor
         dispatch_custom_event(detail, ADD_ANALYSIS_RESULT_EVENT_NAME,
             EVENT_TARGET)?;
         Ok(())
+    }
+
+
+    pub fn delete_analysis_result(&mut self, job_name: &str) -> Result<(), JsValue>
+    {
+        if self.analysis_results.remove(job_name).is_some()
+        {
+            let detail = json!({ "analysis_result_data": { "job_name": job_name } });
+            dispatch_custom_event(detail, DELETE_ANALYSIS_RESULT_EVENT_NAME,
+                EVENT_TARGET)?;
+            Ok(())
+        }
+        else
+        {
+            let error_message = &format!("Postprocessor: Delete analysis result action: \
+                Analysis result for job with name {} does not exist!", job_name);
+            return Err(JsValue::from(error_message));
+        }
     }
 
 

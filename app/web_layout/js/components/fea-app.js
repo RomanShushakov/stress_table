@@ -175,6 +175,7 @@ class FeaApp extends HTMLElement {
         this.addEventListener("clientMessage", (event) => this.handleClientMessage(event));
 
         this.addEventListener("submitJob", (event) => this.handleSubmitJobMessage(event));
+        this.addEventListener("deleteJob", (event) => this.handleDeleteJobMessage(event));
 
         this.addEventListener("add_point_server_message", (event) => this.handleAddPointServerMessage(event));
         this.addEventListener("update_point_server_message", (event) => this.handleUpdatePointServerMessage(event));
@@ -237,6 +238,8 @@ class FeaApp extends HTMLElement {
 
         this.addEventListener("add_analysis_result_server_message", 
             (event) => this.handleAddAnalysisResultServerMessage(event));
+        this.addEventListener("delete_analysis_result_server_message", 
+            (event) => this.handleDeleteAnalysisResultServerMessage(event));
 
         this.addEventListener("add_node_server_message", (event) => this.handleAddNodeServerMessage(event));
 
@@ -897,6 +900,18 @@ class FeaApp extends HTMLElement {
         event.stopPropagation();
     }
 
+    handleDeleteJobMessage(event) {
+        const jobName = event.detail.message;
+        try {
+            this.state.actionsRouter.delete_job(jobName);
+        } catch (error) {
+            this.querySelector(event.target.tagName.toLowerCase()).jobError = error;
+            event.stopPropagation();
+            throw error;
+        }
+        event.stopPropagation();
+    }
+
     handleAddPointServerMessage(event) {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
@@ -1470,6 +1485,16 @@ class FeaApp extends HTMLElement {
         for (let i = 0; i < this.state.analysisResultsDataDependentMenus.length; i++) {
             if (this.querySelector(this.state.analysisResultsDataDependentMenus[i]) !== null) {
                 this.querySelector(this.state.analysisResultsDataDependentMenus[i]).addJobNameToClient = jobName;
+            }
+        } 
+        event.stopPropagation();
+    }
+
+    handleDeleteAnalysisResultServerMessage(event) {
+        const jobName = event.detail.analysis_result_data.job_name;
+        for (let i = 0; i < this.state.analysisResultsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.analysisResultsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.analysisResultsDataDependentMenus[i]).deleteJobNameFromClient = jobName;
             }
         } 
         event.stopPropagation();

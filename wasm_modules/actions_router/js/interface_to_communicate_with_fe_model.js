@@ -516,6 +516,15 @@ export function submitJob(jobName)
     }
 }
 
+export function deleteJob(jobName) 
+{
+    try {
+        communicatorWithFEModel.deleteJob = jobName;
+    } catch (error) {
+        throw error;
+    }
+}
+
 export function showPointInfo(number, handler) 
 {
     const pointInfoData = {"number": number, "handler": handler};

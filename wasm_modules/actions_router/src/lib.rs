@@ -52,7 +52,10 @@ use external_functions::communication_with_boundary_conditions::
     restore_boundary_condition_in_boundary_conditions, extract_boundary_conditions,
     show_boundary_condition_info,
 };
-use external_functions::communication_with_preprocessor::{submit_job, extract_job_names};
+use external_functions::communication_with_preprocessor::
+{
+    submit_job, delete_job, extract_job_names
+};
 
 mod action;
 use action::
@@ -1601,6 +1604,12 @@ impl ActionsRouter
     pub fn submit_job(&self, job_name: &str) -> Result<(), JsValue>
     {
         submit_job(job_name)
+    }
+
+
+    pub fn delete_job(&self, job_name: &str) -> Result<(), JsValue>
+    {
+        delete_job(job_name)
     }
 
 

@@ -17,6 +17,8 @@ use finite_element_method::fem::global_analysis::fe_dof_parameter_data::GlobalDO
 use crate::preprocessor::preprocessor::Preprocessor;
 use crate::preprocessor::properties::property::CrossSectionType;
 
+use crate::preprocessor::functions::compare_with_tolerance;
+
 use crate::postprocessor::analysis_result::AnalysisResult;
 
 use crate::fe_solver::consts::ELEMENTS_AT_LINE;
@@ -377,13 +379,12 @@ impl<T, V> FESolver<T, V>
                             let step_z =
                                 (z2 - z1) / V::from(beam_elements_number_at_line as f32);
 
-                            let line_projection_x_length = (x2 - x1).my_abs();
-                            let line_projection_y_length = (y2 - y1).my_abs();
-                            let line_projection_z_length = (z2 - z1).my_abs();
-
-                            log(&format!("proj_x: {:?}, proj_y: {:?}, proj_z: {:?}",
-                                line_projection_x_length, line_projection_y_length,
-                                line_projection_z_length));
+                            let line_projection_x_length = compare_with_tolerance(
+                                (x2 - x1).my_abs(), preprocessor.tolerance);
+                            let line_projection_y_length = compare_with_tolerance(
+                                (y2 - y1).my_abs(), preprocessor.tolerance);
+                            let line_projection_z_length = compare_with_tolerance(
+                                (z2 - z1).my_abs(), preprocessor.tolerance);
 
                             let optional_distributed_load =
                                 if let Some(distributed_load) =
@@ -392,20 +393,60 @@ impl<T, V> FESolver<T, V>
                                     let (qx, qy, qz) =
                                         distributed_load.copy_load_components();
 
-                                    log(&format!("qx: {:?}, qy: {:?}, qz: {:?}", qx, qy, qz));
-
-                                    let qx_end = qx * line_projection_x_length /
-                                        (V::from(beam_elements_number_at_line as f32 * 2f32));
-                                    let qx_interim = qx * line_projection_x_length /
-                                        V::from(beam_elements_number_at_line as f32);
-                                    let qy_end = qy * line_projection_y_length /
-                                        (V::from(beam_elements_number_at_line as f32 * 2f32));
-                                    let qy_interim = qy * line_projection_y_length /
-                                        V::from(beam_elements_number_at_line as f32);
-                                    let qz_end = qz * line_projection_z_length /
-                                        (V::from(beam_elements_number_at_line as f32 * 2f32));
-                                    let qz_interim = qz * line_projection_z_length /
-                                        V::from(beam_elements_number_at_line as f32);
+                                    let qx_interim =
+                                        {
+                                            if line_projection_y_length == V::from(0f32) &&
+                                                line_projection_z_length == V::from(0f32) &&
+                                                line_projection_x_length != V::from(0f32)
+                                            {
+                                                qx * line_projection_x_length /
+                                                    V::from(beam_elements_number_at_line as f32)
+                                            }
+                                            else
+                                            {
+                                                ((qx * line_projection_y_length).my_powi(2) +
+                                                (qx * line_projection_z_length).my_powi(2))
+                                                    .my_sqrt() /
+                                                    V::from(beam_elements_number_at_line as f32)
+                                            }
+                                        };
+                                    let qx_end = qx_interim / V::from(2f32);
+                                    let qy_interim =
+                                        {
+                                            if line_projection_x_length == V::from(0f32) &&
+                                                line_projection_z_length == V::from(0f32) &&
+                                                line_projection_y_length != V::from(0f32)
+                                            {
+                                                qy * line_projection_y_length /
+                                                    V::from(beam_elements_number_at_line as f32)
+                                            }
+                                            else
+                                            {
+                                                ((qy * line_projection_x_length).my_powi(2) +
+                                                (qy * line_projection_z_length).my_powi(2))
+                                                    .my_sqrt() /
+                                                    V::from(beam_elements_number_at_line as f32)
+                                            }
+                                        };
+                                    let qy_end= qy_interim / V::from(2f32);
+                                    let qz_interim =
+                                        {
+                                            if line_projection_x_length == V::from(0f32) &&
+                                                line_projection_y_length == V::from(0f32) &&
+                                                line_projection_z_length != V::from(0f32)
+                                            {
+                                                qz * line_projection_z_length /
+                                                    V::from(beam_elements_number_at_line as f32)
+                                            }
+                                            else
+                                            {
+                                                ((qz * line_projection_x_length).my_powi(2) +
+                                                (qz * line_projection_y_length).my_powi(2))
+                                                    .my_sqrt() /
+                                                    V::from(beam_elements_number_at_line as f32)
+                                            }
+                                        };
+                                    let qz_end = qz_interim / V::from(2f32);
                                     Some((qx_end, qx_interim, qy_end, qy_interim, qz_end,
                                         qz_interim))
                                 }
@@ -413,8 +454,6 @@ impl<T, V> FESolver<T, V>
                                 {
                                     None
                                 };
-
-                            log(&format!("optional distributed load: {:?}", optional_distributed_load));
 
                             if let Some((qx_end, _qx_interim, qy_end, _qy_interim,
                                 qz_end, _qz_interim)) = optional_distributed_load
@@ -469,7 +508,7 @@ impl<T, V> FESolver<T, V>
                                             qx_end;
                                         self.fem.update_bc(BCType::Force,
                                             end_point_qx_load_number,
-                                            start_point_number,
+                                            end_point_number,
                                             GlobalDOFParameter::X,
                                             updated_fx_force_value)?;
                                     }
@@ -477,7 +516,7 @@ impl<T, V> FESolver<T, V>
                                     {
                                         self.fem.add_bc(BCType::Force,
                                             end_point_qx_load_number,
-                                            start_point_number,
+                                            end_point_number,
                                             GlobalDOFParameter::X,
                                             qx_end)?;
                                     }
@@ -519,7 +558,7 @@ impl<T, V> FESolver<T, V>
                                             qy_end;
                                         self.fem.update_bc(BCType::Force,
                                             end_point_qy_load_number,
-                                            start_point_number,
+                                            end_point_number,
                                             GlobalDOFParameter::Y,
                                             updated_fy_force_value)?;
                                     }
@@ -527,7 +566,7 @@ impl<T, V> FESolver<T, V>
                                     {
                                         self.fem.add_bc(BCType::Force,
                                             end_point_qy_load_number,
-                                            start_point_number,
+                                            end_point_number,
                                             GlobalDOFParameter::Y,
                                             qy_end)?;
                                     }
@@ -569,7 +608,7 @@ impl<T, V> FESolver<T, V>
                                             qz_end;
                                         self.fem.update_bc(BCType::Force,
                                             end_point_qz_load_number,
-                                            start_point_number,
+                                            end_point_number,
                                             GlobalDOFParameter::Z,
                                             updated_fz_force_value)?;
                                     }
@@ -577,7 +616,7 @@ impl<T, V> FESolver<T, V>
                                     {
                                         self.fem.add_bc(BCType::Force,
                                             end_point_qz_load_number,
-                                            start_point_number,
+                                            end_point_number,
                                             GlobalDOFParameter::Z,
                                             qz_end)?;
                                     }
@@ -674,27 +713,86 @@ impl<T, V> FESolver<T, V>
             }
         }
 
-        let nodes_numbers = self.fem.extract_all_nodes_numbers();
-        log(&format!("Nodes numbers: {:?}", nodes_numbers));
-        for node_number in nodes_numbers.iter()
+        let global_analysis_result = self.fem.global_analysis()?;
+
+        for (reaction, dof_parameter_data) in
+            global_analysis_result.reactions_values().iter()
+                .zip(global_analysis_result.reactions_dof_parameters_data())
         {
-            log(&format!("Node number: {:?}, coordinates: {:?}", node_number, self.fem.copy_node_coordinates(node_number)));
+            log(&format!("reaction: {:?}, node: {:?}, parameter: {:?}", reaction,
+                     dof_parameter_data.copy_node_number(), dof_parameter_data.copy_dof_parameter()));
         }
+        log("");
 
-        let elements_numbers = self.fem.extract_all_elements_numbers();
-        log(&format!("Elements numbers: {:?}", elements_numbers));
-        for element_number in elements_numbers.iter()
+        for (displacement, dof_parameter_data) in
+            global_analysis_result.displacements_values().iter()
+                .zip(global_analysis_result.displacements_dof_parameters_data().iter())
         {
-            log(&format!("Element number: {:?}, nodes: {:?}", element_number,
-                self.fem.copy_element_nodes_numbers(element_number)));
+            log(&format!("displacement: {:?}, node: {:?}, parameter: {:?}", displacement,
+                     dof_parameter_data.copy_node_number(), dof_parameter_data.copy_dof_parameter()));
         }
+        log("");
 
-        for (bc_type, bc_number) in self.fem.extract_all_bc_types_numbers().iter()
+        let displacements = global_analysis_result.displacements();
+
+        let elements_analysis_result = self.fem.elements_analysis(
+            &displacements)?;
+
+        for (element_number, element_analysis_data) in
+            elements_analysis_result.ref_elements_analysis_data().iter()
         {
-            log(&format!("BC type: {:?}, bc number: {:?}, bc value: {:?}", bc_type, bc_number, self.fem.copy_bc_value(*bc_type, *bc_number)));
+            if let (Some(forces_values), Some(forces_components)) =
+                (element_analysis_data.optional_ref_forces_values(), element_analysis_data.optional_ref_forces_components())
+            {
+                let mut forces_values_msg = String::from("Element forces: ");
+                for force_value in forces_values.iter()
+                {
+                    forces_values_msg += &format!("{:?}, ", force_value);
+                }
+                let mut forces_components_msg = String::from("Element forces components: ");
+                for force_component in forces_components.iter()
+                {
+                    forces_components_msg += &format!("{:?}, ", force_component);
+                }
+                log(&format!("Element number: {:?}", element_number));
+                log(&format!("{}", forces_values_msg));
+                log(&format!("{}", forces_components_msg));
+                log("");
+            }
+
+            if let Some(nodal_forces) = element_analysis_data.ref_optional_nodal_forces()
+            {
+                log(&format!("Element number: {:?}", element_number));
+                for (node_number, nodal_forces) in nodal_forces
+                {
+                    let mut forces_values = String::from("Nodal forces: ");
+                    let mut forces_components = String::from("Nodal forces components: ");
+                    for force_value in nodal_forces.ref_forces_values()
+                    {
+                        forces_values += &format!("{:?}, ", force_value);
+                    }
+                    for force_component in nodal_forces.ref_forces_components()
+                    {
+                        forces_components += &format!("{:?}, ", force_component);
+                    }
+
+                    log(&format!("\t Node number: {:?}", node_number));
+                    log(&format!("\t \t {}", forces_values));
+                    log(&format!("\t \t {}", forces_components));
+                    log("");
+                }
+            }
         }
+        log(&format!("{:?}", elements_analysis_result.ref_elements_by_types()));
+        log("");
 
+        let analysis_result = AnalysisResult::create(
+            nodes_coordinates,
+            elements_nodes_numbers,
+            elements_rotation_matrices_data,
+            global_analysis_result,
+            elements_analysis_result);
 
-        Err(JsValue::from("Error!!!"))
+        Ok(analysis_result)
     }
 }

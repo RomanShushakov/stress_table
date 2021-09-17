@@ -581,6 +581,8 @@ class FeaAppToolBar extends HTMLElement {
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
+        const undoButton = this.shadowRoot.querySelector(".undo-button");
+        const redoButton = this.shadowRoot.querySelector(".redo-button");
         const showHideGeometryButton = this.shadowRoot.querySelector(".show-hide-geometry-button");
         const showHideLoadButton = this.shadowRoot.querySelector(".show-hide-load-button");
         const showHideBoundaryConditionButton = this.shadowRoot.querySelector(".show-hide-boundary-condition-button");
@@ -588,12 +590,16 @@ class FeaAppToolBar extends HTMLElement {
         const isPreprocessorActive = this.getAttribute("is-preprocessor-active");
         const isPostprocessorActive = this.getAttribute("is-postprocessor-active");
         if (isPreprocessorActive === "true") {
+            undoButton.disabled = false;
+            redoButton.disabled = false;
             showHideGeometryButton.disabled = false;
             showHideLoadButton.disabled = false;
             showHideBoundaryConditionButton.disabled = false;
             showHideMeshButton.disabled = true;
         }
         if (isPostprocessorActive === "true") {
+            undoButton.disabled = true;
+            redoButton.disabled = true;
             showHideGeometryButton.disabled = true;
             showHideLoadButton.disabled = true;
             showHideBoundaryConditionButton.disabled = true;

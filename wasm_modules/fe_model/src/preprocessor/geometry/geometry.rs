@@ -74,9 +74,7 @@ impl<T, V> Geometry<T, V>
             }
         }
         Ok(())
-
     }
-
 
     pub fn logging(&self)
     {

@@ -25,19 +25,19 @@ pub struct CSAxesDrawnObject
 
 impl DrawnObjectTrait for CSAxesDrawnObject
 {
-    fn get_vertices_coordinates(&self) -> &[f32]
+    fn ref_vertices_coordinates(&self) -> &[f32]
     {
         self.vertices_coordinates.as_slice()
     }
 
 
-    fn get_colors_values(&self) -> &[f32]
+    fn ref_colors_values(&self) -> &[f32]
     {
         self.colors_values.as_slice()
     }
 
 
-    fn get_indexes_numbers(&self) -> &[u32]
+    fn ref_indexes_numbers(&self) -> &[u32]
     {
         self.indexes_numbers.as_slice()
     }
@@ -50,11 +50,11 @@ impl DrawnObjectTrait for CSAxesDrawnObject
             let count = self.elements_numbers[index];
             let offset = self.offsets[index];
             let mode = match self.modes[index]
-            {
-                GLPrimitiveType::Lines => GL::LINES,
-                GLPrimitiveType::Triangles => GL::TRIANGLES,
-                GLPrimitiveType::Points => GL::POINTS,
-            };
+                {
+                    GLPrimitiveType::Lines => GL::LINES,
+                    GLPrimitiveType::Triangles => GL::TRIANGLES,
+                    GLPrimitiveType::Points => GL::POINTS,
+                };
             gl.draw_elements_with_i32(mode, count, GL::UNSIGNED_INT, offset);
         }
     }

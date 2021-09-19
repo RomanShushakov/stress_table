@@ -26,7 +26,7 @@ impl Renderer
         let uid =
             {
                 let mut current_uid = rand::random::<u32>();
-                while self.props.point_objects.values().position(|point_object|
+                while self.state.point_objects.values().position(|point_object|
                         point_object.is_uid_same(current_uid)).is_some() ||
                     self.state.line_objects.values().position(|line_object|
                         line_object.is_uid_same(current_uid)).is_some() ||

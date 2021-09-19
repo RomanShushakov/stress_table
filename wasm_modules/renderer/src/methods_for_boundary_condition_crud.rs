@@ -15,7 +15,7 @@ impl Renderer
     {
         let point_object_key = PointObjectKey::create(point_number,
             PointObjectType::Point);
-        if !self.props.point_objects.contains_key(&point_object_key)
+        if !self.state.point_objects.contains_key(&point_object_key)
         {
             let error_message = format!("Renderer: Add boundary condition action: \
                 Point with number {} does not exist!", point_number);
@@ -25,7 +25,7 @@ impl Renderer
         let uid =
             {
                 let mut current_uid = rand::random::<u32>();
-                while self.props.point_objects.values().position(|point_object|
+                while self.state.point_objects.values().position(|point_object|
                         point_object.is_uid_same(current_uid)).is_some() ||
                     self.state.line_objects.values().position(|line_object|
                         line_object.is_uid_same(current_uid)).is_some() ||

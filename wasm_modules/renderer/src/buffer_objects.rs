@@ -26,9 +26,9 @@ impl BufferObjects
 
     pub fn store_drawn_object(&self, gl: &GL, drawn_object: &impl DrawnObjectTrait)
     {
-        let vertices = js_sys::Float32Array::from(drawn_object.get_vertices_coordinates());
-        let colors = js_sys::Float32Array::from(drawn_object.get_colors_values());
-        let indexes = js_sys::Uint32Array::from(drawn_object.get_indexes_numbers());
+        let vertices = js_sys::Float32Array::from(drawn_object.ref_vertices_coordinates());
+        let colors = js_sys::Float32Array::from(drawn_object.ref_colors_values());
+        let indexes = js_sys::Uint32Array::from(drawn_object.ref_indexes_numbers());
         gl.bind_buffer(GL::ARRAY_BUFFER, Some(&self.vertex));
         gl.buffer_data_with_array_buffer_view(GL::ARRAY_BUFFER, &vertices, GL::STATIC_DRAW);
         gl.bind_buffer(GL::ARRAY_BUFFER, Some(&self.color));

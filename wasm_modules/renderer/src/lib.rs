@@ -10,6 +10,8 @@ use rand;
 use std::collections::{HashMap, HashSet};
 use std::convert::TryFrom;
 
+mod scene;
+
 mod point_object;
 use point_object::{PointObjectKey, PointObject};
 use point_object::{PointObjectType};
@@ -112,7 +114,7 @@ struct Props
     dx: f32,
     dy: f32,
     d_scale: f32,
-    point_objects: HashMap<PointObjectKey, PointObject>,
+
     is_geometry_visible: bool,
     is_mesh_visible: bool,
     is_load_visible: bool,
@@ -131,6 +133,7 @@ struct State
     buffer_objects: BufferObjects,
     under_selection_box_colors: Vec<u8>,
     selected_colors: HashSet<[u8; 4]>,
+    point_objects: HashMap<PointObjectKey, PointObject>,
     line_objects: HashMap<LineObjectKey, LineObject>,
     beam_section_orientation_for_preview: Option<BeamSectionOrientation>,
     concentrated_loads: HashMap<u32, ConcentratedLoad>,
@@ -160,7 +163,6 @@ impl Renderer
             canvas_text: canvas_text.clone(), canvas_gl: canvas_gl.clone(),
             cursor_coord_x: -1, cursor_coord_y: -1,
             theta: 0.0, phi: 0.0, dx: 0.0, dy: 0.0, d_scale: 0.0,
-            point_objects: HashMap::new(),
             is_geometry_visible: true, is_mesh_visible: true,
             is_load_visible: true, is_boundary_condition_visible: true,
         };
@@ -196,6 +198,7 @@ impl Renderer
             buffer_objects,
             under_selection_box_colors: Vec::new(),
             selected_colors: HashSet::new(),
+            point_objects: HashMap::new(),
             line_objects: HashMap::new(),
             beam_section_orientation_for_preview: None,
             concentrated_loads: HashMap::new(),
@@ -211,23 +214,23 @@ impl Renderer
 
     fn update_point_objects_normalized_coordinates(&mut self)
     {
-        normalize_point_objects_coordinates(&mut self.props.point_objects,
+        normalize_point_objects_coordinates(&mut self.state.point_objects,
             &self.state.line_objects,
             &self.state.concentrated_loads,
             &self.state.distributed_line_loads,
             self.props.canvas_gl.width() as f32,
             self.props.canvas_gl.height() as f32);
-        log(&format!("{:?}", self.props.point_objects));
+        log(&format!("{:?}", self.state.point_objects));
     }
 
 
     fn update_drawn_object_for_selection(&mut self) -> Result<(), JsValue>
     {
-        if !self.props.point_objects.is_empty()
+        if !self.state.point_objects.is_empty()
         {
             let mut drawn_object_for_selection = DrawnObject::create();
             drawn_object_for_selection.add_point_object(
-                &self.props.point_objects,
+                &self.state.point_objects,
                 GLMode::Selection,
                 &self.state.under_selection_box_colors,
                 &self.state.selected_colors,
@@ -236,7 +239,7 @@ impl Renderer
             if !self.state.line_objects.is_empty()
             {
                 drawn_object_for_selection.add_line_objects(
-                    &self.props.point_objects,
+                    &self.state.point_objects,
                     &self.state.line_objects,
                     GLMode::Selection,
                     &self.state.under_selection_box_colors,
@@ -249,7 +252,7 @@ impl Renderer
             if !self.state.concentrated_loads.is_empty()
             {
                 drawn_object_for_selection.add_concentrated_loads(
-                    &self.props.point_objects,
+                    &self.state.point_objects,
                     &mut self.state.concentrated_loads,
                     GLMode::Selection,
                     &self.state.under_selection_box_colors,
@@ -267,7 +270,7 @@ impl Renderer
             if !self.state.distributed_line_loads.is_empty()
             {
                 drawn_object_for_selection.add_distributed_line_loads(
-                    &self.props.point_objects,
+                    &self.state.point_objects,
                     &self.state.line_objects,
                     &mut self.state.distributed_line_loads,
                     GLMode::Selection,
@@ -285,7 +288,7 @@ impl Renderer
             }
             if !self.state.boundary_conditions.is_empty()
             {
-                drawn_object_for_selection.add_boundary_conditions(&self.props.point_objects,
+                drawn_object_for_selection.add_boundary_conditions(&self.state.point_objects,
                     &self.state.boundary_conditions, GLMode::Selection,
                     &self.state.under_selection_box_colors,
                     &self.state.selected_colors,
@@ -308,11 +311,11 @@ impl Renderer
 
     fn update_drawn_object_visible(&mut self) -> Result<(), JsValue>
     {
-        if !self.props.point_objects.is_empty()
+        if !self.state.point_objects.is_empty()
         {
             let mut drawn_object_visible = DrawnObject::create();
             drawn_object_visible.add_point_object(
-                &self.props.point_objects,
+                &self.state.point_objects,
                 GLMode::Visible,
                 &self.state.under_selection_box_colors,
                 &self.state.selected_colors,
@@ -321,7 +324,7 @@ impl Renderer
             if !self.state.line_objects.is_empty()
             {
                 drawn_object_visible.add_line_objects(
-                    &self.props.point_objects,
+                    &self.state.point_objects,
                     &self.state.line_objects,
                     GLMode::Visible,
                     &self.state.under_selection_box_colors,
@@ -334,7 +337,7 @@ impl Renderer
                     &self.state.beam_section_orientation_for_preview
                 {
                     drawn_object_visible.add_beam_section_orientation_for_preview(
-                        &self.props.point_objects,
+                        &self.state.point_objects,
                         &self.state.line_objects,
                         beam_section_orientation,
                         DRAWN_BEAM_SECTION_ORIENTATION_LINE_LENGTH /
@@ -350,7 +353,7 @@ impl Renderer
             if !self.state.concentrated_loads.is_empty()
             {
                 drawn_object_visible.add_concentrated_loads(
-                    &self.props.point_objects,
+                    &self.state.point_objects,
                     &self.state.concentrated_loads,
                     GLMode::Visible,
                     &self.state.under_selection_box_colors,
@@ -368,7 +371,7 @@ impl Renderer
             if !self.state.distributed_line_loads.is_empty()
             {
                 drawn_object_visible.add_distributed_line_loads(
-                    &self.props.point_objects,
+                    &self.state.point_objects,
                     &self.state.line_objects,
                     &mut self.state.distributed_line_loads,
                     GLMode::Visible,
@@ -386,7 +389,7 @@ impl Renderer
             }
             if !self.state.boundary_conditions.is_empty()
             {
-                drawn_object_visible.add_boundary_conditions(&self.props.point_objects,
+                drawn_object_visible.add_boundary_conditions(&self.state.point_objects,
                     &self.state.boundary_conditions, GLMode::Visible,
                     &self.state.under_selection_box_colors,
                     &self.state.selected_colors,
@@ -424,7 +427,7 @@ impl Renderer
         for selected_color in self.state.selected_colors.iter()
         {
             for (point_object_key, point_object) in
-                self.props.point_objects.iter()
+                self.state.point_objects.iter()
             {
                 if point_object.is_uid_same(u32::from_be_bytes(*selected_color))
                 {
@@ -889,7 +892,7 @@ impl Renderer
             mat4::mul(&mut matrix, &projection_matrix, &model_view_matrix);
 
             for (point_object_key, point_object) in
-                self.props.point_objects.iter()
+                self.state.point_objects.iter()
             {
                 if !self.props.is_geometry_visible && !self.props.is_mesh_visible
                 {
@@ -976,9 +979,9 @@ impl Renderer
                     let denotation_coordinates =
                         {
                             let start_point_object_coordinates = line_object
-                                .copy_start_point_object_coordinates(&self.props.point_objects)?;
+                                .copy_start_point_object_coordinates(&self.state.point_objects)?;
                             let end_point_object_coordinates = line_object
-                                .copy_end_point_object_coordinates(&self.props.point_objects)?;
+                                .copy_end_point_object_coordinates(&self.state.point_objects)?;
                             [(start_point_object_coordinates[0] +
                                 end_point_object_coordinates[0]) / 2.0,
                             (start_point_object_coordinates[1] +

@@ -60,7 +60,7 @@ mod boundary_condition;
 use boundary_condition::BoundaryCondition;
 
 mod buffer_objects;
-use crate::buffer_objects::BufferObjects;
+use crate::buffer_objects::{BufferObjects, VertexBuffer, ColorBuffer, IndexBuffer};
 
 mod shader_programs;
 use crate::shader_programs::ShaderPrograms;
@@ -127,6 +127,9 @@ struct State
     ctx: CTX,
     gl: GL,
     shader_programs: ShaderPrograms,
+    vertex_buffer: VertexBuffer,
+    color_buffer: ColorBuffer,
+    index_buffer: IndexBuffer,
     cs_axes_drawn_object: CSAxesDrawnObject,
     drawn_object_for_selection: Option<DrawnObject>,
     drawn_object_visible: Option<DrawnObject>,
@@ -178,12 +181,16 @@ impl Renderer
             .dyn_into::<GL>()?;
         gl.get_extension("OES_element_index_uint")?;
 
+        let shader_programs = ShaderPrograms::initialize(&gl);
+
+        let vertex_buffer = VertexBuffer::initialize(&gl);
+        let color_buffer = ColorBuffer::initialize(&gl);
+        let index_buffer = IndexBuffer::initialize(&gl);
+
         let mut cs_axes_drawn_object = CSAxesDrawnObject::create();
         cs_axes_drawn_object.add_cs_axes_lines();
         cs_axes_drawn_object.add_cs_axes_caps(CS_AXES_CAPS_BASE_POINTS_NUMBER,
             CS_AXES_CAPS_HEIGHT, CS_AXES_CAPS_WIDTH);
-
-        let shader_programs = ShaderPrograms::initialize(&gl);
 
         let buffer_objects = BufferObjects::initialize(&gl);
 
@@ -192,6 +199,11 @@ impl Renderer
             ctx,
             gl,
             shader_programs,
+
+            vertex_buffer,
+            color_buffer,
+            index_buffer,
+
             cs_axes_drawn_object,
             drawn_object_for_selection: None,
             drawn_object_visible: None,
@@ -720,6 +732,22 @@ impl Renderer
         let z_near = 1.0;
         let z_far = 101.0;
 
+        let mut projection_matrix = mat4::new_zero();
+        mat4::orthographic(&mut projection_matrix,
+            &(1.0 / aspect), &1.0, &(-1.0 / aspect), &-1.0,
+            &z_near, &z_far);
+        let mut model_view_matrix = mat4::new_identity();
+        let mat_to_translate = model_view_matrix;
+        mat4::translate(&mut model_view_matrix, &mat_to_translate,
+            &[self.props.dx, self.props.dy, -2.0]);
+        let mat_to_scale = model_view_matrix;
+        mat4::scale(&mut model_view_matrix, &mat_to_scale,
+            &[1.0 + self.props.d_scale, 1.0 + self.props.d_scale, 1.0 + self.props.d_scale]);
+        let mat_to_rotate = model_view_matrix;
+        mat4::rotate_x(&mut model_view_matrix, &mat_to_rotate, &self.props.phi);
+        let mat_to_rotate = model_view_matrix;
+        mat4::rotate_y(&mut model_view_matrix, &mat_to_rotate, &self.props.theta);
+
         if let Some(drawn_object_for_selection)= &self.state.drawn_object_for_selection
         {
             self.state.buffer_objects.store_drawn_object(&self.state.gl,
@@ -728,21 +756,7 @@ impl Renderer
                 &self.state.shader_programs);
 
             let point_size = 12.0;
-            let mut projection_matrix = mat4::new_zero();
-            mat4::orthographic(&mut projection_matrix,
-                &(1.0 / aspect), &1.0, &(-1.0 / aspect), &-1.0,
-                &z_near, &z_far);
-            let mut model_view_matrix = mat4::new_identity();
-            let mat_to_translate = model_view_matrix;
-            mat4::translate(&mut model_view_matrix, &mat_to_translate,
-                &[self.props.dx, self.props.dy, -2.0]);
-            let mat_to_scale = model_view_matrix;
-            mat4::scale(&mut model_view_matrix, &mat_to_scale,
-                &[1.0 + self.props.d_scale, 1.0 + self.props.d_scale, 1.0 + self.props.d_scale]);
-            let mat_to_rotate = model_view_matrix;
-            mat4::rotate_x(&mut model_view_matrix, &mat_to_rotate, &self.props.phi);
-            let mat_to_rotate = model_view_matrix;
-            mat4::rotate_y(&mut model_view_matrix, &mat_to_rotate, &self.props.theta);
+
             self.state.gl.uniform1f(Some(self.state.shader_programs.ref_point_size()), point_size);
             self.state.gl.uniform_matrix4fv_with_f32_array(
                 Some(self.state.shader_programs.ref_projection_matrix()), false, &projection_matrix);
@@ -864,22 +878,6 @@ impl Renderer
 
             let point_size = 5.0;
 
-            let mut projection_matrix = mat4::new_zero();
-
-            mat4::orthographic(&mut projection_matrix,
-                &(1.0 / aspect), &1.0, &(-1.0 / aspect), &-1.0,
-                &z_near, &z_far);
-            let mut model_view_matrix = mat4::new_identity();
-            let mat_to_translate = model_view_matrix;
-            mat4::translate(&mut model_view_matrix, &mat_to_translate,
-                &[self.props.dx, self.props.dy, -2.0]);
-            let mat_to_scale = model_view_matrix;
-            mat4::scale(&mut model_view_matrix, &mat_to_scale,
-                &[1.0 + self.props.d_scale, 1.0 + self.props.d_scale, 1.0 + self.props.d_scale]);
-            let mat_to_rotate = model_view_matrix;
-            mat4::rotate_x(&mut model_view_matrix, &mat_to_rotate, &self.props.phi);
-            let mat_to_rotate = model_view_matrix;
-            mat4::rotate_y(&mut model_view_matrix, &mat_to_rotate, &self.props.theta);
             self.state.gl.uniform1f(Some(self.state.shader_programs.ref_point_size()), point_size);
             self.state.gl.uniform_matrix4fv_with_f32_array(
                 Some(self.state.shader_programs.ref_projection_matrix()), false, &projection_matrix);
@@ -1005,11 +1003,6 @@ impl Renderer
             }
         }
 
-        self.state.buffer_objects.store_drawn_object(&self.state.gl,
-            &self.state.cs_axes_drawn_object);
-        self.state.buffer_objects.associate_with_shader_programs(&self.state.gl,
-            &self.state.shader_programs);
-
         let mut projection_matrix = mat4::new_zero();
         mat4::orthographic(&mut projection_matrix,
             &1.0, &1.0, &-1.0, &-1.0, &z_near, &z_far);
@@ -1027,12 +1020,36 @@ impl Renderer
         mat4::rotate_x(&mut model_view_matrix,&mat_to_rotate,&self.props.phi);
         let mat_to_rotate = model_view_matrix;
         mat4::rotate_y(&mut model_view_matrix, &mat_to_rotate, &self.props.theta);
+
+        self.state.vertex_buffer.store_vertices_coordinates(&self.state.gl,
+            self.state.cs_axes_drawn_object.ref_lines_vertices_coordinates());
+        self.state.color_buffer.store_colors_values(&self.state.gl,
+            self.state.cs_axes_drawn_object.ref_lines_vertices_colors_values());
+        self.state.vertex_buffer.associate_with_shader_programs(&self.state.gl,
+            &self.state.shader_programs);
+        self.state.color_buffer.associate_with_shader_programs(&self.state.gl,
+            &self.state.shader_programs);
         self.state.gl.uniform_matrix4fv_with_f32_array(
             Some(self.state.shader_programs.ref_projection_matrix()), false, &projection_matrix);
         self.state.gl.uniform_matrix4fv_with_f32_array(
             Some(self.state.shader_programs.ref_model_view_matrix()), false, &model_view_matrix);
+        self.state.cs_axes_drawn_object.draw_axes_lines(&self.state.gl);
 
-        self.state.cs_axes_drawn_object.draw(&self.state.gl);
+        self.state.vertex_buffer.store_vertices_coordinates(&self.state.gl,
+            &self.state.cs_axes_drawn_object.ref_triangles_vertices_coordinates());
+        self.state.color_buffer.store_colors_values(&self.state.gl,
+            &self.state.cs_axes_drawn_object.ref_triangles_vertices_colors_values());
+        self.state.index_buffer.store_indexes_numbers(&self.state.gl,
+            &self.state.cs_axes_drawn_object.ref_triangles_vertices_indexes());
+        self.state.vertex_buffer.associate_with_shader_programs(&self.state.gl,
+            &self.state.shader_programs);
+        self.state.color_buffer.associate_with_shader_programs(&self.state.gl,
+            &self.state.shader_programs);
+        self.state.gl.uniform_matrix4fv_with_f32_array(
+            Some(self.state.shader_programs.ref_projection_matrix()), false, &projection_matrix);
+        self.state.gl.uniform_matrix4fv_with_f32_array(
+            Some(self.state.shader_programs.ref_model_view_matrix()), false, &model_view_matrix);
+        self.state.cs_axes_drawn_object.draw_axes_caps(&self.state.gl);
 
         self.state.ctx.set_fill_style(&CANVAS_AXES_DENOTATION_COLOR.into());
 

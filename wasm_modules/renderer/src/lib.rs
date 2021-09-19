@@ -743,11 +743,11 @@ impl Renderer
             mat4::rotate_x(&mut model_view_matrix, &mat_to_rotate, &self.props.phi);
             let mat_to_rotate = model_view_matrix;
             mat4::rotate_y(&mut model_view_matrix, &mat_to_rotate, &self.props.theta);
-            self.state.gl.uniform1f(Some(self.state.shader_programs.get_point_size()), point_size);
+            self.state.gl.uniform1f(Some(self.state.shader_programs.ref_point_size()), point_size);
             self.state.gl.uniform_matrix4fv_with_f32_array(
-                Some(self.state.shader_programs.get_projection_matrix()), false, &projection_matrix);
+                Some(self.state.shader_programs.ref_projection_matrix()), false, &projection_matrix);
             self.state.gl.uniform_matrix4fv_with_f32_array(
-                Some(self.state.shader_programs.get_model_view_matrix()), false, &model_view_matrix);
+                Some(self.state.shader_programs.ref_model_view_matrix()), false, &model_view_matrix);
 
             drawn_object_for_selection.draw(&self.state.gl);
         }
@@ -880,11 +880,11 @@ impl Renderer
             mat4::rotate_x(&mut model_view_matrix, &mat_to_rotate, &self.props.phi);
             let mat_to_rotate = model_view_matrix;
             mat4::rotate_y(&mut model_view_matrix, &mat_to_rotate, &self.props.theta);
-            self.state.gl.uniform1f(Some(self.state.shader_programs.get_point_size()), point_size);
+            self.state.gl.uniform1f(Some(self.state.shader_programs.ref_point_size()), point_size);
             self.state.gl.uniform_matrix4fv_with_f32_array(
-                Some(self.state.shader_programs.get_projection_matrix()), false, &projection_matrix);
+                Some(self.state.shader_programs.ref_projection_matrix()), false, &projection_matrix);
             self.state.gl.uniform_matrix4fv_with_f32_array(
-                Some(self.state.shader_programs.get_model_view_matrix()), false, &model_view_matrix);
+                Some(self.state.shader_programs.ref_model_view_matrix()), false, &model_view_matrix);
 
             drawn_object_visible.draw(&self.state.gl);
 
@@ -1028,9 +1028,9 @@ impl Renderer
         let mat_to_rotate = model_view_matrix;
         mat4::rotate_y(&mut model_view_matrix, &mat_to_rotate, &self.props.theta);
         self.state.gl.uniform_matrix4fv_with_f32_array(
-            Some(self.state.shader_programs.get_projection_matrix()), false, &projection_matrix);
+            Some(self.state.shader_programs.ref_projection_matrix()), false, &projection_matrix);
         self.state.gl.uniform_matrix4fv_with_f32_array(
-            Some(self.state.shader_programs.get_model_view_matrix()), false, &model_view_matrix);
+            Some(self.state.shader_programs.ref_model_view_matrix()), false, &model_view_matrix);
 
         self.state.cs_axes_drawn_object.draw(&self.state.gl);
 

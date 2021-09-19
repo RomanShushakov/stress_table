@@ -44,31 +44,31 @@ impl ShaderPrograms
     }
 
 
-    pub fn get_vertex_position(&self) -> u32
+    pub fn copy_vertex_position(&self) -> u32
     {
         self.vertex_position
     }
 
 
-    pub fn get_vertex_color(&self) -> u32
+    pub fn copy_vertex_color(&self) -> u32
     {
         self.vertex_color
     }
 
 
-    pub fn get_point_size(&self) -> &WebGlUniformLocation
+    pub fn ref_point_size(&self) -> &WebGlUniformLocation
     {
         &self.point_size
     }
 
 
-    pub fn get_projection_matrix(&self) -> &WebGlUniformLocation
+    pub fn ref_projection_matrix(&self) -> &WebGlUniformLocation
     {
         &self.projection_matrix
     }
 
 
-    pub fn get_model_view_matrix(&self) -> &WebGlUniformLocation
+    pub fn ref_model_view_matrix(&self) -> &WebGlUniformLocation
     {
         &self.model_view_matrix
     }

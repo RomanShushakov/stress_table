@@ -69,14 +69,14 @@ impl CSAxesDrawnObject
         let colors_values = Vec::new();
         let indexes_numbers = Vec::new();
         let modes = Vec::new();
-        let element_numbers = Vec::new();
+        let elements_numbers = Vec::new();
         let offsets = Vec::new();
         CSAxesDrawnObject {
             vertices_coordinates,
             colors_values,
             indexes_numbers,
             modes,
-            elements_numbers: element_numbers,
+            elements_numbers,
             offsets
         }
     }

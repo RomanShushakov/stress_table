@@ -41,10 +41,12 @@ impl BufferObjects
     pub fn associate_with_shader_programs(&self, gl: &GL, shader_programs: &ShaderPrograms)
     {
         gl.bind_buffer(GL::ARRAY_BUFFER, Some(&self.vertex));
-        gl.vertex_attrib_pointer_with_i32(shader_programs.get_vertex_position(), 3, GL::FLOAT, false, 0, 0);
-        gl.enable_vertex_attrib_array(shader_programs.get_vertex_position());
+        gl.vertex_attrib_pointer_with_i32(shader_programs.copy_vertex_position(), 3, GL::FLOAT,
+            false, 0, 0);
+        gl.enable_vertex_attrib_array(shader_programs.copy_vertex_position());
         gl.bind_buffer(GL::ARRAY_BUFFER, Some(&self.color));
-        gl.vertex_attrib_pointer_with_i32(shader_programs.get_vertex_color(), 4, GL::FLOAT, false, 0, 0);
-        gl.enable_vertex_attrib_array(shader_programs.get_vertex_color());
+        gl.vertex_attrib_pointer_with_i32(shader_programs.copy_vertex_color(), 4, GL::FLOAT,
+            false, 0, 0);
+        gl.enable_vertex_attrib_array(shader_programs.copy_vertex_color());
     }
 }

@@ -12,8 +12,8 @@ use crate::point_object::{PointObject, PointObjectKey, Coordinates};
 
 use crate::line_object::{LineObject, LineObjectKey};
 
-use crate::drawn_object::drawn_object::{GLMode};
-use crate::drawn_object::drawn_object::
+use crate::drawn_object::old_drawn_object::{GLMode};
+use crate::drawn_object::old_drawn_object::
 {
     HINT_SHIFT_X, ROTATION_HINT_SHIFT_Y, ZOOM_HINT_SHIFT_Y, PAN_HINT_SHIFT_Y,
     DRAWN_OBJECT_SELECTED_COLOR, CANVAS_DRAWN_OBJECT_SELECTED_DENOTATION_COLOR,

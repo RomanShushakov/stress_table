@@ -1,22 +1,21 @@
 use std::f32::consts::PI;
 use web_sys::{WebGlRenderingContext as GL};
 
+
+use crate::drawn_object::drawn_object::DrawnObject;
 use crate::drawn_object::consts::
 {
     CS_ORIGIN, CS_AXIS_X, CS_AXIS_X_COLOR, CS_AXIS_Y, CS_AXIS_Y_COLOR, CS_AXIS_Z, CS_AXIS_Z_COLOR
 };
 
 use crate::consts::TOLERANCE;
+use wasm_bindgen::JsValue;
 
 
-#[derive(Clone)]
+
 pub struct CSAxesDrawnObject
 {
-    lines_vertices_coordinates: Vec<f32>,
-    lines_vertices_colors_values: Vec<f32>,
-    triangles_vertices_coordinates: Vec<f32>,
-    triangles_vertices_colors_values: Vec<f32>,
-    triangles_vertices_indexes: Vec<u32>,
+    drawn_object: DrawnObject,
 }
 
 
@@ -24,59 +23,62 @@ impl CSAxesDrawnObject
 {
     pub fn create() -> Self
     {
-        let lines_vertices_coordinates = Vec::new();
-        let lines_vertices_colors_values = Vec::new();
+        let lines_endpoints_coordinates = Vec::new();
+        let lines_endpoints_colors_values = Vec::new();
         let triangles_vertices_coordinates= Vec::new();
         let triangles_vertices_colors_values = Vec::new();
         let triangles_vertices_indexes = Vec::new();
 
-        CSAxesDrawnObject
-        {
-            lines_vertices_coordinates,
-            lines_vertices_colors_values,
-            triangles_vertices_coordinates,
-            triangles_vertices_colors_values,
-            triangles_vertices_indexes,
-        }
+        let drawn_object = DrawnObject::create(None,
+            None,
+            Some(lines_endpoints_coordinates),
+            Some(lines_endpoints_colors_values),
+            Some(triangles_vertices_coordinates),
+            Some(triangles_vertices_colors_values),
+            Some(triangles_vertices_indexes));
+
+        CSAxesDrawnObject { drawn_object }
     }
 
 
-    pub fn add_cs_axes_lines(&mut self)
+    pub fn add_cs_axes_lines(&mut self) -> Result<(), JsValue>
     {
-        self.lines_vertices_coordinates.extend(&CS_ORIGIN);
-        self.lines_vertices_coordinates.extend(&CS_AXIS_X);
-        self.lines_vertices_colors_values.extend(&CS_AXIS_X_COLOR);
-        self.lines_vertices_colors_values.extend(&CS_AXIS_X_COLOR);
-        self.lines_vertices_coordinates.extend(&CS_ORIGIN);
-        self.lines_vertices_coordinates.extend(&CS_AXIS_Y);
-        self.lines_vertices_colors_values.extend(&CS_AXIS_Y_COLOR);
-        self.lines_vertices_colors_values.extend(&CS_AXIS_Y_COLOR);
-        self.lines_vertices_coordinates.extend(&CS_ORIGIN);
-        self.lines_vertices_coordinates.extend(&CS_AXIS_Z);
-        self.lines_vertices_colors_values.extend(&CS_AXIS_Z_COLOR);
-        self.lines_vertices_colors_values.extend(&CS_AXIS_Z_COLOR);
+        self.drawn_object.add_line_endpoint_coordinates(&CS_ORIGIN)?;
+        self.drawn_object.add_line_endpoint_coordinates(&CS_AXIS_X)?;
+        self.drawn_object.add_line_endpoint_color_value(&CS_AXIS_X_COLOR)?;
+        self.drawn_object.add_line_endpoint_color_value(&CS_AXIS_X_COLOR)?;
+        self.drawn_object.add_line_endpoint_coordinates(&CS_ORIGIN)?;
+        self.drawn_object.add_line_endpoint_coordinates(&CS_AXIS_Y)?;
+        self.drawn_object.add_line_endpoint_color_value(&CS_AXIS_Y_COLOR)?;
+        self.drawn_object.add_line_endpoint_color_value(&CS_AXIS_Y_COLOR)?;
+        self.drawn_object.add_line_endpoint_coordinates(&CS_ORIGIN)?;
+        self.drawn_object.add_line_endpoint_coordinates(&CS_AXIS_Z)?;
+        self.drawn_object.add_line_endpoint_color_value(&CS_AXIS_Z_COLOR)?;
+        self.drawn_object.add_line_endpoint_color_value(&CS_AXIS_Z_COLOR)?;
+        Ok(())
     }
 
 
-    pub fn ref_lines_vertices_coordinates(&self) -> &[f32]
+    pub fn ref_lines_endpoints_coordinates(&self) -> Result<&[f32], JsValue>
     {
-        self.lines_vertices_coordinates.as_slice()
+        self.drawn_object.ref_lines_endpoints_coordinates()
     }
 
 
-    pub fn ref_lines_vertices_colors_values(&self) -> &[f32]
+    pub fn ref_lines_endpoints_colors_values(&self) -> Result<&[f32], JsValue>
     {
-        self.lines_vertices_colors_values.as_slice()
+        self.drawn_object.ref_lines_endpoints_colors_values()
     }
 
 
-    pub fn draw_axes_lines(&self, gl: &GL)
+    pub fn draw_lines(&self, gl: &GL) -> Result<(), JsValue>
     {
-        gl.draw_arrays(GL::LINES, 0, (self.lines_vertices_coordinates.len() / 3) as i32);
+        self.drawn_object.draw_lines(gl)
     }
 
 
     pub fn add_cs_axes_caps(&mut self, base_points_number: u32, height: f32, base_radius: f32)
+        -> Result<(), JsValue>
     {
         let d_angle = 2.0 * PI / base_points_number as f32;
         let local_coordinates = (0..base_points_number)
@@ -97,127 +99,146 @@ impl CSAxesDrawnObject
                 })
             .collect::<Vec<(f32, f32)>>();
         let start_x_axis_cap_index =
-            if self.triangles_vertices_indexes.is_empty()
+            if self.drawn_object.ref_triangles_vertices_indexes()?.is_empty()
             {
                 0
             }
             else
             {
-                self.triangles_vertices_indexes[self.triangles_vertices_indexes.len() - 1] + 1
+                self.drawn_object.ref_triangles_vertices_indexes()?[
+                    self.drawn_object.ref_triangles_vertices_indexes()?.len() - 1] + 1
             };
-        self.triangles_vertices_coordinates.extend(&CS_AXIS_X);
+        self.drawn_object.add_triangle_vertex_coordinates(&CS_AXIS_X)?;
         for (local_x, local_y) in &local_coordinates
         {
             let coordinates = [1.0 - height, *local_y, *local_x];
-            self.triangles_vertices_coordinates.extend(&coordinates);
+            self.drawn_object.add_triangle_vertex_coordinates(&coordinates)?;
         }
         for point_number in 1..base_points_number
         {
             if point_number == 1
             {
-                self.triangles_vertices_colors_values.extend(&CS_AXIS_X_COLOR);
-                self.triangles_vertices_colors_values.extend(&CS_AXIS_X_COLOR);
-                self.triangles_vertices_colors_values.extend(&CS_AXIS_X_COLOR);
+                self.drawn_object.add_triangle_vertex_color_value(&CS_AXIS_X_COLOR)?;
+                self.drawn_object.add_triangle_vertex_color_value(&CS_AXIS_X_COLOR)?;
+                self.drawn_object.add_triangle_vertex_color_value(&CS_AXIS_X_COLOR)?;
             }
             else
             {
-                self.triangles_vertices_colors_values.extend(&CS_AXIS_X_COLOR);
+                self.drawn_object.add_triangle_vertex_color_value(&CS_AXIS_X_COLOR)?;
             }
-            self.triangles_vertices_indexes.extend(&[start_x_axis_cap_index,
-                start_x_axis_cap_index + point_number, start_x_axis_cap_index + point_number + 1]);
+            self.drawn_object.add_triangle_vertex_index(start_x_axis_cap_index)?;
+            self.drawn_object.add_triangle_vertex_index(
+                start_x_axis_cap_index + point_number)?;
+            self.drawn_object.add_triangle_vertex_index(
+                start_x_axis_cap_index + point_number + 1)?;
         }
-        self.triangles_vertices_indexes.extend(&[start_x_axis_cap_index,
-            start_x_axis_cap_index + 1, start_x_axis_cap_index + base_points_number]);
+        self.drawn_object.add_triangle_vertex_index(start_x_axis_cap_index)?;
+            self.drawn_object.add_triangle_vertex_index(
+                start_x_axis_cap_index + 1)?;
+            self.drawn_object.add_triangle_vertex_index(
+                start_x_axis_cap_index + base_points_number)?;
 
         let start_y_axis_cap_index =
-            if self.triangles_vertices_indexes.is_empty()
+            if self.ref_triangles_vertices_indexes()?.is_empty()
             {
                 0
             }
             else
             {
-                self.triangles_vertices_indexes[self.triangles_vertices_indexes.len() - 1] + 1
+                self.ref_triangles_vertices_indexes()?[
+                    self.ref_triangles_vertices_indexes()?.len() - 1] + 1
             };
-        self.triangles_vertices_coordinates.extend(&CS_AXIS_Y);
+        self.drawn_object.add_triangle_vertex_coordinates(&CS_AXIS_Y)?;
         for (local_x, local_y) in &local_coordinates
         {
             let coordinates = [*local_y, 1.0 - height, *local_x];
-            self.triangles_vertices_coordinates.extend(&coordinates);
+            self.drawn_object.add_triangle_vertex_coordinates(&coordinates)?;
         }
         for point_number in 1..base_points_number
         {
             if point_number == 1
             {
-                self.triangles_vertices_colors_values.extend(&CS_AXIS_Y_COLOR);
-                self.triangles_vertices_colors_values.extend(&CS_AXIS_Y_COLOR);
-                self.triangles_vertices_colors_values.extend(&CS_AXIS_Y_COLOR);
+                self.drawn_object.add_triangle_vertex_color_value(&CS_AXIS_Y_COLOR)?;
+                self.drawn_object.add_triangle_vertex_color_value(&CS_AXIS_Y_COLOR)?;
+                self.drawn_object.add_triangle_vertex_color_value(&CS_AXIS_Y_COLOR)?;
             }
             else
             {
-                self.triangles_vertices_colors_values.extend(&CS_AXIS_Y_COLOR);
+                self.drawn_object.add_triangle_vertex_color_value(&CS_AXIS_Y_COLOR)?;
             }
-            self.triangles_vertices_indexes.extend(&[start_y_axis_cap_index,
-                start_y_axis_cap_index + point_number, start_y_axis_cap_index + point_number + 1]);
+            self.drawn_object.add_triangle_vertex_index(start_y_axis_cap_index)?;
+            self.drawn_object.add_triangle_vertex_index(
+                start_y_axis_cap_index + point_number)?;
+            self.drawn_object.add_triangle_vertex_index(
+                start_y_axis_cap_index + point_number + 1)?;
         }
-        self.triangles_vertices_indexes.extend(&[start_y_axis_cap_index,
-            start_y_axis_cap_index + 1, start_y_axis_cap_index + base_points_number]);
+        self.drawn_object.add_triangle_vertex_index(start_y_axis_cap_index)?;
+        self.drawn_object.add_triangle_vertex_index(start_y_axis_cap_index + 1)?;
+        self.drawn_object.add_triangle_vertex_index(
+            start_y_axis_cap_index + base_points_number)?;
 
         let start_z_axis_cap_index =
-            if self.triangles_vertices_indexes.is_empty()
+            if self.ref_triangles_vertices_indexes()?.is_empty()
             {
                 0
             }
             else
             {
-                self.triangles_vertices_indexes[self.triangles_vertices_indexes.len() - 1] + 1
+                self.ref_triangles_vertices_indexes()?[
+                    self.ref_triangles_vertices_indexes()?.len() - 1] + 1
             };
-        self.triangles_vertices_coordinates.extend(&CS_AXIS_Z);
+        self.drawn_object.add_triangle_vertex_coordinates(&CS_AXIS_Z)?;
         for (local_x, local_y) in &local_coordinates
         {
             let coordinates = [*local_x, *local_y, 1.0 - height];
-            self.triangles_vertices_coordinates.extend(&coordinates);
+            self.drawn_object.add_triangle_vertex_coordinates(&coordinates)?;
         }
         for point_number in 1..base_points_number
         {
             if point_number == 1
             {
-                self.triangles_vertices_colors_values.extend(&CS_AXIS_Z_COLOR);
-                self.triangles_vertices_colors_values.extend(&CS_AXIS_Z_COLOR);
-                self.triangles_vertices_colors_values.extend(&CS_AXIS_Z_COLOR);
+                self.drawn_object.add_triangle_vertex_color_value(&CS_AXIS_Z_COLOR)?;
+                self.drawn_object.add_triangle_vertex_color_value(&CS_AXIS_Z_COLOR)?;
+                self.drawn_object.add_triangle_vertex_color_value(&CS_AXIS_Z_COLOR)?;
             }
             else
             {
-                self.triangles_vertices_colors_values.extend(&CS_AXIS_Z_COLOR);
+                self.drawn_object.add_triangle_vertex_color_value(&CS_AXIS_Z_COLOR)?;
             }
-            self.triangles_vertices_indexes.extend(&[start_z_axis_cap_index,
-                start_z_axis_cap_index + point_number, start_z_axis_cap_index + point_number + 1]);
+            self.drawn_object.add_triangle_vertex_index(start_z_axis_cap_index)?;
+            self.drawn_object.add_triangle_vertex_index(
+                start_z_axis_cap_index + point_number)?;
+            self.drawn_object.add_triangle_vertex_index(
+                start_z_axis_cap_index + point_number + 1)?;
         }
-        self.triangles_vertices_indexes.extend(&[start_z_axis_cap_index,
-            start_z_axis_cap_index + 1, start_z_axis_cap_index + base_points_number]);
+        self.drawn_object.add_triangle_vertex_index(start_z_axis_cap_index)?;
+        self.drawn_object.add_triangle_vertex_index(start_z_axis_cap_index + 1)?;
+        self.drawn_object.add_triangle_vertex_index(
+            start_z_axis_cap_index + base_points_number)?;
+        Ok(())
     }
 
 
-    pub fn ref_triangles_vertices_coordinates(&self) -> &[f32]
+    pub fn ref_triangles_vertices_coordinates(&self) -> Result<&[f32], JsValue>
     {
-        self.triangles_vertices_coordinates.as_slice()
+        self.drawn_object.ref_triangles_vertices_coordinates()
     }
 
 
-    pub fn ref_triangles_vertices_colors_values(&self) -> &[f32]
+    pub fn ref_triangles_vertices_colors_values(&self) -> Result<&[f32], JsValue>
     {
-        self.triangles_vertices_colors_values.as_slice()
+        self.drawn_object.ref_triangles_vertices_colors_values()
     }
 
 
-    pub fn ref_triangles_vertices_indexes(&self) -> &[u32]
+    pub fn ref_triangles_vertices_indexes(&self) -> Result<&[u32], JsValue>
     {
-        self.triangles_vertices_indexes.as_slice()
+        self.drawn_object.ref_triangles_vertices_indexes()
     }
 
 
-    pub fn draw_axes_caps(&self, gl: &GL)
+    pub fn draw_triangles(&self, gl: &GL) -> Result<(), JsValue>
     {
-        gl.draw_elements_with_i32(GL::TRIANGLES, self.triangles_vertices_indexes.len() as i32,
-            GL::UNSIGNED_INT, 0);
+        self.drawn_object.draw_triangles(gl)
     }
 }

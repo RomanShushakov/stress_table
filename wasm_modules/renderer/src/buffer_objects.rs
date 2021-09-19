@@ -1,7 +1,7 @@
 use web_sys::{WebGlBuffer, WebGlRenderingContext as GL};
 
-use crate::drawn_object::drawn_object::DrawnObjectTrait;
-use crate::drawn_object::drawn_object::{DrawnObject};
+use crate::drawn_object::old_drawn_object::DrawnObjectTrait;
+use crate::drawn_object::old_drawn_object::{OldDrawnObject};
 use crate::shader_programs::ShaderPrograms;
 
 

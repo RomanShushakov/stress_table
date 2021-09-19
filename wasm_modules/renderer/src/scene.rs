@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::drawn_object::drawn_object::DrawnObject;
+use crate::drawn_object::old_drawn_object::OldDrawnObject;
 use crate::point_object::PointObjectKey;
 use crate::point_object::PointObject;
 use crate::line_object::LineObjectKey;
@@ -12,8 +12,8 @@ use crate::boundary_condition::BoundaryCondition;
 
 pub struct Preprocessor
 {
-    drawn_object_for_selection: Option<DrawnObject>,
-    drawn_object_visible: Option<DrawnObject>,
+    drawn_object_for_selection: Option<OldDrawnObject>,
+    drawn_object_visible: Option<OldDrawnObject>,
     point_objects: HashMap<PointObjectKey, PointObject>,
     line_objects: HashMap<LineObjectKey, LineObject>,
     beam_section_orientation_for_preview: Option<BeamSectionOrientation>,

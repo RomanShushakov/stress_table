@@ -30,8 +30,6 @@ use crate::consts::TOLERANCE;
 
 use crate::functions::{define_drawn_object_color, compose_rotation_matrix_for_vector};
 
-use crate::log;
-
 // pub const CANVAS_BACKGROUND_COLOR: &str = "black";
 
 pub const DRAWN_DISPLACEMENTS_COLOR: [f32; 4] = [1.0, 0.5, 0.0, 1.0]; // orange

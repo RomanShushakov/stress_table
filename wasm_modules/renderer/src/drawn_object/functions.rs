@@ -9,7 +9,7 @@ use crate::functions::{compose_rotation_matrix_for_vector, calculate_line_length
 
 pub fn build_monochrome_cone(vertex_coordinates: &[f32; 3],
     base_center_point_coordinates: &[f32; 3], height: f32, radius: f32, base_points_number: u32,
-    start_index_number: u32, color: &[f32], tolerance: f32)
+    start_index_number: u32, color: &[f32; 4], tolerance: f32)
     -> Result<(Vec<f32>, Vec<f32>, Vec<u32>), JsValue>
 {
     let mut triangles_vertices_coordinates = Vec::new();
@@ -95,7 +95,7 @@ pub fn build_monochrome_cone(vertex_coordinates: &[f32; 3],
 
 pub fn build_monochrome_cylinder_around_line(line_start_point_coordinates: &[f32; 3],
     line_end_point_coordinates: &[f32; 3], optional_offset_from_endpoints: Option<f32>,
-    radius: f32, base_points_number: u32, start_index_number: u32, color: &[f32], tolerance: f32)
+    radius: f32, base_points_number: u32, start_index_number: u32, color: &[f32; 4], tolerance: f32)
     -> Result<(Vec<f32>, Vec<f32>, Vec<u32>), JsValue>
 {
     let mut triangles_vertices_coordinates = Vec::new();

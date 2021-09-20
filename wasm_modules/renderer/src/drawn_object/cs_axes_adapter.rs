@@ -13,13 +13,13 @@ use crate::consts::TOLERANCE;
 
 
 
-pub struct CSAxesDrawnObject
+pub struct CSAxesAdapter
 {
     drawn_object: DrawnObject,
 }
 
 
-impl CSAxesDrawnObject
+impl CSAxesAdapter
 {
     pub fn create() -> Self
     {
@@ -37,7 +37,7 @@ impl CSAxesDrawnObject
             Some(triangles_vertices_colors_values),
             Some(triangles_vertices_indexes));
 
-        CSAxesDrawnObject { drawn_object }
+        CSAxesAdapter { drawn_object }
     }
 
 

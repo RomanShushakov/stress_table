@@ -356,9 +356,9 @@ pub fn convert_into_array<T, const N: usize>(v: Vec<T>) -> [T; N]
 pub fn compose_rotation_matrix_for_vector(vector_start_point_coordinates: [f32; 3],
     vector_end_point_coordinates: [f32; 3]) -> ExtendedMatrix<u32, f32>
 {
-    let x = (vector_end_point_coordinates[0] - vector_start_point_coordinates[0]);
-    let y = (vector_end_point_coordinates[1] - vector_start_point_coordinates[1]);
-    let z = (vector_end_point_coordinates[2] - vector_start_point_coordinates[2]);
+    let x = vector_end_point_coordinates[0] - vector_start_point_coordinates[0];
+    let y = vector_end_point_coordinates[1] - vector_start_point_coordinates[1];
+    let z = vector_end_point_coordinates[2] - vector_start_point_coordinates[2];
     let vector_length = f32::sqrt(x.powi(2) + y.powi(2) + z.powi(2));
     let (u, v, w) = (vector_length, 0.0, 0.0);
     let alpha = ((x * u + y * v + z * w) / (vector_length.powi(2))).acos();

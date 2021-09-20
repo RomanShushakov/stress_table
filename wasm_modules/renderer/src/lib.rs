@@ -24,7 +24,7 @@ mod drawn_object;
 use drawn_object::old_drawn_object::DrawnObjectTrait;
 use drawn_object::old_drawn_object::OldDrawnObject;
 use drawn_object::old_drawn_object::GLMode;
-use drawn_object::cs_axes_drawn_object::CSAxesDrawnObject;
+use drawn_object::cs_axes_adapter::CSAxesAdapter;
 use drawn_object::consts::
 {
     CS_AXES_Y_SHIFT, CS_AXES_X_SHIFT, CS_AXES_Z_SHIFT, CS_AXES_SCALE,
@@ -130,7 +130,7 @@ struct State
     vertex_buffer: VertexBuffer,
     color_buffer: ColorBuffer,
     index_buffer: IndexBuffer,
-    cs_axes_drawn_object: CSAxesDrawnObject,
+    cs_axes_adapter: CSAxesAdapter,
     drawn_object_for_selection: Option<OldDrawnObject>,
     drawn_object_visible: Option<OldDrawnObject>,
     buffer_objects: BufferObjects,
@@ -187,9 +187,9 @@ impl Renderer
         let color_buffer = ColorBuffer::initialize(&gl);
         let index_buffer = IndexBuffer::initialize(&gl);
 
-        let mut cs_axes_drawn_object = CSAxesDrawnObject::create();
-        cs_axes_drawn_object.add_cs_axes_lines()?;
-        cs_axes_drawn_object.add_cs_axes_caps(CS_AXES_CAPS_BASE_POINTS_NUMBER,
+        let mut cs_axes_adapter = CSAxesAdapter::create();
+        cs_axes_adapter.add_cs_axes_lines()?;
+        cs_axes_adapter.add_cs_axes_caps(CS_AXES_CAPS_BASE_POINTS_NUMBER,
             CS_AXES_CAPS_HEIGHT, CS_AXES_CAPS_WIDTH)?;
 
         let buffer_objects = BufferObjects::initialize(&gl);
@@ -204,7 +204,7 @@ impl Renderer
             color_buffer,
             index_buffer,
 
-            cs_axes_drawn_object,
+            cs_axes_adapter,
             drawn_object_for_selection: None,
             drawn_object_visible: None,
             buffer_objects,
@@ -748,7 +748,8 @@ impl Renderer
         let mat_to_rotate = model_view_matrix;
         mat4::rotate_y(&mut model_view_matrix, &mat_to_rotate, &self.props.theta);
 
-        if let Some(drawn_object_for_selection)= &self.state.drawn_object_for_selection
+        if let Some(drawn_object_for_selection) =
+            &self.state.drawn_object_for_selection
         {
             self.state.buffer_objects.store_drawn_object(&self.state.gl,
                 drawn_object_for_selection);
@@ -1022,9 +1023,9 @@ impl Renderer
         mat4::rotate_y(&mut model_view_matrix, &mat_to_rotate, &self.props.theta);
 
         self.state.vertex_buffer.store_vertices_coordinates(&self.state.gl,
-            self.state.cs_axes_drawn_object.ref_lines_endpoints_coordinates()?);
+            self.state.cs_axes_adapter.ref_lines_endpoints_coordinates()?);
         self.state.color_buffer.store_colors_values(&self.state.gl,
-            self.state.cs_axes_drawn_object.ref_lines_endpoints_colors_values()?);
+            self.state.cs_axes_adapter.ref_lines_endpoints_colors_values()?);
         self.state.vertex_buffer.associate_with_shader_programs(&self.state.gl,
             &self.state.shader_programs);
         self.state.color_buffer.associate_with_shader_programs(&self.state.gl,
@@ -1033,14 +1034,14 @@ impl Renderer
             Some(self.state.shader_programs.ref_projection_matrix()), false, &projection_matrix);
         self.state.gl.uniform_matrix4fv_with_f32_array(
             Some(self.state.shader_programs.ref_model_view_matrix()), false, &model_view_matrix);
-        self.state.cs_axes_drawn_object.draw_lines(&self.state.gl)?;
+        self.state.cs_axes_adapter.draw_lines(&self.state.gl)?;
 
         self.state.vertex_buffer.store_vertices_coordinates(&self.state.gl,
-            &self.state.cs_axes_drawn_object.ref_triangles_vertices_coordinates()?);
+            &self.state.cs_axes_adapter.ref_triangles_vertices_coordinates()?);
         self.state.color_buffer.store_colors_values(&self.state.gl,
-            &self.state.cs_axes_drawn_object.ref_triangles_vertices_colors_values()?);
+            &self.state.cs_axes_adapter.ref_triangles_vertices_colors_values()?);
         self.state.index_buffer.store_indexes_numbers(&self.state.gl,
-            &self.state.cs_axes_drawn_object.ref_triangles_vertices_indexes()?);
+            &self.state.cs_axes_adapter.ref_triangles_vertices_indexes()?);
         self.state.vertex_buffer.associate_with_shader_programs(&self.state.gl,
             &self.state.shader_programs);
         self.state.color_buffer.associate_with_shader_programs(&self.state.gl,
@@ -1049,7 +1050,7 @@ impl Renderer
             Some(self.state.shader_programs.ref_projection_matrix()), false, &projection_matrix);
         self.state.gl.uniform_matrix4fv_with_f32_array(
             Some(self.state.shader_programs.ref_model_view_matrix()), false, &model_view_matrix);
-        self.state.cs_axes_drawn_object.draw_triangles(&self.state.gl)?;
+        self.state.cs_axes_adapter.draw_triangles(&self.state.gl)?;
 
         self.state.ctx.set_fill_style(&CANVAS_AXES_DENOTATION_COLOR.into());
 

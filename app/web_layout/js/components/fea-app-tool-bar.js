@@ -6,7 +6,12 @@ class FeaAppToolBar extends HTMLElement {
             actionId: null,
         };
 
-        this.state = {};
+        this.state = {
+            isGeometryVisible: true,
+            isLoadVisible: true,
+            isBoundaryConditionVisible: true,
+            isMeshVisible: true,
+        };
 
         this.attachShadow({ mode: "open" });
 
@@ -548,11 +553,11 @@ class FeaAppToolBar extends HTMLElement {
 
         this.shadowRoot.querySelector(".undo-button").addEventListener("click", () => this.undo());
         this.shadowRoot.querySelector(".redo-button").addEventListener("click", () => this.redo());
-        this.shadowRoot.querySelector(".show-hide-geometry-button").addEventListener("click", () => this.toggleGeometryVisibility());
-        this.shadowRoot.querySelector(".show-hide-mesh-button").addEventListener("click", () => this.toggleMeshVisibility());
-        this.shadowRoot.querySelector(".show-hide-load-button").addEventListener("click", () => this.toggleLoadVisibility());
+        this.shadowRoot.querySelector(".show-hide-geometry-button").addEventListener("click", () => this.updateGeometryVisibility());
+        this.shadowRoot.querySelector(".show-hide-load-button").addEventListener("click", () => this.updateLoadVisibility());
         this.shadowRoot.querySelector(".show-hide-boundary-condition-button").addEventListener("click", 
-            () => this.toggleBoundaryConditionVisibility());
+            () => this.updateBoundaryConditionVisibility());
+        this.shadowRoot.querySelector(".show-hide-mesh-button").addEventListener("click", () => this.updateMeshVisibility());
         this.shadowRoot.querySelector(".x-y-view-button").addEventListener("click", () => this.changeView("planeXY"));
         this.shadowRoot.querySelector(".z-y-view-button").addEventListener("click", () => this.changeView("planeZY"));
         this.shadowRoot.querySelector(".x-z-view-button").addEventListener("click", () => this.changeView("planeXZ"));
@@ -650,68 +655,94 @@ class FeaAppToolBar extends HTMLElement {
         }));   
     }
 
-    toggleGeometryVisibility() {
-        if (this.shadowRoot.querySelector(".show-hide-geometry-button").classList.contains("active")) {
-            this.shadowRoot.querySelector(".show-hide-geometry-button").classList.remove("active");
-            this.shadowRoot.querySelector(".show-hide-geometry-button-icon").classList.remove("active-icon");
+    updateGeometryVisibility() {
+        const button = this.shadowRoot.querySelector(".show-hide-geometry-button");
+        const buttonIcon = this.shadowRoot.querySelector(".show-hide-geometry-button-icon");
 
+        if (this.state.isGeometryVisible == true) {
+            this.state.isGeometryVisible = false;
+            this.activateButton(button, buttonIcon);
         } else {
-            this.shadowRoot.querySelector(".show-hide-geometry-button").classList.add("active");
-            this.shadowRoot.querySelector(".show-hide-geometry-button-icon").classList.add("active-icon");
+            this.state.isGeometryVisible = true;
+            this.deactivateButton(button, buttonIcon);
         }
 
-        this.dispatchEvent(new CustomEvent("toggleGeometryVisibility", {
+        this.dispatchEvent(new CustomEvent("updateGeometryVisibility", {
             bubbles: true,
             composed: true,
+            detail: { "is_geometry_visible": this.state.isGeometryVisible },
         }));   
     }
 
-    toggleMeshVisibility() {
-        if (this.shadowRoot.querySelector(".show-hide-mesh-button").classList.contains("active")) {
-            this.shadowRoot.querySelector(".show-hide-mesh-button").classList.remove("active");
-            this.shadowRoot.querySelector(".show-hide-mesh-button-icon").classList.remove("active-icon");
+    updateLoadVisibility() {
+        const button = this.shadowRoot.querySelector(".show-hide-load-button");
+        const buttonIcon = this.shadowRoot.querySelector(".show-hide-load-button-icon");
 
+        if (this.state.isLoadVisible == true) {
+            this.state.isLoadVisible = false;
+            this.activateButton(button, buttonIcon);
         } else {
-            this.shadowRoot.querySelector(".show-hide-mesh-button").classList.add("active");
-            this.shadowRoot.querySelector(".show-hide-mesh-button-icon").classList.add("active-icon");
+            this.state.isLoadVisible = true;
+            this.deactivateButton(button, buttonIcon);
         }
 
-        this.dispatchEvent(new CustomEvent("toggleMeshVisibility", {
+        this.dispatchEvent(new CustomEvent("updateLoadVisibility", {
             bubbles: true,
             composed: true,
-        }));   
+            detail: { "is_load_visible": this.state.isLoadVisible },
+        }));    
     }
 
-    toggleLoadVisibility() {
-        if (this.shadowRoot.querySelector(".show-hide-load-button").classList.contains("active")) {
-            this.shadowRoot.querySelector(".show-hide-load-button").classList.remove("active");
-            this.shadowRoot.querySelector(".show-hide-load-button-icon").classList.remove("active-icon");
+    updateBoundaryConditionVisibility() {
+        const button = this.shadowRoot.querySelector(".show-hide-boundary-condition-button");
+        const buttonIcon = this.shadowRoot.querySelector(".show-hide-boundary-condition-button-icon");
 
+        if (this.state.isBoundaryConditionVisible == true) {
+            this.state.isBoundaryConditionVisible = false;
+            this.activateButton(button, buttonIcon);
         } else {
-            this.shadowRoot.querySelector(".show-hide-load-button").classList.add("active");
-            this.shadowRoot.querySelector(".show-hide-load-button-icon").classList.add("active-icon");
+            this.state.isBoundaryConditionVisible = true;
+            this.deactivateButton(button, buttonIcon);
         }
 
-        this.dispatchEvent(new CustomEvent("toggleLoadVisibility", {
+        this.dispatchEvent(new CustomEvent("updateBoundaryConditionVisibility", {
             bubbles: true,
             composed: true,
-        }));   
+            detail: { "is_boundary_condition_visible": this.state.isBoundaryConditionVisible },
+        }));    
     }
 
-    toggleBoundaryConditionVisibility() {
-        if (this.shadowRoot.querySelector(".show-hide-boundary-condition-button").classList.contains("active")) {
-            this.shadowRoot.querySelector(".show-hide-boundary-condition-button").classList.remove("active");
-            this.shadowRoot.querySelector(".show-hide-boundary-condition-button-icon").classList.remove("active-icon");
+    updateMeshVisibility() {
+        const button = this.shadowRoot.querySelector(".show-hide-mesh-button");
+        const buttonIcon = this.shadowRoot.querySelector(".show-hide-mesh-button-icon");
 
+        if (this.state.isMeshVisible == true) {
+            this.state.isMeshVisible = false;
+            this.activateButton(button, buttonIcon);
         } else {
-            this.shadowRoot.querySelector(".show-hide-boundary-condition-button").classList.add("active");
-            this.shadowRoot.querySelector(".show-hide-boundary-condition-button-icon").classList.add("active-icon");
+            this.state.isMeshVisible = true;
+            this.deactivateButton(button, buttonIcon);
         }
 
-        this.dispatchEvent(new CustomEvent("toggleBoundaryConditionVisibility", {
+        this.dispatchEvent(new CustomEvent("updateMeshVisibility", {
             bubbles: true,
             composed: true,
-        }));   
+            detail: { "is_mesh_visible": this.state.isMeshVisible },
+        }));    
+    }
+
+    activateButton(button, buttonIcon) {
+        if (button.classList.contains("active") == false) {
+            button.classList.add("active");
+            buttonIcon.classList.add("active-icon");
+        }
+    }
+
+    deactivateButton(button, buttonIcon) {
+        if (button.classList.contains("active") == true) {
+            button.classList.remove("active");
+            buttonIcon.classList.remove("active-icon");
+        }
     }
 
     changeView(viewName) {

@@ -162,11 +162,11 @@ class FeaApp extends HTMLElement {
         this.addEventListener("selected_boundary_conditions_points_numbers", 
             (event) => this.handleSelectedBoundaryConditionsPointsNumbersMessage(event));
 
-        this.addEventListener("toggleGeometryVisibility", (event) => this.handleToggleGeometryVisibilityMessage(event));
-        this.addEventListener("toggleMeshVisibility", (event) => this.handleToggleMeshVisibilityMessage(event));
-        this.addEventListener("toggleLoadVisibility", (event) => this.handleToggleLoadVisibilityMessage(event));
-        this.addEventListener("toggleBoundaryConditionVisibility", 
-            (event) => this.handleToggleBoundaryConditionVisibilityMessage(event));
+        this.addEventListener("updateGeometryVisibility", (event) => this.hangleUpdateGeometryVisibilityMessage(event));
+        this.addEventListener("updateLoadVisibility", (event) => this.handleUpdateLoadVisibilityMessage(event));
+        this.addEventListener("updateBoundaryConditionVisibility", 
+            (event) => this.handleUpdateBoundaryConditionVisibilityMessage(event));
+        this.addEventListener("updateMeshVisibility", (event) => this.handleUpdateMeshVisibilityMessage(event));
         this.addEventListener("changeView", (event) => this.handleChangeViewMessage(event));
 
         this.addEventListener("previewSelectedLineNumbers", (event) => this.handlePreviewSelectedLineNumbersMessage(event));
@@ -797,27 +797,27 @@ class FeaApp extends HTMLElement {
         event.stopPropagation();
     }
 
-    handleToggleGeometryVisibilityMessage(event) {
-        const data = true;
-        this.shadowRoot.querySelector("fea-renderer").toggleGeometryVisibility = data;
+    hangleUpdateGeometryVisibilityMessage(event) {
+        const isGeometryVisible = event.detail.is_geometry_visible;
+        this.shadowRoot.querySelector("fea-renderer").updateGeometryVisibility = isGeometryVisible;
         event.stopPropagation();
     }
 
-    handleToggleMeshVisibilityMessage(event) {
-        const data = true;
-        this.shadowRoot.querySelector("fea-renderer").toggleMeshVisibility = data;
+    handleUpdateLoadVisibilityMessage(event) {
+        const isLoadVisible = event.detail.is_load_visible;
+        this.shadowRoot.querySelector("fea-renderer").updateLoadVisibility = isLoadVisible;
         event.stopPropagation();
     }
 
-    handleToggleLoadVisibilityMessage(event) {
-        const data = true;
-        this.shadowRoot.querySelector("fea-renderer").toggleLoadVisibility = data;
+    handleUpdateBoundaryConditionVisibilityMessage(event) {
+        const isBoundaryConditionVisible = event.detail.is_boundary_condition_visible;
+        this.shadowRoot.querySelector("fea-renderer").updateBoundaryConditionVisibility = isBoundaryConditionVisible;
         event.stopPropagation();
     }
 
-    handleToggleBoundaryConditionVisibilityMessage(event) {
-        const data = true;
-        this.shadowRoot.querySelector("fea-renderer").toggleBoundaryConditionVisibility = data;
+    handleUpdateMeshVisibilityMessage(event) {
+        const isMeshVisible = event.detail.is_mesh_visible;
+        this.shadowRoot.querySelector("fea-renderer").updateMeshVisibility = isMeshVisible;
         event.stopPropagation();
     }
 

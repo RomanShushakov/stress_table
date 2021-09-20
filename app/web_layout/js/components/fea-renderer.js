@@ -232,29 +232,29 @@ class FeaRenderer extends HTMLElement {
         this.updateCanvasSize();
     }
 
-    set toggleGeometryVisibility(_data) {
-        this.state.renderer.toggle_geometry_visibility();
+    set updateGeometryVisibility(isGeometryVisible) {
+        this.state.renderer.update_geometry_visibility(isGeometryVisible);
         if (this.state.isPaused === true) {
             this.state.renderer.tick();
         }
     }
 
-    set toggleMeshVisibility(_data) {
-        this.state.renderer.toggle_mesh_visibility();
+    set updateLoadVisibility(isLoadVisible) {
+        this.state.renderer.update_load_visibility(isLoadVisible);
         if (this.state.isPaused === true) {
             this.state.renderer.tick();
         }
     }
 
-    set toggleLoadVisibility(_data) {
-        this.state.renderer.toggle_load_visibility();
+    set updateBoundaryConditionVisibility(isBoundaryConditionVisible) {
+        this.state.renderer.update_boundary_condition_visibility(isBoundaryConditionVisible);
         if (this.state.isPaused === true) {
             this.state.renderer.tick();
         }
     }
 
-    set toggleBoundaryConditionVisibility(_data) {
-        this.state.renderer.toggle_boundary_condition_visibility();
+    set updateMeshVisibility(isMeshVisible) {
+        this.state.renderer.update_mesh_visibility(isMeshVisible);
         if (this.state.isPaused === true) {
             this.state.renderer.tick();
         }

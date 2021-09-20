@@ -8,11 +8,7 @@ use rand;
 
 use extended_matrix::extended_matrix::ExtendedMatrix;
 
-use crate::point_object::{PointObject, PointObjectKey, Coordinates};
-
-use crate::line_object::{LineObject, LineObjectKey};
-
-use crate::drawn_object::scene_adapter::{GLMode};
+use crate::drawn_object::scene_adapter::GLMode;
 use crate::drawn_object::scene_adapter::
 {
     HINT_SHIFT_X, ROTATION_HINT_SHIFT_Y, ZOOM_HINT_SHIFT_Y, PAN_HINT_SHIFT_Y,
@@ -24,31 +20,45 @@ use crate::drawn_object::consts::
     DRAWN_OBJECT_TO_CANVAS_WIDTH_SCALE, DRAWN_OBJECT_TO_CANVAS_HEIGHT_SCALE,
 };
 
+use crate::point_object::{PointObject, PointObjectKey, Coordinates};
+
+use crate::line_object::{LineObject, LineObjectKey};
+
 use crate::concentrated_load::ConcentratedLoad;
 
 use crate::distributed_line_load::DistributedLineLoad;
 
 use crate::consts::TOLERANCE;
 
-use crate::log;
 
-
-
-pub fn initialize_shaders(gl: &GL, vertex_shader_code: &str, fragment_shader_code: &str)
-    -> WebGlProgram
+#[wasm_bindgen]
+extern "C"
 {
-    let vertex_shader = gl.create_shader(GL::VERTEX_SHADER).unwrap();
-    gl.shader_source(&vertex_shader, &vertex_shader_code);
-    gl.compile_shader(&vertex_shader);
-    let fragment_shader = gl.create_shader(GL::FRAGMENT_SHADER).unwrap();
-    gl.shader_source(&fragment_shader, &fragment_shader_code);
-    gl.compile_shader(&fragment_shader);
-    let shader_program = gl.create_program().unwrap();
-    gl.attach_shader(&shader_program, &vertex_shader);
-    gl.attach_shader(&shader_program, &fragment_shader);
-    gl.link_program(&shader_program);
-    gl.use_program(Some(&shader_program));
-    shader_program
+    #[wasm_bindgen(js_namespace = console)]
+    pub fn log(value: &str);
+}
+
+
+pub fn dispatch_custom_event(detail: serde_json::Value, event_type: &str, query_selector: &str)
+    -> Result<(), JsValue>
+{
+    let custom_event = web_sys::CustomEvent::new_with_event_init_dict(
+        event_type,
+        web_sys::CustomEventInit::new()
+            .bubbles(true)
+            .composed(true)
+            .detail(&JsValue::from_serde(&detail)
+                .or(Err("Renderer: Dispatch event: detail could not be \
+                converted into JsValue!"))?))
+                    .or(Err(JsValue::from("Renderer: Dispatch event: \
+                    custom event could not be constructed!")))?;
+    web_sys::window().expect("no global `window` exists")
+        .document().expect("should have a document on window")
+        .query_selector(query_selector).or(Err(JsValue::from("Renderer: Dispatch event: No \
+            element find by current selector!")))?.unwrap()
+        .dyn_into::<web_sys::EventTarget>().unwrap()
+        .dispatch_event(&custom_event)?;
+    Ok(())
 }
 
 
@@ -314,29 +324,6 @@ pub fn add_hints(ctx: &CTX, canvas_width: f32, canvas_height: f32)
     let pan_hint_y = canvas_height * PAN_HINT_SHIFT_Y;
     let pan_hint = "Pan - (Ctrl + Alt + MB2)";
     ctx.fill_text(pan_hint, hint_x as f64, pan_hint_y as f64).unwrap();
-}
-
-
-pub fn dispatch_custom_event(detail: serde_json::Value, event_type: &str, query_selector: &str)
-    -> Result<(), JsValue>
-{
-    let custom_event = web_sys::CustomEvent::new_with_event_init_dict(
-        event_type,
-        web_sys::CustomEventInit::new()
-            .bubbles(true)
-            .composed(true)
-            .detail(&JsValue::from_serde(&detail)
-                .or(Err("Renderer: Dispatch event: detail could not be \
-                converted into JsValue!"))?))
-                    .or(Err(JsValue::from("Renderer: Dispatch event: \
-                    custom event could not be constructed!")))?;
-    web_sys::window().expect("no global `window` exists")
-        .document().expect("should have a document on window")
-        .query_selector(query_selector).or(Err(JsValue::from("Renderer: Dispatch event: No \
-            element find by current selector!")))?.unwrap()
-        .dyn_into::<web_sys::EventTarget>().unwrap()
-        .dispatch_event(&custom_event)?;
-    Ok(())
 }
 
 

@@ -3,12 +3,26 @@ use wasm_bindgen::prelude::*;
 use crate::point_object::{PointObjectKey, PointObject, Coordinates};
 use crate::point_object::{PointObjectType};
 
+use crate::functions::{log, normalize_point_objects_coordinates};
+
 use crate::Renderer;
 
 
 #[wasm_bindgen]
 impl Renderer
 {
+    fn update_point_objects_normalized_coordinates(&mut self)
+    {
+        normalize_point_objects_coordinates(&mut self.state.point_objects,
+            &self.state.line_objects,
+            &self.state.concentrated_loads,
+            &self.state.distributed_line_loads,
+            self.props.canvas_gl.width() as f32,
+            self.props.canvas_gl.height() as f32);
+        log(&format!("{:?}", self.state.point_objects));
+    }
+
+
     pub fn add_point_object(&mut self, number: u32, x: f32, y: f32, z: f32,
         point_object_type: PointObjectType) -> Result<(), JsValue>
     {

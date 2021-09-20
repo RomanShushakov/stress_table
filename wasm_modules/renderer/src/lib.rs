@@ -16,7 +16,8 @@ use shaders::shader_programs::ShaderPrograms;
 mod buffers;
 use buffers::buffers::{VertexBuffer, ColorBuffer, IndexBuffer};
 
-mod scene;
+mod global_scene;
+use global_scene::global_scene::GlobalScene;
 
 mod drawn_object;
 use drawn_object::scene_adapter::SceneAdapter;
@@ -55,8 +56,6 @@ mod line_object;
 use line_object::{LineObject, LineObjectKey, LineObjectNumbers, BeamSectionOrientation};
 use line_object::{LineObjectType, LineObjectColorScheme};
 
-
-
 mod concentrated_load;
 use concentrated_load::ConcentratedLoad;
 
@@ -67,6 +66,8 @@ mod boundary_condition;
 use boundary_condition::BoundaryCondition;
 
 mod methods_for_canvas_manipulation;
+
+mod methods_for_scene_objects_visibility_manipulation;
 
 mod methods_for_point_object_crud;
 
@@ -90,18 +91,9 @@ use consts::
 mod functions;
 use functions::
 {
-    initialize_shaders, add_denotation, add_hints, normalize_point_objects_coordinates,
-    define_drawn_object_denotation_color, transform_u32_to_array_of_u8,
-    dispatch_custom_event, convert_into_array
+    add_denotation, add_hints, define_drawn_object_denotation_color, transform_u32_to_array_of_u8,
+    dispatch_custom_event, convert_into_array,
 };
-
-
-#[wasm_bindgen]
-extern "C"
-{
-    #[wasm_bindgen(js_namespace = console)]
-    fn log(value: &str);
-}
 
 
 struct Props
@@ -115,11 +107,10 @@ struct Props
     dx: f32,
     dy: f32,
     d_scale: f32,
-
     is_geometry_visible: bool,
-    is_mesh_visible: bool,
     is_load_visible: bool,
     is_boundary_condition_visible: bool,
+    is_mesh_visible: bool,
 }
 
 
@@ -133,17 +124,19 @@ struct State
     index_buffer: IndexBuffer,
     cs_axes: CSAxesAdapter,
 
+    global_scene: GlobalScene,
+
     optional_scene_for_selection: Option<SceneAdapter>,
     optional_scene_visible: Option<SceneAdapter>,
-
-    under_selection_box_colors: Vec<u8>,
-    selected_colors: HashSet<[u8; 4]>,
     point_objects: HashMap<PointObjectKey, PointObject>,
     line_objects: HashMap<LineObjectKey, LineObject>,
     beam_section_orientation_for_preview: Option<BeamSectionOrientation>,
     concentrated_loads: HashMap<u32, ConcentratedLoad>,
     distributed_line_loads: HashMap<u32, DistributedLineLoad>,
     boundary_conditions: HashMap<u32, BoundaryCondition>,
+
+    under_selection_box_colors: Vec<u8>,
+    selected_colors: HashSet<[u8; 4]>,
     selection_box_start_x: Option<i32>,
     selection_box_start_y: Option<i32>,
 }
@@ -165,11 +158,15 @@ impl Renderer
     {
         let props = Props
         {
-            canvas_text: canvas_text.clone(), canvas_gl: canvas_gl.clone(),
-            cursor_coord_x: -1, cursor_coord_y: -1,
+            canvas_text: canvas_text.clone(),
+            canvas_gl: canvas_gl.clone(),
+            cursor_coord_x: -1,
+            cursor_coord_y: -1,
             theta: 0.0, phi: 0.0, dx: 0.0, dy: 0.0, d_scale: 0.0,
-            is_geometry_visible: true, is_mesh_visible: true,
-            is_load_visible: true, is_boundary_condition_visible: true,
+            is_geometry_visible: true,
+            is_load_visible: true,
+            is_boundary_condition_visible: true,
+            is_mesh_visible: true,
         };
 
         let ctx: CTX = canvas_text
@@ -194,6 +191,8 @@ impl Renderer
         cs_axes.add_cs_axes_caps(CS_AXES_CAPS_BASE_POINTS_NUMBER,
             CS_AXES_CAPS_HEIGHT, CS_AXES_CAPS_WIDTH)?;
 
+        let global_scene = GlobalScene::create_preprocessor();
+
         let state = State
         {
             ctx,
@@ -204,34 +203,24 @@ impl Renderer
             index_buffer,
             cs_axes,
 
+            global_scene,
+
             optional_scene_for_selection: None,
             optional_scene_visible: None,
-
-            under_selection_box_colors: Vec::new(),
-            selected_colors: HashSet::new(),
             point_objects: HashMap::new(),
             line_objects: HashMap::new(),
             beam_section_orientation_for_preview: None,
             concentrated_loads: HashMap::new(),
             distributed_line_loads: HashMap::new(),
             boundary_conditions: HashMap::new(),
+
+            under_selection_box_colors: Vec::new(),
+            selected_colors: HashSet::new(),
             selection_box_start_x: None,
             selection_box_start_y: None,
         };
 
         Ok(Renderer { props, state })
-    }
-
-
-    fn update_point_objects_normalized_coordinates(&mut self)
-    {
-        normalize_point_objects_coordinates(&mut self.state.point_objects,
-            &self.state.line_objects,
-            &self.state.concentrated_loads,
-            &self.state.distributed_line_loads,
-            self.props.canvas_gl.width() as f32,
-            self.props.canvas_gl.height() as f32);
-        log(&format!("{:?}", self.state.point_objects));
     }
 
 
@@ -628,70 +617,6 @@ impl Renderer
             }
         }
         self.state.beam_section_orientation_for_preview = Some(beam_section_orientation_for_preview);
-        self.update_scene_visible()?;
-        Ok(())
-    }
-
-
-    pub fn toggle_geometry_visibility(&mut self) -> Result<(), JsValue>
-    {
-        if self.props.is_geometry_visible
-        {
-            self.props.is_geometry_visible = false;
-        }
-        else
-        {
-            self.props.is_geometry_visible = true;
-        }
-        self.update_scene_for_selection()?;
-        self.update_scene_visible()?;
-        Ok(())
-    }
-
-
-    pub fn toggle_mesh_visibility(&mut self) -> Result<(), JsValue>
-    {
-        if self.props.is_mesh_visible
-        {
-            self.props.is_mesh_visible = false;
-        }
-        else
-        {
-            self.props.is_mesh_visible = true;
-        }
-        self.update_scene_for_selection()?;
-        self.update_scene_visible()?;
-        Ok(())
-    }
-
-
-    pub fn toggle_load_visibility(&mut self) -> Result<(), JsValue>
-    {
-        if self.props.is_load_visible
-        {
-            self.props.is_load_visible = false;
-        }
-        else
-        {
-            self.props.is_load_visible = true;
-        }
-        self.update_scene_for_selection()?;
-        self.update_scene_visible()?;
-        Ok(())
-    }
-
-
-    pub fn toggle_boundary_condition_visibility(&mut self) -> Result<(), JsValue>
-    {
-        if self.props.is_boundary_condition_visible
-        {
-            self.props.is_boundary_condition_visible = false;
-        }
-        else
-        {
-            self.props.is_boundary_condition_visible = true;
-        }
-        self.update_scene_for_selection()?;
         self.update_scene_visible()?;
         Ok(())
     }

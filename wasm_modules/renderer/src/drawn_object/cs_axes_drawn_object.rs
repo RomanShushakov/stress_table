@@ -1,16 +1,15 @@
-use std::f32::consts::PI;
+use wasm_bindgen::prelude::*;
 use web_sys::{WebGlRenderingContext as GL};
-
+use std::f32::consts::PI;
 
 use crate::drawn_object::drawn_object::DrawnObject;
 use crate::drawn_object::consts::
 {
     CS_ORIGIN, CS_AXIS_X, CS_AXIS_X_COLOR, CS_AXIS_Y, CS_AXIS_Y_COLOR, CS_AXIS_Z, CS_AXIS_Z_COLOR
 };
-use crate::drawn_object::functions::create_monochrome_cone;
+use crate::drawn_object::functions::{build_monochrome_cone, build_monochrome_cylinder_around_line};
 
 use crate::consts::TOLERANCE;
-use wasm_bindgen::JsValue;
 
 
 
@@ -92,7 +91,7 @@ impl CSAxesDrawnObject
                     self.drawn_object.ref_triangles_vertices_indexes()?.len() - 1] + 1
             };
         let (axes_x_cap_vertices_coordinates, axis_x_cap_vertices_colors_values,
-            axes_x_cap_vertices_indexes) = create_monochrome_cone(
+            axes_x_cap_vertices_indexes) = build_monochrome_cone(
                 &CS_AXIS_X, &[1.0 - height, 0.0, 0.0],
                 height, base_radius, base_points_number, start_x_axis_cap_index,
                 &CS_AXIS_X_COLOR, TOLERANCE)?;
@@ -113,7 +112,7 @@ impl CSAxesDrawnObject
                     self.ref_triangles_vertices_indexes()?.len() - 1] + 1
             };
         let (axes_y_cap_vertices_coordinates, axis_y_cap_vertices_colors_values,
-            axes_y_cap_vertices_indexes) = create_monochrome_cone(
+            axes_y_cap_vertices_indexes) = build_monochrome_cone(
                 &CS_AXIS_Y, &[0.0, 1.0 - height, 0.0],
                 height, base_radius, base_points_number, start_y_axis_cap_index,
                 &CS_AXIS_Y_COLOR, TOLERANCE)?;
@@ -134,7 +133,7 @@ impl CSAxesDrawnObject
                     self.ref_triangles_vertices_indexes()?.len() - 1] + 1
             };
         let (axes_z_cap_vertices_coordinates, axis_z_cap_vertices_colors_values,
-            axes_z_cap_vertices_indexes) = create_monochrome_cone(
+            axes_z_cap_vertices_indexes) = build_monochrome_cone(
                 &CS_AXIS_Z, &[0.0, 0.0, 1.0 - height],
                 height, base_radius, base_points_number, start_z_axis_cap_index,
                 &CS_AXIS_Z_COLOR, TOLERANCE)?;

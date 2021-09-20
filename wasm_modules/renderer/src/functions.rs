@@ -393,3 +393,12 @@ pub fn compose_rotation_matrix_for_vector(vector_start_point_coordinates: [f32; 
         TOLERANCE);
     rotation_matrix
 }
+
+
+pub fn calculate_line_length(line_start_point_coordinates: &[f32; 3],
+    line_end_point_coordinates: &[f32; 3]) -> f32
+{
+    ((line_end_point_coordinates[0] - line_start_point_coordinates[0]).powi(2) +
+    (line_end_point_coordinates[1] - line_start_point_coordinates[1]).powi(2) +
+    (line_end_point_coordinates[2] - line_start_point_coordinates[2]).powi(2)).sqrt()
+}

@@ -8,7 +8,6 @@ use extended_matrix::basic_matrix::basic_matrix::MatrixElementPosition;
 use extended_matrix::functions::copy_element_value;
 
 use crate::drawn_object::drawn_object::DrawnObject;
-use crate::drawn_object::old_drawn_object::GLMode;
 
 use crate::point_object::{PointObjectKey, PointObject};
 use crate::point_object::{PointObjectType};
@@ -92,12 +91,10 @@ pub const COLOR_BAR_Y_TOP: f32 = 0.2;
 pub const COLOR_BAR_WIDTH: f32 = 0.015;
 
 
-#[derive(Clone)]
-pub enum GLPrimitiveType
+pub enum GLMode
 {
-    Points,
-    Lines,
-    Triangles,
+    Selection,
+    Visible,
 }
 
 
@@ -631,6 +628,66 @@ impl SceneAdapter
     }
 
 
+    fn add_distributed_load_cap(&mut self, sign: &Sign, cs_axis: &CSAxis,
+        start_coordinates: &[f32; 3], base_points_number: u32, base_radius: f32, height: f32,
+        load_color: &[f32; 4]) -> Result<(), JsValue>
+    {
+        let multiplier = match sign { Sign::Positive => 1f32, Sign::Negative => -1f32 };
+
+        let cap_base_center_point_coordinates =
+            {
+                match cs_axis
+                {
+                    CSAxis::X =>
+                        {
+                            [start_coordinates[0] - height * multiplier,
+                            start_coordinates[1],
+                            start_coordinates[2]]
+                        },
+                    CSAxis::Y =>
+                        {
+                            [start_coordinates[0],
+                            start_coordinates[1] - height * multiplier,
+                            start_coordinates[2]]
+                        },
+                    CSAxis::Z =>
+                        {
+                            [start_coordinates[0],
+                            start_coordinates[1],
+                            start_coordinates[2] - height * multiplier]
+                        },
+                }
+            };
+
+        let start_index =
+            if self.ref_triangles_vertices_indexes()?.is_empty()
+            {
+                0
+            }
+            else
+            {
+                self.ref_triangles_vertices_indexes()?[
+                    self.ref_triangles_vertices_indexes()?.len() - 1] + 1
+            };
+
+        let (triangles_vertices_coordinates,
+            triangles_vertices_colors_values,
+            triangles_vertices_indexes) = build_monochrome_cone(
+            &start_coordinates,
+            &cap_base_center_point_coordinates,
+            height, base_radius, base_points_number, start_index,
+            &load_color, TOLERANCE)?;
+
+        self.drawn_object.add_triangle_vertex_coordinates(
+            &triangles_vertices_coordinates)?;
+        self.drawn_object.add_triangle_vertex_color_value(
+            &triangles_vertices_colors_values)?;
+        self.drawn_object.add_triangles_vertices_indexes(&triangles_vertices_indexes)?;
+
+        Ok(())
+    }
+
+
     pub fn add_distributed_line_loads(&mut self,
         point_objects: &HashMap<PointObjectKey, PointObject>,
         line_objects: &HashMap<LineObjectKey, LineObject>,
@@ -695,27 +752,24 @@ impl SceneAdapter
                         self.add_load_line(&gl_mode, sign, &CSAxis::X, &start_coordinates,
                             -1f32 * line_length, base_points_number, base_radius,
                             &distributed_line_load_color)?;
-                        self.add_load_cap(sign, &CSAxis::X, &start_coordinates,
-                            0f32, base_points_number, base_radius, height,
-                            &distributed_line_load_color)?;
+                        self.add_distributed_load_cap(sign, &CSAxis::X, &start_coordinates,
+                            base_points_number, base_radius, height, &distributed_line_load_color)?;
                     }
                     if let Some(sign) = distributed_line_load.ref_optional_qy_sign()
                     {
                         self.add_load_line(&gl_mode, sign, &CSAxis::Y, &start_coordinates,
                             -1f32 * line_length, base_points_number, base_radius,
                             &distributed_line_load_color)?;
-                        self.add_load_cap(sign, &CSAxis::Y, &start_coordinates,
-                            0f32, base_points_number, base_radius, height,
-                            &distributed_line_load_color)?;
+                        self.add_distributed_load_cap(sign, &CSAxis::Y, &start_coordinates,
+                            base_points_number, base_radius, height, &distributed_line_load_color)?;
                     }
                     if let Some(sign) = distributed_line_load.ref_optional_qz_sign()
                     {
                         self.add_load_line(&gl_mode, sign, &CSAxis::Z, &start_coordinates,
                             -1f32 * line_length, base_points_number, base_radius,
                             &distributed_line_load_color)?;
-                        self.add_load_cap(sign, &CSAxis::Z, &start_coordinates,
-                            0f32, base_points_number, base_radius, height,
-                            &distributed_line_load_color)?;
+                        self.add_distributed_load_cap(sign, &CSAxis::Z, &start_coordinates,
+                            base_points_number, base_radius, height, &distributed_line_load_color)?;
                     }
                 }
             }
@@ -806,6 +860,48 @@ impl SceneAdapter
     }
 
 
+    pub fn ref_points_coordinates(&self) -> Result<&[f32], JsValue>
+    {
+        self.drawn_object.ref_points_coordinates()
+    }
+
+
+    pub fn ref_points_colors_values(&self) -> Result<&[f32], JsValue>
+    {
+        self.drawn_object.ref_points_colors_values()
+    }
+
+
+    pub fn ref_lines_endpoints_coordinates(&self) -> Result<&[f32], JsValue>
+    {
+        self.drawn_object.ref_lines_endpoints_coordinates()
+    }
+
+
+    pub fn ref_lines_endpoints_colors_values(&self) -> Result<&[f32], JsValue>
+    {
+        self.drawn_object.ref_lines_endpoints_colors_values()
+    }
+
+
+    pub fn ref_triangles_vertices_coordinates(&self) -> Result<&[f32], JsValue>
+    {
+        self.drawn_object.ref_triangles_vertices_coordinates()
+    }
+
+
+    pub fn ref_triangles_vertices_colors_values(&self) -> Result<&[f32], JsValue>
+    {
+        self.drawn_object.ref_triangles_vertices_colors_values()
+    }
+
+
+    pub fn ref_triangles_vertices_indexes(&self) -> Result<&[u32], JsValue>
+    {
+        self.drawn_object.ref_triangles_vertices_indexes()
+    }
+
+
     pub fn draw_points(&self, gl: &GL) -> Result<(), JsValue>
     {
         self.drawn_object.draw_points(gl)
@@ -815,12 +911,6 @@ impl SceneAdapter
     pub fn draw_lines(&self, gl: &GL) -> Result<(), JsValue>
     {
         self.drawn_object.draw_lines(gl)
-    }
-
-
-    pub fn ref_triangles_vertices_indexes(&self) -> Result<&[u32], JsValue>
-    {
-        self.drawn_object.ref_triangles_vertices_indexes()
     }
 
 

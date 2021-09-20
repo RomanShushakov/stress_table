@@ -46,8 +46,8 @@ impl Renderer
         let concentrated_load = ConcentratedLoad::create(
             fx, fy, fz, mx, my, mz, uid);
         self.state.concentrated_loads.insert(point_number, concentrated_load);
-        self.update_drawn_object_for_selection()?;
-        self.update_drawn_object_visible()?;
+        self.update_scene_for_selection()?;
+        self.update_scene_visible()?;
         Ok(())
     }
 
@@ -67,8 +67,8 @@ impl Renderer
                 point_number);
             return Err(JsValue::from(error_message));
         }
-        self.update_drawn_object_for_selection()?;
-        self.update_drawn_object_visible()?;
+        self.update_scene_for_selection()?;
+        self.update_scene_visible()?;
         Ok(())
     }
 
@@ -81,8 +81,8 @@ impl Renderer
                 Concentrated load applied to point with number {} does not exist!", point_number);
             return Err(JsValue::from(error_message));
         }
-        self.update_drawn_object_for_selection()?;
-        self.update_drawn_object_visible()?;
+        self.update_scene_for_selection()?;
+        self.update_scene_visible()?;
         Ok(())
     }
 }

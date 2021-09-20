@@ -59,24 +59,6 @@ impl CSAxesAdapter
     }
 
 
-    pub fn ref_lines_endpoints_coordinates(&self) -> Result<&[f32], JsValue>
-    {
-        self.drawn_object.ref_lines_endpoints_coordinates()
-    }
-
-
-    pub fn ref_lines_endpoints_colors_values(&self) -> Result<&[f32], JsValue>
-    {
-        self.drawn_object.ref_lines_endpoints_colors_values()
-    }
-
-
-    pub fn draw_lines(&self, gl: &GL) -> Result<(), JsValue>
-    {
-        self.drawn_object.draw_lines(gl)
-    }
-
-
     pub fn add_cs_axes_caps(&mut self, base_points_number: u32, height: f32, base_radius: f32)
         -> Result<(), JsValue>
     {
@@ -147,6 +129,18 @@ impl CSAxesAdapter
     }
 
 
+    pub fn ref_lines_endpoints_coordinates(&self) -> Result<&[f32], JsValue>
+    {
+        self.drawn_object.ref_lines_endpoints_coordinates()
+    }
+
+
+    pub fn ref_lines_endpoints_colors_values(&self) -> Result<&[f32], JsValue>
+    {
+        self.drawn_object.ref_lines_endpoints_colors_values()
+    }
+
+
     pub fn ref_triangles_vertices_coordinates(&self) -> Result<&[f32], JsValue>
     {
         self.drawn_object.ref_triangles_vertices_coordinates()
@@ -162,6 +156,12 @@ impl CSAxesAdapter
     pub fn ref_triangles_vertices_indexes(&self) -> Result<&[u32], JsValue>
     {
         self.drawn_object.ref_triangles_vertices_indexes()
+    }
+
+
+    pub fn draw_lines(&self, gl: &GL) -> Result<(), JsValue>
+    {
+        self.drawn_object.draw_lines(gl)
     }
 
 

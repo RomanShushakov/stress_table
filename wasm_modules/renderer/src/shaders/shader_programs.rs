@@ -15,8 +15,8 @@ impl ShaderPrograms
 {
     pub fn initialize(gl: &GL) -> Self
     {
-        let vertex_shader_code = include_str!("shaders/main_vert_shader.vert");
-        let fragment_shader_code = include_str!("shaders/main_frag_shader.frag");
+        let vertex_shader_code = include_str!("main_vert_shader.vert");
+        let fragment_shader_code = include_str!("main_frag_shader.frag");
 
         let vertex_shader = gl.create_shader(GL::VERTEX_SHADER).unwrap();
         gl.shader_source(&vertex_shader, &vertex_shader_code);

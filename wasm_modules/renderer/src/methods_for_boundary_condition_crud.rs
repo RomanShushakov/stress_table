@@ -47,8 +47,8 @@ impl Renderer
 
         let boundary_condition = BoundaryCondition::create(uid);
         self.state.boundary_conditions.insert(point_number, boundary_condition);
-        self.update_drawn_object_for_selection()?;
-        self.update_drawn_object_visible()?;
+        self.update_scene_for_selection()?;
+        self.update_scene_visible()?;
         Ok(())
     }
 
@@ -62,8 +62,8 @@ impl Renderer
                 point_number);
             return Err(JsValue::from(error_message));
         }
-        self.update_drawn_object_for_selection()?;
-        self.update_drawn_object_visible()?;
+        self.update_scene_for_selection()?;
+        self.update_scene_visible()?;
         Ok(())
     }
 
@@ -76,8 +76,8 @@ impl Renderer
                 Boundary condition applied to point with number {} does not exist!", point_number);
             return Err(JsValue::from(error_message));
         }
-        self.update_drawn_object_for_selection()?;
-        self.update_drawn_object_visible()?;
+        self.update_scene_for_selection()?;
+        self.update_scene_visible()?;
         Ok(())
     }
 }

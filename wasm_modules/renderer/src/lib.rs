@@ -10,20 +10,18 @@ use rand;
 use std::collections::{HashMap, HashSet};
 use std::convert::TryFrom;
 
+mod shaders;
+use shaders::shader_programs::ShaderPrograms;
+
+mod buffers;
+use buffers::buffers::{VertexBuffer, ColorBuffer, IndexBuffer};
+
 mod scene;
 
-mod point_object;
-use point_object::{PointObjectKey, PointObject};
-use point_object::{PointObjectType};
-
-mod line_object;
-use line_object::{LineObject, LineObjectKey, LineObjectNumbers, BeamSectionOrientation};
-use line_object::{LineObjectType, LineObjectColorScheme};
-
 mod drawn_object;
-use drawn_object::old_drawn_object::DrawnObjectTrait;
-use drawn_object::old_drawn_object::OldDrawnObject;
-use drawn_object::old_drawn_object::GLMode;
+use drawn_object::scene_adapter::SceneAdapter;
+use drawn_object::scene_adapter::GLMode;
+
 use drawn_object::cs_axes_adapter::CSAxesAdapter;
 use drawn_object::consts::
 {
@@ -47,8 +45,17 @@ use drawn_object::consts::
     DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_HEIGHT, DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_WIDTH,
     DRAWN_BOUNDARY_CONDITION_CAPS_BASE_POINTS_NUMBER, DRAWN_BOUNDARY_CONDITION_CAPS_HEIGHT,
     DRAWN_BOUNDARY_CONDITION_CAPS_WIDTH,
-
 };
+
+mod point_object;
+use point_object::{PointObjectKey, PointObject};
+use point_object::{PointObjectType};
+
+mod line_object;
+use line_object::{LineObject, LineObjectKey, LineObjectNumbers, BeamSectionOrientation};
+use line_object::{LineObjectType, LineObjectColorScheme};
+
+
 
 mod concentrated_load;
 use concentrated_load::ConcentratedLoad;
@@ -58,12 +65,6 @@ use distributed_line_load::DistributedLineLoad;
 
 mod boundary_condition;
 use boundary_condition::BoundaryCondition;
-
-mod buffer_objects;
-use crate::buffer_objects::{BufferObjects, VertexBuffer, ColorBuffer, IndexBuffer};
-
-mod shader_programs;
-use crate::shader_programs::ShaderPrograms;
 
 mod methods_for_canvas_manipulation;
 
@@ -130,10 +131,11 @@ struct State
     vertex_buffer: VertexBuffer,
     color_buffer: ColorBuffer,
     index_buffer: IndexBuffer,
-    cs_axes_adapter: CSAxesAdapter,
-    drawn_object_for_selection: Option<OldDrawnObject>,
-    drawn_object_visible: Option<OldDrawnObject>,
-    buffer_objects: BufferObjects,
+    cs_axes: CSAxesAdapter,
+
+    optional_scene_for_selection: Option<SceneAdapter>,
+    optional_scene_visible: Option<SceneAdapter>,
+
     under_selection_box_colors: Vec<u8>,
     selected_colors: HashSet<[u8; 4]>,
     point_objects: HashMap<PointObjectKey, PointObject>,
@@ -187,27 +189,24 @@ impl Renderer
         let color_buffer = ColorBuffer::initialize(&gl);
         let index_buffer = IndexBuffer::initialize(&gl);
 
-        let mut cs_axes_adapter = CSAxesAdapter::create();
-        cs_axes_adapter.add_cs_axes_lines()?;
-        cs_axes_adapter.add_cs_axes_caps(CS_AXES_CAPS_BASE_POINTS_NUMBER,
+        let mut cs_axes = CSAxesAdapter::create();
+        cs_axes.add_cs_axes_lines()?;
+        cs_axes.add_cs_axes_caps(CS_AXES_CAPS_BASE_POINTS_NUMBER,
             CS_AXES_CAPS_HEIGHT, CS_AXES_CAPS_WIDTH)?;
-
-        let buffer_objects = BufferObjects::initialize(&gl);
 
         let state = State
         {
             ctx,
             gl,
             shader_programs,
-
             vertex_buffer,
             color_buffer,
             index_buffer,
+            cs_axes,
 
-            cs_axes_adapter,
-            drawn_object_for_selection: None,
-            drawn_object_visible: None,
-            buffer_objects,
+            optional_scene_for_selection: None,
+            optional_scene_visible: None,
+
             under_selection_box_colors: Vec::new(),
             selected_colors: HashSet::new(),
             point_objects: HashMap::new(),
@@ -236,12 +235,12 @@ impl Renderer
     }
 
 
-    fn update_drawn_object_for_selection(&mut self) -> Result<(), JsValue>
+    fn update_scene_for_selection(&mut self) -> Result<(), JsValue>
     {
         if !self.state.point_objects.is_empty()
         {
-            let mut drawn_object_for_selection = OldDrawnObject::create();
-            drawn_object_for_selection.add_point_object(
+            let mut scene_for_selection = SceneAdapter::create();
+            scene_for_selection.add_point_objects(
                 &self.state.point_objects,
                 GLMode::Selection,
                 &self.state.under_selection_box_colors,
@@ -250,7 +249,7 @@ impl Renderer
                 &self.props.is_mesh_visible)?;
             if !self.state.line_objects.is_empty()
             {
-                drawn_object_for_selection.add_line_objects(
+                scene_for_selection.add_line_objects(
                     &self.state.point_objects,
                     &self.state.line_objects,
                     GLMode::Selection,
@@ -263,7 +262,7 @@ impl Renderer
             }
             if !self.state.concentrated_loads.is_empty()
             {
-                drawn_object_for_selection.add_concentrated_loads(
+                scene_for_selection.add_concentrated_loads(
                     &self.state.point_objects,
                     &mut self.state.concentrated_loads,
                     GLMode::Selection,
@@ -272,7 +271,6 @@ impl Renderer
                     DRAWN_CONCENTRATED_LOADS_LINE_LENGTH /
                             (1.0 + self.props.d_scale),
                     DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
-                    DRAWN_CONCENTRATED_LOADS_CAPS_BASE_POINTS_NUMBER,
                     DRAWN_CONCENTRATED_LOADS_CAPS_HEIGHT /
                         (1.0 + self.props.d_scale),
                     DRAWN_CONCENTRATED_LOADS_CAPS_WIDTH /
@@ -281,7 +279,7 @@ impl Renderer
             }
             if !self.state.distributed_line_loads.is_empty()
             {
-                drawn_object_for_selection.add_distributed_line_loads(
+                scene_for_selection.add_distributed_line_loads(
                     &self.state.point_objects,
                     &self.state.line_objects,
                     &mut self.state.distributed_line_loads,
@@ -291,7 +289,6 @@ impl Renderer
                     DRAWN_DISTRIBUTED_LINE_LOADS_LINE_LENGTH /
                             (1.0 + self.props.d_scale),
                     DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
-                    DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_BASE_POINTS_NUMBER,
                     DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_HEIGHT /
                         (1.0 + self.props.d_scale),
                     DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_WIDTH /
@@ -300,33 +297,30 @@ impl Renderer
             }
             if !self.state.boundary_conditions.is_empty()
             {
-                drawn_object_for_selection.add_boundary_conditions(&self.state.point_objects,
+                scene_for_selection.add_boundary_conditions(&self.state.point_objects,
                     &self.state.boundary_conditions, GLMode::Selection,
-                    &self.state.under_selection_box_colors,
-                    &self.state.selected_colors,
+                    &self.state.under_selection_box_colors, &self.state.selected_colors,
                     DRAWN_BOUNDARY_CONDITION_CAPS_BASE_POINTS_NUMBER,
-                    DRAWN_BOUNDARY_CONDITION_CAPS_HEIGHT /
-                        (1.0 + self.props.d_scale),
-                    DRAWN_BOUNDARY_CONDITION_CAPS_WIDTH /
-                        (1.0 + self.props.d_scale),
+                    DRAWN_BOUNDARY_CONDITION_CAPS_HEIGHT / (1.0 + self.props.d_scale),
+                    DRAWN_BOUNDARY_CONDITION_CAPS_WIDTH / (1.0 + self.props.d_scale),
                     &self.props.is_boundary_condition_visible)?;
             }
-            self.state.drawn_object_for_selection = Some(drawn_object_for_selection);
+            self.state.optional_scene_for_selection = Some(scene_for_selection);
         }
         else
         {
-            self.state.drawn_object_for_selection = None;
+            self.state.optional_scene_for_selection = None;
         }
         Ok(())
     }
 
 
-    fn update_drawn_object_visible(&mut self) -> Result<(), JsValue>
+    fn update_scene_visible(&mut self) -> Result<(), JsValue>
     {
         if !self.state.point_objects.is_empty()
         {
-            let mut drawn_object_visible = OldDrawnObject::create();
-            drawn_object_visible.add_point_object(
+            let mut scene_visible = SceneAdapter::create();
+            scene_visible.add_point_objects(
                 &self.state.point_objects,
                 GLMode::Visible,
                 &self.state.under_selection_box_colors,
@@ -335,7 +329,7 @@ impl Renderer
                 &self.props.is_mesh_visible)?;
             if !self.state.line_objects.is_empty()
             {
-                drawn_object_visible.add_line_objects(
+                scene_visible.add_line_objects(
                     &self.state.point_objects,
                     &self.state.line_objects,
                     GLMode::Visible,
@@ -348,7 +342,7 @@ impl Renderer
                 if let Some(beam_section_orientation) =
                     &self.state.beam_section_orientation_for_preview
                 {
-                    drawn_object_visible.add_beam_section_orientation_for_preview(
+                    scene_visible.add_beam_section_orientation_for_preview(
                         &self.state.point_objects,
                         &self.state.line_objects,
                         beam_section_orientation,
@@ -364,7 +358,7 @@ impl Renderer
             }
             if !self.state.concentrated_loads.is_empty()
             {
-                drawn_object_visible.add_concentrated_loads(
+                scene_visible.add_concentrated_loads(
                     &self.state.point_objects,
                     &self.state.concentrated_loads,
                     GLMode::Visible,
@@ -373,7 +367,6 @@ impl Renderer
                     DRAWN_CONCENTRATED_LOADS_LINE_LENGTH /
                             (1.0 + self.props.d_scale),
                     DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
-                    DRAWN_CONCENTRATED_LOADS_CAPS_BASE_POINTS_NUMBER,
                     DRAWN_CONCENTRATED_LOADS_CAPS_HEIGHT /
                         (1.0 + self.props.d_scale),
                     DRAWN_CONCENTRATED_LOADS_CAPS_WIDTH /
@@ -382,7 +375,7 @@ impl Renderer
             }
             if !self.state.distributed_line_loads.is_empty()
             {
-                drawn_object_visible.add_distributed_line_loads(
+                scene_visible.add_distributed_line_loads(
                     &self.state.point_objects,
                     &self.state.line_objects,
                     &mut self.state.distributed_line_loads,
@@ -392,7 +385,6 @@ impl Renderer
                     DRAWN_DISTRIBUTED_LINE_LOADS_LINE_LENGTH /
                             (1.0 + self.props.d_scale),
                     DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
-                    DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_BASE_POINTS_NUMBER,
                     DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_HEIGHT /
                         (1.0 + self.props.d_scale),
                     DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_WIDTH /
@@ -401,22 +393,19 @@ impl Renderer
             }
             if !self.state.boundary_conditions.is_empty()
             {
-                drawn_object_visible.add_boundary_conditions(&self.state.point_objects,
+                scene_visible.add_boundary_conditions(&self.state.point_objects,
                     &self.state.boundary_conditions, GLMode::Visible,
-                    &self.state.under_selection_box_colors,
-                    &self.state.selected_colors,
+                    &self.state.under_selection_box_colors, &self.state.selected_colors,
                     DRAWN_BOUNDARY_CONDITION_CAPS_BASE_POINTS_NUMBER,
-                    DRAWN_BOUNDARY_CONDITION_CAPS_HEIGHT /
-                        (1.0 + self.props.d_scale),
-                    DRAWN_BOUNDARY_CONDITION_CAPS_WIDTH /
-                        (1.0 + self.props.d_scale),
+                    DRAWN_BOUNDARY_CONDITION_CAPS_HEIGHT / (1.0 + self.props.d_scale),
+                    DRAWN_BOUNDARY_CONDITION_CAPS_WIDTH / (1.0 + self.props.d_scale),
                     &self.props.is_boundary_condition_visible)?;
             }
-            self.state.drawn_object_visible = Some(drawn_object_visible);
+            self.state.optional_scene_visible = Some(scene_visible);
         }
         else
         {
-            self.state.drawn_object_visible = None;
+            self.state.optional_scene_visible = None;
         }
         Ok(())
     }
@@ -563,7 +552,7 @@ impl Renderer
         }
 
         self.state.beam_section_orientation_for_preview = None;
-        self.update_drawn_object_visible()?;
+        self.update_scene_visible()?;
         if is_object_selected
         {
             Ok(())
@@ -605,7 +594,7 @@ impl Renderer
                 return Err(JsValue::from(error_message));
             }
         }
-        self.update_drawn_object_visible()?;
+        self.update_scene_visible()?;
         Ok(())
     }
 
@@ -639,7 +628,7 @@ impl Renderer
             }
         }
         self.state.beam_section_orientation_for_preview = Some(beam_section_orientation_for_preview);
-        self.update_drawn_object_visible()?;
+        self.update_scene_visible()?;
         Ok(())
     }
 
@@ -654,8 +643,8 @@ impl Renderer
         {
             self.props.is_geometry_visible = true;
         }
-        self.update_drawn_object_for_selection()?;
-        self.update_drawn_object_visible()?;
+        self.update_scene_for_selection()?;
+        self.update_scene_visible()?;
         Ok(())
     }
 
@@ -670,8 +659,8 @@ impl Renderer
         {
             self.props.is_mesh_visible = true;
         }
-        self.update_drawn_object_for_selection()?;
-        self.update_drawn_object_visible()?;
+        self.update_scene_for_selection()?;
+        self.update_scene_visible()?;
         Ok(())
     }
 
@@ -686,8 +675,8 @@ impl Renderer
         {
             self.props.is_load_visible = true;
         }
-        self.update_drawn_object_for_selection()?;
-        self.update_drawn_object_visible()?;
+        self.update_scene_for_selection()?;
+        self.update_scene_visible()?;
         Ok(())
     }
 
@@ -702,8 +691,8 @@ impl Renderer
         {
             self.props.is_boundary_condition_visible = true;
         }
-        self.update_drawn_object_for_selection()?;
-        self.update_drawn_object_visible()?;
+        self.update_scene_for_selection()?;
+        self.update_scene_visible()?;
         Ok(())
     }
 
@@ -748,23 +737,56 @@ impl Renderer
         let mat_to_rotate = model_view_matrix;
         mat4::rotate_y(&mut model_view_matrix, &mat_to_rotate, &self.props.theta);
 
-        if let Some(drawn_object_for_selection) =
-            &self.state.drawn_object_for_selection
+        if let Some(scene_for_selection) = &self.state.optional_scene_for_selection
         {
-            self.state.buffer_objects.store_drawn_object(&self.state.gl,
-                drawn_object_for_selection);
-            self.state.buffer_objects.associate_with_shader_programs(&self.state.gl,
-                &self.state.shader_programs);
-
             let point_size = 12.0;
 
+            self.state.vertex_buffer.store_vertices_coordinates(&self.state.gl,
+                scene_for_selection.ref_points_coordinates()?);
+            self.state.color_buffer.store_colors_values(&self.state.gl,
+                scene_for_selection.ref_points_colors_values()?);
+            self.state.vertex_buffer.associate_with_shader_programs(&self.state.gl,
+                &self.state.shader_programs);
+            self.state.color_buffer.associate_with_shader_programs(&self.state.gl,
+                &self.state.shader_programs);
             self.state.gl.uniform1f(Some(self.state.shader_programs.ref_point_size()), point_size);
             self.state.gl.uniform_matrix4fv_with_f32_array(
                 Some(self.state.shader_programs.ref_projection_matrix()), false, &projection_matrix);
             self.state.gl.uniform_matrix4fv_with_f32_array(
                 Some(self.state.shader_programs.ref_model_view_matrix()), false, &model_view_matrix);
+            scene_for_selection.draw_points(&self.state.gl)?;
 
-            drawn_object_for_selection.draw(&self.state.gl);
+            self.state.vertex_buffer.store_vertices_coordinates(&self.state.gl,
+                scene_for_selection.ref_lines_endpoints_coordinates()?);
+            self.state.color_buffer.store_colors_values(&self.state.gl,
+                scene_for_selection.ref_lines_endpoints_colors_values()?);
+            self.state.vertex_buffer.associate_with_shader_programs(&self.state.gl,
+                &self.state.shader_programs);
+            self.state.color_buffer.associate_with_shader_programs(&self.state.gl,
+                &self.state.shader_programs);
+            self.state.gl.uniform1f(Some(self.state.shader_programs.ref_point_size()), point_size);
+            self.state.gl.uniform_matrix4fv_with_f32_array(
+                Some(self.state.shader_programs.ref_projection_matrix()), false, &projection_matrix);
+            self.state.gl.uniform_matrix4fv_with_f32_array(
+                Some(self.state.shader_programs.ref_model_view_matrix()), false, &model_view_matrix);
+            scene_for_selection.draw_lines(&self.state.gl)?;
+
+            self.state.vertex_buffer.store_vertices_coordinates(&self.state.gl,
+                scene_for_selection.ref_triangles_vertices_coordinates()?);
+            self.state.color_buffer.store_colors_values(&self.state.gl,
+                scene_for_selection.ref_triangles_vertices_colors_values()?);
+            self.state.index_buffer.store_indexes_numbers(&self.state.gl,
+                scene_for_selection.ref_triangles_vertices_indexes()?);
+            self.state.vertex_buffer.associate_with_shader_programs(&self.state.gl,
+                &self.state.shader_programs);
+            self.state.color_buffer.associate_with_shader_programs(&self.state.gl,
+                &self.state.shader_programs);
+            self.state.gl.uniform1f(Some(self.state.shader_programs.ref_point_size()), point_size);
+            self.state.gl.uniform_matrix4fv_with_f32_array(
+                Some(self.state.shader_programs.ref_projection_matrix()), false, &projection_matrix);
+            self.state.gl.uniform_matrix4fv_with_f32_array(
+                Some(self.state.shader_programs.ref_model_view_matrix()), false, &model_view_matrix);
+            scene_for_selection.draw_triangles(&self.state.gl)?;
         }
 
         if let (Some(start_x), Some(start_y)) =
@@ -868,24 +890,58 @@ impl Renderer
         self.state.gl.clear(GL::DEPTH_BUFFER_BIT);
         self.state.gl.line_width(1.0);
 
-        self.update_drawn_object_visible()?;
+        self.update_scene_visible()?;
 
-        if let Some(drawn_object_visible) = &self.state.drawn_object_visible
+        if let Some(scene_visible) = &self.state.optional_scene_visible
         {
-            self.state.buffer_objects.store_drawn_object(&self.state.gl,
-                drawn_object_visible);
-            self.state.buffer_objects.associate_with_shader_programs(&self.state.gl,
-                &self.state.shader_programs);
-
             let point_size = 5.0;
 
+            self.state.vertex_buffer.store_vertices_coordinates(&self.state.gl,
+                scene_visible.ref_points_coordinates()?);
+            self.state.color_buffer.store_colors_values(&self.state.gl,
+                scene_visible.ref_points_colors_values()?);
+            self.state.vertex_buffer.associate_with_shader_programs(&self.state.gl,
+                &self.state.shader_programs);
+            self.state.color_buffer.associate_with_shader_programs(&self.state.gl,
+                &self.state.shader_programs);
             self.state.gl.uniform1f(Some(self.state.shader_programs.ref_point_size()), point_size);
             self.state.gl.uniform_matrix4fv_with_f32_array(
                 Some(self.state.shader_programs.ref_projection_matrix()), false, &projection_matrix);
             self.state.gl.uniform_matrix4fv_with_f32_array(
                 Some(self.state.shader_programs.ref_model_view_matrix()), false, &model_view_matrix);
+            scene_visible.draw_points(&self.state.gl)?;
 
-            drawn_object_visible.draw(&self.state.gl);
+            self.state.vertex_buffer.store_vertices_coordinates(&self.state.gl,
+                scene_visible.ref_lines_endpoints_coordinates()?);
+            self.state.color_buffer.store_colors_values(&self.state.gl,
+                scene_visible.ref_lines_endpoints_colors_values()?);
+            self.state.vertex_buffer.associate_with_shader_programs(&self.state.gl,
+                &self.state.shader_programs);
+            self.state.color_buffer.associate_with_shader_programs(&self.state.gl,
+                &self.state.shader_programs);
+            self.state.gl.uniform1f(Some(self.state.shader_programs.ref_point_size()), point_size);
+            self.state.gl.uniform_matrix4fv_with_f32_array(
+                Some(self.state.shader_programs.ref_projection_matrix()), false, &projection_matrix);
+            self.state.gl.uniform_matrix4fv_with_f32_array(
+                Some(self.state.shader_programs.ref_model_view_matrix()), false, &model_view_matrix);
+            scene_visible.draw_lines(&self.state.gl)?;
+
+            self.state.vertex_buffer.store_vertices_coordinates(&self.state.gl,
+                scene_visible.ref_triangles_vertices_coordinates()?);
+            self.state.color_buffer.store_colors_values(&self.state.gl,
+                scene_visible.ref_triangles_vertices_colors_values()?);
+            self.state.index_buffer.store_indexes_numbers(&self.state.gl,
+                scene_visible.ref_triangles_vertices_indexes()?);
+            self.state.vertex_buffer.associate_with_shader_programs(&self.state.gl,
+                &self.state.shader_programs);
+            self.state.color_buffer.associate_with_shader_programs(&self.state.gl,
+                &self.state.shader_programs);
+            self.state.gl.uniform1f(Some(self.state.shader_programs.ref_point_size()), point_size);
+            self.state.gl.uniform_matrix4fv_with_f32_array(
+                Some(self.state.shader_programs.ref_projection_matrix()), false, &projection_matrix);
+            self.state.gl.uniform_matrix4fv_with_f32_array(
+                Some(self.state.shader_programs.ref_model_view_matrix()), false, &model_view_matrix);
+            scene_visible.draw_triangles(&self.state.gl)?;
 
             let mut matrix = mat4::new_identity();
             mat4::mul(&mut matrix, &projection_matrix, &model_view_matrix);
@@ -1023,9 +1079,9 @@ impl Renderer
         mat4::rotate_y(&mut model_view_matrix, &mat_to_rotate, &self.props.theta);
 
         self.state.vertex_buffer.store_vertices_coordinates(&self.state.gl,
-            self.state.cs_axes_adapter.ref_lines_endpoints_coordinates()?);
+            self.state.cs_axes.ref_lines_endpoints_coordinates()?);
         self.state.color_buffer.store_colors_values(&self.state.gl,
-            self.state.cs_axes_adapter.ref_lines_endpoints_colors_values()?);
+            self.state.cs_axes.ref_lines_endpoints_colors_values()?);
         self.state.vertex_buffer.associate_with_shader_programs(&self.state.gl,
             &self.state.shader_programs);
         self.state.color_buffer.associate_with_shader_programs(&self.state.gl,
@@ -1034,14 +1090,14 @@ impl Renderer
             Some(self.state.shader_programs.ref_projection_matrix()), false, &projection_matrix);
         self.state.gl.uniform_matrix4fv_with_f32_array(
             Some(self.state.shader_programs.ref_model_view_matrix()), false, &model_view_matrix);
-        self.state.cs_axes_adapter.draw_lines(&self.state.gl)?;
+        self.state.cs_axes.draw_lines(&self.state.gl)?;
 
         self.state.vertex_buffer.store_vertices_coordinates(&self.state.gl,
-            &self.state.cs_axes_adapter.ref_triangles_vertices_coordinates()?);
+            &self.state.cs_axes.ref_triangles_vertices_coordinates()?);
         self.state.color_buffer.store_colors_values(&self.state.gl,
-            &self.state.cs_axes_adapter.ref_triangles_vertices_colors_values()?);
+            &self.state.cs_axes.ref_triangles_vertices_colors_values()?);
         self.state.index_buffer.store_indexes_numbers(&self.state.gl,
-            &self.state.cs_axes_adapter.ref_triangles_vertices_indexes()?);
+            &self.state.cs_axes.ref_triangles_vertices_indexes()?);
         self.state.vertex_buffer.associate_with_shader_programs(&self.state.gl,
             &self.state.shader_programs);
         self.state.color_buffer.associate_with_shader_programs(&self.state.gl,
@@ -1050,7 +1106,7 @@ impl Renderer
             Some(self.state.shader_programs.ref_projection_matrix()), false, &projection_matrix);
         self.state.gl.uniform_matrix4fv_with_f32_array(
             Some(self.state.shader_programs.ref_model_view_matrix()), false, &model_view_matrix);
-        self.state.cs_axes_adapter.draw_triangles(&self.state.gl)?;
+        self.state.cs_axes.draw_triangles(&self.state.gl)?;
 
         self.state.ctx.set_fill_style(&CANVAS_AXES_DENOTATION_COLOR.into());
 

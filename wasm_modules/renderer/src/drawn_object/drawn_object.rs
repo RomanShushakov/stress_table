@@ -160,6 +160,25 @@ impl DrawnObject
     }
 
 
+    pub fn add_triangles_vertices_indexes(&mut self, vertices_indexes: &[u32])
+        -> Result<(), JsValue>
+    {
+        if let Some(triangles_vertices_indexes) =
+            self.optional_triangles_vertices_indexes.as_mut()
+        {
+            triangles_vertices_indexes.extend(vertices_indexes);
+            Ok(())
+        }
+        else
+        {
+            let error_message = "Renderer: DrawnObject: Add triangle vertex index: \
+                'optional_triangles_vertices_indexes' attribute was defined as None for \
+                current DrawnObject!";
+            Err(JsValue::from(error_message))
+        }
+    }
+
+
     pub fn ref_points_coordinates(&self) -> Result<&[f32], JsValue>
     {
         if let Some(points_coordinates) = self.optional_points_coordinates.as_ref()

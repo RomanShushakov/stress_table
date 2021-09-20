@@ -7,6 +7,7 @@ use crate::drawn_object::consts::
 {
     CS_ORIGIN, CS_AXIS_X, CS_AXIS_X_COLOR, CS_AXIS_Y, CS_AXIS_Y_COLOR, CS_AXIS_Z, CS_AXIS_Z_COLOR
 };
+use crate::drawn_object::functions::create_monochrome_cone;
 
 use crate::consts::TOLERANCE;
 use wasm_bindgen::JsValue;
@@ -80,24 +81,6 @@ impl CSAxesDrawnObject
     pub fn add_cs_axes_caps(&mut self, base_points_number: u32, height: f32, base_radius: f32)
         -> Result<(), JsValue>
     {
-        let d_angle = 2.0 * PI / base_points_number as f32;
-        let local_coordinates = (0..base_points_number)
-            .map(|point_number|
-                {
-                    let angle = d_angle * point_number as f32;
-                    let local_x =
-                        {
-                            let value = base_radius * angle.cos();
-                            if value.abs() < TOLERANCE { 0.0 } else { value }
-                        };
-                    let local_y =
-                        {
-                            let value = base_radius * angle.sin();
-                            if value.abs() < TOLERANCE { 0.0 } else { value }
-                        };
-                    (local_x, local_y)
-                })
-            .collect::<Vec<(f32, f32)>>();
         let start_x_axis_cap_index =
             if self.drawn_object.ref_triangles_vertices_indexes()?.is_empty()
             {
@@ -108,35 +91,16 @@ impl CSAxesDrawnObject
                 self.drawn_object.ref_triangles_vertices_indexes()?[
                     self.drawn_object.ref_triangles_vertices_indexes()?.len() - 1] + 1
             };
-        self.drawn_object.add_triangle_vertex_coordinates(&CS_AXIS_X)?;
-        for (local_x, local_y) in &local_coordinates
-        {
-            let coordinates = [1.0 - height, *local_y, *local_x];
-            self.drawn_object.add_triangle_vertex_coordinates(&coordinates)?;
-        }
-        for point_number in 1..base_points_number
-        {
-            if point_number == 1
-            {
-                self.drawn_object.add_triangle_vertex_color_value(&CS_AXIS_X_COLOR)?;
-                self.drawn_object.add_triangle_vertex_color_value(&CS_AXIS_X_COLOR)?;
-                self.drawn_object.add_triangle_vertex_color_value(&CS_AXIS_X_COLOR)?;
-            }
-            else
-            {
-                self.drawn_object.add_triangle_vertex_color_value(&CS_AXIS_X_COLOR)?;
-            }
-            self.drawn_object.add_triangle_vertex_index(start_x_axis_cap_index)?;
-            self.drawn_object.add_triangle_vertex_index(
-                start_x_axis_cap_index + point_number)?;
-            self.drawn_object.add_triangle_vertex_index(
-                start_x_axis_cap_index + point_number + 1)?;
-        }
-        self.drawn_object.add_triangle_vertex_index(start_x_axis_cap_index)?;
-            self.drawn_object.add_triangle_vertex_index(
-                start_x_axis_cap_index + 1)?;
-            self.drawn_object.add_triangle_vertex_index(
-                start_x_axis_cap_index + base_points_number)?;
+        let (axes_x_cap_vertices_coordinates, axis_x_cap_vertices_colors_values,
+            axes_x_cap_vertices_indexes) = create_monochrome_cone(
+                &CS_AXIS_X, &[1.0 - height, 0.0, 0.0],
+                height, base_radius, base_points_number, start_x_axis_cap_index,
+                &CS_AXIS_X_COLOR, TOLERANCE)?;
+        self.drawn_object.add_triangle_vertex_coordinates(
+            &axes_x_cap_vertices_coordinates)?;
+        self.drawn_object.add_triangle_vertex_color_value(
+            &axis_x_cap_vertices_colors_values)?;
+        self.drawn_object.add_triangles_vertices_indexes(&axes_x_cap_vertices_indexes)?;
 
         let start_y_axis_cap_index =
             if self.ref_triangles_vertices_indexes()?.is_empty()
@@ -148,34 +112,16 @@ impl CSAxesDrawnObject
                 self.ref_triangles_vertices_indexes()?[
                     self.ref_triangles_vertices_indexes()?.len() - 1] + 1
             };
-        self.drawn_object.add_triangle_vertex_coordinates(&CS_AXIS_Y)?;
-        for (local_x, local_y) in &local_coordinates
-        {
-            let coordinates = [*local_y, 1.0 - height, *local_x];
-            self.drawn_object.add_triangle_vertex_coordinates(&coordinates)?;
-        }
-        for point_number in 1..base_points_number
-        {
-            if point_number == 1
-            {
-                self.drawn_object.add_triangle_vertex_color_value(&CS_AXIS_Y_COLOR)?;
-                self.drawn_object.add_triangle_vertex_color_value(&CS_AXIS_Y_COLOR)?;
-                self.drawn_object.add_triangle_vertex_color_value(&CS_AXIS_Y_COLOR)?;
-            }
-            else
-            {
-                self.drawn_object.add_triangle_vertex_color_value(&CS_AXIS_Y_COLOR)?;
-            }
-            self.drawn_object.add_triangle_vertex_index(start_y_axis_cap_index)?;
-            self.drawn_object.add_triangle_vertex_index(
-                start_y_axis_cap_index + point_number)?;
-            self.drawn_object.add_triangle_vertex_index(
-                start_y_axis_cap_index + point_number + 1)?;
-        }
-        self.drawn_object.add_triangle_vertex_index(start_y_axis_cap_index)?;
-        self.drawn_object.add_triangle_vertex_index(start_y_axis_cap_index + 1)?;
-        self.drawn_object.add_triangle_vertex_index(
-            start_y_axis_cap_index + base_points_number)?;
+        let (axes_y_cap_vertices_coordinates, axis_y_cap_vertices_colors_values,
+            axes_y_cap_vertices_indexes) = create_monochrome_cone(
+                &CS_AXIS_Y, &[0.0, 1.0 - height, 0.0],
+                height, base_radius, base_points_number, start_y_axis_cap_index,
+                &CS_AXIS_Y_COLOR, TOLERANCE)?;
+        self.drawn_object.add_triangle_vertex_coordinates(
+            &axes_y_cap_vertices_coordinates)?;
+        self.drawn_object.add_triangle_vertex_color_value(
+            &axis_y_cap_vertices_colors_values)?;
+        self.drawn_object.add_triangles_vertices_indexes(&axes_y_cap_vertices_indexes)?;
 
         let start_z_axis_cap_index =
             if self.ref_triangles_vertices_indexes()?.is_empty()
@@ -187,34 +133,17 @@ impl CSAxesDrawnObject
                 self.ref_triangles_vertices_indexes()?[
                     self.ref_triangles_vertices_indexes()?.len() - 1] + 1
             };
-        self.drawn_object.add_triangle_vertex_coordinates(&CS_AXIS_Z)?;
-        for (local_x, local_y) in &local_coordinates
-        {
-            let coordinates = [*local_x, *local_y, 1.0 - height];
-            self.drawn_object.add_triangle_vertex_coordinates(&coordinates)?;
-        }
-        for point_number in 1..base_points_number
-        {
-            if point_number == 1
-            {
-                self.drawn_object.add_triangle_vertex_color_value(&CS_AXIS_Z_COLOR)?;
-                self.drawn_object.add_triangle_vertex_color_value(&CS_AXIS_Z_COLOR)?;
-                self.drawn_object.add_triangle_vertex_color_value(&CS_AXIS_Z_COLOR)?;
-            }
-            else
-            {
-                self.drawn_object.add_triangle_vertex_color_value(&CS_AXIS_Z_COLOR)?;
-            }
-            self.drawn_object.add_triangle_vertex_index(start_z_axis_cap_index)?;
-            self.drawn_object.add_triangle_vertex_index(
-                start_z_axis_cap_index + point_number)?;
-            self.drawn_object.add_triangle_vertex_index(
-                start_z_axis_cap_index + point_number + 1)?;
-        }
-        self.drawn_object.add_triangle_vertex_index(start_z_axis_cap_index)?;
-        self.drawn_object.add_triangle_vertex_index(start_z_axis_cap_index + 1)?;
-        self.drawn_object.add_triangle_vertex_index(
-            start_z_axis_cap_index + base_points_number)?;
+        let (axes_z_cap_vertices_coordinates, axis_z_cap_vertices_colors_values,
+            axes_z_cap_vertices_indexes) = create_monochrome_cone(
+                &CS_AXIS_Z, &[0.0, 0.0, 1.0 - height],
+                height, base_radius, base_points_number, start_z_axis_cap_index,
+                &CS_AXIS_Z_COLOR, TOLERANCE)?;
+        self.drawn_object.add_triangle_vertex_coordinates(
+            &axes_z_cap_vertices_coordinates)?;
+        self.drawn_object.add_triangle_vertex_color_value(
+            &axis_z_cap_vertices_colors_values)?;
+        self.drawn_object.add_triangles_vertices_indexes(&axes_z_cap_vertices_indexes)?;
+
         Ok(())
     }
 

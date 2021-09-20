@@ -7,22 +7,16 @@ use extended_matrix::extended_matrix::ExtendedMatrix;
 use extended_matrix::basic_matrix::basic_matrix::MatrixElementPosition;
 use extended_matrix::functions::copy_element_value;
 
+use crate::global_scene::point_object::{PointObjectKey, PointObject};
+use crate::global_scene::point_object::{PointObjectType};
+use crate::global_scene::line_object::{LineObject, LineObjectKey, BeamSectionOrientation};
+use crate::global_scene::line_object::{LineObjectType, LineObjectColorScheme};
+use crate::global_scene::preprocessor::concentrated_load::{ConcentratedLoad, Sign, CSAxis};
+use crate::global_scene::preprocessor::distributed_line_load::DistributedLineLoad;
+use crate::global_scene::preprocessor::boundary_condition::BoundaryCondition;
+
 use crate::drawn_object::drawn_object::DrawnObject;
-
-use crate::point_object::{PointObjectKey, PointObject};
-use crate::point_object::{PointObjectType};
-
-use crate::line_object::{LineObject, LineObjectKey, BeamSectionOrientation};
-use crate::line_object::{LineObjectType, LineObjectColorScheme};
-
 use crate::drawn_object::functions::{build_monochrome_cylinder_around_line, build_monochrome_cone};
-
-use crate::concentrated_load::{ConcentratedLoad, Sign, CSAxis};
-
-use crate::distributed_line_load::DistributedLineLoad;
-
-use crate::boundary_condition::BoundaryCondition;
-
 use crate::drawn_object::consts::
 {
     DRAWN_POINTS_COLOR, DRAWN_NODES_COLOR, DRAWN_LINES_DEFAULT_COLOR, DRAWN_LINES_TRUSS_PROPS_COLOR,

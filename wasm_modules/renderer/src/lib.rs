@@ -18,6 +18,16 @@ use buffers::buffers::{VertexBuffer, ColorBuffer, IndexBuffer};
 
 mod global_scene;
 use global_scene::global_scene::GlobalScene;
+use global_scene::point_object::{PointObjectKey, PointObject};
+use global_scene::point_object::{PointObjectType};
+use global_scene::line_object::
+{
+    LineObject, LineObjectKey, LineObjectNumbers, BeamSectionOrientation
+};
+use global_scene::line_object::{LineObjectType, LineObjectColorScheme};
+use global_scene::preprocessor::concentrated_load::ConcentratedLoad;
+use global_scene::preprocessor::distributed_line_load::DistributedLineLoad;
+use global_scene::preprocessor::boundary_condition::BoundaryCondition;
 
 mod drawn_object;
 use drawn_object::scene_adapter::SceneAdapter;
@@ -48,36 +58,11 @@ use drawn_object::consts::
     DRAWN_BOUNDARY_CONDITION_CAPS_WIDTH,
 };
 
-mod point_object;
-use point_object::{PointObjectKey, PointObject};
-use point_object::{PointObjectType};
-
-mod line_object;
-use line_object::{LineObject, LineObjectKey, LineObjectNumbers, BeamSectionOrientation};
-use line_object::{LineObjectType, LineObjectColorScheme};
-
-mod concentrated_load;
-use concentrated_load::ConcentratedLoad;
-
-mod distributed_line_load;
-use distributed_line_load::DistributedLineLoad;
-
-mod boundary_condition;
-use boundary_condition::BoundaryCondition;
-
 mod methods_for_canvas_manipulation;
 
 mod methods_for_scene_objects_visibility_manipulation;
 
-mod methods_for_point_object_crud;
-
-mod methods_for_line_object_crud;
-
-mod methods_for_concentrated_load_crud;
-
-mod methods_for_distributed_line_load_crud;
-
-mod methods_for_boundary_condition_crud;
+mod methods_for_scene_objects_data_handle;
 
 mod consts;
 use consts::
@@ -123,18 +108,7 @@ struct State
     color_buffer: ColorBuffer,
     index_buffer: IndexBuffer,
     cs_axes: CSAxesAdapter,
-
     global_scene: GlobalScene,
-
-    optional_scene_for_selection: Option<SceneAdapter>,
-    optional_scene_visible: Option<SceneAdapter>,
-    point_objects: HashMap<PointObjectKey, PointObject>,
-    line_objects: HashMap<LineObjectKey, LineObject>,
-    beam_section_orientation_for_preview: Option<BeamSectionOrientation>,
-    concentrated_loads: HashMap<u32, ConcentratedLoad>,
-    distributed_line_loads: HashMap<u32, DistributedLineLoad>,
-    boundary_conditions: HashMap<u32, BoundaryCondition>,
-
     under_selection_box_colors: Vec<u8>,
     selected_colors: HashSet<[u8; 4]>,
     selection_box_start_x: Option<i32>,
@@ -202,18 +176,7 @@ impl Renderer
             color_buffer,
             index_buffer,
             cs_axes,
-
             global_scene,
-
-            optional_scene_for_selection: None,
-            optional_scene_visible: None,
-            point_objects: HashMap::new(),
-            line_objects: HashMap::new(),
-            beam_section_orientation_for_preview: None,
-            concentrated_loads: HashMap::new(),
-            distributed_line_loads: HashMap::new(),
-            boundary_conditions: HashMap::new(),
-
             under_selection_box_colors: Vec::new(),
             selected_colors: HashSet::new(),
             selection_box_start_x: None,
@@ -226,177 +189,27 @@ impl Renderer
 
     fn update_scene_for_selection(&mut self) -> Result<(), JsValue>
     {
-        if !self.state.point_objects.is_empty()
-        {
-            let mut scene_for_selection = SceneAdapter::create();
-            scene_for_selection.add_point_objects(
-                &self.state.point_objects,
-                GLMode::Selection,
-                &self.state.under_selection_box_colors,
-                &self.state.selected_colors,
-                &self.props.is_geometry_visible,
-                &self.props.is_mesh_visible)?;
-            if !self.state.line_objects.is_empty()
-            {
-                scene_for_selection.add_line_objects(
-                    &self.state.point_objects,
-                    &self.state.line_objects,
-                    GLMode::Selection,
-                    &self.state.under_selection_box_colors,
-                    &self.state.selected_colors,
-                    DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
-                    DRAWN_LINE_OBJECTS_BASE_RADIUS / (1.0 + self.props.d_scale),
-                    &self.props.is_geometry_visible,
-                    &self.props.is_mesh_visible)?;
-            }
-            if !self.state.concentrated_loads.is_empty()
-            {
-                scene_for_selection.add_concentrated_loads(
-                    &self.state.point_objects,
-                    &mut self.state.concentrated_loads,
-                    GLMode::Selection,
-                    &self.state.under_selection_box_colors,
-                    &self.state.selected_colors,
-                    DRAWN_CONCENTRATED_LOADS_LINE_LENGTH /
-                            (1.0 + self.props.d_scale),
-                    DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
-                    DRAWN_CONCENTRATED_LOADS_CAPS_HEIGHT /
-                        (1.0 + self.props.d_scale),
-                    DRAWN_CONCENTRATED_LOADS_CAPS_WIDTH /
-                        (1.0 + self.props.d_scale),
-                    &self.props.is_load_visible)?;
-            }
-            if !self.state.distributed_line_loads.is_empty()
-            {
-                scene_for_selection.add_distributed_line_loads(
-                    &self.state.point_objects,
-                    &self.state.line_objects,
-                    &mut self.state.distributed_line_loads,
-                    GLMode::Selection,
-                    &self.state.under_selection_box_colors,
-                    &self.state.selected_colors,
-                    DRAWN_DISTRIBUTED_LINE_LOADS_LINE_LENGTH /
-                            (1.0 + self.props.d_scale),
-                    DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
-                    DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_HEIGHT /
-                        (1.0 + self.props.d_scale),
-                    DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_WIDTH /
-                        (1.0 + self.props.d_scale),
-                    &self.props.is_load_visible)?;
-            }
-            if !self.state.boundary_conditions.is_empty()
-            {
-                scene_for_selection.add_boundary_conditions(&self.state.point_objects,
-                    &self.state.boundary_conditions, GLMode::Selection,
-                    &self.state.under_selection_box_colors, &self.state.selected_colors,
-                    DRAWN_BOUNDARY_CONDITION_CAPS_BASE_POINTS_NUMBER,
-                    DRAWN_BOUNDARY_CONDITION_CAPS_HEIGHT / (1.0 + self.props.d_scale),
-                    DRAWN_BOUNDARY_CONDITION_CAPS_WIDTH / (1.0 + self.props.d_scale),
-                    &self.props.is_boundary_condition_visible)?;
-            }
-            self.state.optional_scene_for_selection = Some(scene_for_selection);
-        }
-        else
-        {
-            self.state.optional_scene_for_selection = None;
-        }
-        Ok(())
+        self.state.global_scene.update_scene_for_selection(
+            &self.state.under_selection_box_colors,
+            &self.state.selected_colors,
+            self.props.d_scale,
+            &self.props.is_geometry_visible,
+            &self.props.is_load_visible,
+            &self.props.is_boundary_condition_visible,
+            &self.props.is_mesh_visible)
     }
 
 
     fn update_scene_visible(&mut self) -> Result<(), JsValue>
     {
-        if !self.state.point_objects.is_empty()
-        {
-            let mut scene_visible = SceneAdapter::create();
-            scene_visible.add_point_objects(
-                &self.state.point_objects,
-                GLMode::Visible,
-                &self.state.under_selection_box_colors,
-                &self.state.selected_colors,
-                &self.props.is_geometry_visible,
-                &self.props.is_mesh_visible)?;
-            if !self.state.line_objects.is_empty()
-            {
-                scene_visible.add_line_objects(
-                    &self.state.point_objects,
-                    &self.state.line_objects,
-                    GLMode::Visible,
-                    &self.state.under_selection_box_colors,
-                    &self.state.selected_colors,
-                    DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
-                    DRAWN_LINE_OBJECTS_BASE_RADIUS / (1.0 + self.props.d_scale),
-                    &self.props.is_geometry_visible,
-                    &self.props.is_mesh_visible)?;
-                if let Some(beam_section_orientation) =
-                    &self.state.beam_section_orientation_for_preview
-                {
-                    scene_visible.add_beam_section_orientation_for_preview(
-                        &self.state.point_objects,
-                        &self.state.line_objects,
-                        beam_section_orientation,
-                        DRAWN_BEAM_SECTION_ORIENTATION_LINE_LENGTH /
-                            (1.0 + self.props.d_scale),
-                        DRAWN_BEAM_SECTION_ORIENTATION_CAPS_BASE_POINTS_NUMBER,
-                        DRAWN_BEAM_SECTION_ORIENTATION_CAPS_HEIGHT /
-                            (1.0 + self.props.d_scale),
-                        DRAWN_BEAM_SECTION_ORIENTATION_CAPS_WIDTH /
-                            (1.0 + self.props.d_scale),
-                    )?;
-                }
-            }
-            if !self.state.concentrated_loads.is_empty()
-            {
-                scene_visible.add_concentrated_loads(
-                    &self.state.point_objects,
-                    &self.state.concentrated_loads,
-                    GLMode::Visible,
-                    &self.state.under_selection_box_colors,
-                    &self.state.selected_colors,
-                    DRAWN_CONCENTRATED_LOADS_LINE_LENGTH /
-                            (1.0 + self.props.d_scale),
-                    DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
-                    DRAWN_CONCENTRATED_LOADS_CAPS_HEIGHT /
-                        (1.0 + self.props.d_scale),
-                    DRAWN_CONCENTRATED_LOADS_CAPS_WIDTH /
-                        (1.0 + self.props.d_scale),
-                    &self.props.is_load_visible)?;
-            }
-            if !self.state.distributed_line_loads.is_empty()
-            {
-                scene_visible.add_distributed_line_loads(
-                    &self.state.point_objects,
-                    &self.state.line_objects,
-                    &mut self.state.distributed_line_loads,
-                    GLMode::Visible,
-                    &self.state.under_selection_box_colors,
-                    &self.state.selected_colors,
-                    DRAWN_DISTRIBUTED_LINE_LOADS_LINE_LENGTH /
-                            (1.0 + self.props.d_scale),
-                    DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER,
-                    DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_HEIGHT /
-                        (1.0 + self.props.d_scale),
-                    DRAWN_DISTRIBUTED_LINE_LOADS_CAPS_WIDTH /
-                        (1.0 + self.props.d_scale),
-                    &self.props.is_load_visible)?;
-            }
-            if !self.state.boundary_conditions.is_empty()
-            {
-                scene_visible.add_boundary_conditions(&self.state.point_objects,
-                    &self.state.boundary_conditions, GLMode::Visible,
-                    &self.state.under_selection_box_colors, &self.state.selected_colors,
-                    DRAWN_BOUNDARY_CONDITION_CAPS_BASE_POINTS_NUMBER,
-                    DRAWN_BOUNDARY_CONDITION_CAPS_HEIGHT / (1.0 + self.props.d_scale),
-                    DRAWN_BOUNDARY_CONDITION_CAPS_WIDTH / (1.0 + self.props.d_scale),
-                    &self.props.is_boundary_condition_visible)?;
-            }
-            self.state.optional_scene_visible = Some(scene_visible);
-        }
-        else
-        {
-            self.state.optional_scene_visible = None;
-        }
-        Ok(())
+        self.state.global_scene.update_scene_visible(
+            &self.state.under_selection_box_colors,
+            &self.state.selected_colors,
+            self.props.d_scale,
+            &self.props.is_geometry_visible,
+            &self.props.is_load_visible,
+            &self.props.is_boundary_condition_visible,
+            &self.props.is_mesh_visible)
     }
 
 
@@ -406,183 +219,20 @@ impl Renderer
             .chunks(4)
             .map(|chunk| <[u8; 4]>::try_from(chunk).unwrap())
             .collect::<HashSet<[u8; 4]>>();
-        let mut selected_point_numbers = Vec::new();
-        let mut selected_node_numbers = Vec::new();
-        let mut selected_line_numbers = Vec::new();
-        let mut selected_line_element_numbers = Vec::new();
-        let mut selected_concentrated_loads_points_numbers = Vec::new();
-        let mut selected_distributed_line_loads_lines_numbers = Vec::new();
-        let mut selected_boundary_conditions_points_numbers = Vec::new();
-        let mut is_object_selected = false;
-        for selected_color in self.state.selected_colors.iter()
-        {
-            for (point_object_key, point_object) in
-                self.state.point_objects.iter()
-            {
-                if point_object.is_uid_same(u32::from_be_bytes(*selected_color))
-                {
-                    let selected_point_object_number = point_object_key.copy_number();
-                    let selected_point_object_type =
-                        point_object_key.copy_object_type();
-                    match selected_point_object_type
-                    {
-                        PointObjectType::Point =>
-                                selected_point_numbers.push(selected_point_object_number),
-                        PointObjectType::Node =>
-                            selected_node_numbers.push(selected_point_object_number),
-                    }
-                }
-            }
-
-            for (line_object_key, line_object) in
-                self.state.line_objects.iter()
-            {
-                if line_object.is_uid_same(u32::from_be_bytes(*selected_color))
-                {
-                    let selected_line_object_number = line_object_key.get_number();
-                    let selected_line_object_type = line_object_key.get_object_type();
-                    match selected_line_object_type
-                    {
-                        LineObjectType::Line =>
-                            selected_line_numbers.push(selected_line_object_number),
-                        LineObjectType::Element =>
-                            selected_line_element_numbers.push(selected_line_object_number),
-                    }
-                }
-            }
-
-            for (point_number, concentrated_load) in
-                self.state.concentrated_loads.iter()
-            {
-                if concentrated_load.is_uid_same(u32::from_be_bytes(*selected_color))
-                {
-                    selected_concentrated_loads_points_numbers.push(point_number);
-                }
-            }
-
-            for (line_number, distributed_line_load) in
-                self.state.distributed_line_loads.iter()
-            {
-                if distributed_line_load.is_uid_same(u32::from_be_bytes(*selected_color))
-                {
-                    selected_distributed_line_loads_lines_numbers.push(line_number);
-                }
-            }
-
-            for (point_number, boundary_condition) in
-                self.state.boundary_conditions.iter()
-            {
-                if boundary_condition.is_uid_same(u32::from_be_bytes(*selected_color))
-                {
-                    selected_boundary_conditions_points_numbers.push(point_number);
-                }
-            }
-        }
-
-        if !selected_point_numbers.is_empty()
-        {
-            is_object_selected = true;
-            let detail = json!({ "point_numbers": selected_point_numbers });
-            dispatch_custom_event(detail, SELECTED_POINTS_EVENT_MAME,
-                EVENT_TARGET)?;
-        }
-        else if !selected_node_numbers.is_empty()
-        {
-            is_object_selected = true;
-            let detail = json!({ "node_numbers": selected_node_numbers });
-            dispatch_custom_event(detail, SELECTED_NODES_EVENT_MAME,
-                EVENT_TARGET)?;
-        }
-        else if !selected_line_numbers.is_empty()
-        {
-            is_object_selected = true;
-            let detail = json!({ "line_numbers": selected_line_numbers });
-            dispatch_custom_event(detail, SELECTED_LINES_EVENT_MAME,
-                EVENT_TARGET)?;
-        }
-        else if !selected_line_element_numbers.is_empty()
-        {
-            is_object_selected = true;
-            let detail = json!({ "line_element_numbers": selected_line_element_numbers });
-            dispatch_custom_event(detail, SELECTED_LINE_ELEMENTS_EVENT_MAME,
-                EVENT_TARGET)?;
-        }
-        else if !selected_concentrated_loads_points_numbers.is_empty()
-        {
-            is_object_selected = true;
-            let detail = json!({
-                "concentrated_loads_points_numbers": selected_concentrated_loads_points_numbers });
-            dispatch_custom_event(detail,
-                SELECTED_CONCENTRATED_LOADS_POINTS_NUMBERS_EVENT_MAME,
-                EVENT_TARGET)?;
-        }
-        else if !selected_distributed_line_loads_lines_numbers.is_empty()
-        {
-            is_object_selected = true;
-            let detail = json!({
-                "distributed_line_loads_lines_numbers":
-                selected_distributed_line_loads_lines_numbers });
-            dispatch_custom_event(detail,
-                SELECTED_DISTRIBUTED_LINE_LOADS_LINES_NUMBERS_EVENT_MAME,
-                EVENT_TARGET)?;
-        }
-        else if !selected_boundary_conditions_points_numbers.is_empty()
-        {
-            is_object_selected = true;
-            let detail = json!({
-                "boundary_conditions_points_numbers": selected_boundary_conditions_points_numbers });
-            dispatch_custom_event(detail,
-                SELECTED_BOUNDARY_CONDITIONS_POINTS_NUMBERS_EVENT_MAME,
-                EVENT_TARGET)?;
-        }
-        else
-        {
-            is_object_selected = false;
-        }
-
-        self.state.beam_section_orientation_for_preview = None;
+        self.state.global_scene.select_objects(&self.state.selected_colors, drop_selection)?;
         self.update_scene_visible()?;
-        if is_object_selected
-        {
-            Ok(())
-        }
-        else
-        {
-            let this = JsValue::null();
-            let _ = drop_selection.call0(&this);
+        Ok(())
 
-            Ok(())
-        }
     }
 
 
     pub fn preview_selected_line_objects(&mut self, selected_line_object_numbers: JsValue,
         line_object_type: LineObjectType) -> Result<(), JsValue>
     {
-        self.state.selected_colors.clear();
-        for line_object_number in selected_line_object_numbers
-            .into_serde::<LineObjectNumbers>()
-            .or(Err(JsValue::from("Renderer: Preview selected line object numbers action: \
-                Line object numbers could not be serialized!")))?
-            .ref_line_numbers()
-        {
-            let current_line_object_key =
-                LineObjectKey::create(*line_object_number, line_object_type);
-            if let Some(line_object) =
-                self.state.line_objects.get(&current_line_object_key)
-            {
-                let current_uid = line_object.copy_uid();
-                let current_color = transform_u32_to_array_of_u8(current_uid);
-                self.state.selected_colors.insert(current_color);
-            }
-            else
-            {
-                let error_message = format!("Renderer: Preview selected line objects \
-                    action: {} with number {} does not exist!",
-                    line_object_type.as_str(), line_object_number);
-                return Err(JsValue::from(error_message));
-            }
-        }
+        self.state.global_scene.preview_selected_line_objects(
+            selected_line_object_numbers,
+            line_object_type,
+            &mut self.state.selected_colors)?;
         self.update_scene_visible()?;
         Ok(())
     }
@@ -591,32 +241,10 @@ impl Renderer
     pub fn preview_beam_section_orientation(&mut self, beam_section_orientation: JsValue,
         line_object_type: LineObjectType) -> Result<(), JsValue>
     {
-        self.state.selected_colors.clear();
-        let beam_section_orientation_for_preview =
-            beam_section_orientation
-                .into_serde::<BeamSectionOrientation>()
-                .or(Err(JsValue::from("Renderer: Preview beam section orientation action: \
-                    Beam section orientation could not be serialized!")))?;
-        for line_object_number in beam_section_orientation_for_preview.ref_line_numbers()
-        {
-            let current_line_object_key =
-                LineObjectKey::create(*line_object_number, line_object_type);
-            if let Some(line_object) =
-                self.state.line_objects.get(&current_line_object_key)
-            {
-                let current_uid = line_object.copy_uid();
-                let current_color = transform_u32_to_array_of_u8(current_uid);
-                self.state.selected_colors.insert(current_color);
-            }
-            else
-            {
-                let error_message = format!("Renderer: Preview beam section orientation \
-                    action: {} with number {} does not exist!",
-                    line_object_type.as_str(), line_object_number);
-                return Err(JsValue::from(error_message));
-            }
-        }
-        self.state.beam_section_orientation_for_preview = Some(beam_section_orientation_for_preview);
+        self.state.global_scene.preview_beam_section_orientation(
+            beam_section_orientation,
+            line_object_type,
+            &mut self.state.selected_colors)?;
         self.update_scene_visible()?;
         Ok(())
     }
@@ -662,7 +290,8 @@ impl Renderer
         let mat_to_rotate = model_view_matrix;
         mat4::rotate_y(&mut model_view_matrix, &mat_to_rotate, &self.props.theta);
 
-        if let Some(scene_for_selection) = &self.state.optional_scene_for_selection
+        if let Some(scene_for_selection) =
+            &self.state.global_scene.ref_optional_scene_for_selection()
         {
             let point_size = 12.0;
 
@@ -817,7 +446,8 @@ impl Renderer
 
         self.update_scene_visible()?;
 
-        if let Some(scene_visible) = &self.state.optional_scene_visible
+        if let Some(scene_visible) =
+            &self.state.global_scene.ref_optional_scene_visible()
         {
             let point_size = 5.0;
 
@@ -868,120 +498,135 @@ impl Renderer
                 Some(self.state.shader_programs.ref_model_view_matrix()), false, &model_view_matrix);
             scene_visible.draw_triangles(&self.state.gl)?;
 
-            let mut matrix = mat4::new_identity();
-            mat4::mul(&mut matrix, &projection_matrix, &model_view_matrix);
-
-            for (point_object_key, point_object) in
-                self.state.point_objects.iter()
+            match &self.state.global_scene
             {
-                if !self.props.is_geometry_visible && !self.props.is_mesh_visible
-                {
-                    continue;
-                }
-
-                if !self.props.is_geometry_visible &&
-                    point_object_key.copy_object_type() == PointObjectType::Point
-                {
-                    continue;
-                }
-
-                if !self.props.is_mesh_visible &&
-                    point_object_key.copy_object_type() == PointObjectType::Node
-                {
-                    continue;
-                }
-
-                let initial_color = match point_object_key.copy_object_type()
+                GlobalScene::Preprocessor(preprocessor) =>
                     {
-                        PointObjectType::Point => CANVAS_DRAWN_POINTS_DENOTATION_COLOR,
-                        PointObjectType::Node => CANVAS_DRAWN_NODES_DENOTATION_COLOR,
-                    };
-                let denotation_color = define_drawn_object_denotation_color(
-                    point_object.copy_uid().unwrap(), &self.state.selected_colors,
-                    &self.state.under_selection_box_colors, initial_color);
-                self.state.ctx.set_fill_style(&denotation_color.into());
-                add_denotation(&self.state.ctx,
-                &[point_object.copy_normalized_x()? -
-                    DRAWN_POINT_OBJECT_DENOTATION_SHIFT / (1.0 + self.props.d_scale),
-                    point_object.copy_normalized_y()? - DRAWN_POINT_OBJECT_DENOTATION_SHIFT /
-                        (1.0 + self.props.d_scale),
-                    point_object.copy_normalized_z()?,
-                    1.0],
-                &matrix,
-                width as f32, height as f32,
-                &point_object_key.copy_number().to_string());
-                self.state.ctx.stroke();
-            }
+                        let mut matrix = mat4::new_identity();
+                        mat4::mul(&mut matrix, &projection_matrix, &model_view_matrix);
 
-            if !self.state.line_objects.is_empty()
-            {
-                for (line_object_key, line_object) in
-                    self.state.line_objects.iter()
-                {
-                    if !self.props.is_geometry_visible && !self.props.is_mesh_visible
-                    {
-                        continue;
-                    }
-
-                    if !self.props.is_geometry_visible &&
-                        line_object_key.get_object_type() == LineObjectType::Line
-                    {
-                        continue;
-                    }
-
-                    if !self.props.is_mesh_visible &&
-                        line_object_key.get_object_type() == LineObjectType::Element
-                    {
-                        continue;
-                    }
-
-                    let initial_color = match line_object_key.get_object_type()
-                    {
-                        LineObjectType::Line =>
-                            {
-                                match line_object.copy_color_scheme()
-                                {
-                                    LineObjectColorScheme::Default =>
-                                        CANVAS_DRAWN_LINES_DEFAULT_DENOTATION_COLOR,
-                                    LineObjectColorScheme::TrussProps =>
-                                        CANVAS_DRAWN_LINES_TRUSS_PROPS_DENOTATION_COLOR,
-                                    LineObjectColorScheme::BeamProps =>
-                                        CANVAS_DRAWN_LINES_BEAM_PROPS_DENOTATION_COLOR,
-                                }
-                            },
-                        LineObjectType::Element => CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR,
-                    };
-
-                    let denotation_color = define_drawn_object_denotation_color(
-                        line_object.copy_uid(),
-                        &self.state.selected_colors, &self.state.under_selection_box_colors,
-                        initial_color);
-                    let denotation_coordinates =
+                        for (point_object_key, point_object) in
+                            preprocessor.point_objects.iter()
                         {
-                            let start_point_object_coordinates = line_object
-                                .copy_start_point_object_coordinates(&self.state.point_objects)?;
-                            let end_point_object_coordinates = line_object
-                                .copy_end_point_object_coordinates(&self.state.point_objects)?;
-                            [(start_point_object_coordinates[0] +
-                                end_point_object_coordinates[0]) / 2.0,
-                            (start_point_object_coordinates[1] +
-                                end_point_object_coordinates[1]) / 2.0,
-                            (start_point_object_coordinates[2] +
-                                end_point_object_coordinates[2]) / 2.0,
-                            ]
-                        };
-                    self.state.ctx.set_fill_style(&denotation_color.into());
-                    add_denotation(&self.state.ctx,
-                    &[denotation_coordinates[0],
-                        denotation_coordinates[1] +
-                            DRAWN_LINE_OBJECTS_DENOTATION_SHIFT / (1.0 + self.props.d_scale),
-                        denotation_coordinates[2],
-                        1.0],
-                    &matrix,
-                    width as f32, height as f32,
-                    &line_object_key.get_number().to_string());
-                    self.state.ctx.stroke();
-                }
+                            if !self.props.is_geometry_visible && !self.props.is_mesh_visible
+                            {
+                                continue;
+                            }
+
+                            if !self.props.is_geometry_visible &&
+                                point_object_key.copy_object_type() == PointObjectType::Point
+                            {
+                                continue;
+                            }
+
+                            if !self.props.is_mesh_visible &&
+                                point_object_key.copy_object_type() == PointObjectType::Node
+                            {
+                                continue;
+                            }
+
+                            let initial_color = match point_object_key.copy_object_type()
+                                {
+                                    PointObjectType::Point => CANVAS_DRAWN_POINTS_DENOTATION_COLOR,
+                                    PointObjectType::Node => CANVAS_DRAWN_NODES_DENOTATION_COLOR,
+                                };
+                            let denotation_color = define_drawn_object_denotation_color(
+                                point_object.copy_uid().unwrap(), &self.state.selected_colors,
+                                &self.state.under_selection_box_colors,
+                                initial_color);
+                            self.state.ctx.set_fill_style(&denotation_color.into());
+                            add_denotation(&self.state.ctx,
+                                &[point_object.copy_normalized_x()? -
+                                    DRAWN_POINT_OBJECT_DENOTATION_SHIFT / (1.0 + self.props.d_scale),
+                                    point_object.copy_normalized_y()? -
+                                    DRAWN_POINT_OBJECT_DENOTATION_SHIFT / (1.0 + self.props.d_scale),
+                                    point_object.copy_normalized_z()?,
+                                    1.0
+                                ],
+                                &matrix,
+                                width as f32, height as f32,
+                                &point_object_key.copy_number().to_string());
+                            self.state.ctx.stroke();
+                        }
+
+                        if !preprocessor.line_objects.is_empty()
+                        {
+                            for (line_object_key, line_object) in
+                                preprocessor.line_objects.iter()
+                            {
+                                if !self.props.is_geometry_visible && !self.props.is_mesh_visible
+                                {
+                                    continue;
+                                }
+
+                                if !self.props.is_geometry_visible &&
+                                    line_object_key.get_object_type() == LineObjectType::Line
+                                {
+                                    continue;
+                                }
+
+                                if !self.props.is_mesh_visible &&
+                                    line_object_key.get_object_type() == LineObjectType::Element
+                                {
+                                    continue;
+                                }
+
+                                let initial_color = match line_object_key.get_object_type()
+                                {
+                                    LineObjectType::Line =>
+                                        {
+                                            match line_object.copy_color_scheme()
+                                            {
+                                                LineObjectColorScheme::Default =>
+                                                    CANVAS_DRAWN_LINES_DEFAULT_DENOTATION_COLOR,
+                                                LineObjectColorScheme::TrussProps =>
+                                                    CANVAS_DRAWN_LINES_TRUSS_PROPS_DENOTATION_COLOR,
+                                                LineObjectColorScheme::BeamProps =>
+                                                    CANVAS_DRAWN_LINES_BEAM_PROPS_DENOTATION_COLOR,
+                                            }
+                                        },
+                                    LineObjectType::Element => CANVAS_DRAWN_ELEMENTS_DENOTATION_COLOR,
+                                };
+
+                                let denotation_color = define_drawn_object_denotation_color(
+                                    line_object.copy_uid(),
+                                    &self.state.selected_colors,
+                                    &self.state.under_selection_box_colors,
+                                    initial_color);
+
+                                let denotation_coordinates =
+                                    {
+                                        let start_point_object_coordinates = line_object
+                                            .copy_start_point_object_coordinates(
+                                                &preprocessor.point_objects)?;
+                                        let end_point_object_coordinates = line_object
+                                            .copy_end_point_object_coordinates(
+                                                &preprocessor.point_objects)?;
+                                        [(start_point_object_coordinates[0] +
+                                            end_point_object_coordinates[0]) / 2.0,
+                                        (start_point_object_coordinates[1] +
+                                            end_point_object_coordinates[1]) / 2.0,
+                                        (start_point_object_coordinates[2] +
+                                            end_point_object_coordinates[2]) / 2.0,
+                                        ]
+                                    };
+                                self.state.ctx.set_fill_style(&denotation_color.into());
+                                add_denotation(&self.state.ctx,
+                                    &[
+                                        denotation_coordinates[0],
+                                        denotation_coordinates[1] +
+                                            DRAWN_LINE_OBJECTS_DENOTATION_SHIFT /
+                                                (1.0 + self.props.d_scale),
+                                        denotation_coordinates[2],
+                                        1.0
+                                    ],
+                                &matrix,
+                                width as f32, height as f32,
+                                &line_object_key.get_number().to_string());
+                                self.state.ctx.stroke();
+                            }
+                        }
+                    },
             }
         }
 

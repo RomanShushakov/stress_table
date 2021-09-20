@@ -20,13 +20,10 @@ use crate::drawn_object::consts::
     DRAWN_OBJECT_TO_CANVAS_WIDTH_SCALE, DRAWN_OBJECT_TO_CANVAS_HEIGHT_SCALE,
 };
 
-use crate::point_object::{PointObject, PointObjectKey, Coordinates};
-
-use crate::line_object::{LineObject, LineObjectKey};
-
-use crate::concentrated_load::ConcentratedLoad;
-
-use crate::distributed_line_load::DistributedLineLoad;
+use crate::global_scene::point_object::{PointObject, PointObjectKey, Coordinates};
+use crate::global_scene::line_object::{LineObject, LineObjectKey};
+use crate::global_scene::preprocessor::concentrated_load::ConcentratedLoad;
+use crate::global_scene::preprocessor::distributed_line_load::DistributedLineLoad;
 
 use crate::consts::TOLERANCE;
 

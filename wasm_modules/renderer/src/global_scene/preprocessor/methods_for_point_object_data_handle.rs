@@ -1,9 +1,8 @@
 use wasm_bindgen::prelude::*;
 
 use crate::global_scene::preprocessor::preprocessor::Preprocessor;
-
-use crate::point_object::{PointObjectKey, Coordinates, PointObject};
-use crate::point_object::PointObjectType;
+use crate::global_scene::point_object::{PointObjectKey, Coordinates, PointObject};
+use crate::global_scene::point_object::PointObjectType;
 
 use crate::functions::{normalize_point_objects_coordinates, log};
 

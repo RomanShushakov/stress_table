@@ -1,11 +1,9 @@
 use wasm_bindgen::prelude::*;
 
-use crate::point_object::{PointObjectKey};
-use crate::point_object::{PointObjectType};
-
-use crate::line_object::{LineObject, LineObjectKey};
-use crate::line_object::{LineObjectType, LineObjectColorScheme};
-
+use crate::global_scene::point_object::{PointObjectKey};
+use crate::global_scene::point_object::{PointObjectType};
+use crate::global_scene::line_object::{LineObject, LineObjectKey};
+use crate::global_scene::line_object::{LineObjectType, LineObjectColorScheme};
 use crate::global_scene::preprocessor::preprocessor::Preprocessor;
 
 

@@ -17,13 +17,16 @@ use crate::drawn_object::consts::
     DRAWN_BEAM_SECTION_ORIENTATION_CAPS_HEIGHT, DRAWN_BEAM_SECTION_ORIENTATION_CAPS_WIDTH
 };
 
-use crate::point_object::{PointObjectKey, PointObject};
-use crate::point_object::{PointObjectType};
-use crate::line_object::{LineObjectKey, LineObject, BeamSectionOrientation, LineObjectNumbers};
-use crate::line_object::{LineObjectType};
-use crate::concentrated_load::ConcentratedLoad;
-use crate::distributed_line_load::DistributedLineLoad;
-use crate::boundary_condition::BoundaryCondition;
+use crate::global_scene::point_object::{PointObjectKey, PointObject};
+use crate::global_scene::point_object::{PointObjectType};
+use crate::global_scene::line_object::
+{
+    LineObjectKey, LineObject, BeamSectionOrientation, LineObjectNumbers
+};
+use crate::global_scene::line_object::{LineObjectType};
+use crate::global_scene::preprocessor::concentrated_load::ConcentratedLoad;
+use crate::global_scene::preprocessor::distributed_line_load::DistributedLineLoad;
+use crate::global_scene::preprocessor::boundary_condition::BoundaryCondition;
 
 use crate::consts::
 {
@@ -448,5 +451,17 @@ impl Preprocessor
         }
         self.beam_section_orientation_for_preview = Some(beam_section_orientation_for_preview);
         Ok(())
+    }
+
+
+    pub fn ref_optional_scene_for_selection(&self) -> &Option<SceneAdapter>
+    {
+        &self.optional_scene_for_selection
+    }
+
+
+    pub fn ref_optional_scene_visible(&self) -> &Option<SceneAdapter>
+    {
+        &self.optional_scene_visible
     }
 }

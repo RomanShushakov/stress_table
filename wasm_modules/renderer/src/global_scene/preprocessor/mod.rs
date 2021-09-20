@@ -4,3 +4,6 @@ pub mod methods_for_line_object_data_handle;
 pub mod methods_for_concentrated_load_data_handle;
 pub mod methods_for_distributed_line_load_data_handle;
 pub mod methods_for_boundary_condition_data_handle;
+pub mod concentrated_load;
+pub mod distributed_line_load;
+pub mod boundary_condition;

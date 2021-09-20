@@ -1,11 +1,11 @@
 use wasm_bindgen::prelude::*;
 use std::collections::HashSet;
 
+use crate::drawn_object::scene_adapter::SceneAdapter;
+
 use crate::global_scene::preprocessor::preprocessor::Preprocessor;
-
-use crate::point_object::PointObjectType;
-
-use crate::line_object::{LineObjectType, LineObjectColorScheme};
+use crate::global_scene::point_object::PointObjectType;
+use crate::global_scene::line_object::{LineObjectType, LineObjectColorScheme};
 
 
 pub enum GlobalScene
@@ -307,6 +307,30 @@ impl GlobalScene
             GlobalScene::Preprocessor(preprocessor) =>
                 {
                     preprocessor.delete_boundary_condition(point_number)
+                }
+        }
+    }
+
+
+    pub fn ref_optional_scene_for_selection(&self) -> &Option<SceneAdapter>
+    {
+        match self
+        {
+            GlobalScene::Preprocessor(preprocessor) =>
+                {
+                    preprocessor.ref_optional_scene_for_selection()
+                }
+        }
+    }
+
+
+    pub fn ref_optional_scene_visible(&self) -> &Option<SceneAdapter>
+    {
+        match self
+        {
+            GlobalScene::Preprocessor(preprocessor) =>
+                {
+                    preprocessor.ref_optional_scene_visible()
                 }
         }
     }

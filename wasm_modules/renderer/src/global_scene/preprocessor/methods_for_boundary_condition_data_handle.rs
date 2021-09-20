@@ -1,10 +1,8 @@
 use wasm_bindgen::prelude::*;
 
-use crate::point_object::{PointObjectKey};
-use crate::point_object::{PointObjectType};
-
-use crate::boundary_condition::BoundaryCondition;
-
+use crate::global_scene::point_object::{PointObjectKey};
+use crate::global_scene::point_object::{PointObjectType};
+use crate::global_scene::preprocessor::boundary_condition::BoundaryCondition;
 use crate::global_scene::preprocessor::preprocessor::Preprocessor;
 
 

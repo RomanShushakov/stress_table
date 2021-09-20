@@ -1,10 +1,8 @@
 use wasm_bindgen::prelude::*;
 
-use crate::line_object::{LineObjectKey};
-use crate::line_object::{LineObjectType};
-
-use crate::distributed_line_load::DistributedLineLoad;
-
+use crate::global_scene::line_object::{LineObjectKey};
+use crate::global_scene::line_object::{LineObjectType};
+use crate::global_scene::preprocessor::distributed_line_load::DistributedLineLoad;
 use crate::global_scene::preprocessor::preprocessor::Preprocessor;
 
 

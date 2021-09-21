@@ -79,6 +79,7 @@ use functions::
     add_denotation, add_hints, define_drawn_object_denotation_color, transform_u32_to_array_of_u8,
     dispatch_custom_event, convert_into_array,
 };
+use crate::global_scene::global_scene::SceneState;
 
 
 struct Props
@@ -165,7 +166,7 @@ impl Renderer
         cs_axes.add_cs_axes_caps(CS_AXES_CAPS_BASE_POINTS_NUMBER,
             CS_AXES_CAPS_HEIGHT, CS_AXES_CAPS_WIDTH)?;
 
-        let global_scene = GlobalScene::create_preprocessor();
+        let global_scene = GlobalScene::initialize_preprocessor_state();
 
         let state = State
         {
@@ -498,15 +499,15 @@ impl Renderer
                 Some(self.state.shader_programs.ref_model_view_matrix()), false, &model_view_matrix);
             scene_visible.draw_triangles(&self.state.gl)?;
 
-            match &self.state.global_scene
+            match &self.state.global_scene.ref_state()
             {
-                GlobalScene::Preprocessor(preprocessor) =>
+                SceneState::Preprocessor =>
                     {
                         let mut matrix = mat4::new_identity();
                         mat4::mul(&mut matrix, &projection_matrix, &model_view_matrix);
 
                         for (point_object_key, point_object) in
-                            preprocessor.point_objects.iter()
+                            self.state.global_scene.ref_preprocessor_point_objects().iter()
                         {
                             if !self.props.is_geometry_visible && !self.props.is_mesh_visible
                             {
@@ -549,10 +550,10 @@ impl Renderer
                             self.state.ctx.stroke();
                         }
 
-                        if !preprocessor.line_objects.is_empty()
+                        if !self.state.global_scene.ref_preprocessor_line_objects().is_empty()
                         {
                             for (line_object_key, line_object) in
-                                preprocessor.line_objects.iter()
+                                self.state.global_scene.ref_preprocessor_line_objects().iter()
                             {
                                 if !self.props.is_geometry_visible && !self.props.is_mesh_visible
                                 {
@@ -598,10 +599,10 @@ impl Renderer
                                     {
                                         let start_point_object_coordinates = line_object
                                             .copy_start_point_object_coordinates(
-                                                &preprocessor.point_objects)?;
+                                                &self.state.global_scene.ref_preprocessor_point_objects())?;
                                         let end_point_object_coordinates = line_object
                                             .copy_end_point_object_coordinates(
-                                                &preprocessor.point_objects)?;
+                                                &self.state.global_scene.ref_preprocessor_point_objects())?;
                                         [(start_point_object_coordinates[0] +
                                             end_point_object_coordinates[0]) / 2.0,
                                         (start_point_object_coordinates[1] +
@@ -627,6 +628,7 @@ impl Renderer
                             }
                         }
                     },
+                _ => ()
             }
         }
 

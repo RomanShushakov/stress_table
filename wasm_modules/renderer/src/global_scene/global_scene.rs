@@ -1,25 +1,104 @@
 use wasm_bindgen::prelude::*;
-use std::collections::HashSet;
+use std::collections::{HashSet, HashMap};
 
 use crate::drawn_object::scene_adapter::SceneAdapter;
 
 use crate::global_scene::preprocessor::preprocessor::Preprocessor;
 use crate::global_scene::point_object::PointObjectType;
+use crate::global_scene::point_object::{PointObjectKey, PointObject};
+use crate::global_scene::line_object::{LineObjectKey, LineObject};
 use crate::global_scene::line_object::{LineObjectType, LineObjectColorScheme};
+use crate::global_scene::preprocessor::concentrated_load::ConcentratedLoad;
+use crate::global_scene::preprocessor::distributed_line_load::DistributedLineLoad;
+use crate::global_scene::preprocessor::boundary_condition::BoundaryCondition;
 
 
-pub enum GlobalScene
+pub enum SceneState
 {
-    Preprocessor(Preprocessor)
+    Preprocessor,
+    Postprocessor,
+}
+
+
+pub struct Postprocessor {}
+
+
+impl Postprocessor
+{
+    pub fn create() -> Self
+    {
+        Postprocessor {}
+    }
+}
+
+
+pub struct GlobalScene
+{
+    scene_state: SceneState,
+    preprocessor: Preprocessor,
+    optional_postprocessor: Option<(u32, Postprocessor)>,
 }
 
 
 impl GlobalScene
 {
-    pub fn create_preprocessor() -> Self
+    pub fn initialize_preprocessor_state() -> Self
     {
         let preprocessor = Preprocessor::create();
-        GlobalScene::Preprocessor(preprocessor)
+        GlobalScene { scene_state: SceneState::Preprocessor, preprocessor,
+            optional_postprocessor: None }
+    }
+
+
+    pub fn activate_preprocessor_state(&mut self) -> Result<(), JsValue>
+    {
+        match self.scene_state
+        {
+            SceneState::Preprocessor =>
+                {
+                    let error_message = "Renderer: Global scene: Preprocessor activation \
+                        action: Preprocessor is already active!";
+                    Err(JsValue::from(error_message))
+                },
+            SceneState::Postprocessor =>
+                {
+                    self.scene_state = SceneState::Preprocessor;
+                    Ok(())
+                }
+        }
+    }
+
+
+    pub fn activate_postprocessor_state(&mut self, postprocessor_id: u32) -> Result<(), JsValue>
+    {
+        match self.scene_state
+        {
+            SceneState::Postprocessor =>
+                {
+                    let error_message = "Renderer: Global scene: Postprocessor activation \
+                        action: Postprocessor is already active!";
+                    Err(JsValue::from(error_message))
+                },
+            SceneState::Preprocessor =>
+                {
+                    if let Some((id, postprocessor)) =
+                        self.optional_postprocessor.as_mut()
+                    {
+                        if *id != postprocessor_id
+                        {
+                            *id = postprocessor_id;
+                            *postprocessor = Postprocessor::create();
+                        }
+                    }
+                    else
+                    {
+                        self.optional_postprocessor =
+                            Some((postprocessor_id, Postprocessor::create()));
+                    }
+                    self.scene_state = SceneState::Postprocessor;
+                    Ok(())
+                }
+        }
     }
 
 
@@ -28,14 +107,15 @@ impl GlobalScene
         is_load_visible: &bool, is_boundary_condition_visible: &bool, is_mesh_visible: &bool)
         -> Result<(), JsValue>
     {
-        match self
+        match self.scene_state
         {
-            GlobalScene::Preprocessor(preprocessor) =>
+            SceneState::Preprocessor =>
                 {
-                    preprocessor.update_scene_for_selection(under_selection_box_colors,
+                    self.preprocessor.update_scene_for_selection(under_selection_box_colors,
                         selected_colors, d_scale, is_geometry_visible, is_load_visible,
                         is_boundary_condition_visible, is_mesh_visible)
-                }
+                },
+            _ => Ok(())
         }
     }
 
@@ -45,14 +125,15 @@ impl GlobalScene
         is_load_visible: &bool, is_boundary_condition_visible: &bool, is_mesh_visible: &bool)
         -> Result<(), JsValue>
     {
-        match self
+        match self.scene_state
         {
-            GlobalScene::Preprocessor(preprocessor) =>
+            SceneState::Preprocessor =>
                 {
-                    preprocessor.update_scene_visible(under_selection_box_colors,
+                    self.preprocessor.update_scene_visible(under_selection_box_colors,
                         selected_colors, d_scale, is_geometry_visible, is_load_visible,
                         is_boundary_condition_visible, is_mesh_visible)
-                }
+                },
+            _ => Ok(())
         }
     }
 
@@ -60,12 +141,13 @@ impl GlobalScene
     pub fn select_objects(&mut self, selected_colors: &HashSet<[u8; 4]>,
         drop_selection: &js_sys::Function) -> Result<(), JsValue>
     {
-        match self
+        match self.scene_state
         {
-            GlobalScene::Preprocessor(preprocessor) =>
+            SceneState::Preprocessor =>
                 {
-                    preprocessor.select_objects(selected_colors, drop_selection)
-                }
+                    self.preprocessor.select_objects(selected_colors, drop_selection)
+                },
+            _ => Ok(())
         }
     }
 
@@ -74,13 +156,14 @@ impl GlobalScene
         line_object_type: LineObjectType, selected_colors: &mut HashSet<[u8; 4]>)
          -> Result<(), JsValue>
      {
-         match self
+         match self.scene_state
         {
-            GlobalScene::Preprocessor(preprocessor) =>
+            SceneState::Preprocessor =>
                 {
-                    preprocessor.preview_selected_line_objects(selected_line_object_numbers,
+                    self.preprocessor.preview_selected_line_objects(selected_line_object_numbers,
                         line_object_type, selected_colors)
-                }
+                },
+            _ => Ok(())
         }
      }
 
@@ -89,13 +172,14 @@ impl GlobalScene
         line_object_type: LineObjectType, selected_colors: &mut HashSet<[u8; 4]>)
         -> Result<(), JsValue>
     {
-        match self
+        match self.scene_state
         {
-            GlobalScene::Preprocessor(preprocessor) =>
+            SceneState::Preprocessor =>
                 {
-                    preprocessor.preview_beam_section_orientation(beam_section_orientation,
+                    self.preprocessor.preview_beam_section_orientation(beam_section_orientation,
                         line_object_type, selected_colors)
-                }
+                },
+            _ => Ok(())
         }
     }
 
@@ -104,13 +188,14 @@ impl GlobalScene
         point_object_type: PointObjectType, canvas_width: f32, canvas_height: f32)
         -> Result<(), JsValue>
     {
-        match self
+        match self.scene_state
         {
-            GlobalScene::Preprocessor(preprocessor) =>
+            SceneState::Preprocessor =>
                 {
-                    preprocessor.add_point_object(number, x, y, z, point_object_type, canvas_width,
-                        canvas_height)
+                    self.preprocessor.add_point_object(number, x, y, z, point_object_type,
+                        canvas_width, canvas_height)
                 }
+            _ => Ok(())
         }
     }
 
@@ -119,13 +204,14 @@ impl GlobalScene
         point_object_type: PointObjectType, canvas_width: f32, canvas_height: f32)
         -> Result<(), JsValue>
     {
-        match self
+        match self.scene_state
         {
-            GlobalScene::Preprocessor(preprocessor) =>
+            SceneState::Preprocessor =>
                 {
-                    preprocessor.update_point_object(number, x, y, z, point_object_type,
+                    self.preprocessor.update_point_object(number, x, y, z, point_object_type,
                         canvas_width, canvas_height)
-                }
+                },
+            _ => Ok(())
         }
     }
 
@@ -133,13 +219,14 @@ impl GlobalScene
     pub fn delete_point_object(&mut self, number: u32, point_object_type: PointObjectType,
         canvas_width: f32, canvas_height: f32) -> Result<(), JsValue>
     {
-        match self
+        match self.scene_state
         {
-            GlobalScene::Preprocessor(preprocessor) =>
+            SceneState::Preprocessor =>
                 {
-                    preprocessor.delete_point_object(number, point_object_type, canvas_width,
+                    self.preprocessor.delete_point_object(number, point_object_type, canvas_width,
                         canvas_height)
-                }
+                },
+            _ => Ok(())
         }
     }
 
@@ -147,13 +234,14 @@ impl GlobalScene
     pub fn add_line_object(&mut self, number: u32, start_point_object_number: u32,
         end_point_object_number: u32, line_object_type: LineObjectType) -> Result<(), JsValue>
     {
-        match self
+        match self.scene_state
         {
-            GlobalScene::Preprocessor(preprocessor) =>
+            SceneState::Preprocessor =>
                 {
-                    preprocessor.add_line_object(number, start_point_object_number,
+                    self.preprocessor.add_line_object(number, start_point_object_number,
                         end_point_object_number, line_object_type)
-                }
+                },
+            _ => Ok(())
         }
     }
 
@@ -161,13 +249,14 @@ impl GlobalScene
     pub fn update_line_object(&mut self, number: u32, start_point_object_number: u32,
         end_point_object_number: u32, line_object_type: LineObjectType) -> Result<(), JsValue>
     {
-        match self
+        match self.scene_state
         {
-            GlobalScene::Preprocessor(preprocessor) =>
+            SceneState::Preprocessor =>
                 {
-                    preprocessor.update_line_object(number, start_point_object_number,
+                    self.preprocessor.update_line_object(number, start_point_object_number,
                         end_point_object_number, line_object_type)
-                }
+                },
+            _ => Ok(())
         }
     }
 
@@ -175,12 +264,13 @@ impl GlobalScene
     pub fn delete_line_object(&mut self, number: u32, line_object_type: LineObjectType)
         -> Result<(), JsValue>
     {
-        match self
+        match self.scene_state
         {
-            GlobalScene::Preprocessor(preprocessor) =>
+            SceneState::Preprocessor =>
                 {
-                    preprocessor.delete_line_object(number, line_object_type)
-                }
+                    self.preprocessor.delete_line_object(number, line_object_type)
+                },
+            _ => Ok(())
         }
     }
 
@@ -189,13 +279,14 @@ impl GlobalScene
         line_object_type: LineObjectType, line_object_color_scheme: LineObjectColorScheme)
         -> Result<(), JsValue>
     {
-        match self
+        match self.scene_state
         {
-            GlobalScene::Preprocessor(preprocessor) =>
+            SceneState::Preprocessor =>
                 {
-                    preprocessor.update_line_objects_color_scheme(line_object_numbers,
+                    self.preprocessor.update_line_objects_color_scheme(line_object_numbers,
                         line_object_type, line_object_color_scheme)
-                }
+                },
+            _ => Ok(())
         }
     }
 
@@ -203,12 +294,13 @@ impl GlobalScene
     pub fn add_concentrated_load(&mut self, point_number: u32, fx: f32, fy: f32, fz: f32,
         mx: f32, my: f32, mz: f32) -> Result<(), JsValue>
     {
-        match self
+        match self.scene_state
         {
-            GlobalScene::Preprocessor(preprocessor) =>
+            SceneState::Preprocessor =>
                 {
-                    preprocessor.add_concentrated_load(point_number, fx, fy, fz, mx, my, mz)
-                }
+                    self.preprocessor.add_concentrated_load(point_number, fx, fy, fz, mx, my, mz)
+                },
+            _ => Ok(())
         }
     }
 
@@ -216,24 +308,26 @@ impl GlobalScene
     pub fn update_concentrated_load(&mut self, point_number: u32, fx: f32, fy: f32, fz: f32,
         mx: f32, my: f32, mz: f32) -> Result<(), JsValue>
     {
-        match self
+        match self.scene_state
         {
-            GlobalScene::Preprocessor(preprocessor) =>
+            SceneState::Preprocessor =>
                 {
-                    preprocessor.update_concentrated_load(point_number, fx, fy, fz, mx, my, mz)
-                }
+                    self.preprocessor.update_concentrated_load(point_number, fx, fy, fz, mx, my, mz)
+                },
+            _ => Ok(())
         }
     }
 
 
     pub fn delete_concentrated_load(&mut self, point_number: u32) -> Result<(), JsValue>
     {
-        match self
+        match self.scene_state
         {
-            GlobalScene::Preprocessor(preprocessor) =>
+            SceneState::Preprocessor =>
                 {
-                    preprocessor.delete_concentrated_load(point_number)
-                }
+                    self.preprocessor.delete_concentrated_load(point_number)
+                },
+            _ => Ok(())
         }
     }
 
@@ -241,12 +335,13 @@ impl GlobalScene
     pub fn add_distributed_line_load(&mut self, line_number: u32, qx: f32, qy: f32, qz: f32)
         -> Result<(), JsValue>
     {
-        match self
+        match self.scene_state
         {
-            GlobalScene::Preprocessor(preprocessor) =>
+            SceneState::Preprocessor =>
                 {
-                    preprocessor.add_distributed_line_load(line_number, qx, qy, qz)
-                }
+                    self.preprocessor.add_distributed_line_load(line_number, qx, qy, qz)
+                },
+            _ => Ok(())
         }
     }
 
@@ -254,84 +349,109 @@ impl GlobalScene
     pub fn update_distributed_line_load(&mut self, line_number: u32, qx: f32, qy: f32, qz: f32)
         -> Result<(), JsValue>
     {
-        match self
+        match self.scene_state
         {
-            GlobalScene::Preprocessor(preprocessor) =>
+            SceneState::Preprocessor =>
                 {
-                    preprocessor.add_distributed_line_load(line_number, qx, qy, qz)
-                }
+                    self.preprocessor.add_distributed_line_load(line_number, qx, qy, qz)
+                },
+            _ => Ok(())
         }
     }
 
 
     pub fn delete_distributed_line_load(&mut self, line_number: u32) -> Result<(), JsValue>
     {
-        match self
+        match self.scene_state
         {
-            GlobalScene::Preprocessor(preprocessor) =>
+            SceneState::Preprocessor =>
                 {
-                    preprocessor.delete_distributed_line_load(line_number)
-                }
+                    self.preprocessor.delete_distributed_line_load(line_number)
+                },
+            _ => Ok(())
         }
     }
 
 
     pub fn add_boundary_condition(&mut self, point_number: u32) -> Result<(), JsValue>
     {
-        match self
+        match self.scene_state
         {
-            GlobalScene::Preprocessor(preprocessor) =>
+            SceneState::Preprocessor =>
                 {
-                    preprocessor.add_boundary_condition(point_number)
-                }
+                    self.preprocessor.add_boundary_condition(point_number)
+                },
+            _ => Ok(())
         }
     }
 
 
     pub fn update_boundary_condition(&mut self, point_number: u32) -> Result<(), JsValue>
     {
-        match self
+        match self.scene_state
         {
-            GlobalScene::Preprocessor(preprocessor) =>
+            SceneState::Preprocessor =>
                 {
-                    preprocessor.update_boundary_condition(point_number)
-                }
+                    self.preprocessor.update_boundary_condition(point_number)
+                },
+            _ => Ok(())
         }
     }
 
 
     pub fn delete_boundary_condition(&mut self, point_number: u32) -> Result<(), JsValue>
     {
-        match self
+        match self.scene_state
         {
-            GlobalScene::Preprocessor(preprocessor) =>
+            SceneState::Preprocessor =>
                 {
-                    preprocessor.delete_boundary_condition(point_number)
-                }
+                    self.preprocessor.delete_boundary_condition(point_number)
+                },
+            _ => Ok(())
         }
     }
 
 
     pub fn ref_optional_scene_for_selection(&self) -> &Option<SceneAdapter>
     {
-        match self
+        match self.scene_state
         {
-            GlobalScene::Preprocessor(preprocessor) =>
+            SceneState::Preprocessor =>
                 {
-                    preprocessor.ref_optional_scene_for_selection()
-                }
+                    self.preprocessor.ref_optional_scene_for_selection()
+                },
+            _ => &None
         }
     }
 
 
     pub fn ref_optional_scene_visible(&self) -> &Option<SceneAdapter>
     {
-        match self
+        match self.scene_state
         {
-            GlobalScene::Preprocessor(preprocessor) =>
+            SceneState::Preprocessor =>
                 {
-                    preprocessor.ref_optional_scene_visible()
+                    self.preprocessor.ref_optional_scene_visible()
                 }
+            _ => &None
         }
+    }
+
+
+    pub fn ref_state(&self) -> &SceneState
+    {
+        &self.scene_state
+    }
+
+
+    pub fn ref_preprocessor_point_objects(&self) -> &HashMap<PointObjectKey, PointObject>
+    {
+        &self.preprocessor.ref_point_objects()
+    }
+
+
+    pub fn ref_preprocessor_line_objects(&self) -> &HashMap<LineObjectKey, LineObject>
+    {
+        &self.preprocessor.ref_line_objects()
     }
 }

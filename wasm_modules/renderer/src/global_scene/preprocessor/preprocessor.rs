@@ -42,12 +42,12 @@ pub struct Preprocessor
 {
     optional_scene_for_selection: Option<SceneAdapter>,
     optional_scene_visible: Option<SceneAdapter>,
-    pub point_objects: HashMap<PointObjectKey, PointObject>,
-    pub line_objects: HashMap<LineObjectKey, LineObject>,
+    pub(super) point_objects: HashMap<PointObjectKey, PointObject>,
+    pub(super) line_objects: HashMap<LineObjectKey, LineObject>,
     beam_section_orientation_for_preview: Option<BeamSectionOrientation>,
-    pub concentrated_loads: HashMap<u32, ConcentratedLoad>,
-    pub distributed_line_loads: HashMap<u32, DistributedLineLoad>,
-    pub boundary_conditions: HashMap<u32, BoundaryCondition>,
+    pub(super) concentrated_loads: HashMap<u32, ConcentratedLoad>,
+    pub(super) distributed_line_loads: HashMap<u32, DistributedLineLoad>,
+    pub(super) boundary_conditions: HashMap<u32, BoundaryCondition>,
 }
 
 
@@ -463,5 +463,17 @@ impl Preprocessor
     pub fn ref_optional_scene_visible(&self) -> &Option<SceneAdapter>
     {
         &self.optional_scene_visible
+    }
+
+
+    pub fn ref_point_objects(&self) -> &HashMap<PointObjectKey, PointObject>
+    {
+        &self.point_objects
+    }
+
+
+    pub fn ref_line_objects(&self) -> &HashMap<LineObjectKey, LineObject>
+    {
+        &self.line_objects
     }
 }

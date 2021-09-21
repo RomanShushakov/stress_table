@@ -331,9 +331,9 @@ class FeaRenderer extends HTMLElement {
         this.state.renderer.tick();
     }
 
-    set activatePostprocessorState(postprocessorId) {
+    set activatePostprocessorState(jobId) {
         try {
-            this.state.renderer.activate_postprocessor_state(postprocessorId);
+            this.state.renderer.activate_postprocessor_state(jobId);
         } catch (error) {
             throw error;
         }

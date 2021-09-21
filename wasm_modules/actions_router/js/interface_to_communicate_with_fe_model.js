@@ -516,10 +516,11 @@ export function submitJob(jobName)
     }
 }
 
-export function showJobAnalysisResult(jobName) 
+export function showJobAnalysisResult(jobName, jobId) 
 {
+    const jobData = { "job_name": jobName, "job_id": jobId };
     try {
-        communicatorWithFEModel.showJobAnalysisResult = jobName;
+        communicatorWithFEModel.showJobAnalysisResult = jobData;
     } catch (error) {
         throw error;
     }
@@ -644,7 +645,7 @@ export function extractBoundaryConditions(handler)
     communicatorWithFEModel.extractBoundaryConditions = handler;
 }
 
-export function extractJobNames(handler) 
+export function extractJobIds(handler) 
 {
-    communicatorWithFEModel.extractJobNames = handler;
+    communicatorWithFEModel.extractJobIds = handler;
 }

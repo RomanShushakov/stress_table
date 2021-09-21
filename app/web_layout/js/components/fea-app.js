@@ -133,7 +133,7 @@ class FeaApp extends HTMLElement {
         window.addEventListener("resize", () => this.updateCanvasSize());
 
         this.addEventListener("activatePreprocessorMenu", () => this.activatePreprocessorMenu());
-        this.addEventListener("activatePosprocessorMenu", () => this.activatePostprocessorMenu());
+        this.addEventListener("activatePosprocessorMenu", () => this.activatePostprocessorMenu(0));
 
         this.addEventListener("getActionId", (event) => this.getActionId(event));
         this.addEventListener("getActionIdForToolBar", (event) => this.getActionIdForToolBar(event));
@@ -155,7 +155,7 @@ class FeaApp extends HTMLElement {
 
         this.addEventListener("getBoundaryConditions", (event) => this.getBoundaryConditions(event));
 
-        this.addEventListener("getJobNames", (event) => this.getJobNames(event));
+        this.addEventListener("getJobIds", (event) => this.getJobIds(event));
 
         this.addEventListener("selected_points", (event) => this.handleSelectedPointsMessage(event));
         this.addEventListener("selected_nodes", (event) => this.handleSelectedNodesMessage(event));
@@ -267,7 +267,7 @@ class FeaApp extends HTMLElement {
     async connectedCallback() {
         this.state.actionsRouter = await initializeActionsRouter();
         // this.activatePreprocessorMenu();
-        this.activatePostprocessorMenu();
+        this.activatePostprocessorMenu(0);
         // this.handleLoadCache();
     }
 
@@ -303,7 +303,7 @@ class FeaApp extends HTMLElement {
         const id = setInterval(frame, 10);
     }
 
-    activatePostprocessorMenu() {
+    activatePostprocessorMenu(jobId) {
         if (this.querySelector("fea-preprocessor-menu") !== null) {
             this.querySelector("fea-preprocessor-menu").remove();
         }
@@ -314,7 +314,7 @@ class FeaApp extends HTMLElement {
             if (this.state.isRendererLoaded === true) {
                 this.shadowRoot.querySelector("fea-app-tool-bar").setAttribute("is-preprocessor-active", false);
                 this.shadowRoot.querySelector("fea-app-tool-bar").setAttribute("is-postprocessor-active", true);
-                this.shadowRoot.querySelector("fea-renderer").activatePostprocessorState = 1;
+                this.shadowRoot.querySelector("fea-renderer").activatePostprocessorState = jobId;
                 this.updateCanvasSize();
                 clearInterval(id);
             }
@@ -492,11 +492,14 @@ class FeaApp extends HTMLElement {
         event.stopPropagation();
     }
 
-    getJobNames(event) {
-        this.state.actionsRouter.extract_job_names(
-            (extractedJobNamesData) => { 
-                const jobNames = Array.from(extractedJobNamesData.extracted_job_names);
-                this.querySelector(event.target.tagName.toLowerCase()).jobNames = jobNames; 
+    getJobIds(event) {
+        this.state.actionsRouter.extract_job_ids(
+            (extractedJobIdsData) => { 
+                const jobIds = new Map(Array.from(
+                    Object.entries(extractedJobIdsData.extracted_job_ids), 
+                    ([key, value]) => [key, value]
+                ));
+                this.querySelector(event.target.tagName.toLowerCase()).jobIds = jobIds; 
             }
         );
         event.stopPropagation();
@@ -947,15 +950,16 @@ class FeaApp extends HTMLElement {
     }
 
     handleShowJobAnalysisResultMessage(event) {
-        const jobName = event.detail.message;
+        const jobName = event.detail.message.job_name;
+        const jobId = event.detail.message.job_id;
         try {
-            this.state.actionsRouter.show_job_analysis_result(jobName);
+            this.state.actionsRouter.show_job_analysis_result(jobName, jobId);
         } catch (error) {
             this.querySelector(event.target.tagName.toLowerCase()).jobError = error;
             event.stopPropagation();
             throw error;
         }
-        this.activatePostprocessorMenu()
+        this.activatePostprocessorMenu(jobId);
         event.stopPropagation();
     }
 
@@ -1540,20 +1544,20 @@ class FeaApp extends HTMLElement {
     }
 
     handleAddAnalysisResultServerMessage(event) {
-        const jobName = event.detail.analysis_result_data.job_name;
+        const jobId = { job_name: event.detail.analysis_result_data.job_name, job_id: event.detail.analysis_result_data.job_id };
         for (let i = 0; i < this.state.analysisResultsDataDependentMenus.length; i++) {
             if (this.querySelector(this.state.analysisResultsDataDependentMenus[i]) !== null) {
-                this.querySelector(this.state.analysisResultsDataDependentMenus[i]).addJobNameToClient = jobName;
+                this.querySelector(this.state.analysisResultsDataDependentMenus[i]).addJobIdToClient = jobId;
             }
         } 
         event.stopPropagation();
     }
 
     handleDeleteAnalysisResultServerMessage(event) {
-        const jobName = event.detail.analysis_result_data.job_name;
+        const jobId = { job_name: event.detail.analysis_result_data.job_name };
         for (let i = 0; i < this.state.analysisResultsDataDependentMenus.length; i++) {
             if (this.querySelector(this.state.analysisResultsDataDependentMenus[i]) !== null) {
-                this.querySelector(this.state.analysisResultsDataDependentMenus[i]).deleteJobNameFromClient = jobName;
+                this.querySelector(this.state.analysisResultsDataDependentMenus[i]).deleteJobIdFromClient = jobId;
             }
         } 
         event.stopPropagation();

@@ -8,9 +8,9 @@ use crate::types::{FEUInt, FEFloat};
 #[wasm_bindgen]
 impl FEModel
 {
-    pub fn show_job_analysis_result(&mut self, job_name: &str) -> Result<(), JsValue>
+    pub fn show_job_analysis_result(&mut self, job_name: &str, job_id: u32) -> Result<(), JsValue>
     {
-        self.postprocessor.show_job_analysis_result(job_name)
+        self.postprocessor.show_job_analysis_result(job_name, job_id)
     }
 
 
@@ -20,8 +20,8 @@ impl FEModel
     }
 
 
-    pub fn extract_job_names(&self, handler: js_sys::Function) -> Result<(), JsValue>
+    pub fn extract_job_ids(&self, handler: js_sys::Function) -> Result<(), JsValue>
     {
-        self.postprocessor.extract_job_names(handler)
+        self.postprocessor.extract_job_ids(handler)
     }
 }

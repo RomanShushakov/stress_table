@@ -49,8 +49,9 @@ impl FEModel
 
     pub fn submit_job(&mut self, job_name: &str) -> Result<(), JsValue>
     {
-        let analysis_result =
-            self.fe_solver.submit_job(&self.preprocessor)?;
-        self.postprocessor.add_analysis_result(job_name, analysis_result)
+        // let analysis_result =
+        //     self.fe_solver.submit_job(&self.preprocessor)?;
+        // self.postprocessor.add_analysis_result(job_name, analysis_result)
+        self.postprocessor.add_analysis_result(job_name)
     }
 }

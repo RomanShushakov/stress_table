@@ -4,7 +4,7 @@ class FeaAnalysisMenu extends HTMLElement {
 
         this.props = {
             isFEModelLoaded: false,     // load status of wasm module "fe_model";
-            jobNames: [],               // array of: [String, ...];
+            jobIds: new Map(),          // map: { job_name: job_id, ... };
         };
 
         this.state = {};
@@ -450,9 +450,8 @@ class FeaAnalysisMenu extends HTMLElement {
         this.props.isFEModelLoaded = value;
     }
 
-    set jobNames(value) {
-        this.props.jobNames = value;
-        this.props.jobNames.sort((a, b) => a.name - b.name);
+    set jobIds(value) {
+        this.props.jobIds = value;
     }
 
     set submitJobError(error) {
@@ -518,19 +517,14 @@ class FeaAnalysisMenu extends HTMLElement {
         }
     }
 
-    set addJobNameToClient(jobName) {
-        if (!this.props.jobNames.includes(jobName)) {
-            this.props.jobNames.push(jobName);
-            this.props.jobNames.sort((a, b) => a.name - b.name);
-        }
+    set addJobIdToClient(jobId) {
+        this.props.jobIds.set(jobId.job_name, jobId.job_id);
         this.shadowRoot.querySelector(".new-job-name").value = "";
         this.defineJobNameOptions();
     }
 
-    set deleteJobNameFromClient(jobName) {
-        let jobNameIndexInProps = this.props.jobNames.findIndex(existedJobName => existedJobName == jobName);
-        this.props.jobNames.splice(jobNameIndexInProps, 1);
-        this.props.jobNames.sort((a, b) => a.name - b.name);
+    set deleteJobIdFromClient(jobId) {
+        this.props.jobIds.delete(jobId.job_name);
         this.defineJobNameOptions();
     }
 
@@ -545,7 +539,7 @@ class FeaAnalysisMenu extends HTMLElement {
         const frame = () => {
             this.getFEModelLoadStatus();
             if (this.props.isFEModelLoaded === true) {
-                this.getJobNames();
+                this.getJobIds();
                 this.defineJobNameOptions();
                 clearInterval(id);
             }
@@ -573,8 +567,8 @@ class FeaAnalysisMenu extends HTMLElement {
         }));
     }
 
-    getJobNames() {
-        this.dispatchEvent(new CustomEvent("getJobNames", {
+    getJobIds() {
+        this.dispatchEvent(new CustomEvent("getJobIds", {
             bubbles: true,
             composed: true,
         }));
@@ -585,10 +579,12 @@ class FeaAnalysisMenu extends HTMLElement {
         for (let i = jobNameSelect.length - 1; i >= 0; i--) {
             jobNameSelect.options[i] = null;
         }
-        for (let i = 0; i < this.props.jobNames.length; i++) {
+        let jobNames = Array.from(this.props.jobIds.keys());
+        jobNames.sort();
+        for (let i = 0; i < jobNames.length; i++) {
             let option = document.createElement("option");
-            option.value = this.props.jobNames[i].replace(/['"]+/g, "");
-            option.innerHTML = this.props.jobNames[i].replace(/['"]+/g, "");
+            option.value = jobNames[i].replace(/['"]+/g, "");
+            option.innerHTML = jobNames[i].replace(/['"]+/g, "");
             jobNameSelect.appendChild(option);
         }
     }
@@ -632,7 +628,7 @@ class FeaAnalysisMenu extends HTMLElement {
 
         const newJobName = newJobNameField.value;
 
-        if (this.props.jobNames.includes(newJobName)) {
+        if (this.props.jobIds.has(newJobName)) {
             if (newJobNameField.classList.contains("highlighted") === false) {
                 newJobNameField.classList.add("highlighted");
             }
@@ -727,14 +723,18 @@ class FeaAnalysisMenu extends HTMLElement {
                 return;
             }
         }
-        this.dispatchEvent(new CustomEvent("showJobAnalysisResult", 
-            {
-                bubbles: true,
-                composed: true,
-                detail: {
-                    message: selectedJobNameField.value,
-                },
-            }));
+
+        const jobName = selectedJobNameField.value;
+        const jobId = this.props.jobIds.get(jobName);
+        const message = { "job_name": jobName, "job_id": jobId };
+
+        this.dispatchEvent(new CustomEvent("showJobAnalysisResult", {
+            bubbles: true,
+            composed: true,
+            detail: {
+                message: message,
+            },
+        }));
         this.shadowRoot.querySelector(".job-name-filter").value = null;
     }
 

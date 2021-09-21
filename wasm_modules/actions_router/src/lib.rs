@@ -54,7 +54,7 @@ use external_functions::communication_with_boundary_conditions::
 };
 use external_functions::communication_with_preprocessor::
 {
-    submit_job, show_job_analysis_result, delete_job, extract_job_names
+    submit_job, show_job_analysis_result, delete_job, extract_job_ids
 };
 
 mod action;
@@ -1606,9 +1606,9 @@ impl ActionsRouter
     }
 
 
-    pub fn show_job_analysis_result(&self, job_name: &str) -> Result<(), JsValue>
+    pub fn show_job_analysis_result(&self, job_name: &str, job_id: u32) -> Result<(), JsValue>
     {
-        show_job_analysis_result(job_name)
+        show_job_analysis_result(job_name, job_id)
     }
 
 
@@ -1684,9 +1684,9 @@ impl ActionsRouter
     }
 
 
-    pub fn extract_job_names(&self, handler: js_sys::Function)
+    pub fn extract_job_ids(&self, handler: js_sys::Function)
     {
-        extract_job_names(handler);
+        extract_job_ids(handler);
     }
 
 

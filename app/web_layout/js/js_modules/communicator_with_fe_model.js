@@ -447,9 +447,9 @@ class CommunicatorWithFEModel {
         }
     }
 
-    set showJobAnalysisResult(jobName) {
+    set showJobAnalysisResult(jobData) {
         try {
-            this.state.feModel.show_job_analysis_result(jobName);
+            this.state.feModel.show_job_analysis_result(jobData.job_name, jobData.job_id);
         } catch (error) {
             throw error;
         }
@@ -552,8 +552,8 @@ class CommunicatorWithFEModel {
         this.state.feModel.extract_boundary_conditions(handler);
     }
 
-    set extractJobNames(handler) {
-        this.state.feModel.extract_job_names(handler);
+    set extractJobIds(handler) {
+        this.state.feModel.extract_job_ids(handler);
     }
 }
 

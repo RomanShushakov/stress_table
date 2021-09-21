@@ -66,7 +66,7 @@ impl GlobalScene
     }
 
 
-    pub fn activate_postprocessor_state(&mut self, postprocessor_id: u32) -> Result<(), JsValue>
+    pub fn activate_postprocessor_state(&mut self, job_id: u32) -> Result<(), JsValue>
     {
         match self.scene_state
         {
@@ -75,17 +75,21 @@ impl GlobalScene
                     if let Some((id, postprocessor)) =
                         self.optional_postprocessor.as_mut()
                     {
-                        if *id != postprocessor_id
+                        if *id != job_id
                         {
-                            *id = postprocessor_id;
+                            *id = job_id;
                             *postprocessor = Postprocessor::create();
+                            let detail = json!(job_id);
+                            dispatch_custom_event(detail,
+                                EXTRACT_DATA_FOR_POSTPROCESSOR_EVENT_NAME,
+                                EVENT_TARGET)?;
                         }
                     }
                     else
                     {
                         self.optional_postprocessor =
-                            Some((postprocessor_id, Postprocessor::create()));
-                        let detail = json!("_data");
+                            Some((job_id, Postprocessor::create()));
+                        let detail = json!(job_id);
                         dispatch_custom_event(detail,
                             EXTRACT_DATA_FOR_POSTPROCESSOR_EVENT_NAME,
                             EVENT_TARGET)?;

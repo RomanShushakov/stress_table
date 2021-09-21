@@ -1,4 +1,6 @@
 use serde::Serialize;
+use wasm_bindgen::JsValue;
+use std::fmt::Debug;
 
 
 #[derive(Debug, Clone, Serialize)]
@@ -10,11 +12,27 @@ pub struct TrussSection<V>
 
 
 impl<V> TrussSection<V>
-    where V: Copy + PartialEq,
+    where V: Copy + Debug + PartialEq + PartialOrd + From<f32>,
 {
-    pub fn create(area: V, area2: Option<V>) -> Self
+    pub fn create(area: V, area2: Option<V>) -> Result<Self, JsValue>
     {
-        TrussSection { area, area2 }
+        let error_message_header = "Truss section: Create truss section action";
+
+        if area <= V::from(0f32)
+        {
+            let error_message = &format!("{}: Area {:?} is less or equal to zero!",
+                error_message_header, area);
+            return Err(JsValue::from(error_message));
+        }
+
+        if let Some(area) = area2
+        {
+            let error_message = &format!("{}: Area {:?} is less or equal to zero!",
+                error_message_header, area);
+            return Err(JsValue::from(error_message));
+        }
+
+        Ok(TrussSection { area, area2 })
     }
 
 
@@ -24,10 +42,28 @@ impl<V> TrussSection<V>
     }
 
 
-    pub fn update(&mut self, area: V, area2: Option<V>)
+    pub fn update(&mut self, area: V, area2: Option<V>) -> Result<(), JsValue>
     {
+        let error_message_header = "Truss section: Update truss section action";
+
+        if area <= V::from(0f32)
+        {
+            let error_message = &format!("{}: Area {:?} is less or equal to zero!",
+                error_message_header, area);
+            return Err(JsValue::from(error_message));
+        }
+
+        if let Some(area) = area2
+        {
+            let error_message = &format!("{}: Area {:?} is less or equal to zero!",
+                error_message_header, area);
+            return Err(JsValue::from(error_message));
+        }
+
         self.area = area;
         self.area2 = area2;
+
+        Ok(())
     }
 
 
@@ -47,7 +83,7 @@ pub struct DeletedTrussSection<V>
 
 
 impl<V> DeletedTrussSection<V>
-    where V: Copy + PartialEq,
+    where V: Copy + Debug + PartialEq + PartialOrd + From<f32>,
 {
     pub fn create(name: &str, truss_section: TrussSection<V>) -> Self
     {

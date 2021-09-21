@@ -9,7 +9,7 @@ pub struct LocalAxis1Direction<V>(V, V, V);
 
 
 impl<V> LocalAxis1Direction<V>
-    where V: Copy + Debug + Into<f64>,
+    where V: Copy + Debug + Into<f64> + PartialEq + From<f32>,
 {
     pub fn create(local_axis_1_direction: &[V]) -> Result<Self, JsValue>
     {
@@ -17,6 +17,15 @@ impl<V> LocalAxis1Direction<V>
         {
             let error_message = &format!("Properties: Create beam section local axis 1 \
                 direction: Incorrect number of components in {:?}!", local_axis_1_direction);
+            return Err(JsValue::from(error_message));
+        }
+
+        if local_axis_1_direction[0] == V::from(0f32) &&
+            local_axis_1_direction[1] == V::from(0f32) &&
+            local_axis_1_direction[2] == V::from(0f32)
+        {
+            let error_message = &format!("Properties: Create beam section local axis 1 \
+                direction: All components in {:?} are equal to zero!", local_axis_1_direction);
             return Err(JsValue::from(error_message));
         }
 

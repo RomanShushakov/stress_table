@@ -20,7 +20,7 @@ use crate::functions::{dispatch_custom_event};
 
 impl<T, V> Properties<T, V>
     where T: Copy + Debug + Eq + Hash + Serialize + PartialOrd,
-          V: Copy + Debug + Serialize + PartialEq,
+          V: Copy + Debug + Serialize + PartialEq + PartialOrd + From<f32>,
 {
     pub fn add_material(&mut self, action_id: T, name: &str, young_modulus: V,
         poisson_ratio: V, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
@@ -45,7 +45,7 @@ impl<T, V> Properties<T, V>
             return Err(JsValue::from(error_message));
         }
 
-        let material = Material::create(young_modulus, poisson_ratio);
+        let material = Material::create(young_modulus, poisson_ratio)?;
         self.materials.insert(name.to_owned(), material);
         let detail = json!({ "material_data": { "name": name, "young_modulus": young_modulus,
             "poisson_ratio": poisson_ratio },
@@ -74,7 +74,7 @@ impl<T, V> Properties<T, V>
 
         if let Some(material) = self.materials.get_mut(name)
         {
-            material.update(young_modulus, poisson_ratio);
+            material.update(young_modulus, poisson_ratio)?;
             let detail = json!({ "material_data": { "name": name,
                 "young_modulus": young_modulus, "poisson_ratio": poisson_ratio },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
@@ -157,7 +157,7 @@ impl<T, V> Properties<T, V>
                 return Err(JsValue::from(error_message));
             }
             self.materials.insert(deleted_material_name.to_owned(), Material::create(
-                young_modulus, poisson_ratio));
+                young_modulus, poisson_ratio)?);
             let detail = json!({ "material_data": { "name": deleted_material_name,
                     "young_modulus": young_modulus, "poisson_ratio": poisson_ratio },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });

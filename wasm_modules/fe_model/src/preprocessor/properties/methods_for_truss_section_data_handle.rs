@@ -22,7 +22,7 @@ use crate::functions::{dispatch_custom_event};
 
 impl<T, V> Properties<T, V>
     where T: Copy + Debug + Eq + Hash + Serialize + PartialOrd,
-          V: Copy + Debug + Serialize + PartialEq,
+          V: Copy + Debug + Serialize + PartialEq + PartialOrd + From<f32>,
 {
     pub fn add_truss_section(&mut self, action_id: T, name: &str, area: V,
         area2: Option<V>, is_action_id_should_be_increased: bool) -> Result<(), JsValue>
@@ -46,7 +46,7 @@ impl<T, V> Properties<T, V>
             return Err(JsValue::from(error_message));
         }
 
-        let truss_section = TrussSection::create(area, area2);
+        let truss_section = TrussSection::create(area, area2)?;
         self.truss_sections.insert(name.to_owned(), truss_section);
         let detail = json!({ "truss_section_data": { "name": name, "area": area,
             "area2": area2 },
@@ -75,7 +75,7 @@ impl<T, V> Properties<T, V>
 
         if let Some(truss_section) = self.truss_sections.get_mut(name)
         {
-            truss_section.update(area, area2);
+            truss_section.update(area, area2)?;
             let detail = json!({ "truss_section_data": { "name": name,
                 "area": area, "area2": area2 },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
@@ -160,7 +160,7 @@ impl<T, V> Properties<T, V>
                 return Err(JsValue::from(error_message));
             }
             self.truss_sections.insert(deleted_truss_section_name.to_owned(),
-               TrussSection::create(area, area2));
+               TrussSection::create(area, area2)?);
             let detail = json!({ "truss_section_data": { "name": deleted_truss_section_name,
                     "area": area, "area2": area2 },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });

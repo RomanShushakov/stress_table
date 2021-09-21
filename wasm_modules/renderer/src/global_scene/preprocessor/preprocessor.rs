@@ -176,15 +176,23 @@ impl Preprocessor
                 if let Some(beam_section_orientation) =
                     &self.beam_section_orientation_for_preview
                 {
-                    scene_visible.add_beam_section_orientation_for_preview(
-                        &self.point_objects,
-                        &self.line_objects,
-                        beam_section_orientation,
-                        DRAWN_BEAM_SECTION_ORIENTATION_LINE_LENGTH / (1.0 + d_scale),
-                        DRAWN_BEAM_SECTION_ORIENTATION_CAPS_BASE_POINTS_NUMBER,
-                        DRAWN_BEAM_SECTION_ORIENTATION_CAPS_HEIGHT / (1.0 + d_scale),
-                        DRAWN_BEAM_SECTION_ORIENTATION_CAPS_WIDTH / (1.0 + d_scale),
-                    )?;
+                    match scene_visible.add_beam_section_orientation_for_preview(
+                            &self.point_objects,
+                            &self.line_objects,
+                            beam_section_orientation,
+                            DRAWN_BEAM_SECTION_ORIENTATION_LINE_LENGTH / (1.0 + d_scale),
+                            DRAWN_BEAM_SECTION_ORIENTATION_CAPS_BASE_POINTS_NUMBER,
+                            DRAWN_BEAM_SECTION_ORIENTATION_CAPS_HEIGHT / (1.0 + d_scale),
+                            DRAWN_BEAM_SECTION_ORIENTATION_CAPS_WIDTH / (1.0 + d_scale),
+                        )
+                    {
+                        Ok(_) => (),
+                        Err(e) =>
+                            {
+                                self.beam_section_orientation_for_preview = None;
+                                return Err(e);
+                            }
+                    }
                 }
             }
             if !self.concentrated_loads.is_empty()

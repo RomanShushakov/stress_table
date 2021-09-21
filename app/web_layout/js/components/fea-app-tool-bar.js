@@ -589,11 +589,48 @@ class FeaAppToolBar extends HTMLElement {
         const undoButton = this.shadowRoot.querySelector(".undo-button");
         const redoButton = this.shadowRoot.querySelector(".redo-button");
         const showHideGeometryButton = this.shadowRoot.querySelector(".show-hide-geometry-button");
+        const showHideGeometryButtonIcon = this.shadowRoot.querySelector(".show-hide-geometry-button-icon");
         const showHideLoadButton = this.shadowRoot.querySelector(".show-hide-load-button");
+        const showHideLoadButtonIcon = this.shadowRoot.querySelector(".show-hide-load-button-icon");
         const showHideBoundaryConditionButton = this.shadowRoot.querySelector(".show-hide-boundary-condition-button");
+        const showHideBoundaryConditionButtonIcon = this.shadowRoot.querySelector(".show-hide-boundary-condition-button-icon");
         const showHideMeshButton = this.shadowRoot.querySelector(".show-hide-mesh-button");
+        const showHideMeshButtonIcon = this.shadowRoot.querySelector(".show-hide-mesh-button-icon");
         const isPreprocessorActive = this.getAttribute("is-preprocessor-active");
         const isPostprocessorActive = this.getAttribute("is-postprocessor-active");
+
+        this.state.isGeometryVisible = true;
+        this.dispatchEvent(new CustomEvent("updateGeometryVisibility", {
+            bubbles: true,
+            composed: true,
+            detail: { "is_geometry_visible": this.state.isGeometryVisible },
+        }));  
+        this.deactivateButton(showHideGeometryButton, showHideGeometryButtonIcon);
+
+        this.state.isLoadVisible = true;
+        this.dispatchEvent(new CustomEvent("updateLoadVisibility", {
+            bubbles: true,
+            composed: true,
+            detail: { "is_load_visible": this.state.isLoadVisible },
+        }));  
+        this.deactivateButton(showHideLoadButton, showHideLoadButtonIcon);
+
+        this.state.isBoundaryConditionVisible = true;
+        this.dispatchEvent(new CustomEvent("updateBoundaryConditionVisibility", {
+            bubbles: true,
+            composed: true,
+            detail: { "is_boundary_condition_visible": this.state.isBoundaryConditionVisible },
+        }));  
+        this.deactivateButton(showHideBoundaryConditionButton, showHideBoundaryConditionButtonIcon);
+
+        this.state.isMeshVisible = true;
+        this.dispatchEvent(new CustomEvent("updateMeshVisibility", {
+            bubbles: true,
+            composed: true,
+            detail: { "is_mesh_visible": this.state.isMeshVisible },
+        }));  
+        this.deactivateButton(showHideMeshButton, showHideMeshButtonIcon);
+
         if (isPreprocessorActive === "true") {
             undoButton.disabled = false;
             redoButton.disabled = false;
@@ -601,6 +638,7 @@ class FeaAppToolBar extends HTMLElement {
             showHideLoadButton.disabled = false;
             showHideBoundaryConditionButton.disabled = false;
             showHideMeshButton.disabled = true;
+            
         }
         if (isPostprocessorActive === "true") {
             undoButton.disabled = true;
@@ -613,6 +651,13 @@ class FeaAppToolBar extends HTMLElement {
     }
 
     adoptedCallback() {
+    }
+
+    getRendererLoadStatus() {
+        this.dispatchEvent(new CustomEvent("getRendererLoadStatusForToolBar", {
+            bubbles: true,
+            composed: true,
+        }));
     }
 
     undo() {

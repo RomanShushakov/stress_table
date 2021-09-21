@@ -326,6 +326,20 @@ class FeaRenderer extends HTMLElement {
         this.state.renderer.tick();
     }
 
+    set activatePreprocessorState(_data) {
+        this.state.renderer.activate_preprocessor_state();
+        this.state.renderer.tick();
+    }
+
+    set activatePostprocessorState(postprocessorId) {
+        try {
+            this.state.renderer.activate_postprocessor_state(postprocessorId);
+        } catch (error) {
+            throw error;
+        }
+        this.state.renderer.tick();
+    }
+
     async connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {
@@ -344,6 +358,12 @@ class FeaRenderer extends HTMLElement {
         this.state.canvasGL.height = this.props.canvasHeight;
         this.state.renderer = await initializeRenderer(this.state.canvasText, this.state.canvasGL);
         this.state.isRendererLoaded = true;
+
+        window.dispatchEvent(new CustomEvent("rendererLoaded", {
+            bubbles: true,
+            composed: true,
+        }));
+        
         this.state.renderLoop = () => {
             this.state.renderer.tick();
             this.state.animationId = requestAnimationFrame(this.state.renderLoop);

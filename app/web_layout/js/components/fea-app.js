@@ -11,6 +11,7 @@ class FeaApp extends HTMLElement {
             actionId: 1,                            // u32;
             actionsRouter: null,                    // wasm module "actions_router";
             isFEModelLoaded: false,                 // load status of wasm module "fe_model";
+            isRendererLoaded: false,                // load status of wasm module "renderer";
             isLinesSelectionModeEnabled: false,
             pointsDataDependentMenus: [
                 "fea-geometry-add-point-menu",
@@ -124,6 +125,11 @@ class FeaApp extends HTMLElement {
             event.stopPropagation();
         });
 
+        window.addEventListener("rendererLoaded", (event) => {
+            this.state.isRendererLoaded = true;
+            event.stopPropagation();
+        });
+
         window.addEventListener("resize", () => this.updateCanvasSize());
 
         this.addEventListener("activatePreprocessorMenu", () => this.activatePreprocessorMenu());
@@ -161,6 +167,7 @@ class FeaApp extends HTMLElement {
             (event) => this.handleSelectedDistributedLineLoadsLinesNumbersMessage(event));
         this.addEventListener("selected_boundary_conditions_points_numbers", 
             (event) => this.handleSelectedBoundaryConditionsPointsNumbersMessage(event));
+        this.addEventListener("extract_data_for_postprocessor", (event) => this.handleExtractDataForPostprocessorMessage(event));
 
         this.addEventListener("updateGeometryVisibility", (event) => this.hangleUpdateGeometryVisibilityMessage(event));
         this.addEventListener("updateLoadVisibility", (event) => this.handleUpdateLoadVisibilityMessage(event));
@@ -283,9 +290,17 @@ class FeaApp extends HTMLElement {
         }
         const feaPreprocessorMenu = document.createElement("fea-preprocessor-menu");
         this.append(feaPreprocessorMenu);
-        this.shadowRoot.querySelector("fea-app-tool-bar").setAttribute("is-postprocessor-active", false);
-        this.shadowRoot.querySelector("fea-app-tool-bar").setAttribute("is-preprocessor-active", true);
-        this.updateCanvasSize();
+
+        const frame = () => {
+            if (this.state.isRendererLoaded === true) {
+                this.shadowRoot.querySelector("fea-app-tool-bar").setAttribute("is-postprocessor-active", false);
+                this.shadowRoot.querySelector("fea-app-tool-bar").setAttribute("is-preprocessor-active", true);
+                this.shadowRoot.querySelector("fea-renderer").activatePreprocessorState = "_data";
+                this.updateCanvasSize();
+                clearInterval(id);
+            }
+        }
+        const id = setInterval(frame, 10);
     }
 
     activatePostprocessorMenu() {
@@ -294,9 +309,17 @@ class FeaApp extends HTMLElement {
         }
         const feaPostprocessorMenu = document.createElement("fea-postprocessor-menu");
         this.append(feaPostprocessorMenu);
-        this.shadowRoot.querySelector("fea-app-tool-bar").setAttribute("is-preprocessor-active", false);
-        this.shadowRoot.querySelector("fea-app-tool-bar").setAttribute("is-postprocessor-active", true);
-        this.updateCanvasSize();
+
+        const frame = () => {
+            if (this.state.isRendererLoaded === true) {
+                this.shadowRoot.querySelector("fea-app-tool-bar").setAttribute("is-preprocessor-active", false);
+                this.shadowRoot.querySelector("fea-app-tool-bar").setAttribute("is-postprocessor-active", true);
+                this.shadowRoot.querySelector("fea-renderer").activatePostprocessorState = 1;
+                this.updateCanvasSize();
+                clearInterval(id);
+            }
+        }
+        const id = setInterval(frame, 10);
     }
 
     getActionId(event) {
@@ -794,6 +817,12 @@ class FeaApp extends HTMLElement {
                 );
             }
         }
+        event.stopPropagation();
+    }
+
+    handleExtractDataForPostprocessorMessage(event) {
+        const message = event.detail;
+        console.log(message);
         event.stopPropagation();
     }
 

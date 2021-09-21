@@ -1,5 +1,6 @@
 use wasm_bindgen::prelude::*;
 use std::collections::{HashSet, HashMap};
+use serde_json::json;
 
 use crate::drawn_object::scene_adapter::SceneAdapter;
 
@@ -12,6 +13,8 @@ use crate::global_scene::preprocessor::concentrated_load::ConcentratedLoad;
 use crate::global_scene::preprocessor::distributed_line_load::DistributedLineLoad;
 use crate::global_scene::preprocessor::boundary_condition::BoundaryCondition;
 
+use crate::consts::{EVENT_TARGET, EXTRACT_DATA_FOR_POSTPROCESSOR_EVENT_NAME};
+use crate::functions::dispatch_custom_event;
 
 pub enum SceneState
 {
@@ -50,21 +53,15 @@ impl GlobalScene
     }
 
 
-    pub fn activate_preprocessor_state(&mut self) -> Result<(), JsValue>
+    pub fn activate_preprocessor_state(&mut self)
     {
         match self.scene_state
         {
-            SceneState::Preprocessor =>
-                {
-                    let error_message = "Renderer: Global scene: Preprocessor activation \
-                        action: Preprocessor is already active!";
-                    Err(JsValue::from(error_message))
-                },
             SceneState::Postprocessor =>
                 {
                     self.scene_state = SceneState::Preprocessor;
-                    Ok(())
-                }
+                },
+            SceneState::Preprocessor => ()
         }
     }
 
@@ -73,12 +70,6 @@ impl GlobalScene
     {
         match self.scene_state
         {
-            SceneState::Postprocessor =>
-                {
-                    let error_message = "Renderer: Global scene: Postprocessor activation \
-                        action: Postprocessor is already active!";
-                    Err(JsValue::from(error_message))
-                },
             SceneState::Preprocessor =>
                 {
                     if let Some((id, postprocessor)) =
@@ -94,10 +85,15 @@ impl GlobalScene
                     {
                         self.optional_postprocessor =
                             Some((postprocessor_id, Postprocessor::create()));
+                        let detail = json!("_data");
+                        dispatch_custom_event(detail,
+                            EXTRACT_DATA_FOR_POSTPROCESSOR_EVENT_NAME,
+                            EVENT_TARGET)?;
                     }
                     self.scene_state = SceneState::Postprocessor;
                     Ok(())
-                }
+                },
+            SceneState::Postprocessor => Ok(())
         }
     }
 

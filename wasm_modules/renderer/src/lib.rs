@@ -251,6 +251,18 @@ impl Renderer
     }
 
 
+    pub fn activate_preprocessor_state(&mut self)
+    {
+        self.state.global_scene.activate_preprocessor_state();
+    }
+
+
+    pub fn activate_postprocessor_state(&mut self, postprocessor_id: u32) -> Result<(), JsValue>
+    {
+        self.state.global_scene.activate_postprocessor_state(postprocessor_id)
+    }
+
+
     pub fn tick(&mut self) -> Result<(), JsValue>
     {
         self.render()?;

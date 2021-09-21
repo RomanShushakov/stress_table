@@ -11,3 +11,4 @@ pub const SELECTED_DISTRIBUTED_LINE_LOADS_LINES_NUMBERS_EVENT_MAME: &str =
     "selected_distributed_line_loads_lines_numbers";
 pub const SELECTED_BOUNDARY_CONDITIONS_POINTS_NUMBERS_EVENT_MAME: &str =
     "selected_boundary_conditions_points_numbers";
+pub const EXTRACT_DATA_FOR_POSTPROCESSOR_EVENT_NAME: &str = "extract_data_for_postprocessor";

@@ -142,28 +142,72 @@ class FeaPostprocessorMenuButtons extends HTMLElement {
                 <button class="contours-menu-button">
                     <div class="contours-menu-button-icon-content">
 
-                        <svg class=contours-menu-button-icon width="102" height="87" viewBox="0 0 102 87" fill="none" 
+                        <svg class=contours-menu-button-icon width="102" height="86" viewBox="0 0 102 86" fill="none" 
                             xmlns="http://www.w3.org/2000/svg"
                         >
                             <title>Contours</title>
-                            <path d="M34.3333 1H1V85.7457H101V57.4971H34.3333V1Z" stroke="#D9D9D9"/>
-                            <path d="M47 57.5C39.8571 65.3506 40.8571 66 35.5 66C30.1428 66 27.4642 65.5638 25.6785 
-                                63.8192C23.8928 62.0746 23.0001 58.1493 23 56.8409C22.9999 55.5324 23.8928 50.2987 
-                                25.6785 48.1179C27.4643 45.9372 27.3214 43.4361 30 43C32.1429 42.6511 34.0536 41.8546
-                                34.5 42" stroke="#622629"
+                            <path d="M1 1H14L9.5 7L6 13.5L3.5 19.5L1 26V1Z" fill="#7475E6" stroke="#E3E1E1" stroke-width="0.5"/>
+                            <path d="M1 51.5V26L6 13.5L9.5 7L14 1H28.5L24 6.5L15.5 18.5L7.5 33L3 44L1 51.5Z" 
+                                fill="url(#paint0_radial)" stroke="#E3E1E1" stroke-width="0.5"
                             />
-                            <path d="M67.5 57.5C59 69.5 59.5 70 52 73.5C44.5 77 34 75.8864 27.5 75C16.5 73.5 17.5 72 14.5 
-                                67C11.3916 61.8195 13 58.5 14.5 52C16 45.5 17.5 42 21 38C24.5 34 28.2351 31.4487 29.5 
-                                30.5C31.5 29 33.5 29.1667 34 29" stroke="#B1AB19"
+                            <path d="M34.5 1H28.5L24 6.5L15.5 18.5L7.5 33L3 44L1 51V75.5L6 82L12 85.5H59.5L77.5 
+                                78L84.5 73.5L89 69L96.5 57.5H80L76.5 63.5L70.5 70.5L63 76.5L55 81L45 83H31L19.5 
+                                82L11.5 77L6 69.5L5 62.5L7.5 50L14 35L22 25L34.5 14V1Z" fill="url(#paint1_radial)" 
+                                stroke="#E3E1E1" stroke-width="0.5"
                             />
-                            <path d="M14 1C9.2 6.6 6.66667 11.6667 6 13.5L3 21L1 26.5" stroke="#7475E6"/>
-                            <path d="M101 72L94.5 79L83 85.5" stroke="#7475E6"/>
-                            <path d="M96.5 57.5L89 69L84 74L77.5 78L59.5 85.5" stroke="#72C5FF"/>
-                            <path d="M1 75.5L6 82L12.5 85.5" stroke="#72C5FF"/>
-                            <path d="M28.5 1L19.5 12.5L13 23L7 34L2.5 45.5L1 52" stroke="#72C5FF"/>
-                            <path d="M34 14L22 25L14 35L7.5 50L5 62.5L6 69.5L11.5 77L20 82L31.5 83H45.5L55 81L63 
-                                76.5L70.5 70.5L76.5 63.5L80 57.5" stroke="#234D2D"
+                            <path d="M1 85.5V75.5L6 82L12 85.5H1Z" fill="#72C5FF" stroke="#E3E1E1" stroke-width="0.5"/>
+                            <path d="M89 69L96.5 57.5H101V72L94.5 79L83 85.5H59.5L77.5 78L84.5 73.5L89 69Z" 
+                                fill="url(#paint2_radial)" stroke="#E3E1E1" stroke-width="0.5"
                             />
+                            <path d="M94.5 79L83 85.5H101V72L94.5 79Z" fill="#7475E6" stroke="#E3E1E1" stroke-width="0.5"/>
+                            <path d="M22 25L34.5 14V29L30.5 30L28 31.5L23 36L18.5 41L16 46.5L13.5 56.5L12.5 
+                                61.5L14.5 67L18 72.5L20.5 74L26 75L34 76H41L48 75L52 73.5L56 71.5L59.5 
+                                68.5L67.5 57.5H80L76.5 63.5L70.5 70.5L63 76.5L55 81L45 83H31L19.5 82L11.5 
+                                77L6 69.5L5 62.5L7.5 50L14 35L22 25Z" fill="url(#paint3_radial)" stroke="#E3E1E1" 
+                                stroke-width="0.5"
+                            />
+                            <path d="M30.5 30L34.5 29V42L32.5 42.5L29 43.5L27.5 45L25.5 48.5L24 52L23 
+                                55.5V57.5L23.5 59.5L25 63L26.5 64.5L29 65.5L32.5 66H37L39.5 65.5L41 
+                                64.5L47 57.5H67.5L59.5 68.5L56 71.5L52 73.5L48 75L41 76H34L20.5 74L18 72.5L14.5
+                                67L12.5 61.5L16 46.5L18.5 41L23 36L28 31.5L30.5 30Z" fill="url(#paint4_radial)" 
+                                stroke="#E3E1E1" stroke-width="0.5"
+                            />
+                            <path d="M29 43.5L34.5 42V57.5H47L41 64.5L39.5 65.5L37 66H32.5L29 65.5L26.5 64.5L25 63L23.5 
+                                59.5L23 57.5V55.5L24 52L25.5 48.5L27.5 45L29 43.5Z" fill="#622629" stroke="#E3E1E1" 
+                                stroke-width="0.5"
+                            />
+                            <defs>
+                                <radialGradient id="paint0_radial" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" 
+                                    gradientTransform="translate(51.5 41.5) rotate(-169.563) scale(57.959 59.909)"
+                                >
+                                    <stop offset="0.645833" stop-color="#72C5FF"/>
+                                    <stop offset="1" stop-color="#7475E6"/>
+                                </radialGradient>
+                                <radialGradient id="paint1_radial" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" 
+                                    gradientTransform="translate(43.5 50) rotate(146.622) scale(50.8945 42.4774)"
+                                >
+                                    <stop offset="0.796875" stop-color="#234D2D"/>
+                                    <stop offset="1" stop-color="#72C5FF"/>
+                                </radialGradient>
+                                <radialGradient id="paint2_radial" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" 
+                                    gradientTransform="translate(52.5 40) rotate(45.7073) scale(57.28 84.8972)"
+                                >
+                                    <stop offset="0.75" stop-color="#72C5FF"/>
+                                    <stop offset="1" stop-color="#7475E6"/>
+                                </radialGradient>
+                                <radialGradient id="paint3_radial" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" 
+                                    gradientTransform="translate(42.5 48.5) rotate(134.502) scale(40.6602 38.5002)"
+                                >
+                                    <stop stop-color="#B1AB19"/>
+                                    <stop offset="1" stop-color="#234D2D"/>
+                                </radialGradient>
+                                <radialGradient id="paint4_radial" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" 
+                                    gradientTransform="translate(46 47.5) rotate(130.955) scale(35.0892 25.4568)"
+                                >
+                                    <stop offset="0.526042" stop-color="#622629"/>
+                                    <stop offset="1" stop-color="#B1AB19"/>
+                                </radialGradient>
+                            </defs>
                         </svg>
                         <p class="contours-menu-button-icon-caption">Contours</p>
                     </div>

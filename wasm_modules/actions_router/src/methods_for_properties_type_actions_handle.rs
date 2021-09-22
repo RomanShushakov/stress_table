@@ -1,10 +1,8 @@
 use serde_json::Value;
 use wasm_bindgen::prelude::*;
-use std::convert::TryFrom;
 
 use crate::ActionsRouter;
 use crate::action::{Action, ActionType, PropertiesActionType};
-use crate::external_functions::common::log;
 
 use crate::types::{FEUInt, FEFloat};
 

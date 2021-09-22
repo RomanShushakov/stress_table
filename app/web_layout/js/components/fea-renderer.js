@@ -232,29 +232,29 @@ class FeaRenderer extends HTMLElement {
         this.updateCanvasSize();
     }
 
-    set toggleGeometryVisibility(_data) {
-        this.state.renderer.toggle_geometry_visibility();
+    set updateGeometryVisibility(isGeometryVisible) {
+        this.state.renderer.update_geometry_visibility(isGeometryVisible);
         if (this.state.isPaused === true) {
             this.state.renderer.tick();
         }
     }
 
-    set toggleMeshVisibility(_data) {
-        this.state.renderer.toggle_mesh_visibility();
+    set updateLoadVisibility(isLoadVisible) {
+        this.state.renderer.update_load_visibility(isLoadVisible);
         if (this.state.isPaused === true) {
             this.state.renderer.tick();
         }
     }
 
-    set toggleLoadVisibility(_data) {
-        this.state.renderer.toggle_load_visibility();
+    set updateBoundaryConditionVisibility(isBoundaryConditionVisible) {
+        this.state.renderer.update_boundary_condition_visibility(isBoundaryConditionVisible);
         if (this.state.isPaused === true) {
             this.state.renderer.tick();
         }
     }
 
-    set toggleBoundaryConditionVisibility(_data) {
-        this.state.renderer.toggle_boundary_condition_visibility();
+    set updateMeshVisibility(isMeshVisible) {
+        this.state.renderer.update_mesh_visibility(isMeshVisible);
         if (this.state.isPaused === true) {
             this.state.renderer.tick();
         }
@@ -326,6 +326,20 @@ class FeaRenderer extends HTMLElement {
         this.state.renderer.tick();
     }
 
+    set activatePreprocessorState(_data) {
+        this.state.renderer.activate_preprocessor_state();
+        this.state.renderer.tick();
+    }
+
+    set activatePostprocessorState(jobId) {
+        try {
+            this.state.renderer.activate_postprocessor_state(jobId);
+        } catch (error) {
+            throw error;
+        }
+        this.state.renderer.tick();
+    }
+
     async connectedCallback() {
         Object.keys(this.props).forEach((propName) => {
             if (this.hasOwnProperty(propName)) {
@@ -344,6 +358,12 @@ class FeaRenderer extends HTMLElement {
         this.state.canvasGL.height = this.props.canvasHeight;
         this.state.renderer = await initializeRenderer(this.state.canvasText, this.state.canvasGL);
         this.state.isRendererLoaded = true;
+
+        window.dispatchEvent(new CustomEvent("rendererLoaded", {
+            bubbles: true,
+            composed: true,
+        }));
+        
         this.state.renderLoop = () => {
             this.state.renderer.tick();
             this.state.animationId = requestAnimationFrame(this.state.renderLoop);

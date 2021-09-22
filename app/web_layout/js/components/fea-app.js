@@ -11,6 +11,7 @@ class FeaApp extends HTMLElement {
             actionId: 1,                            // u32;
             actionsRouter: null,                    // wasm module "actions_router";
             isFEModelLoaded: false,                 // load status of wasm module "fe_model";
+            isRendererLoaded: false,                // load status of wasm module "renderer";
             isLinesSelectionModeEnabled: false,
             pointsDataDependentMenus: [
                 "fea-geometry-add-point-menu",
@@ -83,6 +84,9 @@ class FeaApp extends HTMLElement {
                 "fea-boundary-condition-update-boundary-condition-menu",
                 "fea-boundary-condition-delete-boundary-condition-menu",
             ],
+            analysisResultsDataDependentMenus: [
+                "fea-analysis-menu",
+            ],
         };
 
         this.attachShadow({ mode: "open" });
@@ -121,10 +125,15 @@ class FeaApp extends HTMLElement {
             event.stopPropagation();
         });
 
+        window.addEventListener("rendererLoaded", (event) => {
+            this.state.isRendererLoaded = true;
+            event.stopPropagation();
+        });
+
         window.addEventListener("resize", () => this.updateCanvasSize());
 
         this.addEventListener("activatePreprocessorMenu", () => this.activatePreprocessorMenu());
-        this.addEventListener("activate-postprocessor", () => this.activatePostprocessor());
+        this.addEventListener("activatePosprocessorMenu", () => this.activatePostprocessorMenu(0));
 
         this.addEventListener("getActionId", (event) => this.getActionId(event));
         this.addEventListener("getActionIdForToolBar", (event) => this.getActionIdForToolBar(event));
@@ -146,6 +155,8 @@ class FeaApp extends HTMLElement {
 
         this.addEventListener("getBoundaryConditions", (event) => this.getBoundaryConditions(event));
 
+        this.addEventListener("getJobIds", (event) => this.getJobIds(event));
+
         this.addEventListener("selected_points", (event) => this.handleSelectedPointsMessage(event));
         this.addEventListener("selected_nodes", (event) => this.handleSelectedNodesMessage(event));
         this.addEventListener("selected_lines", (event) => this.handleSelectedLinesMessage(event));
@@ -156,18 +167,23 @@ class FeaApp extends HTMLElement {
             (event) => this.handleSelectedDistributedLineLoadsLinesNumbersMessage(event));
         this.addEventListener("selected_boundary_conditions_points_numbers", 
             (event) => this.handleSelectedBoundaryConditionsPointsNumbersMessage(event));
+        this.addEventListener("extract_data_for_postprocessor", (event) => this.handleExtractDataForPostprocessorMessage(event));
 
-        this.addEventListener("toggleGeometryVisibility", (event) => this.handleToggleGeometryVisibilityMessage(event));
-        this.addEventListener("toggleMeshVisibility", (event) => this.handleToggleMeshVisibilityMessage(event));
-        this.addEventListener("toggleLoadVisibility", (event) => this.handleToggleLoadVisibilityMessage(event));
-        this.addEventListener("toggleBoundaryConditionVisibility", 
-            (event) => this.handleToggleBoundaryConditionVisibilityMessage(event));
+        this.addEventListener("updateGeometryVisibility", (event) => this.hangleUpdateGeometryVisibilityMessage(event));
+        this.addEventListener("updateLoadVisibility", (event) => this.handleUpdateLoadVisibilityMessage(event));
+        this.addEventListener("updateBoundaryConditionVisibility", 
+            (event) => this.handleUpdateBoundaryConditionVisibilityMessage(event));
+        this.addEventListener("updateMeshVisibility", (event) => this.handleUpdateMeshVisibilityMessage(event));
         this.addEventListener("changeView", (event) => this.handleChangeViewMessage(event));
 
         this.addEventListener("previewSelectedLineNumbers", (event) => this.handlePreviewSelectedLineNumbersMessage(event));
         this.addEventListener("previewBeamSectionOrientation", (event) => this.handlePreviewBeamSectionOrientationMessage(event));
 
         this.addEventListener("clientMessage", (event) => this.handleClientMessage(event));
+
+        this.addEventListener("submitJob", (event) => this.handleSubmitJobMessage(event));
+        this.addEventListener("showJobAnalysisResult", (event) => this.handleShowJobAnalysisResultMessage(event));
+        this.addEventListener("deleteJob", (event) => this.handleDeleteJobMessage(event));
 
         this.addEventListener("add_point_server_message", (event) => this.handleAddPointServerMessage(event));
         this.addEventListener("update_point_server_message", (event) => this.handleUpdatePointServerMessage(event));
@@ -228,6 +244,11 @@ class FeaApp extends HTMLElement {
         this.addEventListener("delete_boundary_condition_server_message", 
             (event) => this.handleDeleteBoundaryConditionServerMessage(event));
 
+        this.addEventListener("add_analysis_result_server_message", 
+            (event) => this.handleAddAnalysisResultServerMessage(event));
+        this.addEventListener("delete_analysis_result_server_message", 
+            (event) => this.handleDeleteAnalysisResultServerMessage(event));
+
         this.addEventListener("add_node_server_message", (event) => this.handleAddNodeServerMessage(event));
 
         this.addEventListener("decreaseActionId", (_event) => this.handleDecreaseActionIdMessage());
@@ -264,18 +285,39 @@ class FeaApp extends HTMLElement {
 
     activatePreprocessorMenu() {
         if (this.querySelector("fea-postprocessor-menu") !== null) {
-            this.querySelector("fea-postprocessor").remove();
+            this.querySelector("fea-postprocessor-menu").remove();
         }
         const feaPreprocessorMenu = document.createElement("fea-preprocessor-menu");
         this.append(feaPreprocessorMenu);
-        this.updateCanvasSize();
+
+        const frame = () => {
+            if (this.state.isRendererLoaded === true) {
+                this.shadowRoot.querySelector("fea-app-tool-bar").setAttribute("is-postprocessor-active", false);
+                this.shadowRoot.querySelector("fea-app-tool-bar").setAttribute("is-preprocessor-active", true);
+                this.shadowRoot.querySelector("fea-renderer").activatePreprocessorState = "_data";
+                this.updateCanvasSize();
+                clearInterval(id);
+            }
+        }
+        const id = setInterval(frame, 10);
     }
 
-    activatePostprocessor() {
-        this.querySelector("fea-preprocessor-menu").remove();
-        const feaPostprocessor = document.createElement("fea-postprocessor");
-        this.append(feaPostprocessor);
-        this.updateCanvasSize();
+    activatePostprocessorMenu(jobId) {
+        const frame = () => {
+            if (this.state.isRendererLoaded === true) {
+                if (this.querySelector("fea-preprocessor-menu") !== null) {
+                    this.querySelector("fea-preprocessor-menu").remove();
+                }
+                const feaPostprocessorMenu = document.createElement("fea-postprocessor-menu");
+                this.append(feaPostprocessorMenu);
+                this.shadowRoot.querySelector("fea-app-tool-bar").setAttribute("is-preprocessor-active", false);
+                this.shadowRoot.querySelector("fea-app-tool-bar").setAttribute("is-postprocessor-active", true);
+                this.shadowRoot.querySelector("fea-renderer").activatePostprocessorState = jobId;
+                this.updateCanvasSize();
+                clearInterval(id);
+            }
+        }
+        const id = setInterval(frame, 10);
     }
 
     getActionId(event) {
@@ -443,6 +485,19 @@ class FeaApp extends HTMLElement {
                     ([key, value]) => [parseInt(key), value]
                 ));
                 this.querySelector(event.target.tagName.toLowerCase()).boundaryConditions = boundaryConditions; 
+            }
+        );
+        event.stopPropagation();
+    }
+
+    getJobIds(event) {
+        this.state.actionsRouter.extract_job_ids(
+            (extractedJobIdsData) => { 
+                const jobIds = new Map(Array.from(
+                    Object.entries(extractedJobIdsData.extracted_job_ids), 
+                    ([key, value]) => [key, value]
+                ));
+                this.querySelector(event.target.tagName.toLowerCase()).jobIds = jobIds; 
             }
         );
         event.stopPropagation();
@@ -634,12 +689,14 @@ class FeaApp extends HTMLElement {
             const pointNumber = pointNumbers[0];
             if (this.state.isLinesSelectionModeEnabled === false) {
                 this.state.actionsRouter.show_point_info(
-                    BigInt(pointNumber),
+                    // BigInt(pointNumber),
+                    pointNumber,
                     (objectInfo) => this.showObjectInfoHandler(objectInfo),
                 );
             } else {
                 this.state.actionsRouter.show_point_info(
-                    BigInt(pointNumber),
+                    // BigInt(pointNumber),
+                    pointNumber,
                     (objectInfo) => this.showObjectInfoWithoutMenuOpeningHandler(objectInfo),
                 );
             }
@@ -669,13 +726,15 @@ class FeaApp extends HTMLElement {
             const lineNumber = lineNumbers[0];
             if (this.state.isLinesSelectionModeEnabled === false) {
                 this.state.actionsRouter.show_line_info(
-                    BigInt(lineNumber),
+                    // BigInt(lineNumber),
+                    lineNumber,
                     (objectInfo) => this.showObjectInfoHandler(objectInfo),
                 );
             } else {
                 this.selectLinesInClientForDataAssign(lineNumber);
                 this.state.actionsRouter.show_line_info(
-                    BigInt(lineNumber),
+                    // BigInt(lineNumber),
+                    lineNumber,
                     (objectInfo) => this.showObjectInfoWithoutMenuOpeningHandler(objectInfo),
                 );
             }
@@ -701,12 +760,14 @@ class FeaApp extends HTMLElement {
             const concentratedLoadPointNumber = concentratedLoadsPointsNumbers[0];
             if (this.state.isLinesSelectionModeEnabled === false) {
                 this.state.actionsRouter.show_concentrated_load_info(
-                    BigInt(concentratedLoadPointNumber),
+                    // BigInt(concentratedLoadPointNumber),
+                    concentratedLoadPointNumber,
                     (objectInfo) => this.showObjectInfoHandler(objectInfo),
                 );
             } else {
                 this.state.actionsRouter.show_concentrated_load_info(
-                    BigInt(concentratedLoadPointNumber),
+                    // BigInt(concentratedLoadPointNumber),
+                    concentratedLoadPointNumber,
                     (objectInfo) => this.showObjectInfoWithoutMenuOpeningHandler(objectInfo),
                 );
             }
@@ -722,12 +783,14 @@ class FeaApp extends HTMLElement {
             const distributedLineLoadLineNumber = distributedLineLoadsLinesNumbers[0];
             if (this.state.isLinesSelectionModeEnabled === false) {
                 this.state.actionsRouter.show_distributed_line_load_info(
-                    BigInt(distributedLineLoadLineNumber),
+                    // BigInt(distributedLineLoadLineNumber),
+                    distributedLineLoadLineNumber,
                     (objectInfo) => this.showObjectInfoHandler(objectInfo),
                 );
             } else {
                 this.state.actionsRouter.show_distributed_line_load_info(
-                    BigInt(distributedLineLoadLineNumber),
+                    // BigInt(distributedLineLoadLineNumber),
+                    distributedLineLoadLineNumber,
                     (objectInfo) => this.showObjectInfoWithoutMenuOpeningHandler(objectInfo),
                 );
             }
@@ -743,12 +806,14 @@ class FeaApp extends HTMLElement {
             const boundaryConditionPointNumber = boundaryConditionsPointsNumbers[0];
             if (this.state.isLinesSelectionModeEnabled === false) {
                 this.state.actionsRouter.show_boundary_condition_info(
-                    BigInt(boundaryConditionPointNumber),
+                    // BigInt(boundaryConditionPointNumber),
+                    boundaryConditionPointNumber,
                     (objectInfo) => this.showObjectInfoHandler(objectInfo),
                 );
             } else {
                 this.state.actionsRouter.show_boundary_condition_info(
-                    BigInt(boundaryConditionPointNumber),
+                    // BigInt(boundaryConditionPointNumber),
+                    boundaryConditionPointNumber,
                     (objectInfo) => this.showObjectInfoWithoutMenuOpeningHandler(objectInfo),
                 );
             }
@@ -756,27 +821,33 @@ class FeaApp extends HTMLElement {
         event.stopPropagation();
     }
 
-    handleToggleGeometryVisibilityMessage(event) {
-        const data = true;
-        this.shadowRoot.querySelector("fea-renderer").toggleGeometryVisibility = data;
+    handleExtractDataForPostprocessorMessage(event) {
+        const message = event.detail;
+        console.log(message);
         event.stopPropagation();
     }
 
-    handleToggleMeshVisibilityMessage(event) {
-        const data = true;
-        this.shadowRoot.querySelector("fea-renderer").toggleMeshVisibility = data;
+    hangleUpdateGeometryVisibilityMessage(event) {
+        const isGeometryVisible = event.detail.is_geometry_visible;
+        this.shadowRoot.querySelector("fea-renderer").updateGeometryVisibility = isGeometryVisible;
         event.stopPropagation();
     }
 
-    handleToggleLoadVisibilityMessage(event) {
-        const data = true;
-        this.shadowRoot.querySelector("fea-renderer").toggleLoadVisibility = data;
+    handleUpdateLoadVisibilityMessage(event) {
+        const isLoadVisible = event.detail.is_load_visible;
+        this.shadowRoot.querySelector("fea-renderer").updateLoadVisibility = isLoadVisible;
         event.stopPropagation();
     }
 
-    handleToggleBoundaryConditionVisibilityMessage(event) {
-        const data = true;
-        this.shadowRoot.querySelector("fea-renderer").toggleBoundaryConditionVisibility = data;
+    handleUpdateBoundaryConditionVisibilityMessage(event) {
+        const isBoundaryConditionVisible = event.detail.is_boundary_condition_visible;
+        this.shadowRoot.querySelector("fea-renderer").updateBoundaryConditionVisibility = isBoundaryConditionVisible;
+        event.stopPropagation();
+    }
+
+    handleUpdateMeshVisibilityMessage(event) {
+        const isMeshVisible = event.detail.is_mesh_visible;
+        this.shadowRoot.querySelector("fea-renderer").updateMeshVisibility = isMeshVisible;
         event.stopPropagation();
     }
 
@@ -854,9 +925,49 @@ class FeaApp extends HTMLElement {
                 const errorData = { "message": message, "error": error };
                 this.querySelector(event.target.tagName.toLowerCase()).feModelError = errorData;
             } else {
-                console.log("Error!!!", error);
                 this.querySelector(event.target.tagName.toLowerCase()).feModelError = error;
             }
+            event.stopPropagation();
+            throw error;
+        }
+        event.stopPropagation();
+    }
+
+    handleSubmitJobMessage(event) {
+        const jobName = event.detail.message;
+        try {
+            this.state.actionsRouter.submit_job(jobName);
+        } catch (error) {
+            this.querySelector(event.target.tagName.toLowerCase()).submitJobError = error;
+            event.stopPropagation();
+            throw error;
+        }
+        this.querySelector(event.target.tagName.toLowerCase()).submitJobSuccess = 
+            "Analysis was successfully completed!";
+        event.stopPropagation();
+    }
+
+    handleShowJobAnalysisResultMessage(event) {
+        const jobName = event.detail.message.job_name;
+        const jobId = event.detail.message.job_id;
+        try {
+            this.state.actionsRouter.show_job_analysis_result(jobName, jobId);
+        } catch (error) {
+            this.querySelector(event.target.tagName.toLowerCase()).jobError = error;
+            event.stopPropagation();
+            throw error;
+        }
+        this.activatePostprocessorMenu(jobId);
+        event.stopPropagation();
+    }
+
+    handleDeleteJobMessage(event) {
+        const jobName = event.detail.message;
+        try {
+            this.state.actionsRouter.delete_job(jobName);
+        } catch (error) {
+            this.querySelector(event.target.tagName.toLowerCase()).jobError = error;
+            event.stopPropagation();
             throw error;
         }
         event.stopPropagation();
@@ -1430,6 +1541,26 @@ class FeaApp extends HTMLElement {
         event.stopPropagation();
     }
 
+    handleAddAnalysisResultServerMessage(event) {
+        const jobId = { job_name: event.detail.analysis_result_data.job_name, job_id: event.detail.analysis_result_data.job_id };
+        for (let i = 0; i < this.state.analysisResultsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.analysisResultsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.analysisResultsDataDependentMenus[i]).addJobIdToClient = jobId;
+            }
+        } 
+        event.stopPropagation();
+    }
+
+    handleDeleteAnalysisResultServerMessage(event) {
+        const jobId = { job_name: event.detail.analysis_result_data.job_name };
+        for (let i = 0; i < this.state.analysisResultsDataDependentMenus.length; i++) {
+            if (this.querySelector(this.state.analysisResultsDataDependentMenus[i]) !== null) {
+                this.querySelector(this.state.analysisResultsDataDependentMenus[i]).deleteJobIdFromClient = jobId;
+            }
+        } 
+        event.stopPropagation();
+    }
+
     handleAddNodeServerMessage(event) {
         if (event.detail.is_action_id_should_be_increased === true) {
             this.state.actionId += 1;
@@ -1446,8 +1577,8 @@ class FeaApp extends HTMLElement {
     }
 
     updateCanvasSize() {
-        if (this.querySelector("fea-postprocessor") !== null) {
-            const canvasWidth = window.innerWidth - this.querySelector("fea-postprocessor").offsetWidth - 15;
+        if (this.querySelector("fea-postprocessor-menu") !== null) {
+            const canvasWidth = window.innerWidth - this.querySelector("fea-postprocessor-menu").offsetWidth - 15;
             const canvasHeight = window.innerHeight - this.shadowRoot.querySelector("fea-app-menu-bar").offsetHeight - 
                 this.shadowRoot.querySelector("fea-app-tool-bar").offsetHeight - 40;
             this.shadowRoot.querySelector("fea-renderer").canvasSize = { "width": canvasWidth, "height": canvasHeight };

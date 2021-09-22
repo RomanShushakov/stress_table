@@ -59,7 +59,7 @@ impl<T, V> Properties<T, V>
         self.assigned_properties_to_lines.insert(name.to_owned(), assigned_property_to_lines);
 
         let (_, _, cross_section_type) =
-            self.properties.get(name).unwrap().extract_data();
+            self.properties.get(name).unwrap().clone_data();
 
         let detail = json!({ "assigned_properties_to_lines_data":
             {
@@ -107,7 +107,7 @@ impl<T, V> Properties<T, V>
             }
 
             let related_lines_numbers = assigned_property_to_lines
-                .extract_related_lines_numbers();
+                .copy_related_lines_numbers();
 
             if !are_line_numbers_same(related_lines_numbers.as_slice(),
                                       line_numbers)
@@ -133,14 +133,14 @@ impl<T, V> Properties<T, V>
             {
                 let old_related_lines_numbers =
                     self.assigned_properties_to_lines.get(&assigned_property_to_lines_name)
-                        .unwrap().extract_related_lines_numbers();
+                        .unwrap().copy_related_lines_numbers();
 
                 self.assigned_properties_to_lines.insert(assigned_property_to_lines_name.clone(),
                     assigned_property_to_lines);
 
                 let (_, _, cross_section_type) =
                     self.properties.get(&assigned_property_to_lines_name)
-                        .unwrap().extract_data();
+                        .unwrap().clone_data();
 
                 let related_lines_data =
                     self.assigned_properties_to_lines.get(&assigned_property_to_lines_name)
@@ -187,7 +187,7 @@ impl<T, V> Properties<T, V>
                     assigned_property_to_lines.clone();
 
                 let old_related_lines_numbers =
-                    old_assigned_property_to_lines.extract_related_lines_numbers();
+                    old_assigned_property_to_lines.copy_related_lines_numbers();
 
                 let changed_assigned_property_to_lines =
                     ChangedAssignedPropertyToLines::create(name, old_assigned_property_to_lines);
@@ -199,7 +199,7 @@ impl<T, V> Properties<T, V>
                     line_numbers);
 
                 let (_, _, cross_section_type) =
-                    self.properties.get(name).unwrap().extract_data();
+                    self.properties.get(name).unwrap().clone_data();
 
                 let related_lines_data =
                     self.assigned_properties_to_lines.get(name).unwrap()
@@ -249,7 +249,7 @@ impl<T, V> Properties<T, V>
             let detail = json!({ "assigned_properties_to_lines_data":
                 {
                     "name": name,
-                    "line_numbers": assigned_property_to_lines.extract_related_lines_numbers(),
+                    "line_numbers": assigned_property_to_lines.copy_related_lines_numbers(),
                 },
                 "is_action_id_should_be_increased": is_action_id_should_be_increased });
             dispatch_custom_event(detail, DELETE_ASSIGNED_PROPERTIES_TO_LINES_EVENT_NAME,
@@ -277,7 +277,7 @@ impl<T, V> Properties<T, V>
             self.assigned_properties_to_lines.remove(property_name)
             {
                 let related_lines_numbers =
-                    assigned_property_to_lines.extract_related_lines_numbers();
+                    assigned_property_to_lines.copy_related_lines_numbers();
                 let deleted_assigned_property_to_lines =
                     DeletedAssignedPropertyToLines::create(property_name,
                         assigned_property_to_lines);
@@ -336,13 +336,13 @@ impl<T, V> Properties<T, V>
                 deleted_assigned_property_to_lines);
 
             let (_, _, cross_section_type) =
-                self.properties.get(name).unwrap().extract_data();
+                self.properties.get(name).unwrap().clone_data();
 
             let related_lines_data =
                 self.assigned_properties_to_lines.get(name).unwrap().clone_related_lines_data();
 
             let related_lines_numbers = self.assigned_properties_to_lines.get(name)
-                .unwrap().extract_related_lines_numbers();
+                .unwrap().copy_related_lines_numbers();
 
             let detail = json!({ "assigned_properties_to_lines_data":
                 {
@@ -383,13 +383,13 @@ impl<T, V> Properties<T, V>
                     assigned_property_to_lines.clone_related_lines_data();
 
                 let line_numbers =
-                    assigned_property_to_lines.extract_related_lines_numbers();
+                    assigned_property_to_lines.copy_related_lines_numbers();
 
                 self.assigned_properties_to_lines.insert(
                     assigned_property_to_lines_name.clone(), assigned_property_to_lines);
 
                 let (_, _, cross_section_type) = self.properties.get(
-                    &assigned_property_to_lines_name).unwrap().extract_data();
+                    &assigned_property_to_lines_name).unwrap().clone_data();
 
                 let detail = json!({ "assigned_properties_to_lines_data":
                     {

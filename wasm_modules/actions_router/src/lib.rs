@@ -52,6 +52,10 @@ use external_functions::communication_with_boundary_conditions::
     restore_boundary_condition_in_boundary_conditions, extract_boundary_conditions,
     show_boundary_condition_info,
 };
+use external_functions::communication_with_preprocessor::
+{
+    submit_job, show_job_analysis_result, delete_job, extract_job_ids
+};
 
 mod action;
 use action::
@@ -1596,6 +1600,24 @@ impl ActionsRouter
     }
 
 
+    pub fn submit_job(&self, job_name: &str) -> Result<(), JsValue>
+    {
+        submit_job(job_name)
+    }
+
+
+    pub fn show_job_analysis_result(&self, job_name: &str, job_id: u32) -> Result<(), JsValue>
+    {
+        show_job_analysis_result(job_name, job_id)
+    }
+
+
+    pub fn delete_job(&self, job_name: &str) -> Result<(), JsValue>
+    {
+        delete_job(job_name)
+    }
+
+
     pub fn extract_points(&self, handler: js_sys::Function)
     {
         extract_points(handler);
@@ -1659,6 +1681,12 @@ impl ActionsRouter
     pub fn extract_boundary_conditions(&self, handler: js_sys::Function)
     {
         extract_boundary_conditions(handler);
+    }
+
+
+    pub fn extract_job_ids(&self, handler: js_sys::Function)
+    {
+        extract_job_ids(handler);
     }
 
 

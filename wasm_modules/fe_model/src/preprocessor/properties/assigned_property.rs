@@ -6,7 +6,7 @@ use crate::preprocessor::properties::beam_section_orientation::LocalAxis1Directi
 use crate::preprocessor::properties::functions::are_line_numbers_same;
 
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Copy, Clone, Serialize)]
 pub struct RelatedLineData<T, V>
 {
     line_number: T,
@@ -30,15 +30,15 @@ impl<T, V> RelatedLineData<T, V>
     }
 
 
-    pub fn line_number(&self) -> T
+    pub fn copy_line_number(&self) -> T
     {
         self.line_number
     }
 
 
-    pub fn local_axis_1_direction(&self) -> Option<LocalAxis1Direction<V>>
+    pub fn copy_local_axis_1_direction(&self) -> Option<LocalAxis1Direction<V>>
     {
-        self.local_axis_1_direction.clone()
+        self.local_axis_1_direction
     }
 
 
@@ -48,7 +48,8 @@ impl<T, V> RelatedLineData<T, V>
     }
 
 
-    fn update_local_axis_1_direction(&mut self, local_axis_1_direction: Option<LocalAxis1Direction<V>>)
+    fn update_local_axis_1_direction(&mut self,
+        local_axis_1_direction: Option<LocalAxis1Direction<V>>)
     {
         self.local_axis_1_direction = local_axis_1_direction;
     }
@@ -86,7 +87,7 @@ impl<T, V> AssignedPropertyToLines<T, V>
 
     pub fn are_line_numbers_same(&self, line_numbers: &[T]) -> bool
     {
-        let related_lines_numbers = self.extract_related_lines_numbers();
+        let related_lines_numbers = self.copy_related_lines_numbers();
         are_line_numbers_same(&related_lines_numbers, line_numbers)
     }
 
@@ -105,15 +106,28 @@ impl<T, V> AssignedPropertyToLines<T, V>
     }
 
 
-    pub fn extract_related_lines_numbers(&self) -> Vec<T>
+    pub fn copy_related_lines_numbers(&self) -> Vec<T>
     {
         let mut related_lines_numbers = Vec::new();
         for related_line_data in self.related_lines_data.iter()
         {
-            let line_number = related_line_data.line_number();
+            let line_number = related_line_data.copy_line_number();
             related_lines_numbers.push(line_number);
         }
         related_lines_numbers
+    }
+
+
+    pub fn copy_related_lines_local_axis_1_directions(&self) -> Vec<Option<LocalAxis1Direction<V>>>
+    {
+        let mut related_lines_local_axis_1_directions = Vec::new();
+        for related_line_data in self.related_lines_data.iter()
+        {
+            let local_axis_1_direction =
+                related_line_data.copy_local_axis_1_direction();
+            related_lines_local_axis_1_directions.push(local_axis_1_direction);
+        }
+        related_lines_local_axis_1_directions
     }
 
 
@@ -125,7 +139,7 @@ impl<T, V> AssignedPropertyToLines<T, V>
 
     pub fn fit_related_lines_data_by_line_numbers(&mut self, line_numbers: &[T])
     {
-        let related_lines_numbers = self.extract_related_lines_numbers();
+        let related_lines_numbers = self.copy_related_lines_numbers();
         for line_number in related_lines_numbers.iter()
         {
             if !line_numbers.contains(line_number)
@@ -218,7 +232,7 @@ impl<T, V> DeletedAssignedPropertyToLines<T, V>
 
     pub fn extract_name_and_related_lines_numbers(&self) -> (&str, Vec<T>)
     {
-        let line_numbers = self.assigned_property_to_lines.extract_related_lines_numbers();
+        let line_numbers = self.assigned_property_to_lines.copy_related_lines_numbers();
         (&self.name, line_numbers)
     }
 
@@ -250,7 +264,7 @@ impl<T, V> ChangedAssignedPropertyToLines<T, V>
 
     pub fn extract_name_and_related_lines_numbers(&self) -> (&str, Vec<T>)
     {
-        let line_numbers = self.assigned_property_to_lines.extract_related_lines_numbers();
+        let line_numbers = self.assigned_property_to_lines.copy_related_lines_numbers();
         (&self.name, line_numbers)
     }
 

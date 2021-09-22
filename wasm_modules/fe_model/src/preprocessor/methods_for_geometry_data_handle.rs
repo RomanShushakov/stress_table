@@ -8,7 +8,6 @@ use crate::traits::ClearByActionIdTrait;
 use crate::Preprocessor;
 
 
-
 impl<T, V> Preprocessor<T, V>
     where T: Copy + Debug + Serialize + Hash + Eq + PartialOrd,
           V: Copy + Debug + Serialize + PartialEq,

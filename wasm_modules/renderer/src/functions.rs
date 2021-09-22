@@ -8,12 +8,8 @@ use rand;
 
 use extended_matrix::extended_matrix::ExtendedMatrix;
 
-use crate::point_object::{PointObject, PointObjectKey, Coordinates};
-
-use crate::line_object::{LineObject, LineObjectKey};
-
-use crate::drawn_object::drawn_object::{GLMode};
-use crate::drawn_object::drawn_object::
+use crate::drawn_object::scene_adapter::GLMode;
+use crate::drawn_object::scene_adapter::
 {
     HINT_SHIFT_X, ROTATION_HINT_SHIFT_Y, ZOOM_HINT_SHIFT_Y, PAN_HINT_SHIFT_Y,
     DRAWN_OBJECT_SELECTED_COLOR, CANVAS_DRAWN_OBJECT_SELECTED_DENOTATION_COLOR,
@@ -24,31 +20,42 @@ use crate::drawn_object::consts::
     DRAWN_OBJECT_TO_CANVAS_WIDTH_SCALE, DRAWN_OBJECT_TO_CANVAS_HEIGHT_SCALE,
 };
 
-use crate::concentrated_load::ConcentratedLoad;
-
-use crate::distributed_line_load::DistributedLineLoad;
+use crate::global_scene::point_object::{PointObject, PointObjectKey, Coordinates};
+use crate::global_scene::line_object::{LineObject, LineObjectKey};
+use crate::global_scene::preprocessor::concentrated_load::ConcentratedLoad;
+use crate::global_scene::preprocessor::distributed_line_load::DistributedLineLoad;
 
 use crate::consts::TOLERANCE;
 
-use crate::log;
 
-
-
-pub fn initialize_shaders(gl: &GL, vertex_shader_code: &str, fragment_shader_code: &str)
-    -> WebGlProgram
+#[wasm_bindgen]
+extern "C"
 {
-    let vertex_shader = gl.create_shader(GL::VERTEX_SHADER).unwrap();
-    gl.shader_source(&vertex_shader, &vertex_shader_code);
-    gl.compile_shader(&vertex_shader);
-    let fragment_shader = gl.create_shader(GL::FRAGMENT_SHADER).unwrap();
-    gl.shader_source(&fragment_shader, &fragment_shader_code);
-    gl.compile_shader(&fragment_shader);
-    let shader_program = gl.create_program().unwrap();
-    gl.attach_shader(&shader_program, &vertex_shader);
-    gl.attach_shader(&shader_program, &fragment_shader);
-    gl.link_program(&shader_program);
-    gl.use_program(Some(&shader_program));
-    shader_program
+    #[wasm_bindgen(js_namespace = console)]
+    pub fn log(value: &str);
+}
+
+
+pub fn dispatch_custom_event(detail: serde_json::Value, event_type: &str, query_selector: &str)
+    -> Result<(), JsValue>
+{
+    let custom_event = web_sys::CustomEvent::new_with_event_init_dict(
+        event_type,
+        web_sys::CustomEventInit::new()
+            .bubbles(true)
+            .composed(true)
+            .detail(&JsValue::from_serde(&detail)
+                .or(Err("Renderer: Dispatch event: detail could not be \
+                converted into JsValue!"))?))
+                    .or(Err(JsValue::from("Renderer: Dispatch event: \
+                    custom event could not be constructed!")))?;
+    web_sys::window().expect("no global `window` exists")
+        .document().expect("should have a document on window")
+        .query_selector(query_selector).or(Err(JsValue::from("Renderer: Dispatch event: No \
+            element find by current selector!")))?.unwrap()
+        .dyn_into::<web_sys::EventTarget>().unwrap()
+        .dispatch_event(&custom_event)?;
+    Ok(())
 }
 
 
@@ -317,29 +324,6 @@ pub fn add_hints(ctx: &CTX, canvas_width: f32, canvas_height: f32)
 }
 
 
-pub fn dispatch_custom_event(detail: serde_json::Value, event_type: &str, query_selector: &str)
-    -> Result<(), JsValue>
-{
-    let custom_event = web_sys::CustomEvent::new_with_event_init_dict(
-        event_type,
-        web_sys::CustomEventInit::new()
-            .bubbles(true)
-            .composed(true)
-            .detail(&JsValue::from_serde(&detail)
-                .or(Err("Renderer: Dispatch event: detail could not be \
-                converted into JsValue!"))?))
-                    .or(Err(JsValue::from("Renderer: Dispatch event: \
-                    custom event could not be constructed!")))?;
-    web_sys::window().expect("no global `window` exists")
-        .document().expect("should have a document on window")
-        .query_selector(query_selector).or(Err(JsValue::from("Renderer: Dispatch event: No \
-            element find by current selector!")))?.unwrap()
-        .dyn_into::<web_sys::EventTarget>().unwrap()
-        .dispatch_event(&custom_event)?;
-    Ok(())
-}
-
-
 pub fn compare_with_tolerance(value: f32) -> f32
 {
     if value.abs() < TOLERANCE { 0.0 } else { value }
@@ -356,9 +340,9 @@ pub fn convert_into_array<T, const N: usize>(v: Vec<T>) -> [T; N]
 pub fn compose_rotation_matrix_for_vector(vector_start_point_coordinates: [f32; 3],
     vector_end_point_coordinates: [f32; 3]) -> ExtendedMatrix<u32, f32>
 {
-    let x = (vector_end_point_coordinates[0] - vector_start_point_coordinates[0]);
-    let y = (vector_end_point_coordinates[1] - vector_start_point_coordinates[1]);
-    let z = (vector_end_point_coordinates[2] - vector_start_point_coordinates[2]);
+    let x = vector_end_point_coordinates[0] - vector_start_point_coordinates[0];
+    let y = vector_end_point_coordinates[1] - vector_start_point_coordinates[1];
+    let z = vector_end_point_coordinates[2] - vector_start_point_coordinates[2];
     let vector_length = f32::sqrt(x.powi(2) + y.powi(2) + z.powi(2));
     let (u, v, w) = (vector_length, 0.0, 0.0);
     let alpha = ((x * u + y * v + z * w) / (vector_length.powi(2))).acos();
@@ -392,4 +376,13 @@ pub fn compose_rotation_matrix_for_vector(vector_start_point_coordinates: [f32; 
         3, vec![q_11, q_12, q_13, q_21, q_22, q_23, q_31, q_32, q_33],
         TOLERANCE);
     rotation_matrix
+}
+
+
+pub fn calculate_line_length(line_start_point_coordinates: &[f32; 3],
+    line_end_point_coordinates: &[f32; 3]) -> f32
+{
+    ((line_end_point_coordinates[0] - line_start_point_coordinates[0]).powi(2) +
+    (line_end_point_coordinates[1] - line_start_point_coordinates[1]).powi(2) +
+    (line_end_point_coordinates[2] - line_start_point_coordinates[2]).powi(2)).sqrt()
 }

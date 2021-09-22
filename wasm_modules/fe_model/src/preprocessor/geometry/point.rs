@@ -11,7 +11,7 @@ pub struct Point<V>
 
 
 impl<V> Point<V>
-    where V: Copy + PartialEq
+    where V: Copy + PartialEq,
 {
     pub fn create(x: V, y: V, z: V) -> Self
     {

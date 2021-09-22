@@ -15,8 +15,8 @@ impl ShaderPrograms
 {
     pub fn initialize(gl: &GL) -> Self
     {
-        let vertex_shader_code = include_str!("shaders/main_vert_shader.vert");
-        let fragment_shader_code = include_str!("shaders/main_frag_shader.frag");
+        let vertex_shader_code = include_str!("main_vert_shader.vert");
+        let fragment_shader_code = include_str!("main_frag_shader.frag");
 
         let vertex_shader = gl.create_shader(GL::VERTEX_SHADER).unwrap();
         gl.shader_source(&vertex_shader, &vertex_shader_code);
@@ -44,31 +44,31 @@ impl ShaderPrograms
     }
 
 
-    pub fn get_vertex_position(&self) -> u32
+    pub fn copy_vertex_position(&self) -> u32
     {
         self.vertex_position
     }
 
 
-    pub fn get_vertex_color(&self) -> u32
+    pub fn copy_vertex_color(&self) -> u32
     {
         self.vertex_color
     }
 
 
-    pub fn get_point_size(&self) -> &WebGlUniformLocation
+    pub fn ref_point_size(&self) -> &WebGlUniformLocation
     {
         &self.point_size
     }
 
 
-    pub fn get_projection_matrix(&self) -> &WebGlUniformLocation
+    pub fn ref_projection_matrix(&self) -> &WebGlUniformLocation
     {
         &self.projection_matrix
     }
 
 
-    pub fn get_model_view_matrix(&self) -> &WebGlUniformLocation
+    pub fn ref_model_view_matrix(&self) -> &WebGlUniformLocation
     {
         &self.model_view_matrix
     }

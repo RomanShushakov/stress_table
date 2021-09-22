@@ -3,7 +3,6 @@ use wasm_bindgen::prelude::*;
 use crate::FEModel;
 
 use crate::types::{FEUInt, FEFloat};
-use crate::functions::log;
 
 
 #[wasm_bindgen]

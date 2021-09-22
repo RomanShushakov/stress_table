@@ -46,7 +46,7 @@ impl<T, V> Properties<T, V>
             self.assigned_properties_to_lines.iter_mut()
         {
             let current_line_numbers_for_delete = assigned_property_to_lines
-                .extract_related_lines_numbers().into_iter().filter(|line_number|
+                .copy_related_lines_numbers().into_iter().filter(|line_number|
                     line_numbers.contains(line_number))
                 .collect::<Vec<T>>();
 
@@ -61,7 +61,7 @@ impl<T, V> Properties<T, V>
                 let detail = json!({ "assigned_properties_to_lines_data":
                     {
                         "name": assigned_property_to_lines_name,
-                        "line_numbers": assigned_property_to_lines.extract_related_lines_numbers(),
+                        "line_numbers": assigned_property_to_lines.copy_related_lines_numbers(),
                     },
                     "is_action_id_should_be_increased": false });
 
@@ -77,7 +77,7 @@ impl<T, V> Properties<T, V>
                 changed_assigned_properties_to_lines.push(changed_assigned_property_to_lines);
 
                 let old_line_numbers =
-                    assigned_property_to_lines.extract_related_lines_numbers();
+                    assigned_property_to_lines.copy_related_lines_numbers();
 
                 for line_number_for_delete in current_line_numbers_for_delete.iter()
                 {
@@ -89,13 +89,13 @@ impl<T, V> Properties<T, V>
                     assigned_property_to_lines.clone_related_lines_data();
 
                 let (_, _, cross_section_type) =
-                    self.properties.get(assigned_property_to_lines_name).unwrap().extract_data();
+                    self.properties.get(assigned_property_to_lines_name).unwrap().clone_data();
 
                 let detail = json!({ "assigned_properties_to_lines_data":
                     {
                         "name": assigned_property_to_lines_name,
                         "related_lines_data": related_lines_data,
-                        "line_numbers": assigned_property_to_lines.extract_related_lines_numbers(),
+                        "line_numbers": assigned_property_to_lines.copy_related_lines_numbers(),
                         "old_line_numbers": old_line_numbers,
                         "cross_section_type": cross_section_type.as_str().to_lowercase(),
                     },
@@ -153,7 +153,7 @@ impl<T, V> Properties<T, V>
                     assigned_property_to_lines.clone_related_lines_data();
 
                 let line_numbers = assigned_property_to_lines
-                    .extract_related_lines_numbers();
+                    .copy_related_lines_numbers();
 
                 while let Some(position) = restored_line_numbers_for_check.iter()
                     .position(|number| line_numbers.contains(number))
@@ -163,11 +163,11 @@ impl<T, V> Properties<T, V>
 
                 let old_line_numbers = self.assigned_properties_to_lines
                     .get(&assigned_property_to_lines_name).unwrap()
-                    .extract_related_lines_numbers();
+                    .copy_related_lines_numbers();
 
                 let (_, _, cross_section_type) =
                         self.properties.get(&assigned_property_to_lines_name)
-                            .unwrap().extract_data();
+                            .unwrap().clone_data();
 
                 self.assigned_properties_to_lines.insert(assigned_property_to_lines_name.clone(),
                     assigned_property_to_lines);
@@ -202,7 +202,7 @@ impl<T, V> Properties<T, V>
                     assigned_property_to_lines.clone_related_lines_data();
 
                 let line_numbers =
-                    assigned_property_to_lines.extract_related_lines_numbers();
+                    assigned_property_to_lines.copy_related_lines_numbers();
 
                 while let Some(position) = restored_line_numbers_for_check.iter()
                     .position(|number| line_numbers.contains(number))
@@ -212,7 +212,7 @@ impl<T, V> Properties<T, V>
 
                 let (_, _, cross_section_type) =
                         self.properties.get(&assigned_property_to_lines_name)
-                            .unwrap().extract_data();
+                            .unwrap().clone_data();
 
                 self.assigned_properties_to_lines.insert(assigned_property_to_lines_name.clone(),
                     assigned_property_to_lines);
@@ -273,10 +273,10 @@ impl<T, V> Properties<T, V>
                 assigned_property_to_lines.clone_related_lines_data();
 
             let related_lines_numbers =
-                assigned_property_to_lines.extract_related_lines_numbers();
+                assigned_property_to_lines.copy_related_lines_numbers();
 
             let (_, _, cross_section_type) = self.properties
-                .get(&assigned_property_to_lines_name).unwrap().extract_data();
+                .get(&assigned_property_to_lines_name).unwrap().clone_data();
 
             self.assigned_properties_to_lines.insert(
                 assigned_property_to_lines_name.clone(), assigned_property_to_lines);
@@ -302,17 +302,17 @@ impl<T, V> Properties<T, V>
             for (assigned_property_to_lines_name, assigned_property_to_lines) in
                 self.assigned_properties_to_lines.iter_mut()
             {
-                if assigned_property_to_lines.extract_related_lines_numbers().contains(&number)
+                if assigned_property_to_lines.copy_related_lines_numbers().contains(&number)
                 {
                     if let Some(position) = assigned_property_to_lines
                         .clone_related_lines_data()
                         .iter()
                         .position(|related_lines_data|
-                            related_lines_data.line_number() == number)
+                            related_lines_data.copy_line_number() == number)
                     {
                         if let Some(current_local_axis_1_direction) =
                             assigned_property_to_lines.clone_related_lines_data()[position]
-                                .local_axis_1_direction()
+                                .copy_local_axis_1_direction()
                         {
                             if let Some((start_point_coordinates, end_point_coordinates)) =
                                 get_line_points_coordinates(number, geometry)
@@ -325,7 +325,7 @@ impl<T, V> Properties<T, V>
 
                                 let projection_of_beam_section_orientation_vector =
                                     find_components_of_line_a_perpendicular_to_line_b::<T, V>(
-                                        &current_local_axis_1_direction.extract(),
+                                        &current_local_axis_1_direction.copy_direction(),
                                         &transformed_line,
                                         tolerance
                                     )?;
@@ -353,14 +353,14 @@ impl<T, V> Properties<T, V>
 
                                     let (_, _, cross_section_type) =
                                         self.properties.get(assigned_property_to_lines_name)
-                                            .unwrap().extract_data();
+                                            .unwrap().clone_data();
 
                                     let detail = json!({ "assigned_properties_to_lines_data":
                                         {
                                             "name": assigned_property_to_lines_name,
                                             "related_lines_data": related_lines_data,
                                             "line_numbers": assigned_property_to_lines
-                                                .extract_related_lines_numbers(),
+                                                .copy_related_lines_numbers(),
                                             "cross_section_type": cross_section_type.as_str()
                                                 .to_lowercase(),
                                         },
@@ -415,7 +415,7 @@ impl<T, V> Properties<T, V>
                     assigned_property_to_lines.clone_related_lines_data();
 
                 let line_numbers = assigned_property_to_lines
-                    .extract_related_lines_numbers();
+                    .copy_related_lines_numbers();
 
                 // let old_line_numbers = self.assigned_properties_to_lines
                 //     .get(&assigned_property_to_lines_name).unwrap()
@@ -423,7 +423,7 @@ impl<T, V> Properties<T, V>
 
                 let (_, _, cross_section_type) =
                         self.properties.get(&assigned_property_to_lines_name)
-                            .unwrap().extract_data();
+                            .unwrap().clone_data();
 
                 self.assigned_properties_to_lines.insert(assigned_property_to_lines_name.clone(),
                     assigned_property_to_lines);
@@ -454,18 +454,18 @@ impl<T, V> Properties<T, V>
                 for (assigned_property_to_lines_name, assigned_property_to_lines) in
                     self.assigned_properties_to_lines.iter_mut()
                 {
-                    if assigned_property_to_lines.extract_related_lines_numbers()
+                    if assigned_property_to_lines.copy_related_lines_numbers()
                         .contains(line_number)
                     {
                         if let Some(position) = assigned_property_to_lines
                             .clone_related_lines_data()
                             .iter()
                             .position(|related_lines_data|
-                                related_lines_data.line_number() == *line_number)
+                                related_lines_data.copy_line_number() == *line_number)
                         {
                             if let Some(current_local_axis_1_direction) =
                                 assigned_property_to_lines.clone_related_lines_data()[position]
-                                    .local_axis_1_direction()
+                                    .copy_local_axis_1_direction()
                             {
                                 if let Some((start_point_coordinates, end_point_coordinates)) =
                                     get_line_points_coordinates(*line_number, geometry)
@@ -478,7 +478,7 @@ impl<T, V> Properties<T, V>
 
                                     let projection_of_beam_section_orientation_vector =
                                         find_components_of_line_a_perpendicular_to_line_b::<T, V>(
-                                            &current_local_axis_1_direction.extract(),
+                                            &current_local_axis_1_direction.copy_direction(),
                                             &transformed_line,
                                             tolerance
                                         )?;
@@ -518,14 +518,14 @@ impl<T, V> Properties<T, V>
 
                                         let (_, _, cross_section_type) =
                                             self.properties.get(assigned_property_to_lines_name)
-                                                .unwrap().extract_data();
+                                                .unwrap().clone_data();
 
                                         let detail = json!({ "assigned_properties_to_lines_data":
                                             {
                                                 "name": assigned_property_to_lines_name,
                                                 "related_lines_data": related_lines_data,
                                                 "line_numbers": assigned_property_to_lines
-                                                    .extract_related_lines_numbers(),
+                                                    .copy_related_lines_numbers(),
                                                 "cross_section_type": cross_section_type.as_str()
                                                     .to_lowercase(),
                                             },

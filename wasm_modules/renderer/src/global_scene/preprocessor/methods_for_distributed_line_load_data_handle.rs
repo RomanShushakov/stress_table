@@ -1,22 +1,19 @@
 use wasm_bindgen::prelude::*;
 
-use crate::line_object::{LineObjectKey};
-use crate::line_object::{LineObjectType};
-
-use crate::distributed_line_load::DistributedLineLoad;
-
-use crate::Renderer;
+use crate::global_scene::line_object::{LineObjectKey};
+use crate::global_scene::line_object::{LineObjectType};
+use crate::global_scene::preprocessor::distributed_line_load::DistributedLineLoad;
+use crate::global_scene::preprocessor::preprocessor::Preprocessor;
 
 
-#[wasm_bindgen]
-impl Renderer
+impl Preprocessor
 {
     pub fn add_distributed_line_load(&mut self, line_number: u32, qx: f32, qy: f32, qz: f32)
         -> Result<(), JsValue>
     {
         let line_object_key = LineObjectKey::create(line_number,
             LineObjectType::Line);
-        if !self.state.line_objects.contains_key(&line_object_key)
+        if !self.line_objects.contains_key(&line_object_key)
         {
             let error_message = format!("Renderer: Add distributed line load action: \
                 Line with number {} does not exist!", line_number);
@@ -26,14 +23,14 @@ impl Renderer
         let uid =
             {
                 let mut current_uid = rand::random::<u32>();
-                while self.props.point_objects.values().position(|point_object|
+                while self.point_objects.values().position(|point_object|
                         point_object.is_uid_same(current_uid)).is_some() ||
-                    self.state.line_objects.values().position(|line_object|
+                    self.line_objects.values().position(|line_object|
                         line_object.is_uid_same(current_uid)).is_some() ||
-                    self.state.concentrated_loads.values()
+                    self.concentrated_loads.values()
                         .position(|concentrated_load|
                             concentrated_load.is_uid_same(current_uid)).is_some() ||
-                    self.state.distributed_line_loads.values()
+                    self.distributed_line_loads.values()
                         .position(|distributed_line_load|
                             distributed_line_load.is_uid_same(current_uid)).is_some() ||
                     current_uid == 255
@@ -45,9 +42,7 @@ impl Renderer
 
         let distributed_line_load = DistributedLineLoad::create(
             qx, qy, qz, uid);
-        self.state.distributed_line_loads.insert(line_number, distributed_line_load);
-        self.update_drawn_object_for_selection()?;
-        self.update_drawn_object_visible()?;
+        self.distributed_line_loads.insert(line_number, distributed_line_load);
         Ok(())
     }
 
@@ -56,7 +51,7 @@ impl Renderer
         -> Result<(), JsValue>
     {
         if let Some(distributed_line_load) =
-            self.state.distributed_line_loads.get_mut(&line_number)
+            self.distributed_line_loads.get_mut(&line_number)
         {
             distributed_line_load.update_load_components(qx, qy, qz);
         }
@@ -67,22 +62,18 @@ impl Renderer
                 line_number);
             return Err(JsValue::from(error_message));
         }
-        self.update_drawn_object_for_selection()?;
-        self.update_drawn_object_visible()?;
         Ok(())
     }
 
 
     pub fn delete_distributed_line_load(&mut self, line_number: u32) -> Result<(), JsValue>
     {
-        if self.state.distributed_line_loads.remove(&line_number).is_none()
+        if self.distributed_line_loads.remove(&line_number).is_none()
         {
             let error_message = format!("Renderer: Delete distributed line load action: \
                 Distributed line load applied to line with number {} does not exist!", line_number);
             return Err(JsValue::from(error_message));
         }
-        self.update_drawn_object_for_selection()?;
-        self.update_drawn_object_visible()?;
         Ok(())
     }
 }

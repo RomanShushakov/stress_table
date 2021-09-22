@@ -14,15 +14,17 @@ crate-type = ["cdylib"]
 
 [dependencies]
 extended_matrix = "0.2.12"
-finite_element_method = "0.2.6"
-wasm-bindgen = { version = "0.2.77", features = ["serde-serialize"] }
+finite_element_method = "0.2.8"
+wasm-bindgen = { version = "0.2.78", features = ["serde-serialize"] }
 serde = { version = "1.0.130", features = ["derive"] }
-serde_json = "1.0.67"
-js-sys = "0.3.54"
+serde_json = "1.0.68"
+js-sys = "0.3.55"
+rand = "0.8.4"
+getrandom = { version = "0.2.3", features = ["js"] }
 
 
 [dependencies.web-sys]
-version = "0.3.54"
+version = "0.3.55"
 features = [
   "Document",
   "Window",

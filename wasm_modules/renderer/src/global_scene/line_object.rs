@@ -7,8 +7,7 @@ use std::collections::HashMap;
 use extended_matrix::extended_matrix::ExtendedMatrix;
 use extended_matrix::basic_matrix::basic_matrix::MatrixElementPosition;
 
-
-use crate::{PointObjectKey, PointObject};
+use crate::global_scene::point_object::{PointObjectKey, PointObject};
 
 use crate::consts::TOLERANCE;
 

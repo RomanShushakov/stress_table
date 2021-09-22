@@ -22,7 +22,7 @@ use crate::functions::{dispatch_custom_event};
 
 impl<T, V> Properties<T, V>
     where T: Copy + Debug + Eq + Hash + Serialize + PartialOrd,
-          V: Copy + Debug + Serialize + PartialEq,
+          V: Copy + Debug + Serialize + PartialEq + PartialOrd + From<f32>,
 {
     pub fn add_beam_section(&mut self, action_id: T, name: &str, area: V,
         i11: V, i22: V, i12: V, it: V, shear_factor: V,
@@ -44,7 +44,7 @@ impl<T, V> Properties<T, V>
                 Shear factor {:?} does  already exist!", area, i11, i22, i12, it, shear_factor);
             return Err(JsValue::from(error_message));
         }
-        let beam_section = BeamSection::create(area, i11, i22, i12, it, shear_factor);
+        let beam_section = BeamSection::create(area, i11, i22, i12, it, shear_factor)?;
         self.beam_sections.insert(name.to_owned(), beam_section);
         let detail = json!({ "beam_section_data": { "name": name, "area": area,
             "i11": i11, "i22": i22, "i12": i12, "it": it, "shear_factor": shear_factor },
@@ -72,7 +72,7 @@ impl<T, V> Properties<T, V>
         }
         if let Some(beam_section) = self.beam_sections.get_mut(name)
         {
-            beam_section.update(area, i11, i22, i12, it, shear_factor);
+            beam_section.update(area, i11, i22, i12, it, shear_factor)?;
             let detail = json!({ "beam_section_data": { "name": name,
                 "area": area, "i11": i11, "i22": i22, "i12": i12, "it": it,
                 "shear_factor": shear_factor },
@@ -99,7 +99,7 @@ impl<T, V> Properties<T, V>
         for (property_name, property) in self.properties.iter()
         {
             let (_extracted_material_name, extracted_cross_section_name,
-                extracted_cross_section_type) = property.extract_data();
+                extracted_cross_section_type) = property.clone_data();
             if extracted_cross_section_name == beam_section_name &&
                 extracted_cross_section_type == CrossSectionType::Beam
             {
@@ -151,7 +151,7 @@ impl<T, V> Properties<T, V>
             self.deleted_beam_sections.remove(&action_id)
         {
             let (deleted_beam_section_name, area, i11, i22, i12, it,
-                shear_factor) = deleted_beam_section.extract_name_and_data();
+                shear_factor) = deleted_beam_section.copy_name_and_data();
             if deleted_beam_section_name != name
             {
                 let error_message = &format!("Properties: Restore beam section \
@@ -159,7 +159,7 @@ impl<T, V> Properties<T, V>
                 return Err(JsValue::from(error_message));
             }
             self.beam_sections.insert(deleted_beam_section_name.to_owned(),
-               BeamSection::create(area, i11, i22, i12, it, shear_factor));
+               BeamSection::create(area, i11, i22, i12, it, shear_factor)?);
             let detail = json!({ "beam_section_data": {
                     "name": deleted_beam_section_name,
                     "area": area,

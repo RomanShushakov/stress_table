@@ -376,7 +376,7 @@ impl ActionsRouter
         self.undo_actions.clear();
         let old_boundary_condition = BoundaryCondition::create(
             old_optional_ux_value, old_optional_uy_value,
-            old_optional_uy_value, old_optional_rx_value,
+            old_optional_uz_value, old_optional_rx_value,
             old_optional_ry_value, old_optional_rz_value);
         let new_boundary_condition = BoundaryCondition::create(
             new_optional_ux_value, new_optional_uy_value,

@@ -88,7 +88,7 @@ impl<T, V> Properties<T, V>
 
         let property = self.properties.get_mut(name).unwrap();
 
-        let (_, _, previous_cross_section_type) = property.extract_data();
+        let (_, _, previous_cross_section_type) = property.clone_data();
 
         property.update(material_name, cross_section_name,
             converted_cross_section_type.clone());
@@ -123,11 +123,11 @@ impl<T, V> Properties<T, V>
                     }
 
                     let changed_assigned_property_to_lines_line_numbers =
-                        changed_assigned_property_to_lines.extract_related_lines_numbers();
+                        changed_assigned_property_to_lines.copy_related_lines_numbers();
 
                     let assigned_property_to_lines_line_numbers =
                         self.assigned_properties_to_lines.get(name).unwrap()
-                            .extract_related_lines_numbers();
+                            .copy_related_lines_numbers();
 
                     if !are_line_numbers_same(
                         changed_assigned_property_to_lines_line_numbers.as_slice(),
@@ -175,7 +175,7 @@ impl<T, V> Properties<T, V>
                         vec![changed_assigned_property_to_lines]);
 
                     let line_numbers =
-                        assigned_property_to_lines.extract_related_lines_numbers();
+                        assigned_property_to_lines.copy_related_lines_numbers();
 
                     match converted_cross_section_type
                     {
@@ -297,7 +297,7 @@ impl<T, V> Properties<T, V>
                 return Err(JsValue::from(error_message));
             }
             let (deleted_property_name, material_name, cross_section_name,
-                cross_section_type) = deleted_properties[0].extract_name_and_data();
+                cross_section_type) = deleted_properties[0].clone_name_and_data();
             if deleted_property_name != name
             {
                 let error_message = &format!("Properties: Restore properties \
@@ -339,7 +339,7 @@ impl<T, V> Properties<T, V>
             for deleted_property in &deleted_properties
             {
                 let (name, material_name, cross_section_name,
-                    cross_section_type) = deleted_property.extract_name_and_data();
+                    cross_section_type) = deleted_property.clone_name_and_data();
                 self.properties.insert(name.to_owned(),
                     Property::create(material_name, cross_section_name,
                         cross_section_type.clone()));

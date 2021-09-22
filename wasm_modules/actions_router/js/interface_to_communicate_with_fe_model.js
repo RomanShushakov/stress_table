@@ -507,6 +507,34 @@ export function restoreBoundaryConditionInBoundaryConditions(action_id, point_nu
     }
 }
 
+export function submitJob(jobName) 
+{
+    try {
+        communicatorWithFEModel.submitJob = jobName;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function showJobAnalysisResult(jobName, jobId) 
+{
+    const jobData = { "job_name": jobName, "job_id": jobId };
+    try {
+        communicatorWithFEModel.showJobAnalysisResult = jobData;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export function deleteJob(jobName) 
+{
+    try {
+        communicatorWithFEModel.deleteJob = jobName;
+    } catch (error) {
+        throw error;
+    }
+}
+
 export function showPointInfo(number, handler) 
 {
     const pointInfoData = {"number": number, "handler": handler};
@@ -615,4 +643,9 @@ export function extractDistributedLineLoads(handler)
 export function extractBoundaryConditions(handler) 
 {
     communicatorWithFEModel.extractBoundaryConditions = handler;
+}
+
+export function extractJobIds(handler) 
+{
+    communicatorWithFEModel.extractJobIds = handler;
 }

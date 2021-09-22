@@ -4,7 +4,12 @@ class FeaPostprocessorMenu extends HTMLElement {
 
         this.props = {};
 
-        this.state = {};
+        this.state = {
+            menuNames: {
+                "geometry-menu": "fea-geometry-menu",
+                "material-menu": "fea-material-menu",
+            },
+        };
 
         this.attachShadow({ mode: "open" });
 
@@ -13,16 +18,23 @@ class FeaPostprocessorMenu extends HTMLElement {
                 :host {
                     display: block;
                 }
+
+                .wrapper {
+                    background-color: #2e3440;
+                    display: flex;
+                    flex-direction: row;
+                }
             </style>
-            <div>
-                <p>Hello from fea-postprocessor-menu</p>
-                <button class="fem">FEM</button>
-                <button>Plot Reactions</button>
+
+            <div class=wrapper>
+                <fea-postprocessor-menu-buttons></fea-postprocessor-menu-buttons>
                 <slot></slot>
             </div>
         `;
 
-        this.shadowRoot.querySelector(".fem").addEventListener("click", () => this.activatePreprocessor());
+        this.addEventListener("activate-menu", (event) => this.activateMenu(event));
+
+        this.addEventListener("deactivate-menu", (event) => this.deactivateMenu(event));
     }
 
     connectedCallback() {
@@ -41,14 +53,27 @@ class FeaPostprocessorMenu extends HTMLElement {
     adoptedCallback() {
     }
 
-    activatePreprocessor() {
-        this.dispatchEvent(new CustomEvent("activate-preprocessor", {
+    updateCanvasSize() {
+        this.dispatchEvent(new CustomEvent("resize", {
             bubbles: true,
             composed: true,
         }));
-
     }
 
+    activateMenu(event) {
+        const menuName = event.detail.menuName;
+        const menu = document.createElement(this.state.menuNames[menuName]);
+        this.append(menu);
+        event.stopPropagation();
+        this.updateCanvasSize();
+    }
+
+    deactivateMenu(event) {
+        const menuName = event.detail.menuName;
+        this.querySelector(this.state.menuNames[menuName]).remove();
+        event.stopPropagation();
+        this.updateCanvasSize();
+    }
 }
 
 export default FeaPostprocessorMenu;

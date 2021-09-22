@@ -58,7 +58,7 @@ pub const CANVAS_DRAWN_LINES_TRUSS_PROPS_DENOTATION_COLOR: &str = "rgb(102, 205,
 pub const DRAWN_LINES_BEAM_PROPS_COLOR: [f32; 4] = [1.0, 0.894, 0.709, 1.0]; // Moccasin
 pub const CANVAS_DRAWN_LINES_BEAM_PROPS_DENOTATION_COLOR: &str = "rgb(255, 228, 181)"; // Moccasin
 
-pub const DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER: u32 = 48; // the number of points in cylinder circular base
+pub const DRAWN_LINE_OBJECTS_BASE_POINTS_NUMBER: u32 = 12; // the number of points in cylinder circular base
 pub const DRAWN_LINE_OBJECTS_BASE_RADIUS: f32 = 0.006; // the radius of cylinder circular base
 
 pub const DRAWN_LINE_OBJECTS_DENOTATION_SHIFT: f32 = 0.01;

@@ -439,6 +439,30 @@ class CommunicatorWithFEModel {
         }
     }
 
+    set submitJob(jobName) {
+        try {
+            this.state.feModel.submit_job(jobName);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    set showJobAnalysisResult(jobData) {
+        try {
+            this.state.feModel.show_job_analysis_result(jobData.job_name, jobData.job_id);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    set deleteJob(jobName) {
+        try {
+            this.state.feModel.delete_job(jobName);
+        } catch (error) {
+            throw error;
+        }
+    }
+
     set showPointInfo(pointInfoData) {
         try {
             this.state.feModel.show_point_info(pointInfoData.number, pointInfoData.handler);
@@ -526,6 +550,10 @@ class CommunicatorWithFEModel {
 
     set extractBoundaryConditions(handler) {
         this.state.feModel.extract_boundary_conditions(handler);
+    }
+
+    set extractJobIds(handler) {
+        this.state.feModel.extract_job_ids(handler);
     }
 }
 

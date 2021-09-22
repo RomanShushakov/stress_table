@@ -139,6 +139,7 @@ class FeaApp extends HTMLElement {
         this.addEventListener("getActionIdForToolBar", (event) => this.getActionIdForToolBar(event));
 
         this.addEventListener("getFEModelLoadStatus", (event) => this.getFEModelLoadStatus(event));
+        this.addEventListener("getRendererLoadStatus", (event) => this.getRendererLoadStatus(event));
 
         this.addEventListener("getPoints", (event) => this.getPoints(event));
         this.addEventListener("getLines", (event) => this.getLines(event));
@@ -167,7 +168,7 @@ class FeaApp extends HTMLElement {
             (event) => this.handleSelectedDistributedLineLoadsLinesNumbersMessage(event));
         this.addEventListener("selected_boundary_conditions_points_numbers", 
             (event) => this.handleSelectedBoundaryConditionsPointsNumbersMessage(event));
-        this.addEventListener("extract_data_for_postprocessor", (event) => this.handleExtractDataForPostprocessorMessage(event));
+        this.addEventListener("extract_result_for_renderer", (event) => this.handleExtractResultForRendererMessage(event));
 
         this.addEventListener("updateGeometryVisibility", (event) => this.hangleUpdateGeometryVisibilityMessage(event));
         this.addEventListener("updateLoadVisibility", (event) => this.handleUpdateLoadVisibilityMessage(event));
@@ -184,6 +185,8 @@ class FeaApp extends HTMLElement {
         this.addEventListener("submitJob", (event) => this.handleSubmitJobMessage(event));
         this.addEventListener("showJobAnalysisResult", (event) => this.handleShowJobAnalysisResultMessage(event));
         this.addEventListener("deleteJob", (event) => this.handleDeleteJobMessage(event));
+
+        this.addEventListener("plotDisplacement", (event) => this.handlePlotDisplacementMessage(event));
 
         this.addEventListener("add_point_server_message", (event) => this.handleAddPointServerMessage(event));
         this.addEventListener("update_point_server_message", (event) => this.handleUpdatePointServerMessage(event));
@@ -333,6 +336,11 @@ class FeaApp extends HTMLElement {
 
     getFEModelLoadStatus(event) {
         this.querySelector(event.target.tagName.toLowerCase()).isFEModelLoaded = this.state.isFEModelLoaded;
+        event.stopPropagation();
+    }
+
+    getRendererLoadStatus(event) {
+        this.querySelector(event.target.tagName.toLowerCase()).isRendererLoaded = this.state.isRendererLoaded;
         event.stopPropagation();
     }
 
@@ -822,7 +830,7 @@ class FeaApp extends HTMLElement {
         event.stopPropagation();
     }
 
-    handleExtractDataForPostprocessorMessage(event) {
+    handleExtractResultForRendererMessage(event) {
         const message = event.detail;
         console.log(message);
         event.stopPropagation();
@@ -971,6 +979,12 @@ class FeaApp extends HTMLElement {
             event.stopPropagation();
             throw error;
         }
+        event.stopPropagation();
+    }
+
+    handlePlotDisplacementMessage(event) {
+        const magnitude = event.detail.message.magnitude;
+        console.log(magnitude);
         event.stopPropagation();
     }
 

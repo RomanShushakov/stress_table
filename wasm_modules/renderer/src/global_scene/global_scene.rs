@@ -13,7 +13,7 @@ use crate::global_scene::preprocessor::concentrated_load::ConcentratedLoad;
 use crate::global_scene::preprocessor::distributed_line_load::DistributedLineLoad;
 use crate::global_scene::preprocessor::boundary_condition::BoundaryCondition;
 
-use crate::consts::{EVENT_TARGET, EXTRACT_DATA_FOR_POSTPROCESSOR_EVENT_NAME};
+use crate::consts::{EVENT_TARGET, EXTRACT_RESULT_FOR_RENDERER_EVENT_NAME};
 use crate::functions::dispatch_custom_event;
 
 pub enum SceneState
@@ -79,9 +79,9 @@ impl GlobalScene
                         {
                             *id = job_id;
                             *postprocessor = Postprocessor::create();
-                            let detail = json!(job_id);
+                            let detail = json!({ "job_id": job_id });
                             dispatch_custom_event(detail,
-                                EXTRACT_DATA_FOR_POSTPROCESSOR_EVENT_NAME,
+                                EXTRACT_RESULT_FOR_RENDERER_EVENT_NAME,
                                 EVENT_TARGET)?;
                         }
                     }
@@ -89,9 +89,9 @@ impl GlobalScene
                     {
                         self.optional_postprocessor =
                             Some((job_id, Postprocessor::create()));
-                        let detail = json!(job_id);
+                        let detail = json!({ "job_id": job_id });
                         dispatch_custom_event(detail,
-                            EXTRACT_DATA_FOR_POSTPROCESSOR_EVENT_NAME,
+                            EXTRACT_RESULT_FOR_RENDERER_EVENT_NAME,
                             EVENT_TARGET)?;
                     }
                     self.scene_state = SceneState::Postprocessor;

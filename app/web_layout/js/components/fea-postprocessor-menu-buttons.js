@@ -11,7 +11,7 @@ class FeaPostprocessorMenuButtons extends HTMLElement {
             ],
 
             menuNames: {
-                "contours-menu-button": "material-menu",
+                "contours-menu-button": "contours-menu",
                 "symbols-menu-button": "geometry-menu",
             }
         };

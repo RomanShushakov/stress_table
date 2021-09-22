@@ -27,9 +27,12 @@ impl<V> TrussSection<V>
 
         if let Some(area) = area2
         {
-            let error_message = &format!("{}: Area {:?} is less or equal to zero!",
-                error_message_header, area);
-            return Err(JsValue::from(error_message));
+            if area <= V::from(0f32)
+            {
+                let error_message = &format!("{}: Area {:?} is less or equal to zero!",
+                    error_message_header, area);
+                return Err(JsValue::from(error_message));
+            }
         }
 
         Ok(TrussSection { area, area2 })
@@ -55,9 +58,12 @@ impl<V> TrussSection<V>
 
         if let Some(area) = area2
         {
-            let error_message = &format!("{}: Area {:?} is less or equal to zero!",
-                error_message_header, area);
-            return Err(JsValue::from(error_message));
+            if area <= V::from(0f32)
+            {
+                let error_message = &format!("{}: Area {:?} is less or equal to zero!",
+                    error_message_header, area);
+                return Err(JsValue::from(error_message));
+            }
         }
 
         self.area = area;

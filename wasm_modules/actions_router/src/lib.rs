@@ -52,9 +52,13 @@ use external_functions::communication_with_boundary_conditions::
     restore_boundary_condition_in_boundary_conditions, extract_boundary_conditions,
     show_boundary_condition_info,
 };
-use external_functions::communication_with_preprocessor::
+use external_functions::communication_with_solver::
 {
-    submit_job, show_job_analysis_result, delete_job, extract_job_ids
+    submit_job,
+};
+use external_functions::communication_with_postprocessor::
+{
+    show_job_analysis_result, delete_job, extract_job_ids
 };
 
 mod action;

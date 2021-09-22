@@ -627,9 +627,7 @@ class FeaPreprocessorMenuButtons extends HTMLElement {
         this.toggle(buttonName);
     }
 
-
     connectedCallback() {
-        this.toggle("geometry-menu-button");
     }
 
     disconnectedCallback() {
@@ -643,14 +641,6 @@ class FeaPreprocessorMenuButtons extends HTMLElement {
     }
     
     adoptedCallback() {
-    }
-
-    activatePostprocessor() {
-        this.dispatchEvent(new CustomEvent("activate-postprocessor", {
-            bubbles: true,
-            composed: true,
-        }));
-
     }
 
     toggle(buttonName) {

@@ -304,14 +304,13 @@ class FeaApp extends HTMLElement {
     }
 
     activatePostprocessorMenu(jobId) {
-        if (this.querySelector("fea-preprocessor-menu") !== null) {
-            this.querySelector("fea-preprocessor-menu").remove();
-        }
-        const feaPostprocessorMenu = document.createElement("fea-postprocessor-menu");
-        this.append(feaPostprocessorMenu);
-
         const frame = () => {
             if (this.state.isRendererLoaded === true) {
+                if (this.querySelector("fea-preprocessor-menu") !== null) {
+                    this.querySelector("fea-preprocessor-menu").remove();
+                }
+                const feaPostprocessorMenu = document.createElement("fea-postprocessor-menu");
+                this.append(feaPostprocessorMenu);
                 this.shadowRoot.querySelector("fea-app-tool-bar").setAttribute("is-preprocessor-active", false);
                 this.shadowRoot.querySelector("fea-app-tool-bar").setAttribute("is-postprocessor-active", true);
                 this.shadowRoot.querySelector("fea-renderer").activatePostprocessorState = jobId;

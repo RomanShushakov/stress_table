@@ -7,7 +7,7 @@ class FeaPostprocessorMenu extends HTMLElement {
         this.state = {
             menuNames: {
                 "contours-menu": "fea-contours-menu",
-                "material-menu": "fea-material-menu",
+                "symbols-menu": "fea-symbols-menu",
             },
         };
 

@@ -79,6 +79,9 @@ import FeaPostprocessorMenuButtons from "./components/fea-postprocessor-menu-but
 import FeaContoursMenu from "./components/fea-contours/fea-contours-menu.js";
 import FeaContoursDisplacementMenu from "./components/fea-contours/fea-contours-displacement-menu.js";
 
+import FeaSymbolsMenu from "./components/fea-symbols/fea-symbols-menu.js";
+import FeaSymbolsReactionsMenu from "./components/fea-symbols/fea-symbols-reactions-menu.js";
+
 customElements.define("fea-app", FeaApp);
 customElements.define("fea-app-menu-bar", FeaAppMenuBar);
 customElements.define("fea-app-tool-bar", FeaAppToolBar);
@@ -159,3 +162,6 @@ customElements.define("fea-postprocessor-menu-buttons", FeaPostprocessorMenuButt
 
 customElements.define("fea-contours-menu", FeaContoursMenu);
 customElements.define("fea-contours-displacement-menu", FeaContoursDisplacementMenu);
+
+customElements.define("fea-symbols-menu", FeaSymbolsMenu);
+customElements.define("fea-symbols-reactions-menu", FeaSymbolsReactionsMenu);

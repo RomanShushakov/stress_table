@@ -96,21 +96,6 @@ class FeaContoursDisplacementMenu extends HTMLElement {
                     border: 0.2rem solid #4a5060;
                 }
 
-                .cancel-button {
-                    background: #0996d7;
-                    border: 0.2rem solid #3b4453;
-                    border-radius: 0.3rem;
-                    color: #D9D9D9;
-                    padding: 0rem;
-                    margin: 0rem;
-                    width: 4rem;
-                    height: 1.7rem;
-                }
-
-                .cancel-button:hover {
-                    border: 0.2rem solid #4a5060;
-                }
-
                 .analysis-info {
                     display: flex;
                     margin: 0rem;
@@ -141,7 +126,6 @@ class FeaContoursDisplacementMenu extends HTMLElement {
                 
                 <div class="apply-cancel-buttons">
                     <button class="apply-button">Apply</button>
-                    <button class="cancel-button">Cancel</button>
                 </div>
 
                 <div class="analysis-info">
@@ -151,8 +135,6 @@ class FeaContoursDisplacementMenu extends HTMLElement {
         `;
 
         this.shadowRoot.querySelector(".apply-button").addEventListener("click", () => this.plotDisplacement());
-
-        this.shadowRoot.querySelector(".cancel-button").addEventListener("click", () => this.cancelPlotDisplacement());
 
         this.shadowRoot.querySelector(".magnitude").addEventListener("click", () => {
             const highlightedElement = this.shadowRoot.querySelector(".magnitude");
@@ -176,8 +158,8 @@ class FeaContoursDisplacementMenu extends HTMLElement {
         const frame = () => {
             this.getRendererLoadStatus();
             if (this.props.isRendererLoaded === true) {
-                clearInterval(id);
                 this.defineNewMagnitude();
+                clearInterval(id);
             }
         }
         const id = setInterval(frame, 10);
@@ -245,13 +227,6 @@ class FeaContoursDisplacementMenu extends HTMLElement {
                 message: message,
             },
         }));
-    }
-
-    cancelPlotDisplacement() {
-        this.defineNewMagnitude();
-        const newPointNumberField = this.shadowRoot.querySelector(".magnitude");
-        this.dropHighlight(newPointNumberField);
-        this.shadowRoot.querySelector(".analysis-info-message").innerHTML = "";
     }
 
     dropHighlight(highlightedElement) {

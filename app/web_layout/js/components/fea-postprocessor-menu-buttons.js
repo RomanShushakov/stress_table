@@ -12,7 +12,7 @@ class FeaPostprocessorMenuButtons extends HTMLElement {
 
             menuNames: {
                 "contours-menu-button": "contours-menu",
-                "symbols-menu-button": "geometry-menu",
+                "symbols-menu-button": "symbols-menu",
             }
         };
 
@@ -269,6 +269,20 @@ class FeaPostprocessorMenuButtons extends HTMLElement {
     }
 
     activatePreprocessorMenu() {
+        for (let i = 0; i < this.state.buttonNames.length; i ++) {
+            if (this.shadowRoot.querySelector(`.${this.state.buttonNames[i]}`)
+                    .classList.contains("active") === true) {
+                this.shadowRoot.querySelector(`.${this.state.buttonNames[i]}`).classList.remove("active");
+                const menuName = this.state.menuNames[this.state.buttonNames[i]];
+                this.dispatchEvent(new CustomEvent("deactivate-menu", {
+                    bubbles: true,
+                    composed: true,
+                    detail: {
+                        "menuName": menuName,
+                    }
+                }));
+            }
+        } 
         this.dispatchEvent(new CustomEvent("activatePreprocessorMenu", {
             bubbles: true,
             composed: true,
